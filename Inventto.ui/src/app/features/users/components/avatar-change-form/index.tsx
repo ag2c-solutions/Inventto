@@ -2,6 +2,7 @@ import Cropper from 'react-easy-crop';
 import { Loader2, ZoomIn, ZoomOut, ImageIcon } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Slider } from '@/app/components/ui/slider';
+
 import {
   Avatar,
   AvatarFallback,
@@ -70,8 +71,8 @@ export function AvatarChangeForm({
       )}
 
       {hasFile && (
-        <div className="flex flex-col gap-4 animate-in fade-in zoom-in duration-300">
-          <div className="relative h-[300px] w-full bg-black/5 rounded-md overflow-hidden border shadow-inner">
+        <div className="flex flex-col gap-4">
+          <div className="relative h-[300px] w-full bg-black/5 rounded-md overflow-hidden border">
             <Cropper
               image={files[0].url}
               crop={crop}
@@ -82,7 +83,6 @@ export function AvatarChangeForm({
               onZoomChange={setZoom}
               cropShape="round"
               showGrid={false}
-              objectFit="contain"
             />
           </div>
 

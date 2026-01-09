@@ -17,10 +17,10 @@ async function getAll(): Promise<Category[]> {
   return (data || []).map(CategoryMapper.toDomain);
 }
 
-async function create(name: string): Promise<Category> {
+async function create(name: string, organizationId: string): Promise<Category> {
   const { data, error } = await supabase
     .from('categories')
-    .insert({ name: name })
+    .insert({ name: name, organization_id: organizationId })
     .select()
     .single()
     .overrideTypes<CategoryDTO, { merge: false }>();

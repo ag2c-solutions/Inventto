@@ -1,4 +1,4 @@
-import { CategorySchema } from '@/app/features/category/schemas';
+import { CategorySchema } from '@/app/features/categories/schemas';
 import { z } from 'zod';
 
 export const attributeSchema = z.object({

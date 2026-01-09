@@ -2,8 +2,8 @@ import { useState } from 'react';
 import {
   useCategoriesQuery,
   useCreateCategoryMutation
-} from '@/app/features/category/hooks/use-query';
-import type { Category } from '@/app/features/category/types';
+} from '@/app/features/categories/hooks/use-query';
+import type { Category } from '@/app/features/categories/types';
 
 interface UseCategoryFieldProps {
   onSelect: (category: Category) => void;
