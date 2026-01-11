@@ -113,7 +113,11 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
           Associar Novas Imagens para {`${productName} `}
           <div className="flex gap-2 py-2">
             {currentVariant?.options?.map((opt, index) => (
-              <VariantOptionBadge className='bg-primary/20' key={index} option={opt} />
+              <VariantOptionBadge
+                className="bg-primary/20"
+                key={index}
+                option={opt}
+              />
             ))}
           </div>
         </DialogTitle>
@@ -149,9 +153,10 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
                   />
                 )}
 
-                {image.url.startsWith('blob') || image.url.startsWith('https://placehold.co') && (
-                  <ImageCard src={image.url} alt={image.name} />
-                )}
+                {image.url.startsWith('blob') ||
+                  (image.url.startsWith('https://placehold.co') && (
+                    <ImageCard src={image.url} alt={image.name} />
+                  ))}
 
                 {isSelected && (
                   <div className="absolute inset-0 bg-black/50 p-1.5 text-white">
@@ -203,7 +208,6 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
                     {opt.label}
                     <VariantOptionBadge option={opt.values} />
                   </Label>
-
                 </div>
               ))}
             </RadioGroup>

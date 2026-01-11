@@ -24,10 +24,10 @@ export const ProductTableColumnImages = memo(
                   src={
                     image.publicId && !image.publicId.startsWith('mock')
                       ? createCloudinaryThumbnail(image.publicId, {
-                        height: 150,
-                        width: 150,
-                        quality: 90
-                      })
+                          height: 150,
+                          width: 150,
+                          quality: 90
+                        })
                       : image.url || 'https://github.com/shadcn.png'
                   }
                   alt={image.name || '@shadcn'}

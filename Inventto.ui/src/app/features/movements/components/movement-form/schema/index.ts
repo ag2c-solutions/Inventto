@@ -19,23 +19,26 @@ export const movementItemSchema = z.object({
 });
 
 export const baseMovementSchema = z.object({
-  type: z.enum(['entry', 'withdrawal', 'adjustment']),  
-  date: z.date({ 
+  type: z.enum(['entry', 'withdrawal', 'adjustment']),
+  date: z.date({
     error: (issue) => {
-      if (issue.code === z.ZodIssueCode.invalid_type && issue.received === 'undefined') {
+      if (
+        issue.code === z.ZodIssueCode.invalid_type &&
+        issue.received === 'undefined'
+      ) {
         return { message: 'Selecione uma data' };
       }
       return { message: 'Data inválida' };
     }
   }),
-  
+
   time: z
     .string()
     .regex(
       /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/,
       'Horário inválido'
     ),
-    
+
   reason: z.string().min(1, 'Selecione o motivo da movimentação'),
   documentNumber: z.string().optional(),
   totalQuantity: z.number(),

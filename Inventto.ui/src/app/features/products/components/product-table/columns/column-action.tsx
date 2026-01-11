@@ -33,7 +33,12 @@ export function ProductTableColumnActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
-            <ActionButton action="product:detail" size={"icon-sm"} variant={"ghost"} className='w-full'>
+            <ActionButton
+              action="product:detail"
+              size={'icon-sm'}
+              variant={'ghost'}
+              className="w-full"
+            >
               <Link
                 className="flex gap-2 w-full items-center text-sm font-normal"
                 to={`/products/${productId}`}
@@ -43,7 +48,12 @@ export function ProductTableColumnActions({
             </ActionButton>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <ActionButton action="product:edit" size={"icon-sm"} variant={"ghost"} className='w-full'>
+            <ActionButton
+              action="product:edit"
+              size={'icon-sm'}
+              variant={'ghost'}
+              className="w-full"
+            >
               <Link
                 className="flex gap-2 w-full items-center text-sm font-normal"
                 to={`/products/${productId}/edit`}
@@ -54,7 +64,12 @@ export function ProductTableColumnActions({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <ActionButton action="stock:view" size={"icon-sm"} variant={"ghost"} className='w-full'>
+            <ActionButton
+              action="movement:view"
+              size={'icon-sm'}
+              variant={'ghost'}
+              className="w-full"
+            >
               <Link
                 className="flex gap-2 w-full items-center text-sm font-normal"
                 to={`/movements?productId=${productId}`}
@@ -64,7 +79,12 @@ export function ProductTableColumnActions({
             </ActionButton>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <ActionButton action="stock:move" size={"icon-sm"} variant={"ghost"} className='w-full'>
+            <ActionButton
+              action="movement:create"
+              size={'icon-sm'}
+              variant={'ghost'}
+              className="w-full"
+            >
               <Link
                 className="flex gap-2 w-full items-center text-sm font-normal"
                 to={`/movements/new?preselect=${productId}`}

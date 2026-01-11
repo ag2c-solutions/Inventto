@@ -64,9 +64,14 @@ export const productVariantsTableColumns: ColumnDef<IProductVariant>[] = [
         | undefined;
 
       return parent?.categories.map((category) => {
-        return <Badge key={parent.id + cellContext.row.original.id + category.id} className="bg-green-200 text-green-950 font-bold rounded-sm h-7">
-          {category.name}
-        </Badge>
+        return (
+          <Badge
+            key={parent.id + cellContext.row.original.id + category.id}
+            className="bg-green-200 text-green-950 font-bold rounded-sm h-7"
+          >
+            {category.name}
+          </Badge>
+        );
       });
     }
   },

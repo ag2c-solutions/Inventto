@@ -33,9 +33,9 @@ describe('generateUniqueId', () => {
 
     expect(generatedId.length).toBeGreaterThan(
       MOCK_FILE_NAME.length +
-      String(MOCK_TIME).length +
-      String(MOCK_FILE_SIZE).length +
-      1
+        String(MOCK_TIME).length +
+        String(MOCK_FILE_SIZE).length +
+        1
     );
 
     expect(Math.random).toHaveBeenCalledTimes(1);

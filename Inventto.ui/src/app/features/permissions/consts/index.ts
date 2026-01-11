@@ -1,30 +1,58 @@
 import type { UserRole } from '@/app/features/users/types';
 import type { PermissionAction } from '../types';
 
+const SALES_PERMISSIONS: PermissionAction[] = [
+  'product:view',
+  'product:detail',
+
+  'movement:view',
+  'movement:create',
+  'movement:entry',
+
+  'customer:view',
+
+  'order:view_own',
+
+  'catalog:view'
+];
+
+const MANAGER_PERMISSIONS: PermissionAction[] = [
+  ...SALES_PERMISSIONS,
+
+  'customer:view',
+
+  'catalog:view',
+
+  'product:create',
+  'product:edit',
+  'product:delete',
+
+  'movement:adjust',
+  'movement:details',
+  'movement:withdrawal',
+
+  'order:view_all',
+  'order:manage',
+
+  'catalog:manage',
+
+  'metrics:view_costs'
+];
+
+const OWNER_PERMISSIONS: PermissionAction[] = [
+  ...MANAGER_PERMISSIONS,
+
+  'customer:manage',
+
+  'team:manage',
+
+  'org:update',
+
+  'financial:view'
+];
+
 export const ROLE_PERMISSIONS: Record<UserRole, PermissionAction[]> = {
-  sales: [
-    'product:view',
-    'stock:view',
-    'sale:create',
-    'stock:move_details',
-    'product:detail'
-  ],
-  manager: [
-    'product:view',
-    'product:detail',
-    'product:create',
-    'product:edit',
-    'stock:view',
-    'stock:adjust',
-    'sale:create',
-    'stock:move_details'
-  ],
-  owner: [
-    'product:view', 'product:detail', 'product:create', 'product:edit', 'product:delete',
-    'category:create',
-    'stock:view', 'stock:adjust', 'stock:move','stock:move_details',
-    'sale:create',
-    'team:manage',
-    'metrics:view_costs'
-  ]
+  sales: SALES_PERMISSIONS,
+  manager: MANAGER_PERMISSIONS,
+  owner: OWNER_PERMISSIONS
 };

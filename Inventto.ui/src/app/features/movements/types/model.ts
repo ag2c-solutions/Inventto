@@ -20,7 +20,7 @@ export interface MovementItem {
   quantity: number;
   unitCost: number;
   unitPrice: number;
-  
+
   product: MovementProductInfo;
 }
 
@@ -32,10 +32,10 @@ export interface Movement {
   documentNumber?: string;
   orderId?: string;
   createdAt: Date;
-  
+
   totalQuantity: number;
   totalValue: number;
-  
+
   user?: MovementUser;
   items: MovementItem[];
 }
@@ -44,7 +44,7 @@ export interface CreateMovementItemInput {
   productId: string;
   variantId?: string | null;
   quantity: number;
-  unitCost?: number; 
+  unitCost?: number;
   unitPrice?: number;
 }
 

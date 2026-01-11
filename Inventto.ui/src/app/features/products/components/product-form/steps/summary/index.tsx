@@ -27,8 +27,6 @@ export function ProductSummary() {
     variants
   } = form.watch();
 
-
-
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >(() => {

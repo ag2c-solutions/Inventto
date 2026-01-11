@@ -49,7 +49,11 @@ export const columnsMovementsItemsTable: ColumnDef<MovementItem>[] = [
               'text-orange-600 dark:text-orange-400'
           )}
         >
-          {parent.type === 'entry' ? '+' : parent.type === 'withdrawal' ? '-' : ''}
+          {parent.type === 'entry'
+            ? '+'
+            : parent.type === 'withdrawal'
+              ? '-'
+              : ''}
           {cellContext.row.original.quantity}
         </span>
       );

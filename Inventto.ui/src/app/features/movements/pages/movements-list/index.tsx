@@ -24,7 +24,7 @@ export function MovementsListPage() {
           </p>
         </div>
         <div className="w-full md:w-[unset] flex gap-3">
-          <ActionButton action="stock:move" size={'sm'} className="w-full">
+          <ActionButton action="movement:create" size={'sm'} className="w-full">
             <NavLink
               className="flex gap-2 justify-center items-center"
               to={'new'}

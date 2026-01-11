@@ -5,14 +5,13 @@ import { OrganizationSwitcher } from './organization-switcher';
 import { usePermission } from '@/app/features/permissions/hooks/use-permissions';
 
 export const SystemLayoutSidebar = () => {
-  const {can} = usePermission()
-  
-  const filteredNavLinks = navLinks.filter(({permission}) => {
-    if (!permission) return true;
-    
-    return can(permission)
-  })
+  const { can } = usePermission();
 
+  const filteredNavLinks = navLinks.filter(({ permission }) => {
+    if (!permission) return true;
+
+    return can(permission);
+  });
 
   return (
     <aside className="w-64 h-full min-h-[calc(100vh-6.75rem)] py-2 px-2 rounded-2xl hidden md:block bg-sidebar">

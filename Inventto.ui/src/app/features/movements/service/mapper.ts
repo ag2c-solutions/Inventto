@@ -1,17 +1,17 @@
 import type {
-  Movement, 
-  MovementItem, 
+  Movement,
+  MovementItem,
   MovementDTO,
   MovementItemDTO,
   CreateMovementInput,
   CreateStockMovementRPCDTO,
   CreateMovementItemInput,
-  CreateMovementItemRPCDTO,
+  CreateMovementItemRPCDTO
 } from '../types';
 
 import { formatVariantOptions, getProductImage } from '../utils';
 
-const toDomainItem=(dto: MovementItemDTO): MovementItem => {
+const toDomainItem = (dto: MovementItemDTO): MovementItem => {
   return {
     id: dto.id,
     movementId: dto.movement_id,
@@ -24,26 +24,34 @@ const toDomainItem=(dto: MovementItemDTO): MovementItem => {
       name: dto.products?.name ?? 'Produto Desconhecido',
       imageUrl: getProductImage(dto.products, dto.product_variants),
       sku: dto.product_variants?.sku ?? undefined,
-      variantOptions: formatVariantOptions(dto.product_variants?.options),
-    },
+      variantOptions: formatVariantOptions(dto.product_variants?.options)
+    }
   };
-}
+};
 
-const toPersistenceItem = (item: CreateMovementItemInput): CreateMovementItemRPCDTO => {
-    return {
-      product_id: item.productId,
-      variant_id: item.variantId ?? null,
-      quantity: item.quantity,
-      unit_cost: item.unitCost,
-      unit_price: item.unitPrice
-    };
-  }
+const toPersistenceItem = (
+  item: CreateMovementItemInput
+): CreateMovementItemRPCDTO => {
+  return {
+    product_id: item.productId,
+    variant_id: item.variantId ?? null,
+    quantity: item.quantity,
+    unit_cost: item.unitCost,
+    unit_price: item.unitPrice
+  };
+};
 
 export const MovementMapper = {
   toDomain(dto: MovementDTO): Movement {
     const items = (dto.movement_items ?? []).map((item) => toDomainItem(item));
-    const totalQuantity = items.reduce((acc, item) => acc + Math.abs(item.quantity), 0);
-    const totalValue = items.reduce((acc, item) => acc + (Math.abs(item.quantity) * (item.unitCost || 0)), 0);
+    const totalQuantity = items.reduce(
+      (acc, item) => acc + Math.abs(item.quantity),
+      0
+    );
+    const totalValue = items.reduce(
+      (acc, item) => acc + Math.abs(item.quantity) * (item.unitCost || 0),
+      0
+    );
 
     return {
       id: dto.id,
@@ -55,17 +63,20 @@ export const MovementMapper = {
       createdAt: new Date(dto.created_at),
       totalQuantity,
       totalValue,
-      user: dto.profiles ? {
-        fullName: dto.profiles.full_name ?? 'Sistema',
-        avatarUrl: dto.profiles.avatar_url ?? undefined
-      } : undefined,
+      user: dto.profiles
+        ? {
+            fullName: dto.profiles.full_name ?? 'Sistema',
+            avatarUrl: dto.profiles.avatar_url ?? undefined
+          }
+        : undefined,
       items
     };
   },
 
-  
-
-  toPersistence(domain: CreateMovementInput, organizationId: string): CreateStockMovementRPCDTO {
+  toPersistence(
+    domain: CreateMovementInput,
+    organizationId: string
+  ): CreateStockMovementRPCDTO {
     return {
       organization_id: organizationId,
       type: domain.type,
@@ -74,5 +85,5 @@ export const MovementMapper = {
       order_id: null,
       items: domain.items.map(toPersistenceItem)
     };
-  },
+  }
 };

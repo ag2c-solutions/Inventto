@@ -16,7 +16,6 @@ export const SystemLayoutHeader = () => {
           <BellIcon />
         </Button>
         <UserNav />
-        
       </section>
     </header>
   );

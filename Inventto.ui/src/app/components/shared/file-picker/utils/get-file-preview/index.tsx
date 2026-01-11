@@ -4,8 +4,8 @@ import { getFileIcon } from '../get-file-icon';
 export const getFilePreview = (
   file:
     | {
-      file: File | { type: string; name: string; src: string };
-    }
+        file: File | { type: string; name: string; src: string };
+      }
     | undefined
 ) => {
   if (!file) return;

@@ -1,5 +1,17 @@
-import type { IProduct, IProductAttribute, IProductImage, ProductBase, IProductVariant, VariantOption, AttributeType } from '../types/models';
-import type { PersistProductDTO, ProductDTO, ProductVariantOptionDTO } from '../types/dto';
+import type {
+  IProduct,
+  IProductAttribute,
+  IProductImage,
+  ProductBase,
+  IProductVariant,
+  VariantOption,
+  AttributeType
+} from '../types/models';
+import type {
+  PersistProductDTO,
+  ProductDTO,
+  ProductVariantOptionDTO
+} from '../types/dto';
 
 export const ProductMapper = {
   toDomain(data: ProductDTO): IProduct {
@@ -23,7 +35,7 @@ export const ProductMapper = {
         type: attr.type as AttributeType,
         values: attr.values
       }));
-    
+
     const baseProduct: ProductBase = {
       id: data.id,
       organizationId: data.organization_id,
@@ -34,37 +46,41 @@ export const ProductMapper = {
       costPrice: data.cost_price,
       stock: data.stock,
       minimumStock: data.minimum_stock,
-      categories: data.categories.map((c) => (c.category)) || [],
+      categories: data.categories.map((c) => c.category) || [],
       allImages: allImages.length > 0 ? allImages : undefined,
       attributes: attributes,
-      createdAt: data.created_at,
+      createdAt: data.created_at
     };
 
     if (data.has_variants) {
-      const variants: IProductVariant[] = (data.product_variants || []).map((variant) => {
-        const options: VariantOption[] = (variant.options || []).map((opt: ProductVariantOptionDTO) => ({
-          name: opt.name,
-          value: opt.value
-        }));
+      const variants: IProductVariant[] = (data.product_variants || []).map(
+        (variant) => {
+          const options: VariantOption[] = (variant.options || []).map(
+            (opt: ProductVariantOptionDTO) => ({
+              name: opt.name,
+              value: opt.value
+            })
+          );
 
-        return {
-          id: variant.id,
-          sku: variant.sku,
-          stock: variant.stock,
-          minimumStock: variant.minimum_stock,
-          costPrice: variant.cost_price,
-          isActive: variant.is_active,
-          options: options,
-          images: (variant.product_variant_images || [])
-            .map((vi) => ({
-              id: vi.image_id,
-              isPrimary: vi.is_primary
-            }))
-            .sort((a, b) =>
-              a.isPrimary === b.isPrimary ? 0 : a.isPrimary ? -1 : 1
-            )
-        };
-      });
+          return {
+            id: variant.id,
+            sku: variant.sku,
+            stock: variant.stock,
+            minimumStock: variant.minimum_stock,
+            costPrice: variant.cost_price,
+            isActive: variant.is_active,
+            options: options,
+            images: (variant.product_variant_images || [])
+              .map((vi) => ({
+                id: vi.image_id,
+                isPrimary: vi.is_primary
+              }))
+              .sort((a, b) =>
+                a.isPrimary === b.isPrimary ? 0 : a.isPrimary ? -1 : 1
+              )
+          };
+        }
+      );
 
       return {
         ...baseProduct,
@@ -90,23 +106,25 @@ export const ProductMapper = {
       minimumStock: domain.minimumStock,
       isActive: domain.isActive,
       category_ids: domain.categories.map((c) => c.id),
-      attributes:domain.hasVariants ? domain.attributes.map((attr) => ({
-        attribute_id: attr.id,
-        values: attr.values,
-        type: attr.type,
-        slug: attr.slug,
-        name: attr.name,
-      })) : [],
+      attributes: domain.hasVariants
+        ? domain.attributes.map((attr) => ({
+            attribute_id: attr.id,
+            values: attr.values,
+            type: attr.type,
+            slug: attr.slug,
+            name: attr.name
+          }))
+        : [],
 
       allImages: (domain.allImages || []).map((img) => ({
         id: img.id,
         url: img.url,
         name: img.name,
         isPrimary: img.isPrimary,
-        public_id: img.publicId,
+        public_id: img.publicId
       })),
 
-      variants: domain.hasVariants 
+      variants: domain.hasVariants
         ? domain.variants.map((v) => ({
             id: v.id,
             sku: v.sku,

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MovementService } from '../service';
-import { useUser } from '@/app/features/users/hooks/use-user'; 
+import { useUser } from '@/app/features/users/hooks/use-user';
 import type { CreateMovementInput } from '../types/model';
 
 export function useMovementsQuery(filters?: { productId?: string }) {
@@ -11,13 +11,13 @@ export function useMovementsQuery(filters?: { productId?: string }) {
     queryKey: ['movements', organizationId, filters],
     queryFn: () => {
       if (!organizationId) throw new Error('Nenhuma organização selecionada.');
-      
-      return MovementService.getAll({ 
+
+      return MovementService.getAll({
         organizationId,
-        productId: filters?.productId 
+        productId: filters?.productId
       });
     },
-    enabled: !!organizationId,
+    enabled: !!organizationId
   });
 }
 
@@ -29,11 +29,11 @@ export function useCreateMovementMutation() {
   return useMutation({
     mutationFn: (input: CreateMovementInput) => {
       if (!organizationId) throw new Error('Nenhuma organização selecionada.');
-      
+
       return MovementService.create(input, organizationId);
     },
     meta: {
-      successMessage: 'Movimentação registrada com sucesso!',
+      successMessage: 'Movimentação registrada com sucesso!'
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['movements'] });

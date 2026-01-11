@@ -1,4 +1,10 @@
-import type { OrganizationMemberDTO, User, UserOrganizationContext, UserRole, UserWithOrganizationDTO } from "../types";
+import type {
+  OrganizationMemberDTO,
+  User,
+  UserOrganizationContext,
+  UserRole,
+  UserWithOrganizationDTO
+} from '../types';
 
 export class UserMapper {
   static toDomain(dto: UserWithOrganizationDTO): User {
@@ -6,7 +12,6 @@ export class UserMapper {
       ? dto.organization_members.map(UserMapper.mapOrganizationMember)
       : [];
 
-    
     return {
       id: dto.id,
       email: dto.email,
@@ -14,20 +19,24 @@ export class UserMapper {
       avatarUrl: dto.avatar_url,
       createdAt: new Date(dto.created_at),
       updatedAt: new Date(dto.updated_at),
-      availableOrganizations,
+      availableOrganizations
     };
   }
 
-  private static mapOrganizationMember(member: OrganizationMemberDTO): UserOrganizationContext {
+  private static mapOrganizationMember(
+    member: OrganizationMemberDTO
+  ): UserOrganizationContext {
     if (!member.organizations) {
-      throw new Error(`Inconsistência de dados: Membro ${member.organization_id} sem dados da organização.`);
+      throw new Error(
+        `Inconsistência de dados: Membro ${member.organization_id} sem dados da organização.`
+      );
     }
 
     return {
       id: member.organizations.id,
       name: member.organizations.name,
       slug: member.organizations.slug,
-      role: member.role as UserRole,
+      role: member.role as UserRole
     };
   }
 }

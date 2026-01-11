@@ -1,4 +1,3 @@
-
 export type AppRoleDTO = 'owner' | 'manager' | 'sales';
 
 export interface ProfileDTO {

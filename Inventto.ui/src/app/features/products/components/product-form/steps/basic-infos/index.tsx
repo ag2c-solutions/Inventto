@@ -102,7 +102,7 @@ export function ProductBasicInfo() {
                   step="0.01"
                   placeholder="0.00"
                   {...field}
-                  disabled={true} 
+                  disabled={true}
                 />
               </FormControl>
               <FormMessage />

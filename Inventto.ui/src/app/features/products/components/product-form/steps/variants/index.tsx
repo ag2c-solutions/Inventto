@@ -65,13 +65,12 @@ export function ProductVariants() {
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
-                    {field.options?.map(
-                      (opt, index) =>
-                        <VariantOptionBadge
-                          key={`variants.${index}.options.${index}`}
-                          option={opt}
-                        />
-                    )}
+                    {field.options?.map((opt, index) => (
+                      <VariantOptionBadge
+                        key={`variants.${index}.options.${index}`}
+                        option={opt}
+                      />
+                    ))}
                   </div>
                 </TableCell>
                 <TableCell>

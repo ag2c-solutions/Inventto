@@ -9,10 +9,10 @@ interface PermissionRouteProps {
 export function PermissionRoute({ required }: PermissionRouteProps) {
   const { can, isLoading } = usePermission();
 
-  if (isLoading) return null; 
+  if (isLoading) return null;
 
   if (!can(required)) {
-    return <Navigate to="/" replace />; 
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

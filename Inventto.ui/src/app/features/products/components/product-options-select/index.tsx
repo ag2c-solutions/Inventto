@@ -30,7 +30,11 @@ export function ProductOptionsSelect({
                   key={val}
                   variant={isActive ? 'ghost' : 'outline'}
                   size="sm"
-                  className={isActive ? 'border-2 border-primary rounded-full aspect-square p-1' : 'rounded-full aspect-square p-1'}
+                  className={
+                    isActive
+                      ? 'border-2 border-primary rounded-full aspect-square p-1'
+                      : 'rounded-full aspect-square p-1'
+                  }
                   onClick={() => handleSelectOption(attr.name, val)}
                 >
                   <div
@@ -38,7 +42,7 @@ export function ProductOptionsSelect({
                     style={{ backgroundColor: parseColorValue(val).hex }}
                   />
                 </Button>
-              ):(
+              ) : (
                 <Button
                   type="button"
                   key={val}
@@ -48,8 +52,7 @@ export function ProductOptionsSelect({
                 >
                   {val}
                 </Button>
-              )
-
+              );
             })}
           </div>
         </div>

@@ -25,8 +25,8 @@ const getInitials = (name: string) => {
 
 export const columnsMovementsListTable: ColumnDef<Movement>[] = [
   {
-    accessorKey: 'createdAt', 
-    id: 'createdAt', 
+    accessorKey: 'createdAt',
+    id: 'createdAt',
     minSize: 100,
     header: ({ column }) => (
       <DataTableHeaderSortableColumn column={column} title="Data" />
@@ -71,13 +71,16 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
     )
   },
   {
-    accessorKey: 'reason', 
-    enableGlobalFilter: true, 
+    accessorKey: 'reason',
+    enableGlobalFilter: true,
     minSize: 150,
     header: 'Motivo / Doc',
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <span className="font-medium truncate max-w-[200px]" title={row.original.reason}>
+        <span
+          className="font-medium truncate max-w-[200px]"
+          title={row.original.reason}
+        >
           {row.original.reason || 'Sem motivo'}
         </span>
         {row.original.documentNumber && (
@@ -89,13 +92,13 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
     )
   },
   {
-    accessorKey: 'user.fullName', 
-    id: 'user', 
+    accessorKey: 'user.fullName',
+    id: 'user',
     minSize: 140,
     header: 'Responsável',
     cell: ({ row }) => {
       const user = row.original.user;
-      
+
       if (!user) {
         return <span className="text-sm text-muted-foreground">-</span>;
       }
@@ -108,7 +111,10 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
               {getInitials(user.fullName)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm text-muted-foreground hidden sm:inline-block truncate max-w-[120px]" title={user.fullName}>
+          <span
+            className="text-sm text-muted-foreground hidden sm:inline-block truncate max-w-[120px]"
+            title={user.fullName}
+          >
             {user.fullName}
           </span>
         </div>
@@ -128,14 +134,14 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
     )
   },
   {
-    id: 'actions', 
+    id: 'actions',
     minSize: 50,
     header: () => <div className="text-right pr-3">Detalhes</div>,
     cell: ({ row }) => (
-      <div className="flex justify-end pr-3"> 
+      <div className="flex justify-end pr-3">
         {row.original.items && row.original.items.length > 0 ? (
-          <ActionButton 
-            action="stock:move_details"
+          <ActionButton
+            action="movement:details"
             variant="ghost"
             size="icon-sm"
             onClick={() => row.toggleExpanded()}

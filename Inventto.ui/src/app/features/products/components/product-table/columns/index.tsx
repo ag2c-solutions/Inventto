@@ -47,12 +47,15 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableResizing: false,
     cell: ({ row }) => (
       <div>
-        {row.original.categories.map((category)=>{
-          return(
-            <Badge key={category.id} className="bg-green-200 text-green-950 font-bold rounded-sm h-7">
+        {row.original.categories.map((category) => {
+          return (
+            <Badge
+              key={category.id}
+              className="bg-green-200 text-green-950 font-bold rounded-sm h-7"
+            >
               {category.name}
             </Badge>
-          )
+          );
         })}
       </div>
     )

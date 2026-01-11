@@ -33,7 +33,7 @@ interface MovementFormContextType {
     submit: (data: MovementFormData) => Promise<void>;
     cancel: () => void;
   };
-  isSubmitting: boolean; 
+  isSubmitting: boolean;
 }
 
 const MovementFormContext = createContext<MovementFormContextType | null>(null);
@@ -41,14 +41,14 @@ const MovementFormContext = createContext<MovementFormContextType | null>(null);
 export function MovementFormProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const createMutation = useCreateMovementMutation();
-  
+
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [reasonOptions, setReasonOptions] = useState<MovementReason[]>(
-    [...ReasonOptions.entry] as MovementReason[]
-  );
+  const [reasonOptions, setReasonOptions] = useState<MovementReason[]>([
+    ...ReasonOptions.entry
+  ] as MovementReason[]);
 
   const { data: products = [], isLoading: isLoadingProducts } =
     useProductsQuery();
@@ -58,11 +58,14 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
     defaultValues: {
       type: 'entry',
       date: new Date(),
-      time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
       reason: '',
       documentNumber: '',
       items: [],
-      totalQuantity: 0,
+      totalQuantity: 0
     }
   });
 
@@ -85,7 +88,7 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
   const onChangeType = (type: MovementType) => {
     form.setValue('type', type);
     setReasonOptions([...ReasonOptions[type]] as MovementReason[]);
-    form.trigger(); 
+    form.trigger();
   };
 
   const selectProduct = (product: IProduct) => {
@@ -100,16 +103,19 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
 
   const addItem = (newItems: FormItem[]) => {
     const currentItems = form.getValues('items');
-    
-    const safeNewItems = newItems.map(item => ({
+
+    const safeNewItems = newItems.map((item) => ({
       ...item,
       currentStock: item.currentStock ?? 0,
       unitCost: item.unitCost ?? 0,
-      unitPrice: item.unitPrice ?? 0,
+      unitPrice: item.unitPrice ?? 0
     }));
 
     const updatedItems = [...currentItems, ...safeNewItems];
-    const totalQuantity = updatedItems.reduce((acc, item) => acc + item.quantity, 0);
+    const totalQuantity = updatedItems.reduce(
+      (acc, item) => acc + item.quantity,
+      0
+    );
 
     form.setValue('items', updatedItems, { shouldValidate: true });
     form.setValue('totalQuantity', totalQuantity);
@@ -121,7 +127,10 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
   const removeItem = (index: number) => {
     const currentItems = form.getValues('items');
     const updatedItems = currentItems.filter((_, i) => i !== index);
-    const totalQuantity = updatedItems.reduce((acc, item) => acc + item.quantity, 0);
+    const totalQuantity = updatedItems.reduce(
+      (acc, item) => acc + item.quantity,
+      0
+    );
 
     form.setValue('items', updatedItems, { shouldValidate: true });
     form.setValue('totalQuantity', totalQuantity);
@@ -132,7 +141,7 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
       type: formData.type,
       reason: formData.reason,
       documentNumber: formData.documentNumber || undefined,
-      items: formData.items.map(item => ({
+      items: formData.items.map((item) => ({
         productId: item.productId,
         variantId: item.variantId || null,
         quantity: item.quantity,
@@ -143,7 +152,7 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
 
     try {
       await createMutation.mutateAsync(inputPayload);
-      
+
       form.reset();
       navigate('/movements');
     } catch (error) {

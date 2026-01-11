@@ -11,7 +11,7 @@ interface UseAddItemsProps {
   product: IProduct | null;
   isOpen: boolean;
   isWithdrawal: boolean;
-  existingItems: FormItem[]; 
+  existingItems: FormItem[];
   onConfirm: (items: FormItem[]) => void;
 }
 
@@ -31,7 +31,9 @@ export function useAddItems({
   const getExistingQty = (variantId: string | null) => {
     if (!product) return 0;
     return existingItems
-      .filter((item) => item.productId === product.id && item.variantId === variantId)
+      .filter(
+        (item) => item.productId === product.id && item.variantId === variantId
+      )
       .reduce((acc, item) => acc + item.quantity, 0);
   };
 
@@ -44,14 +46,16 @@ export function useAddItems({
     if (isNaN(qty) || qty < 0) qty = 0;
 
     if (isWithdrawal) {
-      const qtyInBatch = getExistingQty(variantId === product?.id ? null : variantId);
+      const qtyInBatch = getExistingQty(
+        variantId === product?.id ? null : variantId
+      );
       const availableStock = Math.max(0, realStock - qtyInBatch);
 
       if (qty > availableStock) {
         qty = availableStock;
         toast.warning(
-          availableStock === 0 
-            ? 'Todo o estoque deste item já foi adicionado ao lote.' 
+          availableStock === 0
+            ? 'Todo o estoque deste item já foi adicionado ao lote.'
             : `Apenas mais ${availableStock} unidades disponíveis.`
         );
       }
@@ -72,18 +76,17 @@ export function useAddItems({
           productId: product.id,
           productName: product.name,
           productImage: getMovementItemImage(product, v.id),
-          
+
           variantId: v.id,
           variantName: formatVariantOptions(v.options),
           variantOptions: v.options,
           currentStock: v.stock ?? 0,
           quantity: quantities[v.id || ''],
-          
+
           unitCost: v.costPrice ?? 0,
-          unitPrice: 0 
+          unitPrice: 0
         }));
-    } 
-    else {
+    } else {
       const qty = quantities[product.id] || 0;
       if (qty > 0) {
         itemsToAdd = [
@@ -91,10 +94,10 @@ export function useAddItems({
             productId: product.id,
             productName: product.name,
             productImage: getMovementItemImage(product, null),
-            
+
             currentStock: product.stock ?? 0,
             quantity: qty,
-            
+
             variantId: null,
             variantName: undefined,
 

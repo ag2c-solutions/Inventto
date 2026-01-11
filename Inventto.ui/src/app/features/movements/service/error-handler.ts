@@ -2,7 +2,7 @@ import { isPostgrestError } from '@/lib/utils';
 import { PostgrestError } from '@supabase/supabase-js';
 
 export function handleMovementError(
-  error: PostgrestError | Error | unknown, 
+  error: PostgrestError | Error | unknown,
   action: string
 ): never {
   console.error(`Erro em Movement Service [${action}]:`, error);
@@ -48,7 +48,7 @@ export function handleMovementError(
     if (error.message?.toLowerCase().includes('network')) {
       throw new Error('Erro de conexão. Verifique sua internet.');
     }
-    
+
     throw new Error(error.message || 'Erro desconhecido no banco de dados.');
   }
 

@@ -43,33 +43,28 @@ export function MovementsListTable({ data }: MovementsListTableProps) {
       getFilteredRowModel: getFilteredRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
       getSortedRowModel: getSortedRowModel(),
-      globalFilterFn: 'includesString', 
+      globalFilterFn: 'includesString'
     };
   }, [isExpanded, data]);
 
-  const renderMovementsItems = useCallback(
-    (row: Row<Movement>) => {
-      return (
-        <div className="p-4 bg-muted/30">
-          <div className="rounded-md border bg-background overflow-hidden">
-            <MovementsItemsTable
-              data={row.original.items}
-              parentData={row.original}
-            />
-          </div>
+  const renderMovementsItems = useCallback((row: Row<Movement>) => {
+    return (
+      <div className="p-4 bg-muted/30">
+        <div className="rounded-md border bg-background overflow-hidden">
+          <MovementsItemsTable
+            data={row.original.items}
+            parentData={row.original}
+          />
         </div>
-      );
-    },
-    []
-  );
+      </div>
+    );
+  }, []);
 
   return (
     <DataTable tableOptions={tableOptions} renderSubRow={renderMovementsItems}>
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
         <div className="flex flex-1 flex-col sm:flex-row gap-4 w-full lg:w-auto">
-          <DataTableTextFilter 
-            placeholder="Buscar por motivo, doc ou responsável..." 
-          />
+          <DataTableTextFilter placeholder="Buscar por motivo, doc ou responsável..." />
           <DataTableSelectFilter
             column="type"
             placeholder="Tipo"
@@ -95,11 +90,11 @@ export function MovementsListTable({ data }: MovementsListTableProps) {
           <DataTableDateRangeFilter column="createdAt" />
         </div>
       </div>
-      
+
       <section className="my-2.5 border rounded-lg overflow-hidden">
         <DataTableContent />
       </section>
-      
+
       <section className="w-full">
         <PaginationControllers />
       </section>

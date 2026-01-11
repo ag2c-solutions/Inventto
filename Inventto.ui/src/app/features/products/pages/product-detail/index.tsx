@@ -98,14 +98,14 @@ export function ProductDetailsPage() {
                       !hasVariants
                         ? allImages
                         : getVariantImages({
-                          allImages,
-                          variantImagesId: new Set(
-                            selectedVariant?.images.map((img) => img.id)
-                          ),
-                          primaryImageVariantId: selectedVariant?.images.find(
-                            (img) => img.isPrimary
-                          )?.id
-                        })
+                            allImages,
+                            variantImagesId: new Set(
+                              selectedVariant?.images.map((img) => img.id)
+                            ),
+                            primaryImageVariantId: selectedVariant?.images.find(
+                              (img) => img.isPrimary
+                            )?.id
+                          })
                     }
                   />
                 }

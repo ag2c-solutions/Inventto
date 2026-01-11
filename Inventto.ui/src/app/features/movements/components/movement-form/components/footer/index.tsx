@@ -4,7 +4,7 @@ import { useMovementForm } from '../../hooks';
 
 export function MovementFormFooter() {
   const { form, isSubmitting } = useMovementForm();
-  
+
   const totalItems = form.watch('totalQuantity');
 
   return (
@@ -16,28 +16,24 @@ export function MovementFormFooter() {
             {totalItems || 0} Itens
           </span>
         </div>
-        
+
         <Button
           size="lg"
           type="submit"
           disabled={!totalItems || totalItems === 0 || isSubmitting}
           className="hidden sm:flex"
         >
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Finalizar Movimentação
         </Button>
-        
+
         <Button
           size="sm"
           type="submit"
           disabled={!totalItems || totalItems === 0 || isSubmitting}
           className="sm:hidden"
         >
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Finalizar
         </Button>
       </div>

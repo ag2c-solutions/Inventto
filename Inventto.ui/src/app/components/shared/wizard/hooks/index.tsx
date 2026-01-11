@@ -130,7 +130,6 @@ export function WizardProvider({
     } finally {
       setIsLoading(false);
     }
-
   }, [isLoading, onFinish]);
 
   const handleCancel = useCallback(() => {

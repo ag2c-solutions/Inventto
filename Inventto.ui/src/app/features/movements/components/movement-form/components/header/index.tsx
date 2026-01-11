@@ -28,6 +28,7 @@ import {
   FormMessage
 } from '@/app/components/ui/form';
 import type { MovementType } from '@/app/features/movements/types/model';
+import { ActionButton } from '@/app/features/permissions/components/action-button';
 
 export function MovementFormHeader() {
   const { form, reasonOptions, actions } = useMovementForm();
@@ -44,9 +45,9 @@ export function MovementFormHeader() {
               Registre todas as entradas, saídas e ajustes de inventário.
             </p>
           </section>
-          <Button 
-            className="bg-red-800 hover:bg-red-900 text-white" 
-            size={'sm'} 
+          <Button
+            className="bg-red-800 hover:bg-red-900 text-white"
+            size={'sm'}
             onClick={actions.cancel}
             type="button"
           >
@@ -74,19 +75,25 @@ export function MovementFormHeader() {
                           value="entry"
                           className="data-[state=active]:text-green-700"
                         >
-                          Entrada
+                          <ActionButton action="movement:entry">
+                            Entrada
+                          </ActionButton>
                         </TabsTrigger>
                         <TabsTrigger
                           value="withdrawal"
                           className="data-[state=active]:text-red-700"
                         >
-                          Saída
+                          <ActionButton action="movement:withdrawal">
+                            Saída
+                          </ActionButton>
                         </TabsTrigger>
                         <TabsTrigger
                           value="adjustment"
                           className="data-[state=active]:text-amber-700"
                         >
-                          Ajuste
+                          <ActionButton action="movement:adjust">
+                            Ajuste
+                          </ActionButton>
                         </TabsTrigger>
                       </TabsList>
                     </Tabs>
@@ -163,10 +170,7 @@ export function MovementFormHeader() {
               name="reason"
               render={({ field }) => (
                 <FormItem className="w-3/5">
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o motivo" />

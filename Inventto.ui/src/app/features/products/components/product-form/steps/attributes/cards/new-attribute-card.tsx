@@ -20,7 +20,7 @@ import {
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger
 } from '@/app/components/ui/popover';
 import {
   Command,
@@ -28,7 +28,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList,
+  CommandList
 } from '@/app/components/ui/command';
 
 import type { ProductFormData } from '../../../schema';
@@ -58,7 +58,7 @@ export function NewAttributeCard({
   systemAttributes
 }: NewAttributeCardProps) {
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const attributeType = form.watch(`attributes.${index}.type`);
   const attributeName = form.watch(`attributes.${index}.name`);
 
@@ -67,22 +67,30 @@ export function NewAttributeCard({
   );
 
   const handleSelectSystemAttribute = (attr: SystemAttribute) => {
-    form.setValue(`attributes.${index}.name`, attr.label, { shouldValidate: true });
-    form.setValue(`attributes.${index}.type`, attr.type as AttributeType, { shouldValidate: true });
-    form.setValue(`attributes.${index}.values`, attr.values || [], { shouldValidate: true });
+    form.setValue(`attributes.${index}.name`, attr.label, {
+      shouldValidate: true
+    });
+    form.setValue(`attributes.${index}.type`, attr.type as AttributeType, {
+      shouldValidate: true
+    });
+    form.setValue(`attributes.${index}.values`, attr.values || [], {
+      shouldValidate: true
+    });
     setOpen(false);
   };
 
   const handleCreateCustomAttribute = () => {
     if (!inputValue) return;
-    
-    form.setValue(`attributes.${index}.name`, inputValue, { shouldValidate: true });
-    
+
+    form.setValue(`attributes.${index}.name`, inputValue, {
+      shouldValidate: true
+    });
+
     if (isSystemAttribute) {
-        form.setValue(`attributes.${index}.type`, 'text');
-        form.setValue(`attributes.${index}.values`, []);
+      form.setValue(`attributes.${index}.type`, 'text');
+      form.setValue(`attributes.${index}.values`, []);
     }
-    
+
     setOpen(false);
   };
 
@@ -114,40 +122,40 @@ export function NewAttributeCard({
                       role="combobox"
                       aria-expanded={open}
                       className={cn(
-                        "w-full justify-between font-normal",
-                        !field.value && "text-muted-foreground"
+                        'w-full justify-between font-normal',
+                        !field.value && 'text-muted-foreground'
                       )}
                     >
-                      {field.value || "Selecionar ou criar..."}
+                      {field.value || 'Selecionar ou criar...'}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-[250px] p-0" align="start">
                   <Command>
-                    <CommandInput 
-                        placeholder="Buscar atributo..." 
-                        onValueChange={setInputValue}
+                    <CommandInput
+                      placeholder="Buscar atributo..."
+                      onValueChange={setInputValue}
                     />
                     <CommandList>
                       <CommandEmpty className="p-1">
                         <div className="flex flex-col gap-1">
-                             <p className="text-xs text-muted-foreground px-2 py-2 text-center">
-                                Nenhum atributo encontrado.
-                             </p>
-                             {inputValue && (
-                                <Button 
-                                    variant="ghost" 
-                                    className="w-full justify-start h-auto py-1.5 px-2 text-sm"
-                                    onClick={handleCreateCustomAttribute}
-                                >
-                                    <Plus className="mr-2 h-3 w-3" />
-                                    Criar "{inputValue}"
-                                </Button>
-                             )}
+                          <p className="text-xs text-muted-foreground px-2 py-2 text-center">
+                            Nenhum atributo encontrado.
+                          </p>
+                          {inputValue && (
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start h-auto py-1.5 px-2 text-sm"
+                              onClick={handleCreateCustomAttribute}
+                            >
+                              <Plus className="mr-2 h-3 w-3" />
+                              Criar "{inputValue}"
+                            </Button>
+                          )}
                         </div>
                       </CommandEmpty>
-                      
+
                       <CommandGroup heading="Sugestões do Sistema">
                         {systemAttributes.map((attr) => (
                           <CommandItem
@@ -157,8 +165,10 @@ export function NewAttributeCard({
                           >
                             <Check
                               className={cn(
-                                "mr-2 h-4 w-4",
-                                attributeName === attr.label ? "opacity-100" : "opacity-0"
+                                'mr-2 h-4 w-4',
+                                attributeName === attr.label
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
                               )}
                             />
                             {attr.label}

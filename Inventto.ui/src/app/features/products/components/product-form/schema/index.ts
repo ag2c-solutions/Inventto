@@ -7,7 +7,7 @@ export const attributeSchema = z.object({
   slug: z.string().optional(),
   type: z.enum(['text', 'color', 'number', 'select']).default('text'),
   values: z
-    .array(z.string().min(1, "O valor não pode ser vazio."))
+    .array(z.string().min(1, 'O valor não pode ser vazio.'))
     .min(1, 'Adicione pelo menos um valor para o atributo.'),
   isNew: z.boolean().optional()
 });
@@ -49,10 +49,7 @@ export const variantSchema = z.object({
     .int()
     .min(0, 'Quantidade em estoque deve ser 0 ou mais.')
     .default(0),
-  costPrice: z
-    .number()
-    .min(0, 'Preço de custo deve ser 0 ou mais.')
-    .default(0),
+  costPrice: z.number().min(0, 'Preço de custo deve ser 0 ou mais.').default(0),
   isActive: z.boolean().default(true),
   options: z.array(
     z.object({
@@ -82,10 +79,7 @@ export const productSchemaWithVariants = z.object({
     .int()
     .min(0, 'Quantidade em estoque deve ser 0 ou mais.')
     .default(0),
-  costPrice: z
-    .number()
-    .min(0, 'Preço de custo deve ser 0 ou mais.')
-    .default(0),
+  costPrice: z.number().min(0, 'Preço de custo deve ser 0 ou mais.').default(0),
   isActive: z.boolean().default(true),
   hasVariants: z.literal(true),
   attributes: z
@@ -107,10 +101,7 @@ export const productSchemaWithoutVariants = z.object({
     .min(1, 'Selecione pelo menos uma categoria.'),
   minimumStock: z.number().int().default(0),
   stock: z.number().int().default(0),
-  costPrice: z
-    .number()
-    .min(0, 'Preço de custo deve ser 0 ou mais.')
-    .default(0),
+  costPrice: z.number().min(0, 'Preço de custo deve ser 0 ou mais.').default(0),
   isActive: z.boolean().default(true),
   hasVariants: z.literal(false),
   allImages: z.array(ProductImageFormSchema).optional()

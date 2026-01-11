@@ -42,7 +42,7 @@ export function ProductFormFieldCategory() {
     isCreating,
     handleCreateCategory
   } = useCategoryField({
-    onSelect: () => { } 
+    onSelect: () => {}
   });
 
   return (
@@ -62,7 +62,7 @@ export function ProductFormFieldCategory() {
                   className={cn(
                     'w-full justify-between border-input text-sm font-normal bg-transparent selection:bg-primary selection:text-primary-foreground h-auto min-h-10 py-2',
                     (!field.value || field.value.length === 0) &&
-                    'text-muted-foreground'
+                      'text-muted-foreground'
                   )}
                 >
                   {field.value && field.value.length > 0 ? (
@@ -115,8 +115,8 @@ export function ProductFormFieldCategory() {
                             const current = field.value || [];
                             const next = isSelected
                               ? current.filter(
-                                (c: { id: string }) => c.id !== cat.id
-                              )
+                                  (c: { id: string }) => c.id !== cat.id
+                                )
                               : [...current, cat];
 
                             form.setValue('categories', next);
@@ -135,27 +135,29 @@ export function ProductFormFieldCategory() {
                     })}
                   </CommandGroup>
 
-                  {showCreateOption && !isCreating && can('category:create') && (
-                    <CommandGroup>
-                      <CommandItem
-                        value={searchQuery}
-                        onSelect={async () => {
-                          const newCat = await handleCreateCategory();
-                          if (newCat) {
-                            const current = field.value || [];
-                            form.setValue('categories', [
-                              ...current,
-                              { id: newCat.id, name: newCat.name }
-                            ]);
-                          }
-                        }}
-                        className="text-green-700 cursor-pointer font-medium"
-                      >
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Criar nova: "{searchQuery}"
-                      </CommandItem>
-                    </CommandGroup>
-                  )}
+                  {showCreateOption &&
+                    !isCreating &&
+                    can('category:create') && (
+                      <CommandGroup>
+                        <CommandItem
+                          value={searchQuery}
+                          onSelect={async () => {
+                            const newCat = await handleCreateCategory();
+                            if (newCat) {
+                              const current = field.value || [];
+                              form.setValue('categories', [
+                                ...current,
+                                { id: newCat.id, name: newCat.name }
+                              ]);
+                            }
+                          }}
+                          className="text-green-700 cursor-pointer font-medium"
+                        >
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Criar nova: "{searchQuery}"
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
                 </CommandList>
               </Command>
             </PopoverContent>

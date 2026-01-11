@@ -39,7 +39,9 @@ export function ProductImageCarousel({ images }: { images?: IProductImage[] }) {
             {images.map((image, index) => (
               <CarouselItem className="h-full" key={index}>
                 <div className="h-full bg-muted rounded-lg overflow-hidden">
-                  {image.publicId && !image.publicId.startsWith('mock') && !image.publicId.startsWith('https://placehold.co/') ? (
+                  {image.publicId &&
+                  !image.publicId.startsWith('mock') &&
+                  !image.publicId.startsWith('https://placehold.co/') ? (
                     <img
                       src={createCloudinaryThumbnail(image.publicId, {
                         height: 900,
@@ -76,10 +78,11 @@ export function ProductImageCarousel({ images }: { images?: IProductImage[] }) {
           <button
             key={index}
             onClick={(e) => handleThumbnailClick(e, index)}
-            className={`relative w-16 h-12 rounded-md overflow-hidden transition-all duration-300 flex-shrink-0 border-2 ${index === current - 1
-              ? 'border-primary shadow-lg scale-105'
-              : 'border-transparent hover:border-muted-foreground'
-              }`}
+            className={`relative w-16 h-12 rounded-md overflow-hidden transition-all duration-300 flex-shrink-0 border-2 ${
+              index === current - 1
+                ? 'border-primary shadow-lg scale-105'
+                : 'border-transparent hover:border-muted-foreground'
+            }`}
             aria-label={`Go to slide ${index + 1}`}
             aria-current={index === current - 1}
           >

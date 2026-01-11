@@ -10,7 +10,7 @@ interface ActionButtonProps extends ComponentProps<typeof Button> {
 export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
   ({ action, children, ...props }, ref) => {
     const { can, isLoading } = usePermission();
-    
+
     if (isLoading || !can(action)) {
       return null;
     }

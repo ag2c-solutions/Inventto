@@ -42,7 +42,6 @@ export interface IvariantImage {
   isPrimary?: boolean;
 }
 
-
 export interface ProductBase {
   id: string;
   organizationId: string;

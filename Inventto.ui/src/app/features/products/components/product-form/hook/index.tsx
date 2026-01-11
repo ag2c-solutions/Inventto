@@ -67,16 +67,16 @@ export function ProductFormProvider({
         hasVariants: product.hasVariants ? true : false,
         variants: product.hasVariants
           ? product.variants.map((variant) => ({
-            ...variant,
-            stock: variant.stock ?? 0,
-            costPrice: variant.costPrice ?? 0,
-            minimumStock: variant.minimumStock ?? 0,
-            isActive: variant.isActive ?? true,
-            images: variant.images.map((img) => ({
-              id: img.id,
-              isPrimary: img.isPrimary ?? false
+              ...variant,
+              stock: variant.stock ?? 0,
+              costPrice: variant.costPrice ?? 0,
+              minimumStock: variant.minimumStock ?? 0,
+              isActive: variant.isActive ?? true,
+              images: variant.images.map((img) => ({
+                id: img.id,
+                isPrimary: img.isPrimary ?? false
+              }))
             }))
-          }))
           : [],
         attributes: product.attributes.map((attr) => ({
           name: attr.name,
@@ -234,7 +234,7 @@ export function ProductFormProvider({
         attributes: processedAttributes,
         allImages: processedImages
       };
-      
+
       await createMutate(payload as unknown as IProduct);
 
       navigate('/products');
@@ -252,7 +252,6 @@ export function ProductFormProvider({
       navigate('/products');
       clearFormData();
     }
-
   };
 
   const clearFormData = () => {

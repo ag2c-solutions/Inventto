@@ -40,11 +40,7 @@ export function ProductAttributes() {
           }
 
           return (
-            <ExistingAttributeCard
-              key={field.id}
-              form={form}
-              index={index}
-            />
+            <ExistingAttributeCard key={field.id} form={form} index={index} />
           );
         })}
       </div>
@@ -67,4 +63,3 @@ export function ProductAttributes() {
     </div>
   );
 }
-

@@ -46,34 +46,34 @@ export function MovementBatchList() {
                   </div>
                 )}
               </TableCell>
-              
-              <TableCell className="font-medium">
-                {item.productName}
-              </TableCell>
-              
+
+              <TableCell className="font-medium">{item.productName}</TableCell>
+
               <TableCell>
                 {item.variantOptions && item.variantOptions.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {item.variantOptions.map((opt) => (
-                      <VariantOptionBadge 
-                        key={`${opt.name}-${opt.value}`} 
+                      <VariantOptionBadge
+                        key={`${opt.name}-${opt.value}`}
                         option={opt}
                       />
                     ))}
                   </div>
                 ) : item.variantName ? (
-                  <span className="text-sm text-muted-foreground">{item.variantName}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {item.variantName}
+                  </span>
                 ) : (
                   <span className="text-muted-foreground italic text-xs">
                     Item único
                   </span>
                 )}
               </TableCell>
-              
+
               <TableCell className="text-right font-bold">
                 {item.quantity}
               </TableCell>
-              
+
               <TableCell>
                 <Button
                   variant="ghost"

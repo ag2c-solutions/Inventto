@@ -30,10 +30,10 @@ export function FilePickerContent({
             src={
               file.publicId && !file.publicId.startsWith('mock')
                 ? createCloudinaryThumbnail(file.publicId, {
-                width: 450,
-                height: 450,
-                quality: 100
-              })
+                    width: 450,
+                    height: 450,
+                    quality: 100
+                  })
                 : file.url
             }
             alt={file.name}

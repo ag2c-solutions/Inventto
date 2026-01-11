@@ -10,17 +10,17 @@ export function useCategoriesQuery() {
 }
 
 export function useCreateCategoryMutation() {
-  const {organization} = useUser()
-  const organizationId = organization?.id
-
+  const { organization } = useUser();
+  const organizationId = organization?.id;
 
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ['CreateCategory'],
-    mutationFn: (name: string)=> {
+    mutationFn: (name: string) => {
       if (!organizationId) throw new Error('Nenhuma organização selecionada.');
 
-      return CategoryService.create(name, organizationId)},
+      return CategoryService.create(name, organizationId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['Categories'] });
     }

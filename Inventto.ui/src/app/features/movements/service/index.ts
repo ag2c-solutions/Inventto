@@ -1,11 +1,7 @@
 import { supabase } from '@/app/config/supabase';
 import { MovementMapper } from './mapper';
 import { handleMovementError } from './error-handler';
-import type {
-  MovementDTO,
-  Movement,
-  CreateMovementInput
-} from '../types/';
+import type { MovementDTO, Movement, CreateMovementInput } from '../types/';
 
 interface GetAllFilters {
   productId?: string;
@@ -69,15 +65,21 @@ async function getAll(filters: GetAllFilters): Promise<Movement[]> {
   }
 }
 
-async function create(input: CreateMovementInput, organizationId: string): Promise<string> {
+async function create(
+  input: CreateMovementInput,
+  organizationId: string
+): Promise<string> {
   try {
-    const persistencePayload = MovementMapper.toPersistence(input, organizationId);
+    const persistencePayload = MovementMapper.toPersistence(
+      input,
+      organizationId
+    );
     const { data, error } = await supabase.rpc('create_stock_movement', {
       movement_data: persistencePayload
     });
 
     if (error) throw error;
-    
+
     return data;
   } catch (error) {
     throw handleMovementError(error, 'create');

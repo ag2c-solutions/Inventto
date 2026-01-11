@@ -32,8 +32,8 @@ export function ProductSearch() {
           aria-expanded={open}
           disabled={isLoadingProducts}
           className={cn(
-            "w-full justify-between border-0 py-6 bg-muted px-4 font-normal text-muted-foreground hover:bg-muted",
-            "text-left"
+            'w-full justify-between border-0 py-6 bg-muted px-4 font-normal text-muted-foreground hover:bg-muted',
+            'text-left'
           )}
         >
           <span className="text-lg">
@@ -45,7 +45,10 @@ export function ProductSearch() {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0"
+        align="start"
+      >
         <Command>
           <CommandInput placeholder="Buscar por nome ou SKU..." />
           <CommandList>
@@ -70,7 +73,9 @@ export function ProductSearch() {
                       />
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <span className="font-medium truncate">{product.name}</span>
+                      <span className="font-medium truncate">
+                        {product.name}
+                      </span>
                       {product.sku && (
                         <span className="text-xs text-muted-foreground">
                           SKU: {product.sku}

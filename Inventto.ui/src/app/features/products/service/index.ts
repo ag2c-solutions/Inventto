@@ -36,7 +36,7 @@ async function getOneById(id: string): Promise<IProduct> {
       }
       throw error;
     }
-    
+
     return ProductMapper.toDomain(data);
   } catch (error) {
     handleProductError(error, 'getOneById');
@@ -56,11 +56,10 @@ async function getGlobalAttributes(): Promise<ProductAttributeDTO[]> {
     return data;
   } catch (error) {
     handleProductError(error, 'getGlobalAttributes');
- 
+
     return [];
   }
 }
-
 
 async function add(params: IProduct): Promise<IProduct> {
   const product = ProductMapper.toPersistence(params);
@@ -91,7 +90,7 @@ async function update(params: IProduct): Promise<IProduct> {
     return await getOneById(data);
   } catch (error) {
     handleProductError(error, 'update');
-  } 
+  }
 }
 
 export const ProductService = {

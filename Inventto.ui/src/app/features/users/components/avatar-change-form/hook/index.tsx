@@ -14,7 +14,9 @@ export function useAvatarChange({ onSuccess }: UseAvatarChangeProps) {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<PixelCrop | null>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<PixelCrop | null>(
+    null
+  );
 
   const onCropComplete = useCallback(
     (_croppedArea: unknown, croppedAreaPixels: PixelCrop) => {

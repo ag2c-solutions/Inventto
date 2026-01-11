@@ -7,7 +7,7 @@ import { getCroppedImg, type PixelCrop } from '@/lib/utils';
 export const USERS_KEYS = {
   all: ['users'] as const,
   profile: (userId: string | undefined) =>
-    [...USERS_KEYS.all, 'profile', userId] as const,
+    [...USERS_KEYS.all, 'profile', userId] as const
 };
 
 export function useUserProfileQuery(userId: string | undefined) {
@@ -18,8 +18,8 @@ export function useUserProfileQuery(userId: string | undefined) {
       return UserService.getProfile(userId);
     },
     enabled: !!userId,
-    staleTime: 1000 * 60 * 60, // 60 minutos 
-    retry: false, 
+    staleTime: 1000 * 60 * 60, // 60 minutos
+    retry: false
   });
 }
 
@@ -34,7 +34,11 @@ export function useUpdateAvatarMutation() {
 
   return useMutation({
     mutationKey: ['users', 'update-avatar'],
-    mutationFn: async ({ userId, imageSrc, pixelCrop }: UpdateAvatarVariables) => {
+    mutationFn: async ({
+      userId,
+      imageSrc,
+      pixelCrop
+    }: UpdateAvatarVariables) => {
       const croppedFile = await getCroppedImg(imageSrc, pixelCrop);
 
       if (!croppedFile) {
@@ -47,13 +51,13 @@ export function useUpdateAvatarMutation() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: USERS_KEYS.profile(variables.userId),
+        queryKey: USERS_KEYS.profile(variables.userId)
       });
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
     meta: {
-      successMessage: 'Avatar atualizado com sucesso!',
-    },
+      successMessage: 'Avatar atualizado com sucesso!'
+    }
   });
 }
 
@@ -62,7 +66,7 @@ export function useUpdatePasswordMutation() {
     mutationKey: ['users', 'update-password'],
     mutationFn: UserService.updatePassword,
     meta: {
-      successMessage: 'Senha atualizada com sucesso!',
-    },
+      successMessage: 'Senha atualizada com sucesso!'
+    }
   });
 }

@@ -1,11 +1,9 @@
 export interface CategoryDTO {
-  category:{
+  category: {
     id: string;
     name: string;
-  }
+  };
 }
-
-
 
 export interface ProductAttributeDTO {
   id: string;
@@ -62,7 +60,6 @@ export interface ProductDTO {
   product_images: ProductImageDTO[];
   product_variants: ProductVariantDTO[];
 }
-
 
 export interface PersistImageDTO {
   id?: string;

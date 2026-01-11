@@ -72,13 +72,14 @@ export function ProductFormFieldVariantImages({
               />
             )}
 
-            {fullImageFile?.url.startsWith('blob') || fullImageFile?.url.startsWith('https://placehold.co') && (
-              <ImageCard
-                src={fullImageFile.url}
-                alt={fullImageFile.name}
-                showSkeleton={false}
-              />
-            )}
+            {fullImageFile?.url.startsWith('blob') ||
+              (fullImageFile?.url.startsWith('https://placehold.co') && (
+                <ImageCard
+                  src={fullImageFile.url}
+                  alt={fullImageFile.name}
+                  showSkeleton={false}
+                />
+              ))}
             {image.isPrimary && (
               <div className="absolute top-0 right-0 p-0.5 bg-black/50 rounded-bl-md">
                 <Star className="size-3 text-yellow-400 fill-yellow-400" />

@@ -24,7 +24,7 @@ interface VariantImageJoinDTO {
 
 export interface VariantSummaryDTO {
   sku: string | null;
-  options: Record<string, string> | null; 
+  options: Record<string, string> | null;
   product_variant_images: VariantImageJoinDTO[];
 }
 
@@ -46,7 +46,7 @@ export interface MovementDTO {
   user_id: string | null;
   type: MovementTypeDTO;
   reason: string | null;
-  document_number: string | null; 
+  document_number: string | null;
   order_id: string | null;
   created_at: string;
   profiles?: ProfileDTO | null;
@@ -57,7 +57,7 @@ export interface CreateMovementItemRPCDTO {
   product_id: string;
   variant_id?: string | null;
   quantity: number;
-  unit_cost?: number; 
+  unit_cost?: number;
   unit_price?: number;
 }
 
@@ -65,7 +65,7 @@ export interface CreateStockMovementRPCDTO {
   organization_id: string;
   type: MovementTypeDTO;
   reason: string | null;
-  document_number?: string | null; 
+  document_number?: string | null;
   order_id?: string | null;
   items: CreateMovementItemRPCDTO[];
 }

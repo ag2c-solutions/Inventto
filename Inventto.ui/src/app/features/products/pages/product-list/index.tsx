@@ -17,7 +17,11 @@ export const ProductsListPage = () => {
           </p>
         </div>
         <div className="flex w-full md:w-[unset] gap-3">
-          <ActionButton action="product:create" size={'sm'} className="bg-green-950 cursor-pointer w-full">
+          <ActionButton
+            action="product:create"
+            size={'sm'}
+            className="bg-green-950 cursor-pointer w-full"
+          >
             <Link className="flex gap-2 items-center" to="create">
               <PlusCircle />
               Adicionar Produto
