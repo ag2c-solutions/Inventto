@@ -4,6 +4,7 @@ import { protectedLoader, publicLoader } from './guards/auth-loader';
 
 import { AuthLayout } from '../layouts/auth/auth-layout';
 import { SystemLayout } from '../layouts/system/system-layout';
+import { PermissionRoute } from './guards/permission-router';
 
 const SignInPage = lazy(() =>
   import('../features/auth/pages/sign-in').then((m) => ({
@@ -104,6 +105,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'products',
+        element: <PermissionRoute required="product:view" />,
         children: [
           {
             index: true,
@@ -111,20 +113,24 @@ export const router = createBrowserRouter([
           },
           {
             path: 'create',
-            element: <CreateProductPage />
+            element: <PermissionRoute required="product:create" />,
+            children: [{ index: true, element: <CreateProductPage /> }]
           },
           {
             path: ':productId',
-            element: <ProductDetailsPage />
+            element: <PermissionRoute required="product:view" />,
+            children: [{ index: true, element: <ProductDetailsPage /> }]
           },
           {
             path: ':productId/edit',
-            element: <EditProductPage />
+            element: <PermissionRoute required="product:edit" />,
+            children: [{ index: true, element: <EditProductPage /> }]
           }
         ]
       },
       {
         path: 'movements',
+        element: <PermissionRoute required="stock:view" />,
         children: [
           {
             index: true,
@@ -132,7 +138,8 @@ export const router = createBrowserRouter([
           },
           {
             path: 'new',
-            element: <NewStockMovementPage />
+            element: <PermissionRoute required="stock:move" />,
+            children: [{ index: true, element: <NewStockMovementPage /> }]
           }
         ]
       }

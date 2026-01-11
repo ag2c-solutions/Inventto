@@ -3,6 +3,7 @@ import { MovementsListTable } from '../../components/movements-table';
 import { ArrowRightLeft, XCircle } from 'lucide-react';
 import { Link, NavLink, useSearchParams } from 'react-router';
 import { useMovementsQuery } from '../../hooks/use-query';
+import { ActionButton } from '@/app/features/permissions/components/action-button';
 
 export function MovementsListPage() {
   const [searchParams] = useSearchParams();
@@ -23,7 +24,7 @@ export function MovementsListPage() {
           </p>
         </div>
         <div className="w-full md:w-[unset] flex gap-3">
-          <Button size={'sm'} className="w-full">
+          <ActionButton action="stock:move" size={'sm'} className="w-full">
             <NavLink
               className="flex gap-2 justify-center items-center"
               to={'new'}
@@ -31,7 +32,7 @@ export function MovementsListPage() {
               <ArrowRightLeft className="h-4 w-4" />
               Nova Movimentação
             </NavLink>
-          </Button>
+          </ActionButton>
 
           {productId && (
             <Button variant="outline" size="sm" asChild>

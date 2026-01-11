@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { DataTableHeaderSortableColumn } from '@/app/components/shared/datatable/pieces/datatable-header-sortable-column';
 import { dateRangeFilter } from '@/app/components/shared/datatable/utils';
 import { Badge } from '@/app/components/ui/badge';
-import { Button } from '@/app/components/ui/button';
 import {
   Avatar,
   AvatarFallback,
@@ -13,6 +12,7 @@ import {
 } from '@/app/components/ui/avatar';
 import type { Movement } from '../../../types/model';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ActionButton } from '@/app/features/permissions/components/action-button';
 
 const getInitials = (name: string) => {
   return name
@@ -134,7 +134,8 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
     cell: ({ row }) => (
       <div className="flex justify-end pr-3"> 
         {row.original.items && row.original.items.length > 0 ? (
-          <Button
+          <ActionButton 
+            action="stock:move_details"
             variant="ghost"
             size="icon-sm"
             onClick={() => row.toggleExpanded()}
@@ -146,7 +147,7 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
               <ChevronRight className="h-4 w-4" />
             )}
             <span className="sr-only">Toggle details</span>
-          </Button>
+          </ActionButton>
         ) : null}
       </div>
     )

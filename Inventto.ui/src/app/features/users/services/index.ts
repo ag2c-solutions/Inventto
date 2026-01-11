@@ -3,11 +3,6 @@ import { handleUserError } from './error-handler';
 import { UserMapper } from './mappers';
 import type { User, UserWithOrganizationDTO } from '../types';
 
-/**
- * Query Estratégica:
- * Busca o perfil, seus vínculos de membros e os detalhes da organização.
- * Isso evita o problema de N+1 queries e garante consistência.
- */
 const SELECT_FULL_PROFILE_QUERY = `
   id,
   full_name,

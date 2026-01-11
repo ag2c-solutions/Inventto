@@ -1,6 +1,6 @@
 import { useLocation, Link } from 'react-router';
 import { cn } from '@/lib/utils';
-import { navLinks } from '../sidebar/navlinks-siderbar';
+import { navLinks } from '../../consts/navlinks-siderbar';
 
 export function MobileBottomNav() {
   const { pathname } = useLocation();

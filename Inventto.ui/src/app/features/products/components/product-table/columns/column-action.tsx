@@ -16,6 +16,7 @@ import {
   GalleryVerticalEnd,
   SquarePen
 } from 'lucide-react';
+import { ActionButton } from '@/app/features/permissions/components/action-button';
 
 export function ProductTableColumnActions({
   productId
@@ -31,38 +32,46 @@ export function ProductTableColumnActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>
-            <Link
-              className="flex gap-2 w-full items-center"
-              to={`/products/${productId}`}
-            >
-              <Eye /> Detalhes
-            </Link>
+          <DropdownMenuItem asChild>
+            <ActionButton action="product:detail" size={"icon-sm"} variant={"ghost"} className='w-full'>
+              <Link
+                className="flex gap-2 w-full items-center text-sm font-normal"
+                to={`/products/${productId}`}
+              >
+                <Eye /> Detalhes
+              </Link>
+            </ActionButton>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link
-              className="flex gap-2 w-full items-center"
-              to={`/products/${productId}/edit`}
-            >
-              <SquarePen /> Editar
-            </Link>
+          <DropdownMenuItem asChild>
+            <ActionButton action="product:edit" size={"icon-sm"} variant={"ghost"} className='w-full'>
+              <Link
+                className="flex gap-2 w-full items-center text-sm font-normal"
+                to={`/products/${productId}/edit`}
+              >
+                <SquarePen /> Editar
+              </Link>
+            </ActionButton>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Link
-              className="flex gap-2 w-full items-center"
-              to={`/movements?productId=${productId}`}
-            >
-              <GalleryVerticalEnd /> Ver Histórico
-            </Link>
+          <DropdownMenuItem asChild>
+            <ActionButton action="stock:view" size={"icon-sm"} variant={"ghost"} className='w-full'>
+              <Link
+                className="flex gap-2 w-full items-center text-sm font-normal"
+                to={`/movements?productId=${productId}`}
+              >
+                <GalleryVerticalEnd /> Ver Histórico
+              </Link>
+            </ActionButton>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link
-              className="flex gap-2 w-full items-center"
-              to={`/movements/new?preselect=${productId}`}
-            >
-              <ArrowLeftRight /> Registrar Movimentação
-            </Link>
+          <DropdownMenuItem asChild>
+            <ActionButton action="stock:move" size={"icon-sm"} variant={"ghost"} className='w-full'>
+              <Link
+                className="flex gap-2 w-full items-center text-sm font-normal"
+                to={`/movements/new?preselect=${productId}`}
+              >
+                <ArrowLeftRight /> Registrar Movimentação
+              </Link>
+            </ActionButton>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

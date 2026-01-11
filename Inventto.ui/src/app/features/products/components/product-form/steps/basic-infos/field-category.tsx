@@ -27,8 +27,10 @@ import {
 
 import { useProductForm } from '../../hook';
 import { useCategoryField } from './use-category-field';
+import { usePermission } from '@/app/features/permissions/hooks/use-permissions';
 
 export function ProductFormFieldCategory() {
+  const { can } = usePermission();
   const { form } = useProductForm();
   const {
     open,
@@ -133,7 +135,7 @@ export function ProductFormFieldCategory() {
                     })}
                   </CommandGroup>
 
-                  {showCreateOption && !isCreating && (
+                  {showCreateOption && !isCreating && can('category:create') && (
                     <CommandGroup>
                       <CommandItem
                         value={searchQuery}

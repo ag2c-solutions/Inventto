@@ -1,7 +1,7 @@
-import { Button } from '@/app/components/ui/button';
 import { ProductListTable } from '../../components/product-table';
 import { Link } from 'react-router';
 import { PlusCircle } from 'lucide-react';
+import { ActionButton } from '@/app/features/permissions/components/action-button';
 
 export const ProductsListPage = () => {
   return (
@@ -17,12 +17,12 @@ export const ProductsListPage = () => {
           </p>
         </div>
         <div className="flex w-full md:w-[unset] gap-3">
-          <Button size={'sm'} className="bg-green-950 cursor-pointer w-full">
+          <ActionButton action="product:create" size={'sm'} className="bg-green-950 cursor-pointer w-full">
             <Link className="flex gap-2 items-center" to="create">
               <PlusCircle />
               Adicionar Produto
             </Link>
-          </Button>
+          </ActionButton>
         </div>
       </div>
 

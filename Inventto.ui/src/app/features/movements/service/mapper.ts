@@ -29,6 +29,16 @@ const toDomainItem=(dto: MovementItemDTO): MovementItem => {
   };
 }
 
+const toPersistenceItem = (item: CreateMovementItemInput): CreateMovementItemRPCDTO => {
+    return {
+      product_id: item.productId,
+      variant_id: item.variantId ?? null,
+      quantity: item.quantity,
+      unit_cost: item.unitCost,
+      unit_price: item.unitPrice
+    };
+  }
+
 export const MovementMapper = {
   toDomain(dto: MovementDTO): Movement {
     const items = (dto.movement_items ?? []).map((item) => toDomainItem(item));
@@ -62,17 +72,7 @@ export const MovementMapper = {
       reason: domain.reason,
       document_number: domain.documentNumber ?? null,
       order_id: null,
-      items: domain.items.map(this.toPersistenceItem)
+      items: domain.items.map(toPersistenceItem)
     };
   },
-
-  toPersistenceItem(item: CreateMovementItemInput): CreateMovementItemRPCDTO {
-    return {
-      product_id: item.productId,
-      variant_id: item.variantId ?? null,
-      quantity: item.quantity,
-      unit_cost: item.unitCost,
-      unit_price: item.unitPrice
-    };
-  }
 };

@@ -73,7 +73,7 @@ async function create(input: CreateMovementInput, organizationId: string): Promi
   try {
     const persistencePayload = MovementMapper.toPersistence(input, organizationId);
     const { data, error } = await supabase.rpc('create_stock_movement', {
-      movement_data: persistencePayload as any 
+      movement_data: persistencePayload
     });
 
     if (error) throw error;
