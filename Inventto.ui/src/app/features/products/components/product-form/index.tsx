@@ -3,10 +3,9 @@ import {
   Wizard,
   WizardContent,
   WizardControl,
-  WizardHeader
 } from '@/app/components/shared/wizard';
 
-export function ProductForm({ label }: { label: string }) {
+export function ProductForm() {
   const { steps, onSubmit, onCancel, handleNextStep } = useProductForm();
 
   return (
@@ -17,7 +16,6 @@ export function ProductForm({ label }: { label: string }) {
         onCancel={onCancel}
         onFinish={onSubmit}
       >
-        <WizardHeader label={label} className="h-7" />
         <WizardContent />
         <WizardControl />
       </Wizard>

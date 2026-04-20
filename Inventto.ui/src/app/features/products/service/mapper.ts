@@ -43,7 +43,7 @@ export const ProductMapper = {
       sku: data.sku,
       description: data.description || undefined,
       isActive: data.is_active,
-      costPrice: data.cost_price,
+      costPrice: data?.cost_price || undefined,
       stock: data.stock,
       minimumStock: data.minimum_stock,
       categories: data.categories.map((c) => c.category) || [],

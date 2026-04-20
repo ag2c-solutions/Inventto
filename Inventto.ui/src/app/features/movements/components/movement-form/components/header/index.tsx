@@ -38,9 +38,6 @@ export function MovementFormHeader() {
       <div className="container mx-auto space-y-6">
         <div className="flex items-center justify-between py-2">
           <section>
-            <h1 className="text-xl font-bold text-green-950">
-              Nova Movimentação
-            </h1>
             <p className="text-muted-foreground">
               Registre todas as entradas, saídas e ajustes de inventário.
             </p>
@@ -55,7 +52,7 @@ export function MovementFormHeader() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-12 gap-4 bg-card p-4 rounded-lg border shadow-sm">
+        <div className="grid grid-cols-12 gap-4">
           <section className="col-span-12 md:col-span-4">
             <FormField
               control={form.control}
@@ -74,24 +71,27 @@ export function MovementFormHeader() {
                         <TabsTrigger
                           value="entry"
                           className="data-[state=active]:text-green-700"
+                          asChild
                         >
-                          <ActionButton action="movement:entry">
+                          <ActionButton size={"sm"} variant={"ghost"} action="movement:entry">
                             Entrada
                           </ActionButton>
                         </TabsTrigger>
                         <TabsTrigger
                           value="withdrawal"
                           className="data-[state=active]:text-red-700"
+                          asChild
                         >
-                          <ActionButton action="movement:withdrawal">
+                          <ActionButton size={"sm"} variant={"ghost"} action="movement:withdrawal">
                             Saída
                           </ActionButton>
                         </TabsTrigger>
-                        <TabsTrigger
+                        <TabsTrigger  
                           value="adjustment"
                           className="data-[state=active]:text-amber-700"
+                          asChild
                         >
-                          <ActionButton action="movement:adjust">
+                          <ActionButton size={"sm"} variant={"ghost"} action="movement:adjust">
                             Ajuste
                           </ActionButton>
                         </TabsTrigger>
@@ -137,7 +137,6 @@ export function MovementFormHeader() {
                           disabled={(date) =>
                             date > new Date() || date < new Date('1900-01-01')
                           }
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>

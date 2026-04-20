@@ -1,21 +1,45 @@
 import { redirect, type LoaderFunctionArgs } from 'react-router';
 import { supabase } from '@/app/config/supabase';
+import { UserService } from '@/app/features/users/services';
 
 async function isAuthenticated(): Promise<boolean> {
   const { data } = await supabase.auth.getSession();
   return !!data.session;
 }
 
-export async function protectedLoader({ request }: LoaderFunctionArgs) {
-  const isAuth = await isAuthenticated();
+async function checkMustChangePassword(): Promise<boolean> {
+  const { data } = await supabase.auth.getSession();
 
-  if (!isAuth) {
-    const url = new URL(request.url);
-    const pathname = url.pathname;
+  if (!data.session?.user?.id) return false;
+
+  const profile = await UserService.getProfile(data.session.user.id);
+
+  return profile?.mustChangePassword || false;
+}
+
+export async function protectedLoader({ request }: LoaderFunctionArgs) {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  if (!session) {
     const search = url.search;
     const redirectTo = pathname + search;
-
+    
     return redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
+  }
+
+  const mustChangePassword = await checkMustChangePassword();
+  
+  const isAtFirstAccessPage = pathname === '/auth/first-access';
+
+  if (mustChangePassword && !isAtFirstAccessPage) {
+    return redirect('/auth/first-access');
+  }
+
+  if (!mustChangePassword && isAtFirstAccessPage) {
+    return redirect('/');
   }
 
   return null;

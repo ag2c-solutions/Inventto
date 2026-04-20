@@ -12,6 +12,7 @@ export interface User {
   email: string;
   fullName: string;
   avatarUrl: string | null;
+  mustChangePassword: boolean;
   createdAt: Date;
   updatedAt: Date;
   availableOrganizations: UserOrganizationContext[];

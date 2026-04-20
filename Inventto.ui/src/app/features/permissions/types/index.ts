@@ -22,4 +22,6 @@ export type PermissionAction =
   | 'catalog:view'
   | 'catalog:manage'
   | 'financial:view'
-  | 'org:update';
+  | 'org:create'
+  | 'org:update'
+  | 'org:manage';

@@ -23,6 +23,9 @@ import {
   PaginationControllers
 } from '@/app/components/shared/datatable';
 import { useProductsQuery } from '../../hooks/use-query';
+import { ActionButton } from '@/app/features/permissions/components/action-button';
+import { Link } from 'react-router';
+import { PlusCircle } from 'lucide-react';
 
 export function ProductListTable() {
   const { data: products } = useProductsQuery();
@@ -65,15 +68,30 @@ export function ProductListTable() {
       renderSubRow={renderVariantsDetails}
       emptyMessage="Nenhum produto foi encontrado."
     >
-      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-        <section className="flex flex-1 flex-col sm:flex-row gap-4 w-full">
-          <DataTableTextFilter placeholder="Digite Nome ou SKU do produto" />
-          <section className="gap-2 md:pl-4 flex items-center">
-            <DataTableDropdownColumnsVisibility />
-          </section>
+      <div className="flex flex-col lg:flex-row gap-4 items-start justify-between">
+        <section className="flex flex-1 flex-col sm:flex-row gap-4">
+          <DataTableTextFilter
+            placeholder="Digite Nome ou SKU do produto"
+            className="max-w-[300px]"
+          />
+        </section>
+        <section className="gap-2 md:pl-4 flex items-center">
+          <DataTableDropdownColumnsVisibility />
+          <div className="flex w-full md:w-[unset] gap-3">
+            <ActionButton
+              action="product:create"
+              size={'sm'}
+              className="bg-green-950 cursor-pointer w-full"
+            >
+              <Link className="flex gap-2 items-center" to="create">
+                <PlusCircle />
+                Adicionar Produto
+              </Link>
+            </ActionButton>
+          </div>
         </section>
       </div>
-      <section className="my-2.5 border-2 rounded-lg">
+      <section className="my-2.5 border-2 rounded-lg overflow-hidden">
         <DataTableContent />
       </section>
       <section className="w-full">

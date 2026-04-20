@@ -1,4 +1,4 @@
-import type { CategoryDTO } from '../../category/types';
+import type { Category } from "../../categories/types";
 
 export type ProductStockStatus = 'critical' | 'warning' | 'healthy';
 
@@ -48,10 +48,10 @@ export interface ProductBase {
   name: string;
   sku: string;
   description?: string;
-  categories: CategoryDTO[];
+  categories: Category[];
   stock: number;
   minimumStock: number;
-  costPrice: number;
+  costPrice?: number;
   isActive: boolean;
   attributes: IProductAttribute[];
   allImages?: IProductImage[];

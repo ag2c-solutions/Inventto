@@ -19,6 +19,7 @@ export class UserMapper {
       avatarUrl: dto.avatar_url,
       createdAt: new Date(dto.created_at),
       updatedAt: new Date(dto.updated_at),
+      mustChangePassword: dto.must_change_password,
       availableOrganizations
     };
   }

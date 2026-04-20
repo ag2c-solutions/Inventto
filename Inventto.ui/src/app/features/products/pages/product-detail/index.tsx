@@ -1,18 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { NavLink, useParams } from 'react-router';
 import { Card, CardContent } from '@/app/components/ui/card';
 import { ProductImageCarousel } from '../../components/product-image-carousel';
 import { ProductBasicInfosCard } from '../../components/product-basic-infos-card';
 import { ProductOptionsSelect } from '../../components/product-options-select';
 import { ProductInventtoryCard } from '../../components/product-inventtory-card';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbSeparator
-} from '@/app/components/ui/breadcrumb';
 import { useProductByIDQuery } from '../../hooks/use-query';
 import { getVariantImages } from '../../utils';
+import { PageHeader } from '@/app/components/shared/page-header';
+import { ArrowUpLeftIcon } from 'lucide-react';
 
 interface ProductParams {
   [key: string]: string | undefined;
@@ -77,18 +73,15 @@ export function ProductDetailsPage() {
 
   return (
     <div>
-      <section className="flex items-center mb-4">
-        <h1 className="text-2xl font-bold text-green-950">Produtos</h1>
-      </section>
-      <section>
+      <PageHeader title="Detalhes do produto" />
+      <section className="px-6 pt-4">
+        <NavLink to={`/products`} className="flex items-center gap-2">
+          <div className="flex items-center justify-center size-8 rounded-lg bg-accent/50 group-hover:bg-accent transition-all">
+            <ArrowUpLeftIcon className="size-4 text-primary" />
+          </div>
+          <span>Produtos</span>
+        </NavLink>
         <div className="space-y-6">
-          <Breadcrumb className="mb-2">
-            <BreadcrumbList className="sm:gap-1 items-center">
-              <BreadcrumbItem>Detalhes do produto</BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>{name}</BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
           <Card className="border-0 shadow-none px-0">
             <CardContent className="grid px-0 grid-cols-1 gap-6 md:grid-cols-2">
               <div className="flex h-full w-full items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -98,14 +91,14 @@ export function ProductDetailsPage() {
                       !hasVariants
                         ? allImages
                         : getVariantImages({
-                            allImages,
-                            variantImagesId: new Set(
-                              selectedVariant?.images.map((img) => img.id)
-                            ),
-                            primaryImageVariantId: selectedVariant?.images.find(
-                              (img) => img.isPrimary
-                            )?.id
-                          })
+                          allImages,
+                          variantImagesId: new Set(
+                            selectedVariant?.images.map((img) => img.id)
+                          ),
+                          primaryImageVariantId: selectedVariant?.images.find(
+                            (img) => img.isPrimary
+                          )?.id
+                        })
                     }
                   />
                 }

@@ -5,6 +5,7 @@ import { protectedLoader, publicLoader } from './guards/auth-loader';
 import { AuthLayout } from '../layouts/auth/auth-layout';
 import { SystemLayout } from '../layouts/system/system-layout';
 import { PermissionRoute } from './guards/permission-router';
+import { SettingsPage } from '../features/organizations/pages/settings';
 
 const SignInPage = lazy(() =>
   import('../features/auth/pages/sign-in').then((m) => ({
@@ -60,6 +61,18 @@ const PlaceholderPage = lazy(() =>
   }))
 );
 
+const MembersListPage = lazy(() =>
+  import('../features/organizations/pages/members-list').then((m) => ({
+    default: m.MembersListPage
+  }))
+);
+
+const FirstAccessPage = lazy(() =>
+  import('../features/auth/pages/first-access').then((m) => ({
+    default: m.FirstAccessPage
+  }))
+);
+
 const PageLoader = () => (
   <div className="flex h-screen w-full items-center justify-center">
     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -87,6 +100,10 @@ export const router = createBrowserRouter([
       {
         path: 'forgot-password',
         element: <PlaceholderPage />
+      },
+      {
+        path: 'first-access',
+        element: <FirstAccessPage />
       }
     ]
   },
@@ -130,7 +147,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'movements',
-        element: <PermissionRoute required="stock:view" />,
+        element: <PermissionRoute required="movement:view" />,
         children: [
           {
             index: true,
@@ -138,8 +155,28 @@ export const router = createBrowserRouter([
           },
           {
             path: 'new',
-            element: <PermissionRoute required="stock:move" />,
+            element: <PermissionRoute required="movement:create" />,
             children: [{ index: true, element: <NewStockMovementPage /> }]
+          }
+        ]
+      },
+      {
+        path: 'team',
+        element: <PermissionRoute required="team:manage" />,
+        children: [
+          {
+            index: true,
+            element: <MembersListPage />
+          }
+        ]
+      },
+      {
+        path: 'settings',
+        element: <PermissionRoute required="org:manage" />,
+        children: [
+          {
+            index: true,
+            element: <SettingsPage />
           }
         ]
       }

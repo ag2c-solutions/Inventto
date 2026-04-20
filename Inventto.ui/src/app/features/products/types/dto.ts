@@ -5,6 +5,7 @@ export interface CategoryDTO {
   };
 }
 
+
 export interface ProductAttributeDTO {
   id: string;
   values: string[];
@@ -51,7 +52,7 @@ export interface ProductDTO {
   description?: string | null;
   stock: number;
   minimum_stock: number;
-  cost_price: number;
+  cost_price?: number;
   has_variants: boolean;
   is_active: boolean;
   created_at: string;

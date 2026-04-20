@@ -2,16 +2,18 @@ import { Input } from '@/app/components/ui/input';
 import { useDataTable } from '../../hook/usetable';
 import { Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { debounce } from '@/lib/utils';
+import { cn, debounce } from '@/lib/utils';
 
 export interface IDataTableTextFilter {
   placeholder: string;
   column?: string;
+  className?: string;
 }
 
 export function DataTableTextFilter({
   placeholder,
-  column
+  column,
+  className
 }: IDataTableTextFilter) {
   const { table } = useDataTable();
   const [localValue, setLocalValue] = useState<string>(
@@ -29,7 +31,7 @@ export function DataTableTextFilter({
         } else {
           table.setGlobalFilter(value);
         }
-      }, 500),
+      }, 1000),
     [table, column]
   );
 
@@ -40,7 +42,7 @@ export function DataTableTextFilter({
   };
 
   return (
-    <div className="relative flex-1 min-w-[200px]">
+    <div className={cn("flex-1 relative min-w-[200px]", className)}>
       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         placeholder={placeholder}

@@ -4,11 +4,25 @@ import type { IProduct } from '../types';
 import { useUser } from '../../users/hooks/use-user';
 
 export function useProductsQuery() {
-  return useQuery({
-    queryKey: ['products'],
-    queryFn: ProductService.getAll,
-    staleTime: 1000 * 60 * 5
-  });
+  const { organization, role } = useUser();
+  const organizationId = organization?.id;
+
+  if (!organizationId) throw new Error('Nenhuma organização selecionada.');
+  if (!role) throw new Error('Usuário sem cargo.');
+
+  if(role !== 'sales'){
+    return useQuery({
+      queryKey: ['products', organizationId],
+      queryFn: () => ProductService.getAll(organizationId),
+      staleTime: 1000 * 60 * 5
+    });
+  }else{
+    return useQuery({
+      queryKey: ['products-for-sales', organizationId],
+      queryFn: () => ProductService.getAllForSales(organizationId),
+      staleTime: 1000 * 60 * 5
+    });
+  }
 }
 
 export function useProductByIDQuery(productId: string) {

@@ -2,6 +2,7 @@ import { supabase } from '@/app/config/supabase';
 import type { SignInPayload, SignUpPayload, Session } from '../types';
 import { toSupabaseMetadata } from './mappers';
 import { handleAuthError } from './error-handler';
+import type { AuthError } from '@supabase/supabase-js';
 
 async function signIn({ email, password }: SignInPayload) {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -66,11 +67,30 @@ async function subscribeToAuthChanges(
   };
 }
 
+async function completeFirstAccess({ newPassword, userId, orgId }: { newPassword: string, userId: string, orgId: string }) {
+  try {
+    const { error: authError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (authError) throw authError;
+
+    const { error: dbError } = await supabase.rpc('confirm_first_access', { p_user_id: userId, p_organization_id: orgId });
+
+    if (dbError) throw dbError;
+
+  } catch (error) {
+    handleAuthError(error as AuthError);
+    throw error;
+  }
+}
+
 export const AuthService = {
   signIn,
   signUp,
   signOut,
   getSession,
   isAuthenticated,
-  subscribeToAuthChanges
+  subscribeToAuthChanges,
+  completeFirstAccess
 };

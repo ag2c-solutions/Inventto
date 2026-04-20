@@ -13,7 +13,7 @@ function MovementFormContent() {
   return (
     <form
       onSubmit={form.handleSubmit(actions.submit)}
-      className="relative h-fit min-h-full flex flex-col"
+      className="h-fit flex relative min-h-[calc(100vh-12rem)] flex-col"
     >
       <MovementFormHeader />
 
@@ -23,7 +23,7 @@ function MovementFormContent() {
         </section>
 
         {items && items.length > 0 && (
-          <section className="space-y-4">
+          <section className="space-y-4 pb-8">
             <h2 className="text-lg font-semibold text-green-950">
               Itens no Lote
             </h2>

@@ -1,9 +1,7 @@
-import { Button } from '@/app/components/ui/button';
 import { MovementsListTable } from '../../components/movements-table';
-import { ArrowRightLeft, XCircle } from 'lucide-react';
-import { Link, NavLink, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { useMovementsQuery } from '../../hooks/use-query';
-import { ActionButton } from '@/app/features/permissions/components/action-button';
+import { PageHeader } from '@/app/components/shared/page-header';
 
 export function MovementsListPage() {
   const [searchParams] = useSearchParams();
@@ -14,41 +12,19 @@ export function MovementsListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-green-950 tracking-tight">
-            Movimentações de Estoque
-          </h1>
+      <PageHeader title="Movimentações" />
+      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-6">
+        <div className="flex flex-col gap-2 pb-6">
+          <h2 className="text-2xl font-semibold">
+            Gerenciar movimentações
+          </h2>
           <p className="text-muted-foreground">
-            Gerencie e audite todas as entradas, saídas e ajustes de inventário.
+            Gerencie de forma centralizada as movimentações de estoque.
           </p>
         </div>
-        <div className="w-full md:w-[unset] flex gap-3">
-          <ActionButton action="movement:create" size={'sm'} className="w-full">
-            <NavLink
-              className="flex gap-2 justify-center items-center"
-              to={'new'}
-            >
-              <ArrowRightLeft className="h-4 w-4" />
-              Nova Movimentação
-            </NavLink>
-          </ActionButton>
-
-          {productId && (
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                to="/movements"
-                className="flex items-center gap-2 text-destructive hover:text-destructive"
-              >
-                <XCircle className="h-4 w-4" />
-                Limpar filtro de produto
-              </Link>
-            </Button>
-          )}
-        </div>
       </div>
-      <section>
-        <MovementsListTable data={data || []} />
+      <section className='px-6'>
+        <MovementsListTable data={data || []} productId={productId} />
       </section>
     </div>
   );

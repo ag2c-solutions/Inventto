@@ -8,7 +8,7 @@ export function MovementFormFooter() {
   const totalItems = form.watch('totalQuantity');
 
   return (
-    <div className="absolute bottom-0 left-0 rounded-xl right-0 border-t py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] bg-background z-20">
+    <div className="absolute bottom-4 left-0 rounded-xl right-0 border py-4 bg-background z-20">
       <div className="container mx-auto px-2 sm:px-4 flex items-center justify-between">
         <div className="flex flex-col">
           <span className="text-sm text-muted-foreground">Resumo do Lote</span>

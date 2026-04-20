@@ -3,13 +3,14 @@ import { handleProductError } from './error-handler';
 import { ProductMapper } from './mapper';
 import type { IProduct } from '../types/models';
 import type { ProductAttributeDTO, ProductDTO } from '../types/dto';
-import { selectQuery } from './queries';
+import { selectQuery, selectQueryForSales } from './queries';
 
-async function getAll(): Promise<IProduct[]> {
+async function getAll(organizationId: string): Promise<IProduct[]> {
   try {
     const { data, error } = await supabase
       .from('products')
       .select(selectQuery)
+      .eq('organization_id', organizationId)
       .order('created_at', { ascending: false })
       .overrideTypes<ProductDTO[], { merge: false }>();
 
@@ -18,6 +19,24 @@ async function getAll(): Promise<IProduct[]> {
     return data.map(ProductMapper.toDomain);
   } catch (error) {
     handleProductError(error, 'getAll');
+  }
+}
+
+async function getAllForSales(organizationId: string): Promise<IProduct[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select(selectQueryForSales)
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .overrideTypes<ProductDTO[], { merge: false }>();
+
+    if (error) throw error;
+
+    return data.map(ProductMapper.toDomain);
+  } catch (error) {
+    handleProductError(error, 'getAllForSales');
   }
 }
 
@@ -95,6 +114,7 @@ async function update(params: IProduct): Promise<IProduct> {
 
 export const ProductService = {
   getAll,
+  getAllForSales,
   getOneById,
   getGlobalAttributes,
   add,

@@ -45,8 +45,10 @@ const OWNER_PERMISSIONS: PermissionAction[] = [
   'customer:manage',
 
   'team:manage',
-
+  
+  'org:create',
   'org:update',
+  'org:manage',
 
   'financial:view'
 ];

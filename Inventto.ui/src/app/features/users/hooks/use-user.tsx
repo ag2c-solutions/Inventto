@@ -91,7 +91,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       isError,
       error,
       refetch,
-
       isAuthenticated: !!user,
       organization: currentOrganization,
       role: currentOrganization?.role,

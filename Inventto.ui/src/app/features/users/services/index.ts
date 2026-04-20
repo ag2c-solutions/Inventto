@@ -10,6 +10,7 @@ const SELECT_FULL_PROFILE_QUERY = `
   avatar_url,
   created_at,
   updated_at,
+  must_change_password,
   organization_members (
     role,
     organization_id,
@@ -36,7 +37,6 @@ async function getProfile(userId: string): Promise<User | null> {
   }
 
   if (!data) return null;
-
   return UserMapper.toDomain(data as unknown as UserWithOrganizationDTO);
 }
 

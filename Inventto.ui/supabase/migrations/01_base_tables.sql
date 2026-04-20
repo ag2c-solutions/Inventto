@@ -24,6 +24,7 @@ CREATE TABLE public.profiles (
   full_name text NOT NULL,
   email text NOT NULL,
   avatar_url text,
+  must_change_password BOOLEAN DEFAULT false,
   
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
@@ -66,9 +67,11 @@ CREATE TABLE public.organization_members (
   organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   
+  status public.member_status NOT NULL DEFAULT 'active',
   role public.app_role NOT NULL DEFAULT 'sales',
   
   created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
   
   CONSTRAINT organization_members_pkey PRIMARY KEY (id),
   CONSTRAINT unique_member_per_org UNIQUE (organization_id, profile_id)
