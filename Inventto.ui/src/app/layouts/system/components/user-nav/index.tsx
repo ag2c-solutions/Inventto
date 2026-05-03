@@ -1,14 +1,28 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { LogOut, Lock, ImageIcon } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
+import { ImageIcon, Lock, LogOut } from 'lucide-react';
+
+import { useSignOutMutation } from '@/features/auth';
+import {
+  AvatarChangeForm,
+  ChangePasswordForm,
+  getUserNameInitials,
+  useUser
+} from '@/features/users';
 
 import {
   Avatar,
   AvatarFallback,
   AvatarImage
-} from '@/app/components/ui/avatar';
-
+} from '@/shared/components/ui/avatar';
+import { Button } from '@/shared/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/shared/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,26 +31,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '@/app/components/ui/dropdown-menu';
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle
-} from '@/app/components/ui/dialog';
-
-import { AvatarChangeForm } from '@/app/features/users/components/avatar-change-form';
-import { ChangePasswordForm } from '@/app/features/users/components/change-password-form';
-import { getUserNameInitials } from '@/app/features/users/utils';
-import { useSignOutMutation } from '@/app/features/auth/hooks/use-query';
-import { useUser } from '@/app/features/users/hooks/use-user';
+} from '@/shared/components/ui/dropdown-menu';
 
 type DialogType = 'avatar' | 'password' | null;
 
 export function UserNav() {
-  const { user } = useUser();
+  const { user, organization } = useUser();
   const { mutateAsync } = useSignOutMutation();
   const navigate = useNavigate();
   const [dialogType, setDialogType] = useState<DialogType>(null);
@@ -61,7 +61,7 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10 border border-input">
-              <AvatarImage src={user?.avatarUrl} alt={user?.fullName} />
+              <AvatarImage src={user?.avatarUrl || ''} alt={user?.fullName} />
               <AvatarFallback className="bg-primary/10 text-primary font-medium">
                 {initials}
               </AvatarFallback>
@@ -76,7 +76,7 @@ export function UserNav() {
                 {user?.fullName}
               </p>
               <p className="text-xs leading-none text-muted-foreground truncate">
-                {user?.organizationName || 'Minha Empresa'}
+                {organization?.name || 'Minha Empresa'}
               </p>
             </div>
           </DropdownMenuLabel>

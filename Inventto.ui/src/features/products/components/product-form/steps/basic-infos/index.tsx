@@ -1,0 +1,198 @@
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/shared/components/ui/form';
+import { Input } from '@/shared/components/ui/input';
+import { Switch } from '@/shared/components/ui/switch';
+import { Textarea } from '@/shared/components/ui/textarea';
+
+import { useProductForm } from '../../hook';
+
+import { ProductFormFieldCategory } from './field-category';
+import { ProductFormFieldImages } from './field-product-images';
+
+export function ProductBasicInfo() {
+  const { form, mode, handleNameChange, handleVariantSwitch } =
+    useProductForm();
+
+  return (
+    <div className="grid grid-cols-12 gap-4 md:gap-6 pb-6">
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'name'}
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormLabel>Nome do Produto</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ex: Camisa Social Slim Fit"
+                    disabled={mode === 'Create' ? false : true}
+                    {...field}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'sku'}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>SKU</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ex: CS-01"
+                  className="uppercase"
+                  disabled={mode === 'Create' ? false : true}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'minimumStock'}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel title="Estoque Mínimo">Est. Mínimo</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step="1"
+                  placeholder="0"
+                  {...field}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    field.onChange(value === '' ? null : +value);
+                  }}
+                  value={field.value ?? ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'costPrice'}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Preço de Custo (R$)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  {...field}
+                  disabled={true}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'isActive'}
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Status</FormLabel>
+              <div className="space-y-0.5 flex justify-between rounded-lg border px-4 h-10 py-1 items-center">
+                <FormDescription className="text-xs sm:text-sm">
+                  Produto Ativo?
+                </FormDescription>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <ProductFormFieldCategory />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'description'}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="resize-y min-h-[100px]"
+                  placeholder="Descreva as características principais..."
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'hasVariants'}
+          render={({ field }) => {
+            return (
+              <FormItem className="flex flex-col">
+                <FormLabel>Variações</FormLabel>
+                <div className="space-y-0.5 flex justify-between rounded-lg border px-4 h-10 py-1 items-center">
+                  <FormDescription className="text-xs sm:text-sm">
+                    O produto possui variações? (Cor, Tamanho...)
+                  </FormDescription>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={handleVariantSwitch}
+                      disabled={
+                        mode === 'Edit' &&
+                        !form.getFieldState('hasVariants').isDirty &&
+                        field.value === true
+                      }
+                    />
+                  </FormControl>
+                </div>
+              </FormItem>
+            );
+          }}
+        />
+      </div>
+
+      <div className="col-span-12">
+        <ProductFormFieldImages />
+      </div>
+    </div>
+  );
+}

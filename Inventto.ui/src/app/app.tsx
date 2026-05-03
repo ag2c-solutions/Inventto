@@ -1,7 +1,9 @@
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { AppRouters } from './routers';
-import { Toaster } from './components/ui/sonner';
+
+import { Toaster } from '@/shared/components/ui/sonner';
+
 import { AppProviders } from './providers';
+import { AppRouters } from './routers';
 
 export default function App() {
   return (

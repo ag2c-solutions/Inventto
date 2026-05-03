@@ -1,5 +1,7 @@
-import { useLocation, Link } from 'react-router';
-import { cn } from '@/lib/utils';
+import { Link, useLocation } from 'react-router';
+
+import { cn } from '@/shared/utils';
+
 import { navLinks } from '../../consts/navlinks-siderbar';
 
 export function MobileBottomNav() {

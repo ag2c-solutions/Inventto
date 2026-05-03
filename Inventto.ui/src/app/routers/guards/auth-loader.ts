@@ -1,6 +1,8 @@
-import { redirect, type LoaderFunctionArgs } from 'react-router';
-import { supabase } from '@/app/config/supabase';
-import { UserService } from '@/app/features/users/services';
+import { type LoaderFunctionArgs, redirect } from 'react-router';
+
+import { UserService } from '@/features/users/services';
+
+import { supabase } from '@/infra/supabase';
 
 async function isAuthenticated(): Promise<boolean> {
   const { data } = await supabase.auth.getSession();
@@ -26,12 +28,12 @@ export async function protectedLoader({ request }: LoaderFunctionArgs) {
   if (!session) {
     const search = url.search;
     const redirectTo = pathname + search;
-    
+
     return redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
   }
 
   const mustChangePassword = await checkMustChangePassword();
-  
+
   const isAtFirstAccessPage = pathname === '/auth/first-access';
 
   if (mustChangePassword && !isAtFirstAccessPage) {

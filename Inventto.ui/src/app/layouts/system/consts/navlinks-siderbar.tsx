@@ -22,7 +22,7 @@ export const navLinks: NavItem[] = [
     permission: 'movement:view'
   },
   {
-    label: "Settings",
+    label: 'Settings',
     href: '/settings',
     icon: <Settings className="w-5 h-5" />,
     permission: 'org:manage'
