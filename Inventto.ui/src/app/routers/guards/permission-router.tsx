@@ -1,7 +1,9 @@
 import { Navigate, Outlet } from 'react-router';
 
-import { usePermission } from '@/features/permissions/hooks/use-permissions';
-import type { PermissionAction } from '@/features/permissions/types';
+import {
+  type PermissionAction,
+  usePermission
+} from '@/features/permissions';
 
 interface PermissionRouteProps {
   required: PermissionAction;

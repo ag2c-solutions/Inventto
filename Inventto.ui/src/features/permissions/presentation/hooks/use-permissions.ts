@@ -2,16 +2,14 @@ import { useCallback } from 'react';
 
 import { useUser } from '@/features/users/hooks/use-user';
 
-import type { PermissionAction } from '../types';
-import { checkPermission } from '../utils';
+import { PermissionService } from '../../domain/services/permission-service';
+import type { PermissionAction } from '../../domain/entities/permission-action';
 
 export function usePermission() {
   const { role } = useUser();
 
   const can = useCallback(
-    (action: PermissionAction) => {
-      return checkPermission(role, action);
-    },
+    (action: PermissionAction) => PermissionService.can(role, action),
     [role]
   );
 
