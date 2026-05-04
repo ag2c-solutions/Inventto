@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 
-import { useUser } from '@/features/users/hooks/use-user';
+import { useUser } from '@/features/users';
 
-import { PermissionService } from '../../domain/services/permission-service';
-import type { PermissionAction } from '../../domain/entities/permission-action';
+import type { PermissionAction } from '../../domain/entities';
+import { PermissionService } from '../../domain/services';
 
 export function usePermission() {
   const { role } = useUser();

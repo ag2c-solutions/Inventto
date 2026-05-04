@@ -1,6 +1,6 @@
-import type { UserRole } from '@/features/users/types';
+import type { UserRole } from '@/features/users';
 
-import type { PermissionAction } from '../entities/permission-action';
+import type { PermissionAction } from '../entities';
 
 const SALES_PERMISSIONS: PermissionAction[] = [
   'product:view',
@@ -37,18 +37,8 @@ const OWNER_PERMISSIONS: PermissionAction[] = [
   'financial:view'
 ];
 
-const ROLE_PERMISSIONS: Record<UserRole, PermissionAction[]> = {
+export const ROLE_PERMISSIONS: Record<UserRole, PermissionAction[]> = {
   sales: SALES_PERMISSIONS,
   manager: MANAGER_PERMISSIONS,
   owner: OWNER_PERMISSIONS
 };
-
-export class PermissionService {
-  static can(role: UserRole | undefined, action: PermissionAction): boolean {
-    if (!role) {
-      return false;
-    }
-
-    return (ROLE_PERMISSIONS[role] ?? []).includes(action);
-  }
-}
