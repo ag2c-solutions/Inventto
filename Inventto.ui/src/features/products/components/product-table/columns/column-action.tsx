@@ -7,7 +7,7 @@ import {
   SquarePen
 } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions/components/action-button';
+import { ActionButton } from '@/features/permissions';
 
 import { Button } from '@/shared/components/ui/button';
 import {

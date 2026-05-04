@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router';
 
-import { usePermission } from '@/features/permissions/hooks/use-permissions';
+import { usePermission } from '@/features/permissions/';
 
 import { SidebarMenuButton } from '@/shared/components/ui/sidebar';
 import { cn } from '@/shared/utils';

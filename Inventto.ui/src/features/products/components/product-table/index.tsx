@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table';
 import { PlusCircle } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions/components/action-button';
+import { ActionButton } from '@/features/permissions';
 
 import {
   DataTable,

@@ -1,6 +1,6 @@
 import { Check, ChevronsUpDown, Loader2, PlusCircle } from 'lucide-react';
 
-import { usePermission } from '@/features/permissions/hooks/use-permissions';
+import { usePermission } from '@/features/permissions';
 
 import { Button } from '@/shared/components/ui/button';
 import {

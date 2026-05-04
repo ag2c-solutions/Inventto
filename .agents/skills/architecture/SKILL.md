@@ -9,7 +9,7 @@ description: >
   Sempre consulte esta skill antes de gerar, editar ou revisar código para
   garantir conformidade com:
 
-  - Feature-Sliced Design
+  - Feature-Based Architecture
   - 3-Tier Architecture
   - Clean Architecture
   - separação de responsabilidades
