@@ -16,7 +16,7 @@ import { uploadImageToCloudinary } from '@/shared/services/image-upload';
 import {
   useCreateProductMutation,
   useUpdateProductMutation
-} from '../../../hooks/use-query';
+} from '../../../presentation/hooks/use-mutations';
 import type { IProduct, IProductImage } from '../../../types/models';
 import { type ProductFormData, productSchema } from '../schema';
 import type { ProductFormStep, TProductFormModes } from '../types';

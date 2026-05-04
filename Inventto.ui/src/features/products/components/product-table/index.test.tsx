@@ -4,10 +4,10 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useProductsQuery } from '../../hooks/use-query';
+import { useProductsQuery } from '../../presentation/hooks/use-queries';
 import type { IProduct } from '../../types/models';
 
-import { ProductListTable } from './index';
+import { ProductListTable } from '../domain/services/product-service';
 
 vi.mock('../../hooks/use-query');
 

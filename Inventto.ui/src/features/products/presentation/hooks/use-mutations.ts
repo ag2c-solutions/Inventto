@@ -1,38 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { useUser } from '../../users/hooks/use-user';
-import { ProductService } from '../service';
-import type { IProduct } from '../types';
+import { useUser } from '@/features/users/hooks/use-user';
 
-export function useProductsQuery() {
-  const { organization, role } = useUser();
-  const organizationId = organization?.id;
-
-  return useQuery({
-    queryKey: ['products', organizationId],
-    queryFn: () => ProductService.getAll(organizationId, role),
-    staleTime: 1000 * 60 * 5
-  });
-}
-
-export function useProductByIDQuery(productId: string) {
-  return useQuery({
-    queryKey: ['product', productId],
-    queryFn: ({ queryKey }: { queryKey: ['product', string] }) =>
-      ProductService.getOneById(queryKey[1])
-  });
-}
-
-export function useGlobalAttributesQuery() {
-  return useQuery({
-    queryKey: ['global-attributes'],
-    queryFn: ProductService.getGlobalAttributes,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
-  });
-}
+import { ProductService } from '../../domain/services/product-service';
+import type { IProduct } from '../../types';
 
 export function useCreateProductMutation() {
   const queryClient = useQueryClient();
@@ -50,6 +21,7 @@ export function useCreateProductMutation() {
     }
   });
 }
+
 export function useUpdateProductMutation() {
   const queryClient = useQueryClient();
   const { organization } = useUser();

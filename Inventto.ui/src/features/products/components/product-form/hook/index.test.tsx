@@ -5,7 +5,7 @@ import {
   LOCAL_STORAGE_KEY,
   ProductFormProvider,
   useProductForm
-} from './index';
+} from '../domain/services/product-service';
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),

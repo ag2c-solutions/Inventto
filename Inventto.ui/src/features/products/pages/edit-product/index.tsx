@@ -3,7 +3,7 @@ import { ArrowUpLeftIcon } from 'lucide-react';
 
 import { ProductForm } from '../../components/product-form';
 import { ProductFormProvider } from '../../components/product-form/hook';
-import { useProductByIDQuery } from '../../hooks/use-query';
+import { useProductByIDQuery } from '../../presentation/hooks/use-queries';
 
 interface ProductParams {
   [key: string]: string | undefined;

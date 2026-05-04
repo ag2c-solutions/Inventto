@@ -1,6 +1,6 @@
 import { useFieldArray } from 'react-hook-form';
 
-import { useGlobalAttributesQuery } from '@/features/products/hooks/use-query';
+import { useGlobalAttributesQuery } from '@/features/products/presentation/hooks/use-queries';
 
 import { Button } from '@/shared/components/ui/button';
 

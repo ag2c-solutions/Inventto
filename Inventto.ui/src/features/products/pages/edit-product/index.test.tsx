@@ -11,9 +11,9 @@ import {
   useProductByIDQuery,
   useProductCreateMutation,
   useProductUpdateMutation
-} from '../../hooks/use-query';
+} from '../../presentation/hooks/use-queries';
 
-import { EditProductPage } from './index';
+import { EditProductPage } from '../domain/services/product-service';
 
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>();

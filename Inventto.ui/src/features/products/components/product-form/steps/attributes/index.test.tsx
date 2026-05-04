@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductFormProvider, type ProductFormProviderProps } from '../../hook';
 import { mockFormData } from '../../mocks';
 
-import { ProductAttributes } from './index';
+import { ProductAttributes } from '../domain/services/product-service';
 
 type RenderWithProviderProps = {
   providerProps?: Partial<ProductFormProviderProps>;

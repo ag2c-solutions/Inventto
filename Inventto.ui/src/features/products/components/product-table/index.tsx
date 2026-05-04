@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table';
 import { PlusCircle } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions/components/action-button';
+import { ActionButton } from '@/features/permissions';
 
 import {
   DataTable,
@@ -23,7 +23,7 @@ import {
   PaginationControllers
 } from '@/shared/components/common/datatable';
 
-import { useProductsQuery } from '../../hooks/use-query';
+import { useProductsQuery } from '../../presentation/hooks/use-queries';
 import type { IProduct } from '../../types/models';
 import { productVariantsTableColumns } from '../product-variants-table/columns';
 

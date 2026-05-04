@@ -4,9 +4,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useProductByIDQuery } from '../../hooks/use-query';
+import { useProductByIDQuery } from '../../presentation/hooks/use-queries';
 
-import { ProductDetailsPage } from './index';
+import { ProductDetailsPage } from '../domain/services/product-service';
 
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>();

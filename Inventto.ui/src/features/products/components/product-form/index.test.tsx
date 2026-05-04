@@ -11,10 +11,10 @@ import {
 import {
   useProductCreateMutation,
   useProductUpdateMutation
-} from '../../hooks/use-query';
+} from '../../presentation/hooks/use-queries';
 
 import { ProductFormProvider } from './hook';
-import { ProductForm } from './index';
+import { ProductForm } from '../domain/services/product-service';
 
 vi.mock('../../hooks/use-query');
 vi.mock('../../../category/hooks/use-query');
