@@ -1,5 +1,6 @@
-import type { PermissionAction } from '@/app/features/permissions/types';
 import type { ReactElement } from 'react';
+
+import type { PermissionAction } from '@/features/permissions/types';
 
 export interface NavItem {
   label: string;

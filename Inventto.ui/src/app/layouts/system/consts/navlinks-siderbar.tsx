@@ -1,8 +1,14 @@
-import { ArrowLeftRight, Package } from 'lucide-react';
+import { ArrowLeftRight, Package, Settings, Users } from 'lucide-react';
 
 import type { NavItem } from '../types';
 
 export const navLinks: NavItem[] = [
+  {
+    label: 'Equipe',
+    href: '/team',
+    icon: <Users className="w-5 h-5" />,
+    permission: 'team:manage'
+  },
   {
     label: 'Produtos',
     href: '/products',
@@ -13,6 +19,12 @@ export const navLinks: NavItem[] = [
     label: 'Movimentação',
     href: '/movements',
     icon: <ArrowLeftRight className="w-5 h-5" />,
-    permission: 'stock:view'
+    permission: 'movement:view'
+  },
+  {
+    label: 'Settings',
+    href: '/settings',
+    icon: <Settings className="w-5 h-5" />,
+    permission: 'org:manage'
   }
 ];

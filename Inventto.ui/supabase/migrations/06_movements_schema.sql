@@ -67,26 +67,51 @@ CREATE INDEX idx_movements_created ON public.movements(created_at DESC);
 -- 5. SEGURANÇA (RLS)
 -- ==============================================================================
 
-ALTER TABLE public.inventory_reservations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.movements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.movement_items ENABLE ROW LEVEL SECURITY;
 
--- 5.1. RESERVAS
-CREATE POLICY "Members can view reservations" ON public.inventory_reservations
-FOR SELECT USING (public.is_org_member(organization_id));
+-- [ALTERADO]: Visibilidade Granular
+CREATE POLICY "Access control for movements" ON public.movements
+FOR SELECT USING (
+  -- Caso 1: É Gerente ou Dono? Vê tudo.
+  public.has_role(organization_id, 'manager')
+  OR
+  -- Caso 2: É Vendedor? Vê apenas suas próprias movimentações.
+  (public.is_org_member(organization_id) AND user_id = auth.uid())
+);
 
--- 5.2. MOVIMENTAÇÕES (Leitura)
-CREATE POLICY "Members can view movements" ON public.movements
-FOR SELECT USING (public.is_org_member(organization_id));
+-- Managers podem criar movimentações
+CREATE POLICY "Managers can create movements" ON public.movements
+FOR INSERT WITH CHECK (public.has_role(organization_id, 'manager'));
 
-CREATE POLICY "Members can view movement items" ON public.movement_items
+-- Sales também podem criar (Vendas)
+CREATE POLICY "Sales can create movements" ON public.movements
+FOR INSERT WITH CHECK (public.has_role(organization_id, 'sales'));
+
+-- --- Policies para Items (Herança) ---
+CREATE POLICY "Inherit movement access items" ON public.movement_items
 FOR SELECT USING (
   EXISTS (
-    SELECT 1 FROM public.movements 
-    WHERE public.movements.id = public.movement_items.movement_id 
-    AND public.is_org_member(public.movements.organization_id)
+    SELECT 1 FROM public.movements
+    WHERE id = movement_items.movement_id
+    -- A policy de SELECT da movements já filtra quem pode ver o pai
   )
 );
 
--- 5.3. ESCRITA BLOQUEADA
--- Movimentações são críticas. Apenas a função create_stock_movement pode inserir aqui.
+CREATE POLICY "Managers create items" ON public.movement_items
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.movements
+    WHERE id = movement_id
+    AND public.has_role(organization_id, 'manager')
+  )
+);
+
+CREATE POLICY "Sales create items" ON public.movement_items
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.movements
+    WHERE id = movement_id
+    AND public.has_role(organization_id, 'sales')
+  )
+);

@@ -129,6 +129,25 @@ CREATE TABLE public.product_variant_images (
   CONSTRAINT unique_variant_image UNIQUE (variant_id, image_id)
 );
 
+-- 9. View Segura: Produtos para Vendedores (Sem Cost Price)
+CREATE OR REPLACE VIEW public.products_view_sales AS
+SELECT 
+  id,
+  organization_id,
+  name,
+  description,
+  sku,
+  is_active,
+  has_variants,
+  stock,
+  minimum_stock,
+  created_at,
+  updated_at
+FROM public.products
+WHERE deleted_at IS NULL;
+GRANT SELECT ON public.products_view_sales TO authenticated;
+
+
 -- ==============================================================================
 -- 2. SEGURANÇA (RLS & POLICIES)
 -- ==============================================================================
@@ -151,10 +170,14 @@ CREATE POLICY "Everyone can view system attributes" ON public.attributes FOR SEL
 
 -- --- Policies Baseadas na Organização ---
 CREATE POLICY "Members can view categories" ON public.categories FOR SELECT USING (public.is_org_member(organization_id));
-CREATE POLICY "Members can view products" ON public.products FOR SELECT USING (public.is_org_member(organization_id));
 CREATE POLICY "Members can view product attributes" ON public.product_attributes FOR SELECT USING (public.is_org_member(organization_id));
 CREATE POLICY "Members can view variants" ON public.product_variants FOR SELECT USING (public.is_org_member(organization_id));
 CREATE POLICY "Members can view images" ON public.product_images FOR SELECT USING (public.is_org_member(organization_id));
+CREATE POLICY "Managers can view full products" ON public.products 
+FOR SELECT USING (
+  public.is_org_member(organization_id) 
+  AND public.has_role(organization_id, 'manager') 
+);
 
 -- --- Policies de Escrita (Managers) ---
 CREATE POLICY "Managers can manage categories" ON public.categories FOR ALL USING (public.has_role(organization_id, 'manager'));

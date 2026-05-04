@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { protectedLoader, publicLoader } from './auth-loader';
 import type { LoaderFunctionArgs } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { protectedLoader, publicLoader } from './auth-loader';
 
 const mockGetSession = vi.fn();
 

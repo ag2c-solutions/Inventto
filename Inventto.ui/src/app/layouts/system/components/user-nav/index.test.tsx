@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router';
+import { MemoryRouter, Route, Routes } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { UserNav } from './index';
 
 const mocks = vi.hoisted(() => ({
@@ -11,21 +12,21 @@ const mocks = vi.hoisted(() => ({
   useUser: vi.fn()
 }));
 
-vi.mock('@/app/features/auth/hooks/use-auth', () => ({
+vi.mock('@/features/auth/hooks/use-auth', () => ({
   useAuth: mocks.useAuth
 }));
 
-vi.mock('@/app/features/users/hooks/use-user', () => ({
+vi.mock('@/features/users/hooks/use-user', () => ({
   useUser: mocks.useUser
 }));
 
-vi.mock('@/app/features/auth/hooks/use-query', () => ({
+vi.mock('@/features/auth/hooks/use-query', () => ({
   useSignOutMutation: () => ({
     mutateAsync: mocks.signOut
   })
 }));
 
-vi.mock('@/app/features/users/components/avatar-change-form', () => ({
+vi.mock('@/features/users/components/avatar-change-form', () => ({
   AvatarChangeForm: ({ onSuccess, onCancel }: any) => (
     <div data-testid="avatar-form-mock">
       Avatar Form
@@ -35,7 +36,7 @@ vi.mock('@/app/features/users/components/avatar-change-form', () => ({
   )
 }));
 
-vi.mock('@/app/features/users/components/change-password-form', () => ({
+vi.mock('@/features/users/components/change-password-form', () => ({
   ChangePasswordForm: ({ onSuccess, onCancel }: any) => (
     <div data-testid="password-form-mock">
       Password Form

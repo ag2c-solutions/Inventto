@@ -18,3 +18,6 @@ CREATE TYPE public.attribute_type AS ENUM ('text', 'color', 'select', 'number');
 
 -- Tipos de Movimentação de Estoque
 CREATE TYPE public.movement_type AS ENUM ('entry', 'withdrawal', 'adjustment');
+
+-- Status do Membro
+CREATE TYPE public.member_status AS ENUM ('active', 'inactive', 'invited');

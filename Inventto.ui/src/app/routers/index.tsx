@@ -1,64 +1,11 @@
-import { lazy, Suspense } from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router';
-import { protectedLoader, publicLoader } from './guards/auth-loader';
+import { Suspense } from 'react';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 
 import { AuthLayout } from '../layouts/auth/auth-layout';
 import { SystemLayout } from '../layouts/system/system-layout';
+
+import { protectedLoader, publicLoader } from './guards/auth-loader';
 import { PermissionRoute } from './guards/permission-router';
-
-const SignInPage = lazy(() =>
-  import('../features/auth/pages/sign-in').then((m) => ({
-    default: m.SignInPage
-  }))
-);
-
-const SignUpPage = lazy(() =>
-  import('../features/auth/pages/sign-up').then((m) => ({
-    default: m.SignUpPage
-  }))
-);
-
-const ProductsListPage = lazy(() =>
-  import('../features/products/pages/product-list').then((m) => ({
-    default: m.ProductsListPage
-  }))
-);
-
-const CreateProductPage = lazy(() =>
-  import('../features/products/pages/create-product').then((m) => ({
-    default: m.CreateProductPage
-  }))
-);
-
-const EditProductPage = lazy(() =>
-  import('../features/products/pages/edit-product').then((m) => ({
-    default: m.EditProductPage
-  }))
-);
-
-const ProductDetailsPage = lazy(() =>
-  import('../features/products/pages/product-detail').then((m) => ({
-    default: m.ProductDetailsPage
-  }))
-);
-
-const MovementsListPage = lazy(() =>
-  import('../features/movements/pages/movements-list').then((m) => ({
-    default: m.MovementsListPage
-  }))
-);
-
-const NewStockMovementPage = lazy(() =>
-  import('../features/movements/pages/new-movement').then((m) => ({
-    default: m.NewStockMovementPage
-  }))
-);
-
-const PlaceholderPage = lazy(() =>
-  import('../components/shared/placeholder-page').then((m) => ({
-    default: m.PlaceholderPage
-  }))
-);
 
 const PageLoader = () => (
   <div className="flex h-screen w-full items-center justify-center">
@@ -78,15 +25,33 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'login',
-        element: <SignInPage />
+        lazy: async () => {
+          const { SignInPage } = await import('@/features/auth/');
+          return { Component: SignInPage };
+        }
       },
       {
         path: 'register',
-        element: <SignUpPage />
+        lazy: async () => {
+          const { SignUpPage } = await import('@/features/auth/');
+          return { Component: SignUpPage };
+        }
       },
       {
         path: 'forgot-password',
-        element: <PlaceholderPage />
+        lazy: async () => {
+          const { PlaceholderPage } = await import(
+            '@/shared/components/common/placeholder-page'
+          );
+          return { Component: PlaceholderPage };
+        }
+      },
+      {
+        path: 'first-access',
+        lazy: async () => {
+          const { FirstAccessPage } = await import('@/features/auth/');
+          return { Component: FirstAccessPage };
+        }
       }
     ]
   },
@@ -109,37 +74,113 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <ProductsListPage />
+            lazy: async () => {
+              const { ProductsListPage } = await import('@/features/products');
+              return { Component: ProductsListPage };
+            }
           },
           {
             path: 'create',
             element: <PermissionRoute required="product:create" />,
-            children: [{ index: true, element: <CreateProductPage /> }]
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { CreateProductPage } = await import(
+                    '@/features/products'
+                  );
+                  return { Component: CreateProductPage };
+                }
+              }
+            ]
           },
           {
             path: ':productId',
             element: <PermissionRoute required="product:view" />,
-            children: [{ index: true, element: <ProductDetailsPage /> }]
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { ProductDetailsPage } = await import(
+                    '@/features/products'
+                  );
+                  return { Component: ProductDetailsPage };
+                }
+              }
+            ]
           },
           {
             path: ':productId/edit',
             element: <PermissionRoute required="product:edit" />,
-            children: [{ index: true, element: <EditProductPage /> }]
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { EditProductPage } = await import(
+                    '@/features/products'
+                  );
+                  return { Component: EditProductPage };
+                }
+              }
+            ]
           }
         ]
       },
       {
         path: 'movements',
-        element: <PermissionRoute required="stock:view" />,
+        element: <PermissionRoute required="movement:view" />,
         children: [
           {
             index: true,
-            element: <MovementsListPage />
+            lazy: async () => {
+              const { MovementsListPage } = await import(
+                '@/features/movements'
+              );
+              return { Component: MovementsListPage };
+            }
           },
           {
             path: 'new',
-            element: <PermissionRoute required="stock:move" />,
-            children: [{ index: true, element: <NewStockMovementPage /> }]
+            element: <PermissionRoute required="movement:create" />,
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { NewStockMovementPage } = await import(
+                    '@/features/movements'
+                  );
+                  return { Component: NewStockMovementPage };
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        path: 'team',
+        element: <PermissionRoute required="team:manage" />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { MembersListPage } = await import(
+                '@/features/organizations'
+              );
+              return { Component: MembersListPage };
+            }
+          }
+        ]
+      },
+      {
+        path: 'settings',
+        element: <PermissionRoute required="org:manage" />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { SettingsPage } = await import('@/features/organizations');
+              return { Component: SettingsPage };
+            }
           }
         ]
       }

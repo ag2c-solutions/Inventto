@@ -1,13 +1,18 @@
 import { BellIcon } from 'lucide-react';
-import { Logo } from '@/app/components/shared/logo';
-import { Button } from '@/app/components/ui/button';
+
+import { ToggleTheme } from '@/app/theme/toggle-theme';
+
+import { Button } from '@/shared/components/ui/button';
+import { SidebarTrigger } from '@/shared/components/ui/sidebar';
+
 import { UserNav } from '../user-nav';
 
 export const SystemLayoutHeader = () => {
   return (
-    <header className="flex items-center justify-between px-4  h-16">
-      <Logo />
+    <header className="w-full flex items-center justify-between px-4 h-16 border-b">
+      <SidebarTrigger className="-ml-1" />
       <section className="flex items-center gap-2">
+        <ToggleTheme />
         <Button
           variant={'outline'}
           size={'icon'}

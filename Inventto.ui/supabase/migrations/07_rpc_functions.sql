@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- 07_RPC_FUNCTIONS.SQL
 -- Módulo: Regras de Negócio e Transações Complexas (RPC)
--- Status: FINAL (Decoupled Attributes + Auto Slug + SKU Fixed)
+-- Status: PATCHED (Security Hardening RF009)
 -- ==============================================================================
 
 -- ------------------------------------------------------------------------------
@@ -29,16 +29,17 @@ DECLARE
   v_org_id UUID;
   v_meta JSONB := new.raw_user_meta_data;
 BEGIN
-  -- 1. Validação Básica
-  IF (v_meta->>'company_name') IS NULL AND (v_meta->>'invited_organization_id') IS NULL THEN
-    RAISE EXCEPTION 'Cadastro rejeitado: Usuário deve criar uma empresa ou ser convidado.';
-  END IF;
+  -- Cria o Profile com a flag de senha provisória se vier nos metadados
+  INSERT INTO public.profiles (id, email, full_name, avatar_url, must_change_password)
+  VALUES (
+    new.id, 
+    new.email, 
+    v_meta->>'full_name', 
+    v_meta->>'avatar_url',
+    COALESCE((v_meta->>'must_change_password')::boolean, false)
+  );
 
-  -- 2. Cria Perfil
-  INSERT INTO public.profiles (id, email, full_name, avatar_url)
-  VALUES (new.id, new.email, v_meta->>'full_name', v_meta->>'avatar_url');
-
-  -- 3. Fluxo A: Novo Dono
+  -- CASO 1: É um Owner criando uma empresa nova
   IF (v_meta->>'company_name') IS NOT NULL THEN
     INSERT INTO public.organizations (name, document, slug, owner_id)
     VALUES (
@@ -49,16 +50,17 @@ BEGIN
     )
     RETURNING id INTO v_org_id;
 
-    INSERT INTO public.organization_members (organization_id, profile_id, role)
-    VALUES (v_org_id, new.id, 'owner');
-
-  -- 4. Fluxo B: Convite
-  ELSIF (v_meta->>'invited_organization_id') IS NOT NULL THEN
-    INSERT INTO public.organization_members (organization_id, profile_id, role)
+    INSERT INTO public.organization_members (organization_id, profile_id, role, status)
+    VALUES (v_org_id, new.id, 'owner', 'active');
+  
+  -- CASO 2: É um Provisionamento Manual (Admin criando funcionário)
+  ELSIF (v_meta->>'organization_id') IS NOT NULL THEN
+    INSERT INTO public.organization_members (organization_id, profile_id, role, status)
     VALUES (
-      (v_meta->>'invited_organization_id')::UUID,
-      new.id,
-      COALESCE((v_meta->>'invited_role')::public.app_role, 'sales')
+      (v_meta->>'organization_id')::uuid, 
+      new.id, 
+      (v_meta->>'role')::app_role, 
+      'invited'
     );
   END IF;
 
@@ -71,9 +73,40 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
+-- ==============================================================================
+-- 2. AUTH: Confirm First Access
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION public.confirm_first_access(p_user_id UUID, p_organization_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- 1. Atualiza o Profile (Remove a obrigatoriedade de senha)
+  UPDATE public.profiles
+  SET 
+    must_change_password = false,
+    updated_at = NOW()
+  WHERE id = p_user_id;
+
+  -- 2. Atualiza o Status do Membro (Ativa o usuário na organização)
+  UPDATE public.organization_members
+  SET status = 'active'
+  WHERE profile_id = p_user_id
+  AND organization_id = p_organization_id;
+  
+  -- Verifica se algo foi alterado (Opcional, para debug)
+ IF NOT FOUND THEN
+    RAISE WARNING 'Nenhum vínculo encontrado para User % na Org %', p_user_id, p_organization_id;
+  END IF;
+END;
+$$;
+
 
 -- ==============================================================================
--- 2. PRODUTOS: CREATE PRODUCT
+-- 3. PRODUTOS: CREATE PRODUCT
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.create_product(product_data JSONB)
 RETURNS UUID
@@ -102,12 +135,11 @@ DECLARE
 BEGIN
   v_org_id := (product_data->>'organization_id')::UUID;
   
-  -- Validação de Permissão
-  IF NOT EXISTS (SELECT 1 FROM public.organization_members WHERE profile_id = v_user_id AND organization_id = v_org_id) THEN
-    RAISE EXCEPTION 'Acesso negado.';
+  IF NOT public.has_role(v_org_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: Permissão insuficiente.';
   END IF;
 
-  -- Insert Produto Pai (Com SKU obrigatório)
+  -- Insert Produto Pai
   INSERT INTO public.products (
     organization_id, 
     name, 
@@ -153,10 +185,10 @@ BEGIN
     image_id_map := image_id_map || jsonb_build_object(v_image_data->>'id', v_image_id);
   END LOOP;
 
-  -- Atributos (Snapshot - Sem vínculo com tabela global)
+  -- Atributos
   FOR v_attr_data IN SELECT * FROM jsonb_array_elements(product_data->'attributes')
   LOOP
-    -- Tenta pegar label ou name (compatibilidade)
+    -- Tenta pegar label ou name
     v_attr_label := COALESCE(v_attr_data->>'label', v_attr_data->>'name');
     
     -- Gera slug se não vier
@@ -219,7 +251,7 @@ $$;
 
 
 -- ==============================================================================
--- 3. PRODUTOS: UPDATE PRODUCT
+-- 4. PRODUTOS: UPDATE PRODUCT
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.update_product(product_data JSONB)
 RETURNS UUID
@@ -248,11 +280,11 @@ BEGIN
   v_product_id := (product_data->>'id')::UUID;
   v_org_id := (product_data->>'organization_id')::UUID;
 
-  IF NOT EXISTS (SELECT 1 FROM public.organization_members WHERE profile_id = v_user_id AND organization_id = v_org_id) THEN
-    RAISE EXCEPTION 'Acesso negado.';
+  IF NOT public.has_role(v_org_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: Permissão insuficiente.';
   END IF;
 
-  -- Update Produto (SKU Sim, Cost Price Não)
+  -- Update Produto
   UPDATE public.products
   SET
     name = product_data->>'name',
@@ -279,7 +311,7 @@ BEGIN
     INSERT INTO public.product_categories (product_id, category_id) VALUES (v_product_id, v_category_id_text::UUID);
   END LOOP;
 
-  -- Recria Atributos (Snapshot + Auto Slug)
+  -- Recria Atributos
   FOR v_attr_data IN SELECT * FROM jsonb_array_elements(product_data->'attributes') LOOP
     v_attr_label := COALESCE(v_attr_data->>'label', v_attr_data->>'name');
     v_attr_slug := v_attr_data->>'slug';
@@ -369,7 +401,7 @@ $$;
 
 
 -- ==============================================================================
--- 4. PRODUTOS: DELETE (Soft Delete)
+-- 5. PRODUTOS: DELETE (Soft Delete)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.soft_delete_product(
   p_product_id UUID,
@@ -380,14 +412,9 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-  v_user_id UUID := auth.uid();
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM public.organization_members 
-    WHERE profile_id = v_user_id AND organization_id = p_organization_id
-    AND role IN ('owner', 'manager')
-  ) THEN
+  
+  IF NOT public.has_role(p_organization_id, 'manager') THEN
     RAISE EXCEPTION 'Acesso negado: Permissão insuficiente.';
   END IF;
 
@@ -401,7 +428,7 @@ $$;
 
 
 -- ==============================================================================
--- 5. ESTOQUE: CREATE MOVEMENT
+-- 6. ESTOQUE: CREATE MOVEMENT
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.create_stock_movement(movement_data JSONB)
 RETURNS UUID
@@ -422,7 +449,6 @@ DECLARE
   v_type public.movement_type;
   v_delta INTEGER;
   
-  -- Variáveis para Cálculo do Custo Médio
   v_current_stock INTEGER;
   v_current_cost NUMERIC;
   v_input_cost NUMERIC;
@@ -438,6 +464,8 @@ BEGIN
   WHERE profile_id = v_user_id AND organization_id = v_org_id;
 
   IF v_role IS NULL THEN RAISE EXCEPTION 'Acesso negado.'; END IF;
+  
+  -- Vendedores só podem registrar saídas
   IF v_role = 'sales' AND v_type <> 'withdrawal' THEN
     RAISE EXCEPTION 'Permissão negada: Vendedores só podem registrar saídas.';
   END IF;
@@ -530,5 +558,105 @@ BEGIN
   END LOOP;
 
   RETURN v_movement_id;
+END;
+$$;
+
+-- ==============================================================================
+-- 7. ORGANIZAÇÕES: CREATE NEW ORGANIZATION
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.create_new_organization(
+  p_name TEXT,
+  p_slug TEXT,
+  p_document TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_user_id UUID := auth.uid();
+BEGIN
+  -- 1. Validação de Slug Único
+  IF EXISTS (SELECT 1 FROM public.organizations WHERE slug = p_slug) THEN
+    RAISE EXCEPTION 'Este identificador (slug) já está em uso por outra organização.';
+  END IF;
+
+  -- 2. Inserção da Organização
+  INSERT INTO public.organizations (name, slug, document, owner_id)
+  VALUES (p_name, p_slug, p_document, v_user_id)
+  RETURNING id INTO v_org_id;
+
+  -- 3. Inserção do Membro (Dono)
+  INSERT INTO public.organization_members (organization_id, profile_id, role, status)
+  VALUES (v_org_id, v_user_id, 'owner', 'active');
+
+  RETURN v_org_id;
+END;
+$$;
+
+-- ==============================================================================
+-- 8. ORGANIZAÇÕES: GET CANDIDATE MEMBERS
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.get_candidate_members(p_organization_id UUID)
+RETURNS TABLE (
+  id UUID,
+  full_name TEXT,
+  email TEXT,
+  avatar_url TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  WITH my_orgs AS (
+    SELECT organization_id 
+    FROM organization_members 
+    WHERE profile_id = auth.uid() 
+    AND role IN ('owner')
+  )
+  SELECT DISTINCT 
+    p.id, 
+    p.full_name, 
+    p.email, 
+    p.avatar_url
+  FROM profiles p
+  JOIN organization_members om ON p.id = om.profile_id
+  WHERE om.organization_id IN (SELECT organization_id FROM my_orgs)
+  AND p.id NOT IN (
+    SELECT profile_id 
+    FROM organization_members 
+    WHERE organization_id = p_organization_id
+  );
+END;
+$$;
+
+-- ==============================================================================
+-- 9. ORGANIZAÇÕES: REPLICATE MEMBER
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.replicate_member(
+  p_organization_id UUID,
+  p_user_id UUID,
+  p_role public.app_role
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- 1. Verificação de Segurança: Quem chama deve ser Manager/Owner da Org destino
+  IF NOT public.has_role(p_organization_id, 'owner') THEN
+    RAISE EXCEPTION 'Acesso negado: Apenas gerentes podem adicionar membros.';
+  END IF;
+
+  -- 2. Inserção Atômica (Idempotente)
+  INSERT INTO public.organization_members (organization_id, profile_id, role, status)
+  VALUES (p_organization_id, p_user_id, p_role, 'invited')
+  ON CONFLICT (organization_id, profile_id) 
+  DO UPDATE SET role = p_role, status = 'active';
 END;
 $$;
