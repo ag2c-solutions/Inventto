@@ -1,5 +1,5 @@
-import type { Catalog, CatalogThemeConfig } from '../entities';
 import { CatalogApi } from '../../data/api';
+import type { Catalog, CatalogThemeConfig } from '../entities';
 
 export interface CreateCatalogPayload {
   name: string;

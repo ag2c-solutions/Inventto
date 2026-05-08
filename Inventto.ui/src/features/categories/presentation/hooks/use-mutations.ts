@@ -5,7 +5,7 @@ import { useUser } from '@/features/users';
 import { CategoryService } from '../../domain/services';
 
 export function useCategoryAddMutation() {
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const queryClient = useQueryClient();
 
   return useMutation({

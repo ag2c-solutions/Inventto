@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, redirect } from 'react-router';
 
-import { UserService } from '@/features/users/services';
+import { UserAPI } from '@/features/users';
 
 import { supabase } from '@/infra/supabase';
 
@@ -14,7 +14,7 @@ async function checkMustChangePassword(): Promise<boolean> {
 
   if (!data.session?.user?.id) return false;
 
-  const profile = await UserService.getProfile(data.session.user.id);
+  const profile = await UserAPI.getProfile(data.session.user.id);
 
   return profile?.mustChangePassword || false;
 }

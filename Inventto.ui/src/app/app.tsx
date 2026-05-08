@@ -1,4 +1,4 @@
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+//import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { Toaster } from '@/shared/components/ui/sonner';
 
@@ -9,7 +9,6 @@ export default function App() {
   return (
     <AppProviders>
       <AppRouters />
-      <ReactQueryDevtools />
       <Toaster />
     </AppProviders>
   );

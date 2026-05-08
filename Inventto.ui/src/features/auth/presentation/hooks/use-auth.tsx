@@ -7,8 +7,8 @@ import {
   useState
 } from 'react';
 
-import { AuthService } from '../../domain/services';
 import type { AuthContextType, Session } from '../../domain/entities';
+import { AuthService } from '../../domain/services';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 

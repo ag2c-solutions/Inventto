@@ -1,6 +1,6 @@
 import { AuthApi } from '../../data/api';
-import type { Session } from '../entities';
 import type { SignInPayload, SignUpPayload } from '../../data/dtos';
+import type { Session } from '../entities';
 
 export class AuthService {
   static async signIn(args: SignInPayload) {

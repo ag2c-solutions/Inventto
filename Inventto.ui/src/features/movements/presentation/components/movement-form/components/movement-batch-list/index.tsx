@@ -1,7 +1,8 @@
 import { Trash2 } from 'lucide-react';
 
+import { VariantOptionBadge } from '@/features/products';
+
 import { ImageCard } from '@/shared/components/common/image-card';
-import { VariantOptionBadge } from '@/shared/components/common/variants-options-badge';
 import { Button } from '@/shared/components/ui/button';
 import { ScrollArea } from '@/shared/components/ui/scroll-area';
 import {

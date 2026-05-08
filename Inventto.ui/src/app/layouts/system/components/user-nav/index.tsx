@@ -36,7 +36,7 @@ import {
 type DialogType = 'avatar' | 'password' | null;
 
 export function UserNav() {
-  const { user, organization } = useUser();
+  const { user, currentOrganization: organization } = useUser();
   const { mutateAsync } = useSignOutMutation();
   const navigate = useNavigate();
   const [dialogType, setDialogType] = useState<DialogType>(null);

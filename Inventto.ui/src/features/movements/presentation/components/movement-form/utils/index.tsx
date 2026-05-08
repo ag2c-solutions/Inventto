@@ -1,4 +1,4 @@
-import type { IProduct } from '@/features/products/types/models';
+import type { IProduct } from '@/features/products';
 
 export const getMovementItemImage = (
   product: IProduct | null | undefined,

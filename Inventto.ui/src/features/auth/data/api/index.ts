@@ -1,10 +1,11 @@
+import type { AuthError } from '@supabase/supabase-js';
+
 import { supabase } from '@/infra/supabase';
 
+import type { Session } from '../../domain/entities';
 import type { SignInPayload, SignUpPayload } from '../dtos';
 import { handleAuthError } from '../handlers/error-handler';
 import { AuthMapper } from '../mappers';
-import type { Session } from '../../domain/entities';
-import type { AuthError } from '@supabase/supabase-js';
 
 export class AuthApi {
   static async signIn({ email, password }: SignInPayload) {
@@ -54,8 +55,10 @@ export class AuthApi {
     const { data } = await supabase.auth.getSession();
     return !!data.session;
   }
-  
-  static async subscribeToAuthChanges(callback: (session: Session | null) => void) {
+
+  static async subscribeToAuthChanges(
+    callback: (session: Session | null) => void
+  ) {
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -89,7 +92,6 @@ export class AuthApi {
       });
 
       if (dbError) throw dbError;
-
     } catch (error) {
       handleAuthError(error as AuthError);
     }

@@ -6,7 +6,7 @@ import { OrganizationApi } from '../../data/api';
 import { ORG_KEYS } from '../consts';
 
 export function useOrganizationQuery() {
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const orgId = organization?.id;
 
   if (!orgId) throw new Error('Organization ID is required');
@@ -20,7 +20,7 @@ export function useOrganizationQuery() {
 }
 
 export function useOrganizationMembersQuery() {
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const orgId = organization?.id;
 
   return useQuery({
@@ -36,7 +36,7 @@ export function useOrganizationMembersQuery() {
 }
 
 export function useCandidatesQuery() {
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const orgId = organization?.id;
 
   if (!orgId) throw new Error('Organization ID is required');

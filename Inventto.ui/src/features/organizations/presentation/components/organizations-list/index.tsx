@@ -33,8 +33,11 @@ import { cn } from '@/shared/utils';
 import { CreateOrganizationDialog } from '../create-organization-dialog';
 
 export function OrganizationSwitcher() {
-  const { organization, availableOrganizations, setCurrentOrganization } =
-    useUser();
+  const {
+    currentOrganization: organization,
+    availableOrganizations,
+    setCurrentOrganization
+  } = useUser();
   const [open, setOpen] = useState(false);
 
   if (!organization) {

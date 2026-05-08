@@ -49,7 +49,9 @@ describe('CatalogService', () => {
 
     it('should propagate errors thrown by CatalogApi.add', async () => {
       vi.mocked(CatalogApi.add).mockRejectedValue(
-        new Error('Este link personalizado já está em uso. Por favor, escolha outro.')
+        new Error(
+          'Este link personalizado já está em uso. Por favor, escolha outro.'
+        )
       );
 
       await expect(

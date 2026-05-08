@@ -1,5 +1,6 @@
+import { VariantOptionBadge } from '@/features/products';
+
 import { ImageCard } from '@/shared/components/common/image-card';
-import { VariantOptionBadge } from '@/shared/components/common/variants-options-badge';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
