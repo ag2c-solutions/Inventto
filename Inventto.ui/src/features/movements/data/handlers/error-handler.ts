@@ -1,4 +1,4 @@
-import { isPostgrestError } from '@/shared/utils';
+import { isPostgrestError } from '@/infra/supabase/supabase.utils';
 
 export function handleMovementError(error: unknown, operation: string): never {
   if (isPostgrestError(error)) {

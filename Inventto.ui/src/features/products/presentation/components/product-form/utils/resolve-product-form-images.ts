@@ -1,4 +1,4 @@
-import { uploadImageToCloudinary } from '@/shared/services/image-upload';
+import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
 
 import type { IProductImage } from '../../../../domain/entities';
 import type { ProductFormData } from '../schema';

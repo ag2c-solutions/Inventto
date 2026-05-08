@@ -1,18 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { uploadImageToCloudinary } from '@/shared/services/image-upload';
-import { getCroppedImg, type PixelCrop } from '@/shared/utils';
+import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
+import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
+
+import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
 
 import { UserAPI } from '../../data/api';
 import type { User } from '../entities';
 
 import { UserService } from './index';
 
-vi.mock('@/shared/services/image-upload', () => ({
+vi.mock('@/infra/cloudinary/cloudinary.api', () => ({
   uploadImageToCloudinary: vi.fn()
 }));
 
-vi.mock('@/shared/utils', () => ({
+vi.mock('../../presentation/utils/get-cropped-img', () => ({
   getCroppedImg: vi.fn()
 }));
 

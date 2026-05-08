@@ -5,8 +5,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { ActionButton } from '@/features/permissions';
 
-import { DataTableHeaderSortableColumn } from '@/shared/components/common/datatable/pieces/datatable-header-sortable-column';
-import { dateRangeFilter } from '@/shared/components/common/datatable/utils';
+import { DataTableHeaderSortableColumn } from '@/shared/components/common/data-table/pieces/datatable-header-sortable-column';
+import { dateRangeFilter } from '@/shared/components/common/data-table/utils';
 import {
   Avatar,
   AvatarFallback,

@@ -1,4 +1,4 @@
-import { createCloudinaryThumbnail } from '@/shared/services/image-upload/utils';
+import { createCloudinaryThumbnail } from '@/infra/cloudinary/cloudinary.utils';
 
 import type { IProductImage } from '../../domain/entities';
 

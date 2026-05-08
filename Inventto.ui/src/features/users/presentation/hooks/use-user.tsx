@@ -14,7 +14,7 @@ import type {
 
 import { useAuth } from '@/features/auth';
 
-import { LocalStorageService } from '@/shared/services/local-storage';
+import { LocalStorageService } from '@/infra/local-storage';
 
 import type {
   User,

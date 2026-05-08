@@ -1,5 +1,7 @@
-import { uploadImageToCloudinary } from '@/shared/services/image-upload';
-import { getCroppedImg, type PixelCrop } from '@/shared/utils';
+import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
+import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
+
+import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
 
 import { UserAPI } from '../../data/api';
 import type { User, UserOrganizationContext } from '../entities';

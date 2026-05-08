@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuth } from '@/features/auth';
 
-import { LocalStorageService } from '@/shared/services/local-storage';
+import { LocalStorageService } from '@/infra/local-storage';
 
 import type { User, UserOrganizationContext } from '../../domain/entities';
 import { UserService } from '../../domain/services';

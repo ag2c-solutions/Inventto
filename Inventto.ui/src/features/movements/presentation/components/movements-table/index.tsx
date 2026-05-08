@@ -21,7 +21,7 @@ import {
   DataTableSelectFilter,
   DataTableTextFilter,
   PaginationControllers
-} from '@/shared/components/common/datatable';
+} from '@/shared/components/common/data-table';
 import { Button } from '@/shared/components/ui/button';
 
 import type { Movement } from '../../domain/entities';

@@ -1,7 +1,8 @@
 import {
   Wizard,
   WizardContent,
-  WizardControl
+  WizardControl,
+  WizardHeader
 } from '@/shared/components/common/wizard';
 
 import { useProductForm } from './hook';
@@ -17,6 +18,7 @@ export function ProductForm() {
         onCancel={onCancel}
         onFinish={onSubmit}
       >
+        <WizardHeader className="px-1" />
         <WizardContent />
         <WizardControl />
       </Wizard>

@@ -1,4 +1,4 @@
-import { isPostgrestError } from '@/shared/utils';
+import { isPostgrestError } from '@/infra/supabase/supabase.utils';
 
 export function handleOrganizationError(error: unknown, action: string): never {
   console.error(`OrganizationService.${action}:`, error);

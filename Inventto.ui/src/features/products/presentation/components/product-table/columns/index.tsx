@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table';
 
-import { DataTableHeaderSortableColumn } from '@/shared/components/common/datatable/pieces/datatable-header-sortable-column';
+import { DataTableHeaderSortableColumn } from '@/shared/components/common/data-table/pieces/datatable-header-sortable-column';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 
