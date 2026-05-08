@@ -1,4 +1,4 @@
-import { Logo } from '@/shared/components/common/logo';
+import { Logo } from '@/app/brand/logo';
 import {
   Wizard,
   WizardContent,

@@ -140,6 +140,7 @@ export function WizardProvider({
   const value = useMemo<WizardContextType>(
     () => ({
       state: {
+        steps,
         currentStep,
         currentStepIndex,
         totalSteps: steps.length,
@@ -156,9 +157,9 @@ export function WizardProvider({
       }
     }),
     [
+      steps,
       currentStep,
       currentStepIndex,
-      steps.length,
       isFirstStep,
       isLastStep,
       isLoading,

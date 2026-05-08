@@ -1,6 +1,6 @@
 import { type PostgrestError } from '@supabase/supabase-js';
 
-import { isPostgrestError } from '@/shared/utils';
+import { isPostgrestError } from '@/infra/supabase/supabase.utils';
 
 export function handleProductError(
   error: PostgrestError | Error | unknown,

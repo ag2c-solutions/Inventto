@@ -1,11 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { LocalStorageService } from '@/shared/services/local-storage';
+import { LocalStorageService } from '@/infra/local-storage';
 
 import { useFormDraft } from './';
 
-vi.mock('@/app/services/local-storage', () => ({
+vi.mock('@/infra/local-storage', () => ({
   LocalStorageService: {
     getItem: vi.fn(),
     setItem: vi.fn(),

@@ -1,4 +1,4 @@
-export { useWizard, WizardContext, WizardProvider } from './hooks';
+export { useWizard } from './hooks';
 export { Wizard } from './pieces/wizard';
 export { WizardContent } from './pieces/wizard-content';
 export { WizardControl } from './pieces/wizard-controls';

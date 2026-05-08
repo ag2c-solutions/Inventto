@@ -7,6 +7,7 @@ export interface WizardStep {
 }
 
 type WizardState = {
+  steps: WizardStep[];
   currentStep: WizardStep;
   currentStepIndex: number;
   totalSteps: number;

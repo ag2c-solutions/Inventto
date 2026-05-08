@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { LocalStorageService } from '@/shared/services/local-storage';
+import { LocalStorageService } from '@/infra/local-storage';
 
 interface UseFormDraftProps<T> {
   key: string;

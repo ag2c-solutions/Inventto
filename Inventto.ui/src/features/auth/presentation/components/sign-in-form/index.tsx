@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
-import { Logo } from '@/shared/components/common/logo';
+import { Logo } from '@/app/brand/logo';
 import { Button } from '@/shared/components/ui/button';
 import {
   Card,

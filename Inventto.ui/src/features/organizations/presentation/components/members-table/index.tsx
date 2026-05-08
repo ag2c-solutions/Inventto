@@ -16,7 +16,7 @@ import {
   DataTableSelectFilter,
   DataTableTextFilter,
   PaginationControllers
-} from '@/shared/components/common/datatable';
+} from '@/shared/components/common/data-table';
 
 import { useOrganizationMembersQuery } from '../../hooks/use-queries';
 import { AddMember } from '../add-member';
