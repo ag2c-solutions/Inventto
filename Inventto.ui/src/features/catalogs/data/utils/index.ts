@@ -1,5 +1,5 @@
-import type { CatalogThemeConfig } from '../../domain/entities';
 import { DEFAULT_THEME } from '../../domain/constants';
+import type { CatalogThemeConfig } from '../../domain/entities';
 import type { CatalogThemeConfigDTO } from '../dtos';
 
 const resolveColors = (dto?: CatalogThemeConfigDTO['colors']) => ({

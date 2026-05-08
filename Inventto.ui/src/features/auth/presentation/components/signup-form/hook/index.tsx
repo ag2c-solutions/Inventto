@@ -6,9 +6,12 @@ import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import type { WizardStep } from '@/shared/components/common/wizard';
 import { formatDocument, normalizeDocument } from '@/shared/utils';
 
-import { useSignUpMutation } from '../../../hooks/use-mutations';
 import { generateSlug } from '../../../../domain/utils';
-import { type SignUpFormValues as SignUpFormData, signUpSchema } from '../../../../domain/validators';
+import {
+  type SignUpFormValues as SignUpFormData,
+  signUpSchema
+} from '../../../../domain/validators';
+import { useSignUpMutation } from '../../../hooks/use-mutations';
 
 interface SignUpFormContextType {
   form: UseFormReturn<SignUpFormData>;

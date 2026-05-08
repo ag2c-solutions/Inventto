@@ -3,10 +3,13 @@ import { stripUndefined } from '@/shared/utils';
 import { supabase } from '@/infra/supabase';
 
 import type { Catalog, PublicStorefront } from '../../domain/entities';
-import type { CreateCatalogPayload, UpdateCatalogPayload } from '../../domain/services';
+import type {
+  CreateCatalogPayload,
+  UpdateCatalogPayload
+} from '../../domain/services';
+import type { CatalogDTO } from '../dtos';
 import { handleCatalogError } from '../handlers/error-handler';
 import { CatalogMapper } from '../mappers';
-import type { CatalogDTO } from '../dtos';
 
 const SELECT_QUERY = `
   id,

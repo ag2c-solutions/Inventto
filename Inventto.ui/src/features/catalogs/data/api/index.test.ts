@@ -4,58 +4,53 @@ import type { CatalogDTO } from '../dtos';
 
 import { CatalogApi } from './index';
 
-const {
-  mockSupabase,
-  mockSelect,
-  mockOverrideTypes,
-  mockEq,
-  mockRpc
-} = vi.hoisted(() => {
-  const mockSelect = vi.fn();
-  const mockOrder = vi.fn();
-  const mockEq = vi.fn();
-  const mockSingle = vi.fn();
-  const mockOverrideTypes = vi.fn();
-  const mockInsert = vi.fn();
-  const mockUpdate = vi.fn();
-  const mockDelete = vi.fn();
-  const mockRpc = vi.fn();
+const { mockSupabase, mockSelect, mockOverrideTypes, mockEq, mockRpc } =
+  vi.hoisted(() => {
+    const mockSelect = vi.fn();
+    const mockOrder = vi.fn();
+    const mockEq = vi.fn();
+    const mockSingle = vi.fn();
+    const mockOverrideTypes = vi.fn();
+    const mockInsert = vi.fn();
+    const mockUpdate = vi.fn();
+    const mockDelete = vi.fn();
+    const mockRpc = vi.fn();
 
-  const queryBuilder = {
-    select: mockSelect,
-    order: mockOrder,
-    eq: mockEq,
-    single: mockSingle,
-    overrideTypes: mockOverrideTypes,
-    insert: mockInsert,
-    update: mockUpdate,
-    delete: mockDelete
-  };
+    const queryBuilder = {
+      select: mockSelect,
+      order: mockOrder,
+      eq: mockEq,
+      single: mockSingle,
+      overrideTypes: mockOverrideTypes,
+      insert: mockInsert,
+      update: mockUpdate,
+      delete: mockDelete
+    };
 
-  mockSelect.mockReturnValue(queryBuilder);
-  mockOrder.mockReturnValue(queryBuilder);
-  mockEq.mockReturnValue(queryBuilder);
-  mockSingle.mockReturnValue(queryBuilder);
-  mockInsert.mockReturnValue(queryBuilder);
-  mockUpdate.mockReturnValue(queryBuilder);
-  mockDelete.mockReturnValue(queryBuilder);
+    mockSelect.mockReturnValue(queryBuilder);
+    mockOrder.mockReturnValue(queryBuilder);
+    mockEq.mockReturnValue(queryBuilder);
+    mockSingle.mockReturnValue(queryBuilder);
+    mockInsert.mockReturnValue(queryBuilder);
+    mockUpdate.mockReturnValue(queryBuilder);
+    mockDelete.mockReturnValue(queryBuilder);
 
-  return {
-    mockSupabase: {
-      from: vi.fn(() => queryBuilder),
-      rpc: mockRpc
-    },
-    mockSelect,
-    mockOrder,
-    mockEq,
-    mockSingle,
-    mockOverrideTypes,
-    mockInsert,
-    mockUpdate,
-    mockDelete,
-    mockRpc
-  };
-});
+    return {
+      mockSupabase: {
+        from: vi.fn(() => queryBuilder),
+        rpc: mockRpc
+      },
+      mockSelect,
+      mockOrder,
+      mockEq,
+      mockSingle,
+      mockOverrideTypes,
+      mockInsert,
+      mockUpdate,
+      mockDelete,
+      mockRpc
+    };
+  });
 
 vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase

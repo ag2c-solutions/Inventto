@@ -58,9 +58,7 @@ export const signUpSchema = z.intersection(organizationSchema, userSchema);
 
 export const firstAccessSchema = z
   .object({
-    password: z
-      .string()
-      .min(6, 'A senha deve ter no mínimo 6 caracteres.'),
+    password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
     confirmPassword: z.string()
   })
   .refine((data) => data.password === data.confirmPassword, {

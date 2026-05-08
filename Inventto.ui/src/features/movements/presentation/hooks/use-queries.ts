@@ -5,7 +5,7 @@ import { useUser } from '@/features/users';
 import { MovementApi } from '../../data/api';
 
 export function useMovementsQuery(filters?: { productId?: string }) {
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const organizationId = organization?.id;
 
   return useQuery({

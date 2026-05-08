@@ -6,7 +6,7 @@ import type { CreateMovementInput } from '../../domain/entities';
 import { MovementService } from '../../domain/services';
 export function useMovementCreateMutation() {
   const queryClient = useQueryClient();
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
 
   return useMutation({
     mutationKey: ['movements', 'create'],

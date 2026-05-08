@@ -21,12 +21,12 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import { useCompleteFirstAccessMutation } from '../../hooks/use-mutations';
-import { useAuth } from '../../hooks/use-auth';
 import {
-  firstAccessSchema,
-  type FirstAccessFormValues
+  type FirstAccessFormValues,
+  firstAccessSchema
 } from '../../../domain/validators';
+import { useAuth } from '../../hooks/use-auth';
+import { useCompleteFirstAccessMutation } from '../../hooks/use-mutations';
 
 export function FirstAccessPage() {
   const navigate = useNavigate();
@@ -101,11 +101,7 @@ export function FirstAccessPage() {
                   </FormItem>
                 )}
               />
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isPending}
-              >
+              <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Confirmar e Acessar
               </Button>

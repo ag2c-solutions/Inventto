@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { useUser } from '@/features/users/hooks/use-user';
+import { useUser } from '@/features/users';
 
 import { AuthService } from '../../domain/services';
 
@@ -46,18 +46,18 @@ export function useSignOutMutation() {
 
 export function useCompleteFirstAccessMutation() {
   const queryClient = useQueryClient();
-  const { organization } = useUser();
+  const { currentOrganization } = useUser();
 
   return useMutation({
     mutationKey: ['auth', 'complete-first-access'],
     mutationFn: (payload: { newPassword: string; userId: string }) => {
-      if (!organization?.id) {
+      if (!currentOrganization?.id) {
         throw new Error('Organização não encontrada.');
       }
 
       return AuthService.completeFirstAccess({
         ...payload,
-        orgId: organization.id
+        orgId: currentOrganization.id
       });
     },
     meta: {

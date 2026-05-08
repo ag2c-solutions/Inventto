@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import type { IProduct } from '@/features/products/types/models';
-import { formatVariantOptions } from '@/features/products/utils';
+import { formatVariantOptions, type IProduct } from '@/features/products';
 
 import type { MovementFormData } from '../../schema';
 import { getMovementItemImage } from '../../utils';

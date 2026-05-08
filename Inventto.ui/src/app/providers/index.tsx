@@ -3,7 +3,7 @@ import { ThemeProvider } from 'next-themes';
 import type { ReactNode } from 'react';
 
 import { AuthProvider } from '@/features/auth';
-import { UserProvider } from '@/features/users/hooks/use-user';
+import { UserProvider } from '@/features/users';
 
 import { queryClient } from '../libs/react-query';
 

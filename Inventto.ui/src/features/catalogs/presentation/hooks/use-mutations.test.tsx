@@ -2,9 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { CreateCatalogPayload, UpdateCatalogPayload } from '../../domain/services';
-import { CatalogService } from '../../domain/services';
 import type { Catalog } from '../../domain/entities';
+import type {
+  CreateCatalogPayload,
+  UpdateCatalogPayload
+} from '../../domain/services';
+import { CatalogService } from '../../domain/services';
 
 import {
   useCatalogCheckSlugAvailabilityMutation,

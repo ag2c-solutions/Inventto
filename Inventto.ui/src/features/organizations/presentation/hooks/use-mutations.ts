@@ -32,7 +32,7 @@ export function useCreateOrganizationMutation() {
 
 export function useUpdateOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const orgId = organization?.id;
 
   if (!orgId) throw new Error('Organization ID is required');
@@ -51,7 +51,7 @@ export function useUpdateOrganizationMutation() {
 
 export function useCreateMemberMutation() {
   const queryClient = useQueryClient();
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const orgId = organization?.id;
 
   if (!orgId) throw new Error('Organization ID is required');
@@ -70,7 +70,7 @@ export function useCreateMemberMutation() {
 
 export function useReplicateMemberMutation() {
   const queryClient = useQueryClient();
-  const { organization } = useUser();
+  const { currentOrganization: organization } = useUser();
   const orgId = organization?.id;
 
   if (!orgId) throw new Error('Organization ID is required');

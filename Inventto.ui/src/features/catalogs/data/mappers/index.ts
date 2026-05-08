@@ -1,5 +1,8 @@
 import type { Catalog, PublicStorefront } from '../../domain/entities';
-import type { CreateCatalogPayload, UpdateCatalogPayload } from '../../domain/services';
+import type {
+  CreateCatalogPayload,
+  UpdateCatalogPayload
+} from '../../domain/services';
 import type { CatalogDTO, PublicCatalogResponseDTO } from '../dtos';
 import { formatThemeForPersistence, parseThemeConfig } from '../utils';
 
@@ -19,7 +22,9 @@ export class CatalogMapper {
   }
 
   static toPersistence(
-    payload: Partial<(CreateCatalogPayload | UpdateCatalogPayload) & { isActive?: boolean }>
+    payload: Partial<
+      (CreateCatalogPayload | UpdateCatalogPayload) & { isActive?: boolean }
+    >
   ): Partial<CatalogDTO> {
     return {
       name: payload.name,
