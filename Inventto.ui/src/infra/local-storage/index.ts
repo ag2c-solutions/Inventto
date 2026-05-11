@@ -1,57 +1,52 @@
-function setLocalStorage<T>(key: string, value: T): void {
-  if (!isLocalStorageAvailable()) throw new Error('storage is not available');
+export class LocalStorageService {
+  private static isAvailable(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      typeof window.localStorage !== 'undefined'
+    );
+  }
 
-  try {
-    const serialized = JSON.stringify(value);
-    localStorage.setItem(key, serialized);
-  } catch (error) {
-    console.error(`Error setting localStorage key "${key}":`, error);
+  public static setItem<T>(key: string, value: T): void {
+    try {
+      if (!this.isAvailable()) return;
+
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error(`Error setting localStorage key "${key}":`, error);
+    }
+  }
+
+  public static getItem<T>(key: string): T | undefined {
+    try {
+      if (!this.isAvailable()) return undefined;
+
+      const item = localStorage.getItem(key);
+
+      return item ? (JSON.parse(item) as T) : undefined;
+    } catch (error) {
+      console.error(`Error getting localStorage key "${key}":`, error);
+
+      return undefined;
+    }
+  }
+
+  public static removeItem(key: string): void {
+    try {
+      if (!this.isAvailable()) return;
+
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error(`Error removing localStorage key "${key}":`, error);
+    }
+  }
+
+  public static clear(): void {
+    try {
+      if (!this.isAvailable()) return;
+
+      localStorage.clear();
+    } catch (error) {
+      console.error('Error clearing localStorage:', error);
+    }
   }
 }
-
-function getLocalStorage<T>(key: string): T | undefined {
-  if (!isLocalStorageAvailable()) throw new Error('storage is not available');
-
-  try {
-    const item = localStorage.getItem(key);
-
-    return item ? (JSON.parse(item) as T) : undefined;
-  } catch (error) {
-    console.error(`Error getting localStorage key "${key}":`, error);
-
-    return undefined;
-  }
-}
-
-const removeLocalStorage = (key: string): void => {
-  if (!isLocalStorageAvailable()) throw new Error('storage is not available');
-
-  try {
-    localStorage.removeItem(key);
-  } catch (error) {
-    console.error(`Error removing localStorage key "${key}":`, error);
-  }
-};
-
-const clearLocalStorage = (): void => {
-  if (!isLocalStorageAvailable()) throw new Error('storage is not available');
-
-  try {
-    localStorage.clear();
-  } catch (error) {
-    console.error('Error clearing localStorage:', error);
-  }
-};
-
-const isLocalStorageAvailable = (): boolean => {
-  return (
-    typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
-  );
-};
-
-export const LocalStorageService = {
-  getItem: getLocalStorage,
-  setItem: setLocalStorage,
-  removeItem: removeLocalStorage,
-  clear: clearLocalStorage
-};

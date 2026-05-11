@@ -1,18 +1,2 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase URL ou Anon Key não estão definidos no .env');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false
-  }
-});
+export { supabase, tempClient } from './client';
+export { isPostgrestError } from './guards/is-postgres-error';

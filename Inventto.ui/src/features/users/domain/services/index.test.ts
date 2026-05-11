@@ -1,17 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
-import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
-
-import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
+import { CloudinaryService } from '@/infra/cloudinary';
 
 import { UserAPI } from '../../data/api';
+import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
+import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
 import type { User } from '../entities';
 
 import { UserService } from './index';
 
-vi.mock('@/infra/cloudinary/cloudinary.api', () => ({
-  uploadImageToCloudinary: vi.fn()
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    uploadImageToCloudinary: vi.fn()
+  }
 }));
 
 vi.mock('../../presentation/utils/get-cropped-img', () => ({
@@ -26,7 +27,9 @@ vi.mock('../../data/api', () => ({
 }));
 
 const mockGetCroppedImg = vi.mocked(getCroppedImg);
-const mockUploadImageToCloudinary = vi.mocked(uploadImageToCloudinary);
+const mockUploadImageToCloudinary = vi.mocked(
+  CloudinaryService.uploadImage
+);
 const mockUpdateAvatar = vi.mocked(UserAPI.updateAvatar);
 const mockUpdatePassword = vi.mocked(UserAPI.updatePassword);
 

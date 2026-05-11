@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isPostgrestError } from './supabase.utils';
+import { isPostgrestError } from './is-postgres-error';
 
 describe('isPostgrestError', () => {
   it('deve retornar true para um objeto com as propriedades code, message e details', () => {

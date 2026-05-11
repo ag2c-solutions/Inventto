@@ -1,9 +1,8 @@
-import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
-import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
-
-import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
+import { CloudinaryService } from '@/infra/cloudinary';
 
 import { UserAPI } from '../../data/api';
+import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
+import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
 import type { User, UserOrganizationContext } from '../entities';
 
 export interface UpdateAvatarVariables {
@@ -32,7 +31,8 @@ export class UserService {
       throw new Error('Não foi possível processar o recorte da imagem.');
     }
 
-    const { url } = await uploadImageToCloudinary(croppedFile);
+    const { url } =
+      await CloudinaryService.uploadImage(croppedFile);
 
     if (!url?.trim()) {
       throw new Error('Avatar não informado.');
