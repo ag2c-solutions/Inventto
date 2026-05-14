@@ -123,7 +123,7 @@ export class CatalogApi {
   }
 
   static async checkSlugAvailability(slug: string): Promise<boolean> {
-    if (!slug || slug.length < 3) return false;
+    if (slug.length < 3) return false;
 
     try {
       const { count, error } = await supabase

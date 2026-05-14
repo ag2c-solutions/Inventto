@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CatalogApi } from '../../data/api';
+import type { Catalog } from '../../domain/entities';
 
 import { CatalogService } from './index';
 
@@ -13,14 +14,19 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
-const mockCatalog = {
+const mockCatalog: Catalog = {
   id: 'cat-1',
   name: 'Catálogo Teste',
   slug: 'teste',
   whatsappNumber: '551199999999',
   description: 'Desc',
   isActive: true,
-  themeConfig: {} as any,
+  themeConfig: {
+    colors: { primary: '#000000', background: '#ffffff' },
+    branding: { showCover: false },
+    layout: { mode: 'grid', productsPerPage: 10 },
+    behavior: { displayPrice: true, whatsappMessage: 'Olá' }
+  },
   createdAt: new Date(),
   publicUrl: 'https://example.com/c/teste'
 };
@@ -38,7 +44,12 @@ describe('CatalogService', () => {
         name: 'Novo',
         slug: 'novo',
         whatsappNumber: '123',
-        themeConfig: {} as any
+        themeConfig: {
+          colors: { primary: '#000000', background: '#ffffff' },
+          branding: { showCover: false },
+          layout: { mode: 'grid' as const, productsPerPage: 10 },
+          behavior: { displayPrice: true, whatsappMessage: 'Olá' }
+        }
       };
 
       const result = await CatalogService.add(payload);
@@ -59,7 +70,12 @@ describe('CatalogService', () => {
           name: 'A',
           slug: 'ocupado',
           whatsappNumber: '1',
-          themeConfig: {} as any
+          themeConfig: {
+            colors: { primary: '#000000', background: '#ffffff' },
+            branding: { showCover: false },
+            layout: { mode: 'grid', productsPerPage: 10 },
+            behavior: { displayPrice: true, whatsappMessage: 'Olá' }
+          }
         })
       ).rejects.toThrow('Este link personalizado já está em uso.');
     });

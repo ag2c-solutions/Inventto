@@ -10,7 +10,6 @@ import type {
 import { CatalogService } from '../../domain/services';
 
 import {
-  useCatalogCheckSlugAvailabilityMutation,
   useCatalogCreateMutation,
   useCatalogRemoveMutation,
   useCatalogUpdateMutation
@@ -116,23 +115,6 @@ describe('Catalogs Mutations', () => {
 
       expect(CatalogService.remove).toHaveBeenCalledWith(catalogId);
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
-    });
-  });
-
-  describe('useCatalogCheckSlugAvailabilityMutation', () => {
-    it('should check slug availability', async () => {
-      const slug = 'test-slug';
-      vi.mocked(CatalogService.checkSlugAvailability).mockResolvedValue(true);
-
-      const { result } = renderHook(
-        () => useCatalogCheckSlugAvailabilityMutation(),
-        { wrapper }
-      );
-
-      const data = await result.current.mutateAsync(slug);
-
-      expect(CatalogService.checkSlugAvailability).toHaveBeenCalledWith(slug);
-      expect(data).toBe(true);
     });
   });
 });

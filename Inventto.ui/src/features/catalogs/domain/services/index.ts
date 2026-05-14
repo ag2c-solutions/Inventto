@@ -30,6 +30,10 @@ export class CatalogService {
   }
 
   static async checkSlugAvailability(slug: string): Promise<boolean> {
-    return CatalogApi.checkSlugAvailability(slug);
+    const normalizedSlug = slug.toLowerCase().trim();
+
+    if (!normalizedSlug || normalizedSlug.length < 3) return false;
+
+    return CatalogApi.checkSlugAvailability(normalizedSlug);
   }
 }

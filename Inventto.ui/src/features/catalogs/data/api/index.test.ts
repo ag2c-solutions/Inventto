@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { CatalogDTO } from '../dtos';
+import type { CatalogDTO, CatalogThemeConfigDTO } from '../dtos';
 
 import { CatalogApi } from './index';
 
@@ -56,6 +56,13 @@ vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
 }));
 
+const mockThemeConfigDTO: CatalogThemeConfigDTO = {
+  colors: { primary: '#000000', background: '#ffffff' },
+  branding: { show_cover: false },
+  layout: { mode: 'grid', products_per_page: 10 },
+  behavior: { display_price: true, whatsapp_message: 'Olá' }
+};
+
 const mockCatalogDTO: CatalogDTO = {
   id: 'cat-1',
   organization_id: 'org-1',
@@ -64,7 +71,7 @@ const mockCatalogDTO: CatalogDTO = {
   whatsapp_number: '551199999999',
   description: 'Desc',
   is_active: true,
-  theme_config: {} as any,
+  theme_config: mockThemeConfigDTO,
   created_at: '2023-01-01',
   updated_at: '2023-01-01'
 };
@@ -166,7 +173,12 @@ describe('CatalogApi', () => {
         name: 'Novo',
         slug: 'novo',
         whatsappNumber: '123',
-        themeConfig: {} as any
+        themeConfig: {
+          colors: { primary: '#000000', background: '#ffffff' },
+          branding: { showCover: false },
+          layout: { mode: 'grid' as const, productsPerPage: 10 },
+          behavior: { displayPrice: true, whatsappMessage: 'Olá' }
+        }
       };
 
       const result = await CatalogApi.add(payload);
@@ -196,7 +208,12 @@ describe('CatalogApi', () => {
           name: 'A',
           slug: 'teste',
           whatsappNumber: '1',
-          themeConfig: {} as any
+          themeConfig: {
+            colors: { primary: '#000000', background: '#ffffff' },
+            branding: { showCover: false },
+            layout: { mode: 'grid', productsPerPage: 10 },
+            behavior: { displayPrice: true, whatsappMessage: 'Olá' }
+          }
         })
       ).rejects.toThrow(
         'Este link personalizado já está em uso. Por favor, escolha outro.'
@@ -215,7 +232,12 @@ describe('CatalogApi', () => {
           name: 'A',
           slug: 'teste',
           whatsappNumber: '1',
-          themeConfig: {} as any
+          themeConfig: {
+            colors: { primary: '#000000', background: '#ffffff' },
+            branding: { showCover: false },
+            layout: { mode: 'grid', productsPerPage: 10 },
+            behavior: { displayPrice: true, whatsappMessage: 'Olá' }
+          }
         })
       ).rejects.toThrow('Ocorreu um erro inesperado ao processar o catálogo.');
     });
@@ -251,7 +273,7 @@ describe('CatalogApi', () => {
           branding: { showCover: true },
           layout: { mode: 'list', productsPerPage: 10 },
           behavior: { displayPrice: true, whatsappMessage: 'Oi' }
-        } as any
+        }
       });
 
       const updateCall = vi.mocked(mockSupabase.from().update).mock.calls[0][0];
@@ -280,7 +302,7 @@ describe('CatalogApi', () => {
         delete: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ error: null })
         })
-      } as any);
+      } as unknown as ReturnType<typeof mockSupabase.from>);
 
       await expect(CatalogApi.remove('cat-1')).resolves.not.toThrow();
     });
@@ -291,7 +313,7 @@ describe('CatalogApi', () => {
         delete: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ error: { message: 'DB Error' } })
         })
-      } as any);
+      } as unknown as ReturnType<typeof mockSupabase.from>);
 
       await expect(CatalogApi.remove('cat-1')).rejects.toThrow(
         'Ocorreu um erro inesperado'
@@ -304,7 +326,9 @@ describe('CatalogApi', () => {
       const mockSelectCount = vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ count: 0, error: null })
       });
-      mockSupabase.from.mockReturnValue({ select: mockSelectCount } as any);
+      mockSupabase.from.mockReturnValue({
+        select: mockSelectCount
+      } as unknown as ReturnType<typeof mockSupabase.from>);
 
       expect(await CatalogApi.checkSlugAvailability('livre')).toBe(true);
     });
@@ -313,7 +337,9 @@ describe('CatalogApi', () => {
       const mockSelectCount = vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ count: 1, error: null })
       });
-      mockSupabase.from.mockReturnValue({ select: mockSelectCount } as any);
+      mockSupabase.from.mockReturnValue({
+        select: mockSelectCount
+      } as unknown as ReturnType<typeof mockSupabase.from>);
 
       expect(await CatalogApi.checkSlugAvailability('ocupado')).toBe(false);
     });
@@ -340,7 +366,9 @@ describe('CatalogApi', () => {
           .fn()
           .mockResolvedValue({ count: null, error: { message: 'DB Error' } })
       });
-      mockSupabase.from.mockReturnValue({ select: mockSelectCount } as any);
+      mockSupabase.from.mockReturnValue({
+        select: mockSelectCount
+      } as unknown as ReturnType<typeof mockSupabase.from>);
 
       expect(await CatalogApi.checkSlugAvailability('error-slug')).toBe(false);
     });
@@ -353,7 +381,7 @@ describe('CatalogApi', () => {
           name: 'Loja Pública',
           description: null,
           whatsapp_number: '551199999999',
-          theme_config: {} as any
+          theme_config: mockThemeConfigDTO
         },
         items: []
       };
