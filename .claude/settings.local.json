@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git apply *)",
+      "Bash(npx vitest *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm tsc *)",
+      "Bash(dir \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\features\\\\movements\")",
+      "Bash(dir \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\features\\\\organizations\")",
+      "Bash(pnpm lint *)",
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Path \"src/features/movements\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(dir /s /b \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\features\\\\organizations\")",
+      "Bash(findstr /i \"FAIL\\\\|failed\\\\|×\")",
+      "Bash(findstr \"FAIL\")",
+      "Bash(findstr \"FAIL\\\\|Tests\\\\|Test Files\\\\|Errors\")",
+      "Bash(Select-String \"FAIL|Test Files|Tests |Errors\")",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(pnpm exec *)"
+    ]
+  }
+}
