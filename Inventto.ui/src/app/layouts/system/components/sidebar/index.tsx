@@ -1,6 +1,7 @@
+import { Logo } from '@/app/brand/logo';
+
 import { OrganizationSwitcher } from '@/features/organizations';
 
-import { Logo } from '@/app/brand/logo';
 import {
   Sidebar,
   SidebarContent,

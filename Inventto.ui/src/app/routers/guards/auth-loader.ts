@@ -4,21 +4,6 @@ import { UserAPI } from '@/features/users';
 
 import { supabase } from '@/infra/supabase';
 
-async function isAuthenticated(): Promise<boolean> {
-  const { data } = await supabase.auth.getSession();
-  return !!data.session;
-}
-
-async function checkMustChangePassword(): Promise<boolean> {
-  const { data } = await supabase.auth.getSession();
-
-  if (!data.session?.user?.id) return false;
-
-  const profile = await UserAPI.getProfile(data.session.user.id);
-
-  return profile?.mustChangePassword || false;
-}
-
 export async function protectedLoader({ request }: LoaderFunctionArgs) {
   const { data } = await supabase.auth.getSession();
   const session = data.session;
@@ -32,8 +17,9 @@ export async function protectedLoader({ request }: LoaderFunctionArgs) {
     return redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
   }
 
-  const mustChangePassword = await checkMustChangePassword();
+  const profile = await UserAPI.getProfile(session.user.id);
 
+  const mustChangePassword = profile?.mustChangePassword || false;
   const isAtFirstAccessPage = pathname === '/auth/first-access';
 
   if (mustChangePassword && !isAtFirstAccessPage) {
@@ -48,9 +34,9 @@ export async function protectedLoader({ request }: LoaderFunctionArgs) {
 }
 
 export async function publicLoader() {
-  const isAuth = await isAuthenticated();
+  const { data } = await supabase.auth.getSession();
 
-  if (isAuth) {
+  if (data.session) {
     return redirect('/');
   }
 

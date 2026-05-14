@@ -4,12 +4,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { protectedLoader, publicLoader } from './auth-loader';
 
 const mockGetSession = vi.fn();
+const mockGetProfile = vi.fn();
 
-vi.mock('@/app/config/supabase', () => ({
+vi.mock('@/infra/supabase', () => ({
   supabase: {
     auth: {
-      getSession: (...args: any[]) => mockGetSession(...args)
+      getSession: (...args: unknown[]) => mockGetSession(...args)
     }
+  }
+}));
+
+vi.mock('@/features/users', () => ({
+  UserAPI: {
+    getProfile: (...args: unknown[]) => mockGetProfile(...args)
   }
 }));
 
@@ -31,6 +38,7 @@ describe('Auth Guards (Loaders)', () => {
       mockGetSession.mockResolvedValue({
         data: { session: { user: { id: '1' } } }
       });
+      mockGetProfile.mockResolvedValue({ mustChangePassword: false });
 
       const request = createRequest('http://localhost:3000/app/dashboard');
       const response = await protectedLoader({
