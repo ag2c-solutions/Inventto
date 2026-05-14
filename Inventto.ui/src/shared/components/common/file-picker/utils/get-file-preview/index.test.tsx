@@ -1,8 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { FileWithPreview } from '../../types';
-
 import { getFilePreview } from '.';
 
 //@ts-expect-error global is not defined
@@ -45,9 +43,7 @@ describe('getFilePreview', () => {
   });
 
   it('should render the <img> with the existing src (without calling createObjectURL)', () => {
-    render(
-      <div>{getFilePreview({ file: mockImageNoSrc as FileWithPreview })}</div>
-    );
+    render(<div>{getFilePreview({ file: mockImageNoSrc as never })}</div>);
 
     const imageIcon = document.querySelector('.lucide');
 
@@ -55,9 +51,7 @@ describe('getFilePreview', () => {
   });
 
   it('should render the image icon (ImageIcon) if its an image but without a src/Blob', () => {
-    render(
-      <div>{getFilePreview({ file: mockImageNoSrc as FileWithPreview })}</div>
-    );
+    render(<div>{getFilePreview({ file: mockImageNoSrc as never })}</div>);
 
     const imageIcon = document.querySelector('.lucide');
 
@@ -65,9 +59,7 @@ describe('getFilePreview', () => {
   });
 
   it('should render the fallback icon (getFileIcon) if it is not of type image', () => {
-    render(
-      <div>{getFilePreview({ file: mockNonImageFile as FileWithPreview })}</div>
-    );
+    render(<div>{getFilePreview({ file: mockNonImageFile as never })}</div>);
 
     expect(mockFileIcon).toHaveBeenCalledWith({ file: mockNonImageFile });
 

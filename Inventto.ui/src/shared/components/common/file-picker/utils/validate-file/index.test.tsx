@@ -10,7 +10,7 @@ const { mockFormatBytes } = vi.hoisted(() => {
   };
 });
 
-vi.mock('@/lib/utils', () => ({ formatBytes: mockFormatBytes }));
+vi.mock('@/shared/utils', () => ({ formatBytes: mockFormatBytes }));
 
 const createMockFile = (name: string, size: number, type: string = '') =>
   ({

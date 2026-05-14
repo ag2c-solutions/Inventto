@@ -88,7 +88,7 @@ describe('processNewFiles', () => {
     expect(validFiles[0]).toEqual({
       file: mockFileB,
       id: 'unique-id-mock',
-      src: 'blob-url-mock-B.png',
+      url: 'blob-url-mock-B.png',
       publicId: undefined,
       isPrimary: false,
       name: mockFileB.name,

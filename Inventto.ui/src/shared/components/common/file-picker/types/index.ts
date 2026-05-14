@@ -1,4 +1,4 @@
-import type { ChangeEvent, InputHTMLAttributes } from 'react';
+import type { ChangeEvent, InputHTMLAttributes, Ref } from 'react';
 
 export type FileMetadata = {
   name: string;
@@ -44,6 +44,6 @@ export type FilePickerActions = {
   getInputProps: (
     props?: InputHTMLAttributes<HTMLInputElement>
   ) => InputHTMLAttributes<HTMLInputElement> & {
-    ref: any;
+    ref: Ref<HTMLInputElement>;
   };
 };

@@ -17,9 +17,11 @@ import {
   FilePickerRemoveAllButton
 } from '.';
 
-vi.mock('@/app/services/image-upload/utils', () => ({
-  createCloudinaryThumbnail: (publicId: string) =>
-    `https://res.cloudinary.com/demo/image/upload/w_450/${publicId}`
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    createThumbnail: (publicId: string) =>
+      `https://res.cloudinary.com/demo/image/upload/w_450/${publicId}`
+  }
 }));
 
 beforeAll(() => {
@@ -38,14 +40,14 @@ const IntegrationFilePicker = ({
   maxFiles?: number;
   accept?: string;
   multiple?: boolean;
-  initialFiles?: any[];
+  initialFiles?: unknown[];
 }) => {
-  const [files, setFiles] = React.useState<any[]>(initialFiles);
+  const [files, setFiles] = React.useState((initialFiles as never) ?? []);
 
   return (
     <FilePicker
       files={files}
-      onFilesChange={setFiles}
+      onFilesChange={setFiles as never}
       maxSizeMB={maxSizeMB}
       maxFiles={maxFiles}
       accept={accept}
@@ -194,9 +196,9 @@ describe('FilePicker Integration', () => {
 
   it('should use default values when optional props are missing', () => {
     const TestDefaults = () => {
-      const [files, setFiles] = React.useState<any[]>([]);
+      const [files, setFiles] = React.useState([] as never);
       return (
-        <FilePicker files={files} onFilesChange={setFiles}>
+        <FilePicker files={files} onFilesChange={setFiles as never}>
           <FilePickerInput />
         </FilePicker>
       );
@@ -216,14 +218,14 @@ describe('FilePicker Integration', () => {
       {
         id: '1',
         name: 'file1.jpg',
-        src: 'blob:url1',
+        url: 'blob:url1',
         type: 'image/jpeg',
         isPrimary: true
       },
       {
         id: '2',
         name: 'file2.jpg',
-        src: 'blob:url2',
+        url: 'blob:url2',
         type: 'image/jpeg',
         isPrimary: false
       }
@@ -249,7 +251,7 @@ describe('FilePicker Integration', () => {
       {
         id: 'cloud-1',
         name: 'cloud.jpg',
-        src: 'http://original-src',
+        url: 'http://original-src',
         type: 'image/jpeg',
         publicId: 'folder/image-123'
       }

@@ -109,7 +109,7 @@ describe('useFormDraft Hook', () => {
       const { rerender } = renderHook((props) => useFormDraft(props), {
         initialProps: {
           key: TEST_KEY,
-          watchData: undefined as any,
+          watchData: undefined as unknown,
           debounceTime: 500
         }
       });

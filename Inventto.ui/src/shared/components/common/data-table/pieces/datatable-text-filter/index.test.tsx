@@ -46,7 +46,9 @@ const { mockUseDataTable, MockInput, mockSetGlobalFilter, mockSetFilterValue } =
     };
   });
 
-vi.mock('../../hook/usetable', () => ({ useDataTable: mockUseDataTable }));
+vi.mock('../../hook/use-data-table', () => ({
+  useDataTable: mockUseDataTable
+}));
 vi.mock('@/shared/components/ui/input', () => ({ Input: MockInput }));
 
 describe('DataTableTextFilter', () => {

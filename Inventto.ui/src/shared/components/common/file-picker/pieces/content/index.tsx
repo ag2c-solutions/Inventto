@@ -2,8 +2,9 @@ import { Star } from 'lucide-react';
 import type { ComponentProps } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
-import { createCloudinaryThumbnail } from '@/infra/cloudinary/cloudinary.utils';
 import { cn } from '@/shared/utils';
+
+import { CloudinaryService } from '@/infra/cloudinary';
 
 import { useFilePickerContext } from '../../hooks';
 import { getFilePreview } from '../../utils';
@@ -31,7 +32,7 @@ export function FilePickerContent({
           <img
             src={
               file.publicId && !file.publicId.startsWith('mock')
-                ? createCloudinaryThumbnail(file.publicId, {
+                ? CloudinaryService.createThumbnail(file.publicId, {
                     width: 450,
                     height: 450,
                     quality: 100
