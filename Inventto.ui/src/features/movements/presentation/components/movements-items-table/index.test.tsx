@@ -1,5 +1,11 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mockUsePermission = vi.fn();
+
+vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
+  usePermission: () => mockUsePermission()
+}));
 
 import type { Movement, MovementItem } from '../../../domain/entities';
 
@@ -115,6 +121,14 @@ const mockItems: MovementItem[] = [
 ];
 
 describe('MovementsItemsTable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePermission.mockReturnValue({
+      can: vi.fn(() => true),
+      isLoading: false
+    });
+  });
+
   it('should render the table and items correctly', () => {
     render(
       <MovementsItemsTable data={mockItems} parentData={mockParentEntry} />

@@ -1,5 +1,7 @@
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 
+import { VisibleTo } from '@/features/permissions';
+
 import { ImageCard } from '@/shared/components/common/image-card';
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
@@ -63,17 +65,18 @@ export const columnsMovementsItemsTable: ColumnDef<MovementItem>[] = [
   },
   {
     accessorKey: 'unitCost',
-    header: 'Custo Unit.',
-    cell: ({ row }) => {
-      const value = row.original.unitCost;
-      return (
+    header: () => (
+      <VisibleTo action="movement:view_costs">Custo Unit.</VisibleTo>
+    ),
+    cell: ({ row }) => (
+      <VisibleTo action="movement:view_costs">
         <span className="text-muted-foreground">
           {new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
-          }).format(value)}
+          }).format(row.original.unitCost)}
         </span>
-      );
-    }
+      </VisibleTo>
+    )
   }
 ];
