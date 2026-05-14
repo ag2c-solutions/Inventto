@@ -1,1 +1,2 @@
-npx --no-install lint-staged
+cd Inventto.ui
+pnpm exec lint-staged
