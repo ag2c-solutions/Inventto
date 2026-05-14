@@ -6,7 +6,7 @@ import {
   AvatarImage
 } from '@/shared/components/ui/avatar';
 
-import type { IMember } from '../../../types';
+import type { IMember } from '../../../../domain/entities';
 
 import { RoleColumn } from './role';
 import { StatusColumn } from './status';

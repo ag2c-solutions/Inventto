@@ -1,37 +1,72 @@
-import type { UserRole } from '@/features/users';
+import type { UserOrganizationContext, UserRole } from '@/features/users';
 
 import { OrganizationApi } from '../../data/api';
-import type { CreateMemberDTO } from '../../data/dtos';
 import type {
+  CreateMember,
   CreateOrganizationInput,
   MemberStatus,
   OrganizationSettings
 } from '../entities';
 
 export class OrganizationService {
+  private static getOrganizationId = (
+    organization: UserOrganizationContext | null
+  ): string => {
+    if (!organization?.id) {
+      throw new Error('Organization ID is required');
+    }
+    return organization.id;
+  };
+
+  static async getById(organization: UserOrganizationContext | null) {
+    const orgId = this.getOrganizationId(organization);
+
+    return OrganizationApi.getById(orgId);
+  }
+
+  static async getMembers(organization: UserOrganizationContext | null) {
+    const orgId = this.getOrganizationId(organization);
+
+    return OrganizationApi.getMembers(orgId);
+  }
+
+  static async getCandidatesMembers(
+    organization: UserOrganizationContext | null
+  ) {
+    const orgId = this.getOrganizationId(organization);
+
+    return OrganizationApi.getCandidatesMembers(orgId);
+  }
+
   static async create(payload: CreateOrganizationInput): Promise<string> {
     return OrganizationApi.create(payload);
   }
 
   static async update(
-    orgId: string,
+    organization: UserOrganizationContext | null,
     settings: OrganizationSettings
   ): Promise<void> {
+    const orgId = this.getOrganizationId(organization);
+
     return OrganizationApi.update(orgId, { settings });
   }
 
   static async createMember(
-    orgId: string,
-    data: CreateMemberDTO
+    organization: UserOrganizationContext | null,
+    data: CreateMember
   ): Promise<void> {
+    const orgId = this.getOrganizationId(organization);
+
     return OrganizationApi.createMember(orgId, data);
   }
 
   static async replicateMember(
-    orgId: string,
+    organization: UserOrganizationContext | null,
     userId: string,
     role: 'manager' | 'sales'
   ): Promise<void> {
+    const orgId = this.getOrganizationId(organization);
+
     return OrganizationApi.replicateMember(orgId, userId, role);
   }
 

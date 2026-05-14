@@ -2,9 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { type UserRole, USERS_KEYS, useUser } from '@/features/users';
 
-import type { CreateMemberDTO, MemberStatus } from '../../data/dtos';
 import type {
+  CreateMember,
   CreateOrganizationInput,
+  MemberStatus,
   OrganizationSettings
 } from '../../domain/entities';
 import { OrganizationService } from '../../domain/services';
@@ -32,16 +33,15 @@ export function useCreateOrganizationMutation() {
 
 export function useUpdateOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { currentOrganization: organization } = useUser();
-  const orgId = organization?.id;
-
-  if (!orgId) throw new Error('Organization ID is required');
+  const { currentOrganization } = useUser();
 
   return useMutation({
     mutationFn: (settings: OrganizationSettings) =>
-      OrganizationService.update(orgId, settings),
+      OrganizationService.update(currentOrganization, settings),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ORG_KEYS.detail(orgId) });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.detail(currentOrganization?.id ?? '')
+      });
     },
     meta: {
       successMessage: 'Configurações salvas com sucesso.'
@@ -51,16 +51,18 @@ export function useUpdateOrganizationMutation() {
 
 export function useCreateMemberMutation() {
   const queryClient = useQueryClient();
-  const { currentOrganization: organization } = useUser();
-  const orgId = organization?.id;
-
-  if (!orgId) throw new Error('Organization ID is required');
+  const { currentOrganization } = useUser();
 
   return useMutation({
-    mutationFn: (data: CreateMemberDTO) =>
-      OrganizationService.createMember(orgId, data),
+    mutationFn: (data: CreateMember) =>
+      OrganizationService.createMember(currentOrganization, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ORG_KEYS.members(orgId) });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
+      });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.candidates(currentOrganization?.id ?? '')
+      });
     },
     meta: {
       successMessage: 'Convite enviado com sucesso!'
@@ -70,10 +72,7 @@ export function useCreateMemberMutation() {
 
 export function useReplicateMemberMutation() {
   const queryClient = useQueryClient();
-  const { currentOrganization: organization } = useUser();
-  const orgId = organization?.id;
-
-  if (!orgId) throw new Error('Organization ID is required');
+  const { currentOrganization } = useUser();
 
   return useMutation({
     mutationFn: ({
@@ -82,11 +81,17 @@ export function useReplicateMemberMutation() {
     }: {
       userId: string;
       role: 'manager' | 'sales';
-    }) => OrganizationService.replicateMember(orgId, userId, role),
+    }) =>
+      OrganizationService.replicateMember(currentOrganization, userId, role),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ORG_KEYS.members(orgId) });
       queryClient.invalidateQueries({
-        queryKey: ['organization', orgId, 'candidates']
+        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
+      });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.candidates(currentOrganization?.id ?? '')
+      });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
       });
     },
     meta: {

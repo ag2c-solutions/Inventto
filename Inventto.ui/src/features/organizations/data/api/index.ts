@@ -5,12 +5,12 @@ import { supabase, tempClient } from '@/infra/supabase';
 import type {
   IMember,
   IOrganization,
+  MemberStatus,
   OrganizationSettings
 } from '../../domain/entities';
 import type {
   CandidateMemberDTO,
   CreateMemberDTO,
-  MemberStatus,
   OrganizationDTO,
   OrganizationMemberDTO
 } from '../dtos';

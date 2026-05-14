@@ -40,7 +40,7 @@ import {
 } from '@/shared/components/ui/select';
 import { cn } from '@/shared/utils';
 
-import type { IMember } from '../../types';
+import type { IMember } from '../../../domain/entities';
 
 import { useMemberForm } from './hook';
 

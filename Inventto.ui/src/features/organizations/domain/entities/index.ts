@@ -55,3 +55,10 @@ export interface OrganizationSettings {
   };
   schedule: Record<DayOfWeek, IBusinessSchedule>;
 }
+
+export interface CreateMember {
+  name: string;
+  email: string;
+  role: 'manager' | 'sales';
+  password: string;
+}

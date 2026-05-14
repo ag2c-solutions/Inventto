@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-import { generateSlug } from '@/features/auth';
-
 import { Button } from '@/shared/components/ui/button';
 import {
   Form,
@@ -15,6 +13,7 @@ import {
   FormMessage
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
+import { generateSlug } from '@/shared/utils';
 
 import { useCreateOrganizationMutation } from '../../hooks/use-mutations';
 

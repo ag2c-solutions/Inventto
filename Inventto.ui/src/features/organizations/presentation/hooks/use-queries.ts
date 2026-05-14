@@ -2,48 +2,44 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useUser } from '@/features/users';
 
-import { OrganizationApi } from '../../data/api';
+import { OrganizationService } from '../../domain/services';
 import { ORG_KEYS } from '../consts';
 
 export function useOrganizationQuery() {
-  const { currentOrganization: organization } = useUser();
-  const orgId = organization?.id;
-
-  if (!orgId) throw new Error('Organization ID is required');
+  const { currentOrganization } = useUser();
 
   return useQuery({
-    queryKey: ORG_KEYS.detail(orgId),
-    queryFn: () => OrganizationApi.getById(orgId),
-    enabled: !!orgId,
+    queryKey: ORG_KEYS.detail(currentOrganization?.id ?? ''),
+    queryFn: () => OrganizationService.getById(currentOrganization),
+    enabled: !!currentOrganization?.id,
     staleTime: 1000 * 60 * 30 // 30 minutos
   });
 }
 
 export function useOrganizationMembersQuery() {
-  const { currentOrganization: organization } = useUser();
-  const orgId = organization?.id;
+  const { currentOrganization } = useUser();
 
   return useQuery({
-    queryKey: orgId ? ORG_KEYS.members(orgId) : ['members', 'null'],
+    queryKey: currentOrganization?.id
+      ? ORG_KEYS.members(currentOrganization.id)
+      : ['members', 'null'],
     queryFn: () => {
-      if (!orgId) throw new Error('Organization ID is required');
-
-      return OrganizationApi.getMembers(orgId);
+      return OrganizationService.getMembers(currentOrganization);
     },
-    enabled: !!orgId,
+    enabled: !!currentOrganization,
     staleTime: 1000 * 60 * 5 // 5 minutos
   });
 }
 
 export function useCandidatesQuery() {
-  const { currentOrganization: organization } = useUser();
-  const orgId = organization?.id;
-
-  if (!orgId) throw new Error('Organization ID is required');
+  const { currentOrganization } = useUser();
 
   return useQuery({
-    queryKey: ['organization', orgId, 'candidates'],
-    queryFn: () => OrganizationApi.getCandidatesMembers(orgId),
+    queryKey: currentOrganization?.id
+      ? ['organization', currentOrganization.id, 'candidates']
+      : ['candidates', 'null'],
+    queryFn: () =>
+      OrganizationService.getCandidatesMembers(currentOrganization),
     staleTime: 1000 * 60 * 5
   });
 }
