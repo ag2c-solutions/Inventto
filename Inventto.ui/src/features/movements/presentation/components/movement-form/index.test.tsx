@@ -5,7 +5,9 @@ import { useMovementForm } from './hooks';
 import { MovementForm } from './index';
 
 vi.mock('./hooks', () => ({
-  MovementFormProvider: ({ children }: any) => <>{children}</>,
+  MovementFormProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   useMovementForm: vi.fn()
 }));
 
@@ -45,17 +47,17 @@ describe('MovementForm', () => {
   const mockToggleDialog = vi.fn();
   const mockSelectProduct = vi.fn();
 
-  const mockHandleSubmit = vi.fn((fn) => (e: any) => {
-    e?.preventDefault();
-    if (typeof fn === 'function') {
-      fn();
+  const mockHandleSubmit = vi.fn(
+    (fn?: () => void) => (e?: { preventDefault?: () => void }) => {
+      e?.preventDefault?.();
+      fn?.();
     }
-  });
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    (useMovementForm as any).mockReturnValue({
+    vi.mocked(useMovementForm).mockReturnValue({
       form: {
         handleSubmit: mockHandleSubmit,
         control: {},
@@ -72,7 +74,7 @@ describe('MovementForm', () => {
       products: [],
       selectedProduct: null,
       isDialogOpen: false
-    });
+    } as unknown as ReturnType<typeof useMovementForm>);
   });
 
   it('should render the form structure correctly', () => {
@@ -87,7 +89,7 @@ describe('MovementForm', () => {
   });
 
   it('should render MovementBatchList when items exist', () => {
-    (useMovementForm as any).mockReturnValue({
+    vi.mocked(useMovementForm).mockReturnValue({
       form: {
         handleSubmit: mockHandleSubmit,
         watch: vi.fn().mockReturnValue([{ id: '1' }])
@@ -96,7 +98,7 @@ describe('MovementForm', () => {
       products: [],
       selectedProduct: null,
       isDialogOpen: false
-    });
+    } as unknown as ReturnType<typeof useMovementForm>);
 
     render(<MovementForm />);
 
@@ -104,7 +106,7 @@ describe('MovementForm', () => {
   });
 
   it('should open the AddItemsDialog when isDialogOpen is true', () => {
-    (useMovementForm as any).mockReturnValue({
+    vi.mocked(useMovementForm).mockReturnValue({
       form: {
         handleSubmit: mockHandleSubmit,
         watch: vi.fn().mockReturnValue([])
@@ -117,7 +119,7 @@ describe('MovementForm', () => {
       products: [],
       selectedProduct: { id: 'prod-1' },
       isDialogOpen: true
-    });
+    } as unknown as ReturnType<typeof useMovementForm>);
 
     render(<MovementForm />);
 

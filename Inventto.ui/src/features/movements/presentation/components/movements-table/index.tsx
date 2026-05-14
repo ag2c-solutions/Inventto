@@ -24,7 +24,7 @@ import {
 } from '@/shared/components/common/data-table';
 import { Button } from '@/shared/components/ui/button';
 
-import type { Movement } from '../../domain/entities';
+import type { Movement } from '../../../domain/entities';
 import { MovementsItemsTable } from '../movements-items-table';
 
 import { columnsMovementsListTable } from './columns';

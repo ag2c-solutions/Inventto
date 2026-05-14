@@ -4,7 +4,7 @@ import { ImageCard } from '@/shared/components/common/image-card';
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
 
-import type { Movement, MovementItem } from '../../../domain/entities';
+import type { Movement, MovementItem } from '../../../../domain/entities';
 
 export const columnsMovementsItemsTable: ColumnDef<MovementItem>[] = [
   {

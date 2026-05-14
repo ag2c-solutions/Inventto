@@ -2,18 +2,29 @@ import { BrowserRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Movement } from '../../domain/entities';
+import type { Movement } from '../../../domain/entities';
 
 import { MovementsListTable } from './index';
 
-vi.mock('@/shared/components/common/datatable', () => ({
-  DataTable: ({ tableOptions, renderSubRow, children }: any) => (
+vi.mock('@/shared/components/common/data-table', () => ({
+  DataTable: ({
+    tableOptions,
+    renderSubRow,
+    children
+  }: {
+    tableOptions: { data?: unknown[] };
+    renderSubRow?: (
+      row: { original: unknown },
+      index: number
+    ) => React.ReactNode;
+    children?: React.ReactNode;
+  }) => (
     <div data-testid="mock-datatable">
       <span data-testid="datatable-row-count">
         {tableOptions.data?.length ?? 0}
       </span>
 
-      {tableOptions.data?.[0] && renderSubRow && (
+      {!!tableOptions.data?.[0] && !!renderSubRow && (
         <div data-testid="mock-sub-row-container">
           {renderSubRow({ original: tableOptions.data[0] }, 0)}
         </div>
@@ -22,10 +33,16 @@ vi.mock('@/shared/components/common/datatable', () => ({
       {children}
     </div>
   ),
-  DataTableTextFilter: ({ placeholder }: any) => (
+  DataTableTextFilter: ({ placeholder }: { placeholder?: string }) => (
     <div data-testid="mock-text-filter">{placeholder}</div>
   ),
-  DataTableSelectFilter: ({ options, placeholder }: any) => (
+  DataTableSelectFilter: ({
+    options,
+    placeholder
+  }: {
+    options: unknown[];
+    placeholder?: string;
+  }) => (
     <div data-testid="mock-select-filter">
       {placeholder}: {options.length} options
     </div>
@@ -35,8 +52,10 @@ vi.mock('@/shared/components/common/datatable', () => ({
   PaginationControllers: () => <div data-testid="mock-pagination" />
 }));
 
-vi.mock('@/features/permissions/components/action-button', () => ({
-  ActionButton: ({ children }: any) => <>{children}</>
+vi.mock('@/features/permissions', () => ({
+  ActionButton: ({ children }: { children?: React.ReactNode }) => (
+    <>{children}</>
+  )
 }));
 
 vi.mock('./columns', () => ({
@@ -44,7 +63,7 @@ vi.mock('./columns', () => ({
 }));
 
 vi.mock('../movements-items-table', () => ({
-  MovementsItemsTable: ({ data }: any) => (
+  MovementsItemsTable: ({ data }: { data: unknown[] }) => (
     <div data-testid="mock-items-table">Items Count: {data.length}</div>
   )
 }));
@@ -105,7 +124,9 @@ describe('MovementsListTable', () => {
   });
 
   it('should handle undefined data gracefully', () => {
-    render(<MovementsListTable data={undefined as any} />, { wrapper });
+    render(<MovementsListTable data={undefined as unknown as Movement[]} />, {
+      wrapper
+    });
 
     expect(screen.getByTestId('datatable-row-count')).toHaveTextContent('0');
   });

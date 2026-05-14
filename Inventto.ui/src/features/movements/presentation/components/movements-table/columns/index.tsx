@@ -15,7 +15,7 @@ import {
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
 
-import type { Movement } from '../../../domain/entities';
+import type { Movement } from '../../../../domain/entities';
 
 const getInitials = (name: string) => {
   return name
@@ -48,7 +48,7 @@ export const columnsMovementsListTable: ColumnDef<Movement>[] = [
         </div>
       );
     },
-    filterFn: dateRangeFilter
+    filterFn: dateRangeFilter as never
   },
   {
     accessorKey: 'type',
