@@ -53,7 +53,7 @@ describe('LocalStorageService', () => {
       const setItemSpy = vi.spyOn(localStorage, 'setItem');
       const key = 'circular';
 
-      const circularObject: any = {};
+      const circularObject: Record<string, unknown> = {};
       circularObject.a = circularObject;
 
       LocalStorageService.setItem(key, circularObject);
