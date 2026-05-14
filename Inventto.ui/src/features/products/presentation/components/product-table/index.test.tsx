@@ -5,47 +5,61 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { IProduct } from '../../../domain/entities';
-import { useProductsQuery } from '../../../hooks/use-query';
+import { useProductsQuery } from '../../hooks/use-query';
 
 import { ProductListTable } from './index';
 
 vi.mock('../../hooks/use-query');
 
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-globalThis.ResizeObserver = ResizeObserverMock;
+vi.mock('@/features/users', () => ({
+  useUser: vi.fn().mockReturnValue({
+    currentOrganization: { id: 'org-1' },
+    role: 'manager'
+  })
+}));
 
 const mockProducts: IProduct[] = [
   {
     id: 'prod-1',
+    organizationId: 'org-1',
     name: 'Camiseta Básica',
     sku: 'TSHIRT-001',
     description: '100% Algodão',
     stock: 50,
     minimumStock: 10,
+    isActive: true,
     hasVariants: false,
-    category: { id: 'cat-1', name: 'Roupas' },
+    categories: [{ id: 'cat-1', name: 'Roupas' }],
     attributes: [],
-    allImages: []
+    allImages: [],
+    variants: []
   },
   {
     id: 'prod-2',
+    organizationId: 'org-1',
     name: 'Tênis Esportivo',
     sku: 'SNEAKER-X',
     stock: 20,
     minimumStock: 5,
+    isActive: true,
     hasVariants: true,
-    category: { id: 'cat-2', name: 'Calçados' },
-    attributes: [{ name: 'Tamanho', values: '40, 41' }],
+    categories: [{ id: 'cat-2', name: 'Calçados' }],
+    attributes: [
+      {
+        id: 'a1',
+        name: 'Tamanho',
+        slug: 'tamanho',
+        type: 'text',
+        values: ['40', '41']
+      }
+    ],
     variants: [
       {
         id: 'var-1',
         sku: 'SNEAKER-X-40',
         stock: 10,
         minimumStock: 2,
+        isActive: true,
         options: [{ name: 'Tamanho', value: '40' }],
         images: []
       },
@@ -54,6 +68,7 @@ const mockProducts: IProduct[] = [
         sku: 'SNEAKER-X-41',
         stock: 10,
         minimumStock: 2,
+        isActive: true,
         options: [{ name: 'Tamanho', value: '41' }],
         images: []
       }
@@ -77,7 +92,7 @@ describe('ProductListTable (Integration)', () => {
       isLoading: false,
       isError: false,
       error: null
-    } as any);
+    } as never);
 
     renderWithProviders(<ProductListTable />);
 
@@ -95,7 +110,7 @@ describe('ProductListTable (Integration)', () => {
       isLoading: false,
       isError: false,
       error: null
-    } as any);
+    } as never);
 
     renderWithProviders(<ProductListTable />);
 
@@ -110,7 +125,7 @@ describe('ProductListTable (Integration)', () => {
       isLoading: true,
       isError: false,
       error: null
-    } as any);
+    } as never);
 
     renderWithProviders(<ProductListTable />);
 
@@ -122,7 +137,7 @@ describe('ProductListTable (Integration)', () => {
       data: mockProducts,
       isLoading: false,
       isError: false
-    } as any);
+    } as never);
 
     renderWithProviders(<ProductListTable />);
 
@@ -147,7 +162,7 @@ describe('ProductListTable (Integration)', () => {
       isLoading: false,
       isError: false,
       error: null
-    } as any);
+    } as never);
 
     renderWithProviders(<ProductListTable />);
 

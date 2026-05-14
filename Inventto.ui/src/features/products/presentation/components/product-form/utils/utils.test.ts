@@ -9,12 +9,18 @@ import { generateVariants, parseValues } from '.';
 
 const mockAttributes: IProductAttribute[] = [
   {
+    id: 'attr-cor',
     name: 'Cor',
-    values: 'Azul, Preto'
+    slug: 'cor',
+    type: 'text',
+    values: ['Azul', 'Preto']
   },
   {
+    id: 'attr-tam',
     name: 'Tamanho',
-    values: 'P, M'
+    slug: 'tamanho',
+    type: 'text',
+    values: ['P', 'M']
   }
 ];
 
@@ -70,8 +76,8 @@ describe('generateVariants', () => {
   it('deve retornar um array vazio se um atributo não tiver opções', () => {
     const variants = generateVariants({
       attributes: [
-        { name: 'Cor', values: 'Azul' },
-        { name: 'Tamanho', values: '' }
+        { name: 'Cor', values: ['Azul'] },
+        { name: 'Tamanho', values: [] }
       ],
       skuBase,
       minimumStock,
@@ -88,6 +94,7 @@ describe('generateVariants', () => {
         sku: 'SKU-ANTIGO-AZU-P',
         stock: 50,
         minimumStock: 5,
+        isActive: true,
         options: [
           { name: 'Cor', value: 'Azul' },
           { name: 'Tamanho', value: 'P' }
@@ -121,9 +128,9 @@ describe('generateVariants', () => {
     );
 
     expect(newVariant).toBeDefined();
-    expect(newVariant?.id).toBeUndefined();
+    expect(newVariant?.id).toBeDefined();
     expect(newVariant?.sku).toBe('CAM-BASICA-PR-M');
-    expect(newVariant?.stock).toBeUndefined();
+    expect(newVariant?.stock).toBe(0);
     expect(newVariant?.minimumStock).toBe(10);
     expect(newVariant?.images).toEqual([]);
   });
@@ -135,6 +142,7 @@ describe('generateVariants', () => {
         sku: 'SKU-ANTIGO-VERDE-G',
         stock: 50,
         minimumStock: 5,
+        isActive: true,
         options: [
           { name: 'Cor', value: 'Verde' },
           { name: 'Tamanho', value: 'G' }
@@ -170,9 +178,9 @@ describe('parseValues', () => {
   });
 
   it('should return an empty array if the input is not a string', () => {
-    expect(parseValues(123 as any)).toEqual([]);
-    expect(parseValues(null as any)).toEqual([]);
-    expect(parseValues({} as any)).toEqual([]);
+    expect(parseValues(123 as never)).toEqual([]);
+    expect(parseValues(null as never)).toEqual([]);
+    expect(parseValues({} as never)).toEqual([]);
   });
 
   it('should filter out empty values resulting from the split', () => {

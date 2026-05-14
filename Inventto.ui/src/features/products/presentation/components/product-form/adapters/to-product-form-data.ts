@@ -13,7 +13,7 @@ export function toProductFormData(product: IProduct): ProductFormData {
     isActive: product.isActive,
     allImages: product.allImages,
     hasVariants: product.hasVariants,
-    attributes: product.attributes.map((attribute) => ({
+    attributes: (product.attributes ?? []).map((attribute) => ({
       id: attribute.id,
       name: attribute.name,
       slug: attribute.slug,
@@ -21,14 +21,14 @@ export function toProductFormData(product: IProduct): ProductFormData {
       values: attribute.values
     })),
     variants: product.hasVariants
-      ? product.variants.map((variant) => ({
+      ? (product.variants ?? []).map((variant) => ({
           id: variant.id,
           sku: variant.sku,
           stock: variant.stock,
           minimumStock: variant.minimumStock,
           isActive: variant.isActive,
           options: variant.options,
-          images: variant.images.map((image) => ({
+          images: (variant.images ?? []).map((image) => ({
             id: image.id,
             isPrimary: image.isPrimary ?? false
           }))

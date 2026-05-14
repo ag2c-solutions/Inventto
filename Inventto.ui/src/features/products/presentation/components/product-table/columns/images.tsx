@@ -11,6 +11,7 @@ import { getImageSrc } from '../../../utils/get-img-src';
 
 type ProductTableColumnImagesProps = {
   images?: IProduct['allImages'];
+  productId?: string;
 };
 
 export const ProductTableColumnImages = memo(

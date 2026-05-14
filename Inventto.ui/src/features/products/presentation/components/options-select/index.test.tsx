@@ -4,16 +4,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { ProductOptionsSelect } from '.';
 
 const mockAttributes = [
-  { name: 'Cor', values: 'Azul, Vermelho, Verde' },
-  { name: 'Tamanho', values: 'P, M, G' }
+  { name: 'Cor', type: 'text' as const, values: ['Azul', 'Vermelho', 'Verde'] },
+  { name: 'Tamanho', type: 'text' as const, values: ['P', 'M', 'G'] }
 ];
 
 describe('ProductOptionsSelect', () => {
   it('must render all attributes and options correctly', () => {
     const props = {
-      attributes: mockAttributes,
+      attributes: mockAttributes as never,
       selectedOptions: { Cor: 'Azul' },
-      handleSelectOption: vi.fn()
+      onSelectOption: vi.fn()
     };
 
     render(<ProductOptionsSelect {...props} />);
@@ -32,7 +32,7 @@ describe('ProductOptionsSelect', () => {
     const props = {
       attributes: mockAttributes,
       selectedOptions: { Cor: 'Vermelho', Tamanho: 'M' },
-      handleSelectOption: vi.fn()
+      onSelectOption: vi.fn()
     };
 
     render(<ProductOptionsSelect {...props} />);
@@ -50,12 +50,12 @@ describe('ProductOptionsSelect', () => {
     expect(inactiveTamanho).toHaveClass('border');
   });
 
-  it('must call handleSelectOption with the correct name and value when clicked', () => {
+  it('must call onSelectOption with the correct name and value when clicked', () => {
     const mockHandleSelect = vi.fn();
     const props = {
-      attributes: mockAttributes,
+      attributes: mockAttributes as never,
       selectedOptions: {},
-      handleSelectOption: mockHandleSelect
+      onSelectOption: mockHandleSelect
     };
 
     render(<ProductOptionsSelect {...props} />);

@@ -2,8 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { IProduct } from '@/features/products/domain/entities';
-
+import type { IProduct } from '../../../../../domain/entities';
 import { renderWithProductProvider } from '../../mocks';
 
 import { ProductSummary } from '.';
@@ -12,14 +11,14 @@ const mocks = vi.hoisted(() => ({
   BasicInfosCard: vi.fn(),
   InventoryCard: vi.fn(),
   ImageCarousel: vi.fn(),
-  OptionsSelect: vi.fn(({ handleSelectOption, attributes }) => (
+  OptionsSelect: vi.fn(({ onSelectOption, attributes }) => (
     <div data-testid="options-select-mock">
-      {attributes.map((attr: any) => (
+      {attributes.map((attr: { name: string; values: string[] }) => (
         <div key={attr.name}>
-          {attr.values.split(',').map((val: string) => (
+          {attr.values.map((val: string) => (
             <button
               key={val.trim()}
-              onClick={() => handleSelectOption(attr.name, val.trim())}
+              onClick={() => onSelectOption(attr.name, val.trim())}
               aria-label={`Select ${val.trim()}`}
             >
               {val.trim()}
@@ -31,19 +30,19 @@ const mocks = vi.hoisted(() => ({
   ))
 }));
 
-vi.mock('../../../product-basic-infos-card', () => ({
+vi.mock('../../../basic-infos-card', () => ({
   ProductBasicInfosCard: mocks.BasicInfosCard
 }));
 
-vi.mock('../../../product-inventtory-card', () => ({
-  ProductInventtoryCard: mocks.InventoryCard
+vi.mock('../../../inventory-card', () => ({
+  ProductInventoryCard: mocks.InventoryCard
 }));
 
-vi.mock('../../../product-image-carousel', () => ({
+vi.mock('../../../image-carousel', () => ({
   ProductImageCarousel: mocks.ImageCarousel
 }));
 
-vi.mock('../../../product-options-select', () => ({
+vi.mock('../../../options-select', () => ({
   ProductOptionsSelect: mocks.OptionsSelect
 }));
 
@@ -54,19 +53,29 @@ const mockSimpleProduct = {
   minimumStock: 2,
   hasVariants: false,
   allImages: [
-    { id: 'img1', src: 'url1', isPrimary: true, type: 'image', name: 'img1' }
+    { id: 'img1', url: 'url1', isPrimary: true, type: 'image', name: 'img1' }
   ],
   attributes: [],
   variants: [],
-  category: { id: '1', name: 'Geral' }
+  categories: [{ id: '1', name: 'Geral' }],
+  isActive: true
 } as unknown as IProduct;
 
 const mockVariableProduct: IProduct = {
   name: 'Produto Variável',
-  category: { id: 'cat-1', name: 'teste' },
+  categories: [{ id: 'cat-1', name: 'teste' }],
   sku: 'SKU-GLOBAL',
   hasVariants: true,
-  attributes: [{ name: 'Cor', values: 'Azul, Vermelho' }],
+  isActive: true,
+  attributes: [
+    {
+      id: '1',
+      slug: 'cor',
+      type: 'select',
+      name: 'Cor',
+      values: ['Azul', 'Vermelho']
+    }
+  ],
   stock: 0,
   minimumStock: 0,
   variants: [
@@ -75,6 +84,7 @@ const mockVariableProduct: IProduct = {
       sku: 'SKU-AZUL',
       stock: 5,
       minimumStock: 1,
+      isActive: true,
       options: [{ name: 'Cor', value: 'Azul' }],
       images: [{ id: 'img-azul', isPrimary: true }]
     },
@@ -83,6 +93,7 @@ const mockVariableProduct: IProduct = {
       sku: 'SKU-VERMELHO',
       stock: 8,
       minimumStock: 3,
+      isActive: true,
       options: [{ name: 'Cor', value: 'Vermelho' }],
       images: []
     }
@@ -103,7 +114,7 @@ const mockVariableProduct: IProduct = {
       name: 'image-extra'
     }
   ]
-};
+} as unknown as IProduct;
 
 describe('ProductSummary Component', () => {
   beforeEach(() => {
@@ -112,7 +123,7 @@ describe('ProductSummary Component', () => {
 
   it('should pass correct global data to child components for a Simple Product', () => {
     renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: mockSimpleProduct, mode: 'View' }
+      providerProps: { product: mockSimpleProduct, mode: 'Edit' }
     });
 
     expect(mocks.BasicInfosCard).toHaveBeenCalledWith(
@@ -142,10 +153,10 @@ describe('ProductSummary Component', () => {
   });
 
   it('should handle product without images gracefully', () => {
-    const productNoImages = { ...mockSimpleProduct, allImages: undefined };
+    const productNoImages = { ...mockSimpleProduct, allImages: [] };
 
     renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: productNoImages, mode: 'View' }
+      providerProps: { product: productNoImages, mode: 'Edit' }
     });
 
     expect(mocks.ImageCarousel).not.toHaveBeenCalled();
@@ -154,7 +165,7 @@ describe('ProductSummary Component', () => {
 
   it('should initialize with the first variant selected for a Variable Product', () => {
     renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: mockVariableProduct, mode: 'View' }
+      providerProps: { product: mockVariableProduct, mode: 'Edit' }
     });
 
     const expectedVariant = mockVariableProduct.variants![0];
@@ -188,6 +199,7 @@ describe('ProductSummary Component', () => {
           sku: 'SKU-SORT',
           stock: 10,
           minimumStock: 1,
+          isActive: true,
           options: [{ name: 'Cor', value: 'Azul' }],
           images: [
             { id: 'img-3', isPrimary: false },
@@ -204,7 +216,7 @@ describe('ProductSummary Component', () => {
     };
 
     renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: mockUnsortedImagesProduct, mode: 'View' }
+      providerProps: { product: mockUnsortedImagesProduct, mode: 'Edit' }
     });
 
     const calledImages = mocks.ImageCarousel.mock.calls[0][0].images;
@@ -216,7 +228,7 @@ describe('ProductSummary Component', () => {
   it('should update displayed data when user selects a different variant', async () => {
     const user = userEvent.setup();
     renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: mockVariableProduct, mode: 'View' }
+      providerProps: { product: mockVariableProduct, mode: 'Edit' }
     });
 
     mocks.BasicInfosCard.mockClear();

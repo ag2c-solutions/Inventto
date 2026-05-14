@@ -11,20 +11,23 @@ const mockImages: IProductImage[] = [
     name: 'Img 1',
     publicId: 'pub1',
     type: 'image',
-    url: 'http:teste.com.br'
+    url: 'http:teste.com.br',
+    isPrimary: true
   },
   {
     id: '2',
     name: 'Img 2',
     url: 'blob:2',
-    type: 'image'
+    type: 'image',
+    isPrimary: false
   },
   {
     id: '3',
     name: 'Img 3',
     publicId: 'pub3',
     type: 'image',
-    url: 'http:teste.com.br'
+    url: 'http:teste.com.br',
+    isPrimary: false
   }
 ];
 
@@ -32,8 +35,10 @@ const { mockCloudinary } = vi.hoisted(() => ({
   mockCloudinary: vi.fn((publicId) => `mock_url/${publicId}`)
 }));
 
-vi.mock('@/app/services/image-upload/utils', () => ({
-  createCloudinaryThumbnail: mockCloudinary
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    createThumbnail: mockCloudinary
+  }
 }));
 
 const mockCarouselApi = {
@@ -47,14 +52,20 @@ const mockCarouselApi = {
 const mockSetApi = vi.fn();
 
 vi.mock('@/shared/components/ui/carousel', () => ({
-  Carousel: ({ setApi, children }: any) => {
+  Carousel: ({
+    setApi,
+    children
+  }: {
+    setApi: (api: unknown) => void;
+    children: React.ReactNode;
+  }) => {
     mockSetApi.mockImplementation(setApi);
     return <div data-testid="carousel-root">{children}</div>;
   },
-  CarouselContent: ({ children }: any) => (
+  CarouselContent: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="carousel-content">{children}</div>
   ),
-  CarouselItem: ({ children }: any) => (
+  CarouselItem: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="carousel-item">{children}</div>
   ),
   CarouselPrevious: () => (
@@ -87,7 +98,9 @@ describe('ProductImageCarousel', () => {
   it('should render the main images and thumbnails and call Cloudinary', () => {
     setupCarousel();
 
-    const thumbnails = screen.getAllByRole('button', { name: /Go to slide/i });
+    const thumbnails = screen.getAllByRole('button', {
+      name: /Ir para imagem/i
+    });
 
     expect(thumbnails).toHaveLength(mockImages.length);
     expect(mockCloudinary).toHaveBeenCalledTimes(12);
@@ -131,7 +144,7 @@ describe('ProductImageCarousel', () => {
     setupCarousel();
 
     const thumbnailButtons = screen.getAllByRole('button', {
-      name: /Go to slide/i
+      name: /Ir para imagem/i
     });
 
     fireEvent.click(thumbnailButtons[1]);

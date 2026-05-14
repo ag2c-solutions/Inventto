@@ -7,7 +7,7 @@ describe('ProductBasicInfosCard', () => {
   it('should render the information correctly when all the data is provided', () => {
     const props = {
       name: 'Camiseta Básica',
-      category: { id: 'cat1', name: 'Vestuário' },
+      categories: [{ id: 'cat1', name: 'Vestuário' }],
       sku: 'CAM-BAS-001',
       description: 'Uma camiseta 100% algodão de alta qualidade.'
     };
@@ -26,7 +26,7 @@ describe('ProductBasicInfosCard', () => {
   it('should display "SKU: N/A" when the SKU is not provided or is empty', () => {
     const props = {
       name: 'Produto Sem SKU',
-      category: { id: 'cat1', name: 'Geral' },
+      categories: [{ id: 'cat1', name: 'Geral' }],
       sku: '',
       description: 'Desc.'
     };
@@ -39,7 +39,7 @@ describe('ProductBasicInfosCard', () => {
   it('should display "SKU: N/A" when the SKU is not provided or is empty', () => {
     const props = {
       name: 'Produto Undefined',
-      category: { id: 'cat1', name: 'Geral' },
+      categories: [{ id: 'cat1', name: 'Geral' }],
       sku: undefined,
       description: 'Desc.'
     };

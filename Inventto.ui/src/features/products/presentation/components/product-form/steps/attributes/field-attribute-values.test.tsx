@@ -1,33 +1,31 @@
 import { fireEvent, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { renderWithProductProvider } from '../../mocks';
 
 import { ProductsFormFieldAttributeValues } from './field-attribute-values';
 
-vi.mock('../../utils', () => ({
-  ...vi.importActual('../../utils'),
-  parseValues: (value: string | string[]) => {
-    if (!value) return [];
-    if (Array.isArray(value)) return value;
-    return value
-      .split(',')
-      .map((v) => v.trim())
-      .filter(Boolean);
-  }
-}));
-
 describe('ProductsFormFieldAttributeValues', () => {
-  it('should render badges as the user types.', () => {
+  it('should render badges as the user adds values', () => {
     renderWithProductProvider(
-      <ProductsFormFieldAttributeValues name="attributes.0.values" />
+      <ProductsFormFieldAttributeValues
+        nameValues="attributes.0.values"
+        type="select"
+      />
     );
 
-    const input = screen.getByLabelText('Valores');
+    const input = screen.getByPlaceholderText('Ex: P, M, G');
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
-    fireEvent.change(input, { target: { value: 'Pequeno, Medio, Grande' } });
+    fireEvent.change(input, { target: { value: 'Pequeno' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    fireEvent.change(input, { target: { value: 'Medio' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    fireEvent.change(input, { target: { value: 'Grande' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(screen.getByText('Pequeno')).toBeInTheDocument();
     expect(screen.getByText('Medio')).toBeInTheDocument();
@@ -36,28 +34,42 @@ describe('ProductsFormFieldAttributeValues', () => {
 
   it('should remove extra spaces', () => {
     renderWithProductProvider(
-      <ProductsFormFieldAttributeValues name="attributes.0.values" />
+      <ProductsFormFieldAttributeValues
+        nameValues="attributes.0.values"
+        type="select"
+      />
     );
-    const input = screen.getByLabelText('Valores');
+    const input = screen.getByPlaceholderText('Ex: P, M, G');
 
-    fireEvent.change(input, { target: { value: ' Vermelho , Azul ' } });
+    fireEvent.change(input, { target: { value: ' Vermelho ' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    fireEvent.change(input, { target: { value: '  Azul  ' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(screen.getByText('Vermelho')).toBeInTheDocument();
     expect(screen.getByText('Azul')).toBeInTheDocument();
   });
 
-  it('should remove the badges when the input is cleared.', () => {
+  it('should remove badges when clicking the remove button', () => {
     renderWithProductProvider(
-      <ProductsFormFieldAttributeValues name="attributes.0.values" />
+      <ProductsFormFieldAttributeValues
+        nameValues="attributes.0.values"
+        type="select"
+      />
     );
-    const input = screen.getByLabelText('Valores');
+    const input = screen.getByPlaceholderText('Ex: P, M, G');
 
-    fireEvent.change(input, { target: { value: 'Pequeno, Medio' } });
+    fireEvent.change(input, { target: { value: 'Pequeno' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
     expect(screen.getByText('Pequeno')).toBeInTheDocument();
 
-    fireEvent.change(input, { target: { value: '' } });
+    const removeButton = screen.getByRole('button', {
+      name: 'Remover opção Pequeno'
+    });
+    fireEvent.click(removeButton);
 
     expect(screen.queryByText('Pequeno')).not.toBeInTheDocument();
-    expect(screen.queryByText('Medio')).not.toBeInTheDocument();
   });
 });

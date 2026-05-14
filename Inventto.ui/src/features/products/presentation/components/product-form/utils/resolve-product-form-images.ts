@@ -1,4 +1,4 @@
-import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
+import { CloudinaryService } from '@/infra/cloudinary';
 
 import type { IProductImage } from '../../../../domain/entities';
 import type { ProductFormData } from '../schema';
@@ -11,7 +11,9 @@ export async function resolveProductFormImages(
   const resolvedImages = await Promise.all(
     images.map(async (image) => {
       if (image.file instanceof File) {
-        const { publicId, url } = await uploadImageToCloudinary(image.file);
+        const { publicId, url } = await CloudinaryService.uploadImage(
+          image.file
+        );
 
         return {
           id: image.id,

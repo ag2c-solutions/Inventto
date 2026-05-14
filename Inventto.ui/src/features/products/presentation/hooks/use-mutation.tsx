@@ -7,7 +7,7 @@ import type {
   IProduct,
   UpdateProduct
 } from '../../domain/entities';
-import { ProductService } from '../../domain/service';
+import { ProductService } from '../../domain/services';
 
 import { PRODUCTS_KEYS } from './use-query';
 

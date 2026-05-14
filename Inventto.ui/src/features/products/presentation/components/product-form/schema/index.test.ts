@@ -6,14 +6,15 @@ const getValidMockData = () => ({
   name: 'Produto Válido',
   description: 'Descrição...',
   sku: 'SKU-123',
-  category: { id: 'cat-1', name: 'Categoria 1' },
+  categories: [{ id: 'cat-1', name: 'Categoria 1' }],
   stock: 100,
   minimumStock: 10,
+  isActive: true,
   hasVariants: true,
   allImages: [
     {
       id: 'img1',
-      src: 'blob:http://...',
+      url: 'blob:http://...',
       name: 'imagem1.jpg',
       file: new File([''], 'imagem1.jpg'),
       isPrimary: true,
@@ -23,7 +24,8 @@ const getValidMockData = () => ({
   attributes: [
     {
       name: 'Cor',
-      values: 'Azul, Verde'
+      type: 'text',
+      values: ['Azul', 'Verde']
     }
   ],
   variants: [
@@ -33,6 +35,7 @@ const getValidMockData = () => ({
       options: [{ name: 'Cor', value: 'Azul' }],
       stock: 50,
       minimumStock: 5,
+      isActive: true,
       images: []
     }
   ]

@@ -3,12 +3,11 @@ import { type z } from 'zod';
 import { ProductAPI } from '../../data/api';
 import {
   type CreateProduct,
-  createProductSchema,
   type IProduct,
   type ProductUserRole,
-  type UpdateProduct,
-  updateProductSchema
+  type UpdateProduct
 } from '../entities';
+import { createProductSchema, updateProductSchema } from '../validators';
 
 export class ProductService {
   static async getAll(

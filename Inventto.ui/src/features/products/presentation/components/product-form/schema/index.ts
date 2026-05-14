@@ -54,7 +54,7 @@ export const variantSchema = z.object({
 
 const FormCategorySchema = z.custom<z.infer<typeof categorySchema>>(
   (val) => categorySchema.safeParse(val).success,
-  { message: 'Categoria é obrigatória.' }
+  'Categoria é obrigatória.'
 );
 
 export const productSchemaWithVariants = z.object({

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/features/users';
 
 import { ProductAPI } from '../../data/api';
-import { ProductService } from '../../domain/service';
+import { ProductService } from '../../domain/services';
 
 export const PRODUCTS_KEYS = {
   all: ['products'] as const,
