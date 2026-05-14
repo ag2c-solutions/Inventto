@@ -37,7 +37,7 @@ describe('Auth Queries', () => {
       vi.mocked(AuthService.getSession).mockResolvedValue({
         data: { session: null },
         error: null
-      } as any);
+      } as never);
 
       const { result } = renderHook(() => useSessionQuery(), { wrapper });
 

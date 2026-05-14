@@ -7,7 +7,7 @@ import type { SignInPayload, SignUpPayload } from '../dtos';
 import { handleAuthError } from '../handlers/error-handler';
 import { AuthMapper } from '../mappers';
 
-export class AuthApi {
+export class AuthAPI {
   static async signIn({ email, password }: SignInPayload) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,

@@ -19,7 +19,7 @@ vi.mock('../../domain/services', () => ({
 }));
 
 vi.mock('@/features/users', () => ({
-  useUser: () => ({ organization: { id: 'org-123' } })
+  useUser: () => ({ currentOrganization: { id: 'org-123' } })
 }));
 
 describe('Auth Mutations', () => {
@@ -45,7 +45,7 @@ describe('Auth Mutations', () => {
     it('should call AuthService.signIn and invalidate queries on success', async () => {
       vi.mocked(AuthService.signIn).mockResolvedValue({
         user: { id: '1' }
-      } as any);
+      } as never);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
       const { result } = renderHook(() => useSignInMutation(), { wrapper });
@@ -68,7 +68,7 @@ describe('Auth Mutations', () => {
     it('should call AuthService.signUp', async () => {
       vi.mocked(AuthService.signUp).mockResolvedValue({
         user: { id: '2' }
-      } as any);
+      } as never);
 
       const { result } = renderHook(() => useSignUpMutation(), { wrapper });
 

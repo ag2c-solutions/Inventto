@@ -4,9 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 
 import type { WizardStep } from '@/shared/components/common/wizard';
-import { formatDocument, normalizeDocument } from '@/shared/utils';
+import {
+  formatDocument,
+  generateSlug,
+  normalizeDocument
+} from '@/shared/utils';
 
-import { generateSlug } from '../../../../domain/utils';
 import {
   type SignUpFormValues as SignUpFormData,
   signUpSchema

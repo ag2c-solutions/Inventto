@@ -1,39 +1,48 @@
-import { AuthApi } from '../../data/api';
+import type { UserOrganizationContext } from '@/features/users/';
+
+import { AuthAPI } from '../../data/api';
 import type { SignInPayload, SignUpPayload } from '../../data/dtos';
 import type { Session } from '../entities';
 
 export class AuthService {
   static async signIn(args: SignInPayload) {
-    return AuthApi.signIn(args);
+    return AuthAPI.signIn(args);
   }
 
   static async signUp(args: SignUpPayload) {
-    return AuthApi.signUp(args);
+    return AuthAPI.signUp(args);
   }
 
   static async signOut() {
-    return AuthApi.signOut();
+    return AuthAPI.signOut();
   }
 
   static async getSession() {
-    return AuthApi.getSession();
+    return AuthAPI.getSession();
   }
 
   static async isAuthenticated() {
-    return AuthApi.isAuthenticated();
+    return AuthAPI.isAuthenticated();
   }
 
   static async subscribeToAuthChanges(
     callback: (session: Session | null) => void
   ) {
-    return AuthApi.subscribeToAuthChanges(callback);
+    return AuthAPI.subscribeToAuthChanges(callback);
   }
 
-  static async completeFirstAccess(args: {
+  static async completeFirstAccess({
+    organization,
+    ...rest
+  }: {
     newPassword: string;
     userId: string;
-    orgId: string;
+    organization: UserOrganizationContext | null;
   }) {
-    return AuthApi.completeFirstAccess(args);
+    if (!organization?.id) {
+      throw new Error('Organização não encontrada.');
+    }
+
+    return AuthAPI.completeFirstAccess({ ...rest, orgId: organization.id });
   }
 }

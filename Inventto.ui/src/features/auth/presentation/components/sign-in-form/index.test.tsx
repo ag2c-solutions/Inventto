@@ -23,7 +23,7 @@ vi.mock('react-router', async () => {
   };
 });
 
-vi.mock('@/shared/components/common/logo', () => ({
+vi.mock('@/app/brand/logo', () => ({
   Logo: () => <div data-testid="mock-logo">Logo</div>
 }));
 
