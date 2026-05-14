@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 
 import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
-import type { PixelCrop } from '../../../utils/pixel-crop.types';
 
 import { useUpdateAvatarMutation } from '../../../hooks/use-mutation';
 import { useUser } from '../../../hooks/use-user';
+import type { PixelCrop } from '../../../utils/pixel-crop.types';
 
 type UseAvatarChangeProps = {
   onSuccess?: () => void;

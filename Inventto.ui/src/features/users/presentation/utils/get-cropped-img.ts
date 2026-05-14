@@ -1,5 +1,5 @@
-import type { PixelCrop } from './pixel-crop.types';
 import { createImage } from './create-image';
+import type { PixelCrop } from './pixel-crop.types';
 
 export async function getCroppedImg(
   imageSrc: string,
