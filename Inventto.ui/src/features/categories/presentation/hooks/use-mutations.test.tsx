@@ -15,7 +15,7 @@ vi.mock('../../domain/services', () => ({
 
 vi.mock('@/features/users', () => ({
   useUser: vi.fn(() => ({
-    organization: { id: 'org-1' }
+    currentOrganization: { id: 'org-1' }
   }))
 }));
 
@@ -54,8 +54,10 @@ describe('useCategoryAddMutation', () => {
   });
 
   it('should throw when no organization is selected', async () => {
-    const { useUser } = await import('@/features/users/hooks/use-user');
-    vi.mocked(useUser).mockReturnValue({ organization: null } as any);
+    const { useUser } = await import('@/features/users');
+    vi.mocked(useUser).mockReturnValue({
+      currentOrganization: null
+    } as unknown as ReturnType<typeof useUser>);
 
     const { result } = renderHook(() => useCategoryAddMutation(), { wrapper });
 
