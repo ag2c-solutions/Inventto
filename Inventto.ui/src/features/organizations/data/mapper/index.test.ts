@@ -109,25 +109,6 @@ describe('OrganizationMapper', () => {
       expect(result.isMe).toBe(true);
     });
 
-    it('deve definir canManage como true para role owner', () => {
-      const dto: OrganizationMemberDTO = { ...baseMemberDto, role: 'owner' };
-      expect(OrganizationMapper.toMemberDomain(dto, 'other').canManage).toBe(
-        true
-      );
-    });
-
-    it('deve definir canManage como true para role manager', () => {
-      const dto: OrganizationMemberDTO = { ...baseMemberDto, role: 'manager' };
-      expect(OrganizationMapper.toMemberDomain(dto, 'other').canManage).toBe(
-        true
-      );
-    });
-
-    it('deve definir canManage como false para role sales', () => {
-      const result = OrganizationMapper.toMemberDomain(baseMemberDto, 'other');
-      expect(result.canManage).toBe(false);
-    });
-
     it('deve usar fallback "Usuário Desconhecido" e "Sem e-mail" quando profiles é null', () => {
       const dto: OrganizationMemberDTO = { ...baseMemberDto, profiles: null };
       const result = OrganizationMapper.toMemberDomain(dto, 'other');
@@ -166,11 +147,10 @@ describe('OrganizationMapper', () => {
       expect(result.status).toBe('active');
     });
 
-    it('deve definir isMe e canManage sempre como false', () => {
+    it('deve definir isMe sempre como false', () => {
       const result =
         OrganizationMapper.toCandidateMemberDomain(baseCandidateDto);
       expect(result.isMe).toBe(false);
-      expect(result.canManage).toBe(false);
     });
   });
 

@@ -63,8 +63,7 @@ export class OrganizationMapper {
       avatarUrl: profile?.avatar_url || undefined,
       role: dto.role,
       joinedAt: new Date(dto.created_at),
-      isMe: dto.profile_id === currentUserId,
-      canManage: dto.role === 'owner' || dto.role === 'manager'
+      isMe: dto.profile_id === currentUserId
     };
   }
 
@@ -79,8 +78,7 @@ export class OrganizationMapper {
       role: 'sales',
       status: 'active',
       joinedAt: new Date(),
-      isMe: false,
-      canManage: false
+      isMe: false
     };
   }
 

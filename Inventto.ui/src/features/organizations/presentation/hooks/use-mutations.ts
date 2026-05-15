@@ -90,9 +90,6 @@ export function useReplicateMemberMutation() {
       queryClient.invalidateQueries({
         queryKey: ORG_KEYS.candidates(currentOrganization?.id ?? '')
       });
-      queryClient.invalidateQueries({
-        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
-      });
     },
     meta: {
       successMessage: 'Membro importado com sucesso!'

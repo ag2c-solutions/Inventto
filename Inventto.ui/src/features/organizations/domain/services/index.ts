@@ -13,7 +13,7 @@ export class OrganizationService {
     organization: UserOrganizationContext | null
   ): string => {
     if (!organization?.id) {
-      throw new Error('Organization ID is required');
+      throw new Error('ID da organização é obrigatório.');
     }
     return organization.id;
   };
@@ -24,10 +24,17 @@ export class OrganizationService {
     return OrganizationApi.getById(orgId);
   }
 
-  static async getMembers(organization: UserOrganizationContext | null) {
+  static async getMembers(
+    organization: UserOrganizationContext | null,
+    currentUserId: string
+  ) {
     const orgId = this.getOrganizationId(organization);
 
-    return OrganizationApi.getMembers(orgId);
+    if (!currentUserId?.trim()) {
+      throw new Error('ID do usuário é obrigatório.');
+    }
+
+    return OrganizationApi.getMembers(orgId, currentUserId);
   }
 
   static async getCandidatesMembers(

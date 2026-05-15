@@ -29,14 +29,14 @@ describe('OrganizationService', () => {
   describe('getOrganizationId (via métodos públicos)', () => {
     it('deve lançar "Organization ID is required" quando organization é null', async () => {
       await expect(OrganizationService.getById(null)).rejects.toThrow(
-        'Organization ID is required'
+        'ID da organização é obrigatório.'
       );
     });
 
     it('deve lançar quando organization.id é string vazia', async () => {
       await expect(
         OrganizationService.getById({ id: '', role: 'owner' } as never)
-      ).rejects.toThrow('Organization ID is required');
+      ).rejects.toThrow('ID da organização é obrigatório.');
     });
   });
 
@@ -49,22 +49,37 @@ describe('OrganizationService', () => {
 
     it('deve propagar o erro quando organization é null', async () => {
       await expect(OrganizationService.getById(null)).rejects.toThrow(
-        'Organization ID is required'
+        'ID da organização é obrigatório.'
       );
     });
   });
 
   describe('getMembers', () => {
-    it('deve delegar para OrganizationApi.getMembers com o orgId correto', async () => {
+    it('deve delegar para OrganizationApi.getMembers com orgId e currentUserId', async () => {
       vi.mocked(OrganizationApi.getMembers).mockResolvedValue([]);
-      await OrganizationService.getMembers(mockOrganization);
-      expect(OrganizationApi.getMembers).toHaveBeenCalledWith('org-1');
+      await OrganizationService.getMembers(mockOrganization, 'user-1');
+      expect(OrganizationApi.getMembers).toHaveBeenCalledWith(
+        'org-1',
+        'user-1'
+      );
     });
 
-    it('deve propagar o erro quando organization é null', async () => {
-      await expect(OrganizationService.getMembers(null)).rejects.toThrow(
-        'Organization ID is required'
-      );
+    it('deve lançar erro quando organization é null', async () => {
+      await expect(
+        OrganizationService.getMembers(null, 'user-1')
+      ).rejects.toThrow('ID da organização é obrigatório.');
+    });
+
+    it('deve lançar erro quando currentUserId é vazio', async () => {
+      await expect(
+        OrganizationService.getMembers(mockOrganization, '')
+      ).rejects.toThrow('ID do usuário é obrigatório.');
+    });
+
+    it('deve lançar erro quando currentUserId é apenas espaços', async () => {
+      await expect(
+        OrganizationService.getMembers(mockOrganization, '   ')
+      ).rejects.toThrow('ID do usuário é obrigatório.');
     });
   });
 
@@ -80,7 +95,7 @@ describe('OrganizationService', () => {
     it('deve propagar o erro quando organization é null', async () => {
       await expect(
         OrganizationService.getCandidatesMembers(null)
-      ).rejects.toThrow('Organization ID is required');
+      ).rejects.toThrow('ID da organização é obrigatório.');
     });
   });
 
@@ -97,7 +112,7 @@ describe('OrganizationService', () => {
     it('deve propagar o erro quando organization é null', async () => {
       await expect(
         OrganizationService.update(null, {} as never)
-      ).rejects.toThrow('Organization ID is required');
+      ).rejects.toThrow('ID da organização é obrigatório.');
     });
   });
 
@@ -117,7 +132,7 @@ describe('OrganizationService', () => {
     it('deve propagar o erro quando organization é null', async () => {
       await expect(
         OrganizationService.createMember(null, {} as never)
-      ).rejects.toThrow('Organization ID is required');
+      ).rejects.toThrow('ID da organização é obrigatório.');
     });
   });
 
@@ -139,7 +154,7 @@ describe('OrganizationService', () => {
     it('deve propagar o erro quando organization é null', async () => {
       await expect(
         OrganizationService.replicateMember(null, 'user-2', 'manager')
-      ).rejects.toThrow('Organization ID is required');
+      ).rejects.toThrow('ID da organização é obrigatório.');
     });
   });
 

@@ -68,30 +68,21 @@ export function MemberFormProvider({
   };
 
   const handleSubmit = async (data: MemberFormData) => {
-    try {
-      if (selectedCandidateId) {
-        await replicateMember({
-          userId: selectedCandidateId,
-          role: data.role
-        });
-      } else {
-        await createMember({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          role: data.role
-        });
-      }
-
-      onSuccess?.();
-      onOpenChange(false);
-
-      form.reset();
-
-      setSelectedCandidateId(null);
-    } catch (error) {
-      console.error(error);
+    if (selectedCandidateId) {
+      await replicateMember({ userId: selectedCandidateId, role: data.role });
+    } else {
+      await createMember({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: data.role
+      });
     }
+
+    onSuccess?.();
+    onOpenChange(false);
+    form.reset();
+    setSelectedCandidateId(null);
   };
 
   const contextValue: TMemberFormContext = {

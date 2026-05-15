@@ -23,7 +23,6 @@ export interface IMember {
   status: MemberStatus;
   joinedAt: Date;
   isMe: boolean;
-  canManage: boolean;
 }
 
 export interface CreateOrganizationInput {
