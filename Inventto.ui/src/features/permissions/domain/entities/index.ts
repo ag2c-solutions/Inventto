@@ -13,7 +13,6 @@ export type PermissionAction =
   | 'movement:view_costs'
   | 'movement:details'
   | 'team:manage'
-  | 'metrics:view_costs'
   | 'customer:view'
   | 'customer:manage'
   | 'order:view_all'

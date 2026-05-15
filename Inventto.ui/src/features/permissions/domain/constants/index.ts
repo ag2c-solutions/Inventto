@@ -8,6 +8,7 @@ const SALES_PERMISSIONS: PermissionAction[] = [
   'movement:view',
   'movement:create',
   'movement:entry',
+  'movement:withdrawal',
   'customer:view',
   'order:view_own',
   'catalog:view'
@@ -24,18 +25,18 @@ const MANAGER_PERMISSIONS: PermissionAction[] = [
   'order:view_all',
   'order:manage',
   'catalog:manage',
-  'metrics:view_costs'
+  'category:create'
 ];
 
 const OWNER_PERMISSIONS: PermissionAction[] = [
   ...MANAGER_PERMISSIONS,
   'customer:manage',
   'team:manage',
-  'category:create',
   'org:create',
   'org:update',
   'org:manage',
-  'financial:view'
+  'financial:view',
+  'movement:view_costs'
 ];
 
 export const ROLE_PERMISSIONS: Record<UserRole, PermissionAction[]> = {
