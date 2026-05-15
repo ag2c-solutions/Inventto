@@ -6,7 +6,7 @@ import type { Catalog } from '../../domain/entities';
 import type {
   CreateCatalogPayload,
   UpdateCatalogPayload
-} from '../../domain/services';
+} from '../../domain/entities';
 import { CatalogService } from '../../domain/services';
 
 import {
@@ -22,6 +22,10 @@ vi.mock('../../domain/services', () => ({
     remove: vi.fn(),
     checkSlugAvailability: vi.fn()
   }
+}));
+
+vi.mock('@/features/users', () => ({
+  useUser: () => ({ currentOrganization: { id: 'org-123' } })
 }));
 
 describe('Catalogs Mutations', () => {
@@ -41,8 +45,8 @@ describe('Catalogs Mutations', () => {
   );
 
   describe('useCatalogCreateMutation', () => {
-    it('should create catalog and invalidate "catalogs" query', async () => {
-      const payload: CreateCatalogPayload = {
+    it('should create catalog with injected organizationId and invalidate "catalogs" query', async () => {
+      const payload: Omit<CreateCatalogPayload, 'organizationId'> = {
         name: 'New Catalog',
         slug: 'new-catalog',
         whatsappNumber: '1234567890',
@@ -67,13 +71,16 @@ describe('Catalogs Mutations', () => {
 
       await result.current.mutateAsync(payload);
 
-      expect(CatalogService.add).toHaveBeenCalledWith(payload);
+      expect(CatalogService.add).toHaveBeenCalledWith({
+        ...payload,
+        organizationId: 'org-123'
+      });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
     });
   });
 
   describe('useCatalogUpdateMutation', () => {
-    it('should update catalog and invalidate both "catalogs" and specific "catalog" queries', async () => {
+    it('should update catalog and invalidate both "catalogs" and specific detail queries', async () => {
       const payload: UpdateCatalogPayload = {
         id: '123',
         name: 'Updated Catalog'
@@ -95,7 +102,7 @@ describe('Catalogs Mutations', () => {
       expect(CatalogService.update).toHaveBeenCalledWith(payload);
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
       expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ['catalog', '123']
+        queryKey: ['catalogs', 'detail', '123']
       });
     });
   });

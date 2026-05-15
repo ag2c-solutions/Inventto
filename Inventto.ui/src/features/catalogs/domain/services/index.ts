@@ -1,20 +1,9 @@
 import { CatalogApi } from '../../data/api';
-import type { Catalog, CatalogThemeConfig } from '../entities';
-
-export interface CreateCatalogPayload {
-  name: string;
-  slug: string;
-  whatsappNumber: string;
-  description?: string;
-  themeConfig: CatalogThemeConfig;
-}
-
-export interface UpdateCatalogPayload
-  extends Partial<Omit<CreateCatalogPayload, 'slug'>> {
-  id: string;
-  slug?: string;
-  isActive?: boolean;
-}
+import type {
+  Catalog,
+  CreateCatalogPayload,
+  UpdateCatalogPayload
+} from '../entities';
 
 export class CatalogService {
   static async add(params: CreateCatalogPayload): Promise<Catalog> {
