@@ -4,11 +4,9 @@ import { isPostgrestError } from '@/infra/supabase/guards/is-postgres-error';
 
 export function handleCategoryError(
   error: PostgrestError | Error | unknown,
-  operation?: string
+  action: string
 ): never {
-  if (operation) {
-    console.error(`[CategoryApi.${operation}]`, error);
-  }
+  console.error(`Erro em Category Service [${action}]:`, error);
 
   if (isPostgrestError(error)) {
     if (error.code === '23505') {

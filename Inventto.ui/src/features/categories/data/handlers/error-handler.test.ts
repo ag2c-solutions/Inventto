@@ -37,7 +37,7 @@ describe('handleCategoryError', () => {
       message: 'duplicate key'
     });
 
-    expect(() => handleCategoryError(error)).toThrow(
+    expect(() => handleCategoryError(error, 'add')).toThrow(
       'Já existe uma categoria com este nome.'
     );
   });
@@ -45,7 +45,7 @@ describe('handleCategoryError', () => {
   it('deve relançar com "Erro de conexão" para erro Postgrest com "network" na mensagem', () => {
     const error = makePostgrestError({ message: 'Network request failed' });
 
-    expect(() => handleCategoryError(error)).toThrow(
+    expect(() => handleCategoryError(error, 'add')).toThrow(
       'Erro de conexão. Verifique sua internet.'
     );
   });
@@ -53,28 +53,34 @@ describe('handleCategoryError', () => {
   it('deve relançar com a mensagem original para instâncias de Error que não sejam Postgrest', () => {
     const error = new Error('Algo deu errado');
 
-    expect(() => handleCategoryError(error)).toThrow('Algo deu errado');
+    expect(() => handleCategoryError(error, 'add')).toThrow('Algo deu errado');
   });
 
   it('deve relançar com mensagem genérica para tipos de erro desconhecidos', () => {
-    expect(() => handleCategoryError({ foo: 'bar' })).toThrow(
+    expect(() => handleCategoryError({ foo: 'bar' }, 'add')).toThrow(
       'Não foi possível realizar a operação. Tente novamente.'
     );
   });
 
-  it('deve chamar console.error com o prefixo [CategoryApi.<operation>] quando operation é fornecido', () => {
+  it('deve chamar console.error com o formato "Erro em Category Service [action]:"', () => {
     const error = makePostgrestError({ code: '23505' });
 
     expect(() => handleCategoryError(error, 'add')).toThrow();
 
-    expect(consoleSpy).toHaveBeenCalledWith('[CategoryApi.add]', error);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Erro em Category Service [add]:',
+      error
+    );
   });
 
-  it('não deve chamar console.error quando operation não é fornecido', () => {
-    const error = makePostgrestError({ code: '23505' });
+  it('deve sempre chamar console.error independentemente do tipo de erro', () => {
+    const error = new Error('qualquer erro');
 
-    expect(() => handleCategoryError(error)).toThrow();
+    expect(() => handleCategoryError(error, 'getAll')).toThrow();
 
-    expect(consoleSpy).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Erro em Category Service [getAll]:',
+      error
+    );
   });
 });

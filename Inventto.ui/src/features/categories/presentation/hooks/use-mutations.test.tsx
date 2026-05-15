@@ -53,16 +53,25 @@ describe('useCategoryAddMutation', () => {
     });
   });
 
-  it('should throw when no organization is selected', async () => {
+  it('should call CategoryService.add with empty organizationId when no organization, and service throws', async () => {
     const { useUser } = await import('@/features/users');
     vi.mocked(useUser).mockReturnValue({
       currentOrganization: null
     } as unknown as ReturnType<typeof useUser>);
+
+    vi.mocked(CategoryService.add).mockRejectedValue(
+      new Error('Nenhuma organização selecionada.')
+    );
 
     const { result } = renderHook(() => useCategoryAddMutation(), { wrapper });
 
     await expect(result.current.mutateAsync('Erro')).rejects.toThrow(
       'Nenhuma organização selecionada.'
     );
+
+    expect(CategoryService.add).toHaveBeenCalledWith({
+      name: 'Erro',
+      organizationId: ''
+    });
   });
 });
