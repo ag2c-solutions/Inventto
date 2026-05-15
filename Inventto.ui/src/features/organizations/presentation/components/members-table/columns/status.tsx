@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
 
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -16,24 +14,24 @@ import {
 import { cn } from '@/shared/utils';
 
 import type { IMember, MemberStatus } from '../../../../domain/entities';
+import {
+  memberStatusFormSchema,
+  type MemberStatusFormValues
+} from '../../../../domain/validators';
 import { useUpdateMemberStatusMutation } from '../../../hooks/use-mutations';
 
 interface StatusCellProps {
   member: IMember;
 }
 
-const FormSchema = z.object({
-  status: z.enum(['active', 'inactive', 'invited'])
-});
-
 export function StatusColumn({ member }: StatusCellProps) {
-  const { mutateAsync: updateStatus } = useUpdateMemberStatusMutation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutateAsync: updateStatus, isPending } =
+    useUpdateMemberStatusMutation();
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<MemberStatusFormValues>({
+    resolver: zodResolver(memberStatusFormSchema),
     defaultValues: {
-      status: member.status
+      status: member.status === 'invited' ? 'active' : member.status
     }
   });
 
@@ -63,18 +61,11 @@ export function StatusColumn({ member }: StatusCellProps) {
 
   const currentConfig = statusConfig[currentStatus];
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    try {
-      setIsLoading(true);
-      await updateStatus({
-        memberId: member.id,
-        status: data.status
-      });
-
-      form.reset({ status: data.status });
-    } finally {
-      setIsLoading(false);
-    }
+  async function onSubmit(data: MemberStatusFormValues) {
+    await updateStatus({
+      memberId: member.id,
+      status: data.status
+    });
   }
 
   if (member.isMe) {
@@ -111,9 +102,11 @@ export function StatusColumn({ member }: StatusCellProps) {
         <Select
           value={currentStatus}
           onValueChange={(val) =>
-            form.setValue('status', val as MemberStatus, { shouldDirty: true })
+            form.setValue('status', val as MemberStatusFormValues['status'], {
+              shouldDirty: true
+            })
           }
-          disabled={isLoading}
+          disabled={isPending}
         >
           <SelectTrigger className="h-6 w-[100px] text-xs">
             <SelectValue />
@@ -121,7 +114,6 @@ export function StatusColumn({ member }: StatusCellProps) {
           <SelectContent>
             <SelectItem value="active">Ativo</SelectItem>
             <SelectItem value="inactive">Inativo</SelectItem>
-            <SelectItem value="invited">Pendente</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -135,9 +127,9 @@ export function StatusColumn({ member }: StatusCellProps) {
           isChanged &&
             'opacity-100 pointer-events-auto bg-primary text-primary-foreground'
         )}
-        disabled={!isChanged || isLoading}
+        disabled={!isChanged || isPending}
       >
-        {isLoading ? (
+        {isPending ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <span className="text-xs font-bold">Alterar Status</span>

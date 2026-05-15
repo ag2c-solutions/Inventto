@@ -19,7 +19,7 @@ interface TSimpleDataTable<TData> {
   data: TData[];
   emptyMessage?: string;
   columns: ColumnDef<TData>[];
-  meta?: TableMeta<any>;
+  meta?: TableMeta<unknown>;
 }
 
 export function SimpleDataTable<TData>({
@@ -28,7 +28,7 @@ export function SimpleDataTable<TData>({
   columns,
   meta
 }: TSimpleDataTable<TData>) {
-  const table = useReactTable({
+  const table = useReactTable<TData>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),

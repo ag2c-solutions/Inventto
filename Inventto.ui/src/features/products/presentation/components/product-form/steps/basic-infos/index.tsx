@@ -114,32 +114,8 @@ export function ProductBasicInfo() {
         />
       </div>
 
-      <div className="col-span-12 md:col-span-6">
+      <div className="flex flex-col col-span-12 gap-4 md:col-span-6">
         <ProductFormFieldCategory />
-      </div>
-
-      <div className="col-span-12 md:col-span-6">
-        <FormField
-          control={form.control}
-          name={'description'}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea
-                  className="resize-y min-h-[100px]"
-                  placeholder="Descreva as características principais..."
-                  {...field}
-                  value={field.value ?? ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <div className="col-span-12 md:col-span-6">
         <FormField
           control={form.control}
           name={'hasVariants'}
@@ -166,6 +142,27 @@ export function ProductBasicInfo() {
               </FormItem>
             );
           }}
+        />
+      </div>
+
+      <div className="col-span-12 md:col-span-6">
+        <FormField
+          control={form.control}
+          name={'description'}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="resize-y min-h-[118px]"
+                  placeholder="Descreva as características principais..."
+                  {...field}
+                  value={field.value ?? ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
 

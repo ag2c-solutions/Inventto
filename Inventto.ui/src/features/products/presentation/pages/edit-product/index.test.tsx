@@ -5,18 +5,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   useCategoriesQuery,
-  useCreateCategoryMutation
-} from '../../../category/hooks/use-query';
+  useCategoryAddMutation as useCreateCategoryMutation
+} from '@/features/categories';
+
 import {
-  useProductByIDQuery,
-  useProductCreateMutation,
-  useProductUpdateMutation
-} from '../../hooks/use-query';
+  useCreateProductMutation,
+  useUpdateProductMutation
+} from '../../hooks/use-mutation';
+import { useProductByIDQuery } from '../../hooks/use-query';
 
 import { EditProductPage } from './index';
 
 vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
+  const actual = await importOriginal<Record<string, unknown>>();
   return {
     ...actual,
     useParams: vi.fn()
@@ -24,8 +25,19 @@ vi.mock('react-router', async (importOriginal) => {
 });
 
 vi.mock('../../hooks/use-query');
-vi.mock('../../../category/hooks/use-query');
+vi.mock('../../hooks/use-mutation');
+vi.mock('@/features/categories', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    useCategoriesQuery: vi.fn(),
+    useCategoryAddMutation: vi.fn()
+  };
+});
 vi.mock('@/app/services/image-upload');
+vi.mock('@/features/users', () => ({
+  useUser: () => ({ currentOrganization: { id: 'org-1' }, role: 'owner' })
+}));
 
 class ResizeObserverMock {
   observe() {}
@@ -73,25 +85,25 @@ describe('EditProductPage (Integration)', () => {
       isLoading: true,
       isError: false,
       error: null
-    } as any);
+    } as never);
 
     vi.mocked(useCategoriesQuery).mockReturnValue({
       data: [{ id: 'cat1', name: 'Escritório' }],
       isLoading: false,
       isError: false
-    } as any);
+    } as never);
 
-    vi.mocked(useProductUpdateMutation).mockReturnValue({
+    vi.mocked(useUpdateProductMutation).mockReturnValue({
       mutateAsync: vi.fn()
-    } as any);
+    } as never);
 
-    vi.mocked(useProductCreateMutation).mockReturnValue({
+    vi.mocked(useCreateProductMutation).mockReturnValue({
       mutateAsync: vi.fn()
-    } as any);
+    } as never);
 
     vi.mocked(useCreateCategoryMutation).mockReturnValue({
       mutateAsync: vi.fn()
-    } as any);
+    } as never);
   });
 
   it('should render loading state initially or null if ID is missing', () => {
@@ -109,15 +121,15 @@ describe('EditProductPage (Integration)', () => {
       data: mockProduct,
       isLoading: false,
       isError: false
-    } as any);
+    } as never);
 
     renderComponent();
 
     expect(
-      screen.getByRole('heading', { name: /Produtos/i })
+      screen.getByRole('heading', { name: /Caneta Luxo/i })
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Editar produto: Caneta Luxo')).toBeInTheDocument();
+    expect(screen.getByText('Edite os dados do produto.')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('Caneta Luxo')).toBeInTheDocument();
@@ -132,7 +144,7 @@ describe('EditProductPage (Integration)', () => {
       data: undefined,
       isLoading: false,
       isError: true
-    } as any);
+    } as never);
 
     const { container } = renderComponent();
 

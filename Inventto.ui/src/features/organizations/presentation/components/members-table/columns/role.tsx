@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, type LucideIcon, Shield, User } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
 
 import type { UserRole } from '@/features/users';
 
@@ -18,23 +16,22 @@ import {
 import { cn } from '@/shared/utils';
 
 import type { IMember } from '../../../../domain/entities';
+import {
+  memberRoleFormSchema,
+  type MemberRoleFormValues
+} from '../../../../domain/validators';
 import { useUpdateMemberRoleMutation } from '../../../hooks/use-mutations';
 
 interface RoleCellProps {
   member: IMember;
 }
 
-const FormSchema = z.object({
-  role: z.enum(['owner', 'manager', 'sales'])
-});
-
 export function RoleColumn({ member }: RoleCellProps) {
-  const { mutateAsync: updateRole } = useUpdateMemberRoleMutation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutateAsync: updateRole, isPending } = useUpdateMemberRoleMutation();
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: { role: member.role }
+  const form = useForm<MemberRoleFormValues>({
+    resolver: zodResolver(memberRoleFormSchema),
+    defaultValues: { role: member.role as MemberRoleFormValues['role'] }
   });
 
   const currentRole = useWatch({ control: form.control, name: 'role' });
@@ -64,15 +61,13 @@ export function RoleColumn({ member }: RoleCellProps) {
   const config = roleConfig[currentRole];
   const Icon = config.icon;
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    setIsLoading(true);
-    await updateRole({ memberId: member.id, role: data.role })
-      .then(() => {
-        form.reset({ role: data.role });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+  async function onSubmit(data: MemberRoleFormValues) {
+    try {
+      await updateRole({ memberId: member.id, role: data.role });
+      form.reset({ role: data.role });
+    } catch {
+      form.reset({ role: member.role as MemberRoleFormValues['role'] });
+    }
   }
 
   if (member.isMe) {
@@ -101,9 +96,11 @@ export function RoleColumn({ member }: RoleCellProps) {
         <Select
           value={currentRole}
           onValueChange={(val) =>
-            form.setValue('role', val as UserRole, { shouldDirty: true })
+            form.setValue('role', val as MemberRoleFormValues['role'], {
+              shouldDirty: true
+            })
           }
-          disabled={isLoading}
+          disabled={isPending}
         >
           <SelectTrigger className="h-8 w-[100px] text-xs">
             <SelectValue />
@@ -124,9 +121,9 @@ export function RoleColumn({ member }: RoleCellProps) {
           isChanged &&
             'opacity-100 pointer-events-auto bg-primary text-primary-foreground'
         )}
-        disabled={!isChanged || isLoading}
+        disabled={!isChanged || isPending}
       >
-        {isLoading ? (
+        {isPending ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <span className="text-xs font-bold">Alterar Função</span>

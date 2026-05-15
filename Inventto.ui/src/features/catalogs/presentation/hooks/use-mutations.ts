@@ -49,10 +49,3 @@ export function useCatalogRemoveMutation() {
     }
   });
 }
-
-export function useCatalogCheckSlugAvailabilityMutation() {
-  return useMutation({
-    mutationKey: ['checkSlugAvailability'],
-    mutationFn: (slug: string) => CatalogService.checkSlugAvailability(slug)
-  });
-}

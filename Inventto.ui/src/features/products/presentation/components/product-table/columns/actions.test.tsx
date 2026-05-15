@@ -5,15 +5,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductTableColumnActions } from './actions';
 
+vi.mock('@/features/users', () => ({
+  useUser: vi.fn().mockReturnValue({
+    currentOrganization: { id: 'org-1' },
+    role: 'manager'
+  })
+}));
+
 vi.mock('react-router', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('react-router')>();
+  const mod = await importOriginal<Record<string, unknown>>();
+
   return {
     ...mod,
-    Link: ({ to, children, className }: any) => (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Link: ({ to, children, className, ...rest }: any) => (
       <a
         href={to}
         className={className}
-        data-testid={`link-${children[1].toLowerCase().trim().replace(' ', '-')}`}
+        data-testid={`link-${String(children[1]).toLowerCase().trim().replace(' ', '-')}`}
+        {...rest}
       >
         {children}
       </a>
@@ -51,16 +61,18 @@ describe('ProductTableColumnActions', () => {
     renderComponent(TEST_PRODUCT_ID);
 
     expect(
-      screen.getByRole('button', { name: /toggle menu/i })
+      screen.getByRole('button', { name: /Abrir menu de ações do produto/i })
     ).toBeInTheDocument();
   });
 
-  it('should open the menu and display all 5 action items', async () => {
+  it('should open the menu and display all 4 action items', async () => {
     const user = userEvent.setup();
 
     renderComponent(TEST_PRODUCT_ID);
 
-    const triggerButton = screen.getByRole('button', { name: /toggle menu/i });
+    const triggerButton = screen.getByRole('button', {
+      name: /Abrir menu de ações do produto/i
+    });
 
     await user.click(triggerButton);
 
@@ -69,8 +81,8 @@ describe('ProductTableColumnActions', () => {
     expect(menuItems).toHaveLength(4);
     expect(screen.getByText('Detalhes')).toBeInTheDocument();
     expect(screen.getByText('Editar')).toBeInTheDocument();
-    expect(screen.getByText('Ver Histórico')).toBeInTheDocument();
-    expect(screen.getByText('Registrar Movimentação')).toBeInTheDocument();
+    expect(screen.getByText('Ver histórico')).toBeInTheDocument();
+    expect(screen.getByText('Registrar movimentação')).toBeInTheDocument();
   });
 
   it('should generate the "Details" and "Edit" links with the correct product ID', async () => {
@@ -78,7 +90,9 @@ describe('ProductTableColumnActions', () => {
 
     renderComponent(TEST_PRODUCT_ID);
 
-    const triggerButton = screen.getByRole('button', { name: /toggle menu/i });
+    const triggerButton = screen.getByRole('button', {
+      name: /Abrir menu de ações do produto/i
+    });
 
     await user.click(triggerButton);
 

@@ -6,6 +6,8 @@ import userEvent from '@testing-library/user-event';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { UserContext } from '@/features/users';
+
 import { ProductFormProvider, type ProductFormProviderProps } from '../../hook';
 import { mockFormData } from '../../mocks';
 
@@ -20,13 +22,17 @@ const createTestWrapper = (props: RenderWithProviderProps = {}) => {
   const queryClient = new QueryClient();
 
   const Wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <ProductFormProvider mode="Create" {...providerProps}>
-          {children}
-        </ProductFormProvider>
-      </MemoryRouter>
-    </QueryClientProvider>
+    <UserContext.Provider
+      value={{ currentOrganization: { id: 'org-1' }, role: 'owner' } as never}
+    >
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ProductFormProvider mode="Create" {...providerProps}>
+            {children}
+          </ProductFormProvider>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </UserContext.Provider>
   );
   return Wrapper;
 };
@@ -52,7 +58,7 @@ describe('ProductAttributes', () => {
   it('should render the initial empty state (without attributes).', () => {
     renderWithProductProvider(<ProductAttributes />);
 
-    expect(screen.getByText('Attributos')).toBeInTheDocument();
+    expect(screen.getByText('Atributos')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: '+ Adicionar atributo' })
     ).toBeInTheDocument();
@@ -91,9 +97,15 @@ describe('ProductAttributes', () => {
 
   it('The attributes should be displayed in "Edit" mode, and the fields should be disabled.', async () => {
     const mockAttributes = [
-      { name: 'Cor', values: 'Azul, Verde' },
-      { name: 'Tamanho', values: 'P, M' }
-    ];
+      { id: '1', slug: 'cor', type: 'select', name: 'Cor', values: ['Azul'] },
+      {
+        id: '2',
+        slug: 'tamanho',
+        type: 'select',
+        name: 'Tamanho',
+        values: ['P']
+      }
+    ] as never;
 
     const providerProps: Partial<ProductFormProviderProps> = {
       mode: 'Edit',
@@ -102,7 +114,7 @@ describe('ProductAttributes', () => {
         hasVariants: true,
         attributes: mockAttributes,
         variants: []
-      }
+      } as never
     };
 
     renderWithProductProvider(<ProductAttributes />, { providerProps });

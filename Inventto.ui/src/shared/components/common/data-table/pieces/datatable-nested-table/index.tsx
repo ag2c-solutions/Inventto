@@ -18,7 +18,7 @@ interface TNestedDataTable<TData> {
   data: TData[];
   columns: ColumnDef<TData>[];
 
-  parentData?: any;
+  parentData?: unknown;
 }
 
 export function NestedDataTable<TData>({

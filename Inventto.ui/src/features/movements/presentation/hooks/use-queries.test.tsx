@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MovementApi } from '../../data/api';
 import type { Movement } from '../../domain/entities';
 
-const mockUseUser = vi.fn(() => ({ organization: { id: 'org-1' } }));
+const mockUseUser = vi.fn();
 
 vi.mock('../../data/api', () => ({
   MovementApi: {
@@ -13,7 +13,7 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
-vi.mock('@/features/users/hooks/use-user', () => ({
+vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
@@ -24,7 +24,7 @@ describe('useMovementsQuery', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseUser.mockReturnValue({ organization: { id: 'org-1' } });
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } }
     });
@@ -78,7 +78,7 @@ describe('useMovementsQuery', () => {
   });
 
   it('should be disabled when no organization is selected', () => {
-    mockUseUser.mockReturnValue({ organization: null } as any);
+    mockUseUser.mockReturnValue({ currentOrganization: null });
 
     const { result } = renderHook(() => useMovementsQuery(), { wrapper });
 

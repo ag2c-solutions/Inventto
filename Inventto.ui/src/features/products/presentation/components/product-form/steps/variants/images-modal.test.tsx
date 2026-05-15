@@ -5,32 +5,43 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   IProductImage,
   IProductVariant
-} from '@/features/products/domain/entities';
-
+} from '../../../../../domain/entities';
 import { type ProductFormProviderProps, useProductForm } from '../../hook';
 import { renderWithProductProvider } from '../../mocks';
 
 import { ImagesModal } from './images-modal';
 
 vi.mock('@/shared/components/common/image-card', () => ({
-  ImageCard: ({ alt, src }: any) => (
+  ImageCard: ({ alt, src }: { alt?: string; src?: string }) => (
     <img data-testid="img-card" src={src} alt={alt} />
   )
 }));
 
-vi.mock('@/app/services/image-upload/utils', () => ({
-  createCloudinaryThumbnail: (id: string) => `http://cloud/${id}`
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    createThumbnail: (publicId: string) => `http://cloud/${publicId}`
+  }
 }));
 
 vi.mock('@/shared/components/ui/dialog', () => ({
-  DialogContent: ({ children }: any) => (
+  DialogContent: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dialog-content">{children}</div>
   ),
-  DialogHeader: ({ children }: any) => <div>{children}</div>,
-  DialogTitle: ({ children }: any) => <h2>{children}</h2>,
-  DialogDescription: ({ children }: any) => <p>{children}</p>,
-  DialogFooter: ({ children }: any) => <footer>{children}</footer>,
-  DialogClose: ({ children }: any) => <div>{children}</div>
+  DialogHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DialogTitle: ({ children }: { children: React.ReactNode }) => (
+    <h2>{children}</h2>
+  ),
+  DialogDescription: ({ children }: { children: React.ReactNode }) => (
+    <p>{children}</p>
+  ),
+  DialogFooter: ({ children }: { children: React.ReactNode }) => (
+    <footer>{children}</footer>
+  ),
+  DialogClose: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  )
 }));
 
 const mockAllImages: IProductImage[] = [
@@ -43,6 +54,9 @@ const mockVariants: IProductVariant[] = [
   {
     id: 'var0',
     sku: 'var0',
+    stock: 10,
+    minimumStock: 5,
+    isActive: true,
     options: [
       { name: 'Cor', value: 'Azul' },
       { name: 'Tamanho', value: 'P' }
@@ -52,6 +66,9 @@ const mockVariants: IProductVariant[] = [
   {
     id: 'var1',
     sku: 'var1',
+    stock: 10,
+    minimumStock: 5,
+    isActive: true,
     options: [
       { name: 'Cor', value: 'Azul' },
       { name: 'Tamanho', value: 'M' }
@@ -61,6 +78,9 @@ const mockVariants: IProductVariant[] = [
   {
     id: 'var2',
     sku: 'var2',
+    stock: 10,
+    minimumStock: 5,
+    isActive: true,
     options: [{ name: 'Cor', value: 'Vermelho' }],
     images: []
   }
@@ -173,9 +193,7 @@ describe('ImagesModal', () => {
 
     await user.click(checkbox);
 
-    const radioOption = screen.getByLabelText(
-      /Todas as variações com Cor: "Azul"/i
-    );
+    const radioOption = screen.getByLabelText(/Todas as variações:.*Cor Azul/i);
 
     await user.click(radioOption);
     await user.click(

@@ -22,7 +22,9 @@ export function DataTable<TData>({
   const table = useReactTable(tableOptions);
 
   return (
-    <DataTableContext.Provider value={{ table, renderSubRow, emptyMessage }}>
+    <DataTableContext.Provider
+      value={{ table, renderSubRow, emptyMessage } as never}
+    >
       {children}
     </DataTableContext.Provider>
   );

@@ -22,8 +22,11 @@ vi.mock('./field-variant-images', () => ({
 
 const mockVariants: IProductVariant[] = [
   {
+    id: '1',
     sku: 'SKU-AZUL-P',
+    stock: 5,
     minimumStock: 5,
+    isActive: true,
     options: [
       { name: 'Cor', value: 'Azul' },
       { name: 'Tamanho', value: 'P' }
@@ -31,8 +34,11 @@ const mockVariants: IProductVariant[] = [
     images: []
   },
   {
+    id: '2',
     sku: 'SKU-AZUL-M',
+    stock: 5,
     minimumStock: 10,
+    isActive: true,
     options: [
       { name: 'Cor', value: 'Azul' },
       { name: 'Tamanho', value: 'M' }
@@ -93,8 +99,9 @@ describe('ProductVariants', () => {
     const rows = screen.getAllByRole('row');
 
     expect(rows).toHaveLength(3);
-    expect(screen.getByText(/Cor Azul, Tamanho P/)).toBeInTheDocument();
-    expect(screen.getByText(/Cor Azul, Tamanho M/)).toBeInTheDocument();
+    expect(screen.getAllByText('Cor Azul')).toHaveLength(2);
+    expect(screen.getByText('Tamanho P')).toBeInTheDocument();
+    expect(screen.getByText('Tamanho M')).toBeInTheDocument();
     expect(screen.getByTestId('variant-images-0')).toBeInTheDocument();
     expect(screen.getByTestId('variant-images-1')).toBeInTheDocument();
   });
@@ -112,7 +119,7 @@ describe('ProductVariants', () => {
 
     renderWithProductProvider(<ProductVariants />, { providerProps });
 
-    const skuInputs = screen.getAllByPlaceholderText('SKU da Variação');
+    const skuInputs = screen.getAllByPlaceholderText('SKU da variação');
     const stockInputs = screen.getAllByPlaceholderText('0');
 
     expect(skuInputs[0]).toHaveValue('SKU-AZUL-P');
@@ -141,7 +148,7 @@ describe('ProductVariants', () => {
 
     renderWithProductProvider(<ProductVariants />, { providerProps });
 
-    const skuInputs = screen.getAllByPlaceholderText('SKU da Variação');
+    const skuInputs = screen.getAllByPlaceholderText('SKU da variação');
     const stockInputs = screen.getAllByPlaceholderText('0');
 
     expect(skuInputs[0]).toBeDisabled();

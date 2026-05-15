@@ -50,16 +50,11 @@ export function useCompleteFirstAccessMutation() {
 
   return useMutation({
     mutationKey: ['auth', 'complete-first-access'],
-    mutationFn: (payload: { newPassword: string; userId: string }) => {
-      if (!currentOrganization?.id) {
-        throw new Error('Organização não encontrada.');
-      }
-
-      return AuthService.completeFirstAccess({
+    mutationFn: (payload: { newPassword: string; userId: string }) =>
+      AuthService.completeFirstAccess({
         ...payload,
-        orgId: currentOrganization.id
-      });
-    },
+        organization: currentOrganization
+      }),
     meta: {
       successMessage: 'Senha alterada com sucesso! Faça login para continuar.'
     },

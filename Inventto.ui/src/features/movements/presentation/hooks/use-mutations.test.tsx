@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MovementService } from '../../domain/services';
 
-const mockUseUser = vi.fn(() => ({ organization: { id: 'org-1' } }));
+const mockUseUser = vi.fn();
 
 vi.mock('../../domain/services', () => ({
   MovementService: {
@@ -12,7 +12,7 @@ vi.mock('../../domain/services', () => ({
   }
 }));
 
-vi.mock('@/features/users/hooks/use-user', () => ({
+vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
@@ -23,7 +23,7 @@ describe('useMovementCreateMutation', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseUser.mockReturnValue({ organization: { id: 'org-1' } });
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
     });
@@ -60,7 +60,7 @@ describe('useMovementCreateMutation', () => {
   });
 
   it('should throw when no organization is selected', async () => {
-    mockUseUser.mockReturnValue({ organization: null } as any);
+    mockUseUser.mockReturnValue({ currentOrganization: null });
 
     const { result } = renderHook(() => useMovementCreateMutation(), {
       wrapper

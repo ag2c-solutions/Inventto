@@ -18,10 +18,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableGlobalFilter: false,
     enableResizing: false,
     cell: ({ row }) => (
-      <ProductTableColumnImages
-        images={row.original.allImages}
-        productId={row.original.id}
-      />
+      <ProductTableColumnImages images={row.original.allImages} />
     )
   },
   {

@@ -72,10 +72,20 @@ describe('ProductFormFieldImages (Integration)', () => {
 
   it('must pass the form files (populated state) to the FilePicker', () => {
     const mockImages: IProductImage[] = [
-      { id: 'img1', name: 'image.png', url: 'blob:url', type: 'image/png' }
+      {
+        id: 'img1',
+        name: 'image.png',
+        url: 'blob:url',
+        type: 'image/png',
+        isPrimary: true
+      }
     ];
     const providerProps: Partial<ProductFormProviderProps> = {
-      product: { ...mockFormData, allImages: mockImages, hasVariants: false }
+      product: {
+        ...mockFormData,
+        allImages: mockImages,
+        hasVariants: false
+      } as never
     };
 
     renderWithProductProvider(<ProductFormFieldImages />, { providerProps });
@@ -98,7 +108,7 @@ describe('ProductFormFieldImages (Integration)', () => {
       const { form } = useProductForm();
 
       useEffect(() => {
-        form.setValue('allImages', undefined as any);
+        form.setValue('allImages', undefined as never);
       }, [form]);
 
       return <ProductFormFieldImages />;

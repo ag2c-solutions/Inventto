@@ -44,7 +44,10 @@ describe('ProductVariantsTable', () => {
     expect(MockSimpleDataTable).toHaveBeenCalledTimes(1);
 
     //@ts-expect-error Tuple type '[]' of length '0' has no element at index '0'.
-    const props: any = MockSimpleDataTable.mock.calls[0][0];
+    const props = MockSimpleDataTable.mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
 
     expect(props?.data).toBe(mockVariants);
     expect(props?.columns).toBe(mockColumns);

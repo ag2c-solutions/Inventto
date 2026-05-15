@@ -2,8 +2,6 @@ import type { UserRole } from '@/features/users';
 
 import type { MemberStatus } from '../../domain/entities';
 
-export type { MemberStatus } from '../../domain/entities';
-
 export interface CandidateMemberDTO {
   id: string;
   full_name: string;

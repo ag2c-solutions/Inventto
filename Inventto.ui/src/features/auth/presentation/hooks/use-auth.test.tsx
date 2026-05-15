@@ -57,7 +57,7 @@ describe('useAuth Hook', () => {
 
     vi.mocked(AuthService.getSession).mockResolvedValue({
       data: { session: sessionRef1 }
-    } as any);
+    } as never);
 
     let authCallback: (session: Session | null) => void;
 
@@ -97,7 +97,7 @@ describe('useAuth Hook', () => {
   it('should initialize with loading=true and then finish loading (Unauthenticated)', async () => {
     vi.mocked(AuthService.getSession).mockResolvedValue({
       data: { session: null }
-    } as any);
+    } as never);
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
       async () => {
@@ -125,7 +125,7 @@ describe('useAuth Hook', () => {
 
     vi.mocked(AuthService.getSession).mockResolvedValue({
       data: { session: mockSession }
-    } as any);
+    } as never);
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockResolvedValue(() => {});
 
@@ -142,7 +142,7 @@ describe('useAuth Hook', () => {
   it('should update session when subscribeToAuthChanges triggers', async () => {
     vi.mocked(AuthService.getSession).mockResolvedValue({
       data: { session: null }
-    } as any);
+    } as never);
 
     let authCallback: (session: Session | null) => void;
 
@@ -176,7 +176,7 @@ describe('useAuth Hook', () => {
 
     vi.mocked(AuthService.getSession).mockResolvedValue({
       data: { session: initialSession }
-    } as any);
+    } as never);
 
     let authCallback: (session: Session | null) => void;
 

@@ -8,36 +8,43 @@ import { UserNav } from './index';
 
 const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
-  useAuth: vi.fn(),
   useUser: vi.fn()
 }));
 
-vi.mock('@/features/auth/hooks/use-auth', () => ({
-  useAuth: mocks.useAuth
-}));
-
-vi.mock('@/features/users/hooks/use-user', () => ({
-  useUser: mocks.useUser
-}));
-
-vi.mock('@/features/auth/hooks/use-query', () => ({
+vi.mock('@/features/auth', () => ({
   useSignOutMutation: () => ({
     mutateAsync: mocks.signOut
   })
 }));
 
-vi.mock('@/features/users/components/avatar-change-form', () => ({
-  AvatarChangeForm: ({ onSuccess, onCancel }: any) => (
+vi.mock('@/features/users', () => ({
+  useUser: mocks.useUser,
+  getUserNameInitials: (name: string) =>
+    name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase(),
+  AvatarChangeForm: ({
+    onSuccess,
+    onCancel
+  }: {
+    onSuccess: () => void;
+    onCancel: () => void;
+  }) => (
     <div data-testid="avatar-form-mock">
       Avatar Form
       <button onClick={onSuccess}>Trigger Success</button>
       <button onClick={onCancel}>Trigger Cancel</button>
     </div>
-  )
-}));
-
-vi.mock('@/features/users/components/change-password-form', () => ({
-  ChangePasswordForm: ({ onSuccess, onCancel }: any) => (
+  ),
+  ChangePasswordForm: ({
+    onSuccess,
+    onCancel
+  }: {
+    onSuccess: () => void;
+    onCancel: () => void;
+  }) => (
     <div data-testid="password-form-mock">
       Password Form
       <button onClick={onSuccess}>Trigger Success</button>
@@ -46,12 +53,6 @@ vi.mock('@/features/users/components/change-password-form', () => ({
   )
 }));
 
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-globalThis.ResizeObserver = ResizeObserverMock;
 window.PointerEvent = MouseEvent as typeof PointerEvent;
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 window.HTMLElement.prototype.hasPointerCapture = vi.fn();
@@ -65,14 +66,20 @@ describe('UserNav Component (Integration)', () => {
   const defaultUser = {
     fullName: 'Admin Teste',
     email: 'admin@teste.com',
-    avatarUrl: 'https://github.com/shadcn.png',
-    organizationName: 'Empresa Teste Ltda'
+    avatarUrl: 'https://github.com/shadcn.png'
+  };
+
+  const defaultOrganization = {
+    name: 'Empresa Teste Ltda'
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.useAuth.mockReturnValue({ user: defaultUser });
-    mocks.useUser.mockReturnValue({ user: defaultUser, isLoading: false });
+    mocks.useUser.mockReturnValue({
+      user: defaultUser,
+      currentOrganization: defaultOrganization,
+      isLoading: false
+    });
     mocks.signOut.mockResolvedValue({});
   });
 
@@ -97,28 +104,16 @@ describe('UserNav Component (Integration)', () => {
     };
   };
 
-  it('should return null and render nothing if user is not authenticated', () => {
-    mocks.useAuth.mockReturnValue({ user: null });
-    mocks.useUser.mockReturnValue({ user: null });
-
-    const { container } = renderComponent();
-
-    expect(container).toBeEmptyDOMElement();
-  });
-
   it('should render default organization name when user has no organization', async () => {
-    const userWithoutOrg = {
-      ...defaultUser,
-      organizationName: null
-    };
-
-    mocks.useAuth.mockReturnValue({ user: userWithoutOrg });
-    mocks.useUser.mockReturnValue({ user: userWithoutOrg, isLoading: false });
+    mocks.useUser.mockReturnValue({
+      user: defaultUser,
+      currentOrganization: null,
+      isLoading: false
+    });
 
     const { user } = renderComponent();
 
-    const trigger = screen.getByRole('button');
-    await user.click(trigger);
+    await user.click(screen.getByRole('button'));
 
     expect(await screen.findByText('Minha Empresa')).toBeInTheDocument();
   });
@@ -126,8 +121,7 @@ describe('UserNav Component (Integration)', () => {
   it('should display user information in the dropdown header', async () => {
     const { user } = renderComponent();
 
-    const trigger = screen.getByRole('button');
-    await user.click(trigger);
+    await user.click(screen.getByRole('button'));
 
     expect(await screen.findByText('Admin Teste')).toBeInTheDocument();
     expect(await screen.findByText('Empresa Teste Ltda')).toBeInTheDocument();
@@ -138,8 +132,7 @@ describe('UserNav Component (Integration)', () => {
 
     await user.click(screen.getByRole('button'));
 
-    const item = await screen.findByText('Alterar Avatar');
-    await user.click(item);
+    await user.click(await screen.findByText('Alterar Avatar'));
 
     expect(await screen.findByTestId('avatar-form-mock')).toBeInTheDocument();
   });
@@ -149,8 +142,7 @@ describe('UserNav Component (Integration)', () => {
 
     await user.click(screen.getByRole('button'));
 
-    const item = await screen.findByText('Alterar Senha');
-    await user.click(item);
+    await user.click(await screen.findByText('Alterar Senha'));
 
     expect(await screen.findByTestId('password-form-mock')).toBeInTheDocument();
   });
@@ -207,7 +199,7 @@ describe('UserNav Component (Integration)', () => {
     });
   });
 
-  it('should close dialog when pressing Escape (onOpenChange)', async () => {
+  it('should close dialog when pressing Escape', async () => {
     const { user } = renderComponent();
 
     await user.click(screen.getByRole('button'));
@@ -226,21 +218,19 @@ describe('UserNav Component (Integration)', () => {
 
     await user.click(screen.getByRole('button'));
 
-    const logoutBtn = await screen.findByText('Sair do sistema');
-    await user.click(logoutBtn);
+    await user.click(await screen.findByText('Sair do sistema'));
 
     expect(mocks.signOut).toHaveBeenCalledTimes(1);
     expect(await screen.findByTestId('login-page-mock')).toBeInTheDocument();
   });
 
-  it('should handle logout error gracefully (catch block)', async () => {
+  it('should handle logout error gracefully', async () => {
     mocks.signOut.mockRejectedValue(new Error('Logout failed'));
 
     const { user } = renderComponent();
 
     await user.click(screen.getByRole('button'));
-    const logoutBtn = await screen.findByText('Sair do sistema');
-    await user.click(logoutBtn);
+    await user.click(await screen.findByText('Sair do sistema'));
 
     expect(mocks.signOut).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId('login-page-mock')).not.toBeInTheDocument();

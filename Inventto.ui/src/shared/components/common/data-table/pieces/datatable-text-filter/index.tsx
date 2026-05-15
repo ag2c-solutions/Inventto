@@ -27,13 +27,14 @@ export function DataTableTextFilter({
 
   const updateTableFilter = useMemo(
     () =>
-      debounce((value: string) => {
+      debounce((value: unknown) => {
+        const val = value as string;
         if (column) {
-          table.getColumn(column)?.setFilterValue(value);
+          table.getColumn(column)?.setFilterValue(val);
         } else {
-          table.setGlobalFilter(value);
+          table.setGlobalFilter(val);
         }
-      }, 1000),
+      }, 500),
     [table, column]
   );
 

@@ -1,4 +1,4 @@
-import { isPostgrestError } from '@/infra/supabase/supabase.utils';
+import { isPostgrestError } from '@/infra/supabase/guards/is-postgres-error';
 
 export function handleMovementError(error: unknown, operation: string): never {
   if (isPostgrestError(error)) {
@@ -49,11 +49,10 @@ export function handleMovementError(error: unknown, operation: string): never {
   }
 
   if (error instanceof Error) {
-    error.message = `Error ao executar [MovementApi.${operation}]: ${error.message}`;
-    throw error;
+    throw new Error(
+      `Error ao executar [MovementApi.${operation}]: ${error.message}`
+    );
   }
 
-  throw new Error(
-    `Ocorreu um erro inesperado ao executar [MovementApi.${operation}]`
-  );
+  throw new Error('Ocorreu um erro inesperado ao processar a movimentação.');
 }

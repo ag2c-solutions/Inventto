@@ -9,16 +9,20 @@ const { mockCloudinary } = vi.hoisted(() => ({
   mockCloudinary: vi.fn((publicId) => `thumb-mock/${publicId}`)
 }));
 
-vi.mock('@/app/services/image-upload/utils', () => ({
-  createCloudinaryThumbnail: mockCloudinary
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    createThumbnail: mockCloudinary
+  }
 }));
 
 vi.mock('@/shared/components/ui/avatar', () => ({
-  Avatar: ({ children }: any) => <div data-testid="avatar">{children}</div>,
-  AvatarImage: ({ src, alt }: any) => (
+  Avatar: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="avatar">{children}</div>
+  ),
+  AvatarImage: ({ src, alt }: { src?: string; alt?: string }) => (
     <img data-testid="avatar-image" src={src} alt={alt} />
   ),
-  AvatarFallback: ({ children }: any) => (
+  AvatarFallback: ({ children }: { children: React.ReactNode }) => (
     <span data-testid="avatar-fallback">{children}</span>
   )
 }));
@@ -34,35 +38,39 @@ describe('ProductTableColumnImages', () => {
       name: 'Img A',
       publicId: 'pubA',
       url: 'http:image.test',
-      type: 'image'
+      type: 'image',
+      isPrimary: true
     },
     {
       id: '2',
       name: 'Img B',
       publicId: 'pubB',
       url: 'http:image.test',
-      type: 'image'
+      type: 'image',
+      isPrimary: false
     },
     {
       id: '3',
       name: 'Img C',
       publicId: 'pubC',
       url: 'http:image.test',
-      type: 'image'
+      type: 'image',
+      isPrimary: false
     },
     {
       id: '4',
       name: 'Img D',
       publicId: 'pubD',
       url: 'http:image.test',
-      type: 'image'
+      type: 'image',
+      isPrimary: false
     }
   ];
 
   it('should only render the first 2 images and then call Cloudinary', () => {
     const images = mockBaseImages;
 
-    render(<ProductTableColumnImages images={images} productId="1" />);
+    render(<ProductTableColumnImages images={images} />);
 
     const renderedImages = screen.getAllByTestId('avatar-image');
 
@@ -75,7 +83,7 @@ describe('ProductTableColumnImages', () => {
   it('should show the excess count (+N) when there are more than 2 images', () => {
     const images = mockBaseImages;
 
-    render(<ProductTableColumnImages images={images} productId="1" />);
+    render(<ProductTableColumnImages images={images} />);
 
     expect(
       screen.getByText((content) => {
@@ -86,11 +94,23 @@ describe('ProductTableColumnImages', () => {
 
   it('should use the src URL as a fallback if publicId is false, or use the default URL', () => {
     const images: IProductImage[] = [
-      { id: 'blob-1', name: 'BlobImg', url: 'blob:url', type: 'image' },
-      { id: 'default-2', name: 'NoData', url: '', type: 'image' }
+      {
+        id: 'blob-1',
+        name: 'BlobImg',
+        url: 'blob:url',
+        type: 'image',
+        isPrimary: true
+      },
+      {
+        id: 'default-2',
+        name: 'NoData',
+        url: '',
+        type: 'image',
+        isPrimary: false
+      }
     ];
 
-    render(<ProductTableColumnImages images={images} productId="1" />);
+    render(<ProductTableColumnImages images={images} />);
 
     const renderedImages = screen.getAllByTestId('avatar-image');
 
@@ -105,7 +125,7 @@ describe('ProductTableColumnImages', () => {
   it('The counter should NOT be rendered if there are 2 or fewer images', () => {
     const images = [{ ...mockBaseImages[0] }];
 
-    render(<ProductTableColumnImages images={images} productId="1" />);
+    render(<ProductTableColumnImages images={images} />);
 
     expect(screen.queryByText(/\+\s*\d+/)).not.toBeInTheDocument();
     expect(screen.getAllByTestId('avatar-image')).toHaveLength(1);

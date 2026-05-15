@@ -1,17 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
-import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
-
-import { uploadImageToCloudinary } from '@/infra/cloudinary/cloudinary.api';
+import { CloudinaryService } from '@/infra/cloudinary';
 
 import { UserAPI } from '../../data/api';
+import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
+import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
 import type { User } from '../entities';
 
 import { UserService } from './index';
 
-vi.mock('@/infra/cloudinary/cloudinary.api', () => ({
-  uploadImageToCloudinary: vi.fn()
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    uploadImage: vi.fn()
+  }
 }));
 
 vi.mock('../../presentation/utils/get-cropped-img', () => ({
@@ -26,7 +27,7 @@ vi.mock('../../data/api', () => ({
 }));
 
 const mockGetCroppedImg = vi.mocked(getCroppedImg);
-const mockUploadImageToCloudinary = vi.mocked(uploadImageToCloudinary);
+const mockUploadImage = vi.mocked(CloudinaryService.uploadImage);
 const mockUpdateAvatar = vi.mocked(UserAPI.updateAvatar);
 const mockUpdatePassword = vi.mocked(UserAPI.updatePassword);
 
@@ -77,7 +78,7 @@ describe('UserService', () => {
 
     it('should crop image, upload it and update avatar successfully', async () => {
       mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImageToCloudinary.mockResolvedValue({
+      mockUploadImage.mockResolvedValue({
         url: 'https://cdn.example.com/avatar.png',
         publicId: 'avatar-public-id'
       });
@@ -90,7 +91,7 @@ describe('UserService', () => {
       });
 
       expect(mockGetCroppedImg).toHaveBeenCalledWith(imageSrc, pixelCrop);
-      expect(mockUploadImageToCloudinary).toHaveBeenCalledWith(croppedFile);
+      expect(mockUploadImage).toHaveBeenCalledWith(croppedFile);
       expect(mockUpdateAvatar).toHaveBeenCalledWith(
         userId,
         'https://cdn.example.com/avatar.png'
@@ -107,7 +108,7 @@ describe('UserService', () => {
       ).rejects.toThrow('Usuário não informado.');
 
       expect(mockGetCroppedImg).not.toHaveBeenCalled();
-      expect(mockUploadImageToCloudinary).not.toHaveBeenCalled();
+      expect(mockUploadImage).not.toHaveBeenCalled();
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
@@ -121,7 +122,7 @@ describe('UserService', () => {
       ).rejects.toThrow('Imagem não informada.');
 
       expect(mockGetCroppedImg).not.toHaveBeenCalled();
-      expect(mockUploadImageToCloudinary).not.toHaveBeenCalled();
+      expect(mockUploadImage).not.toHaveBeenCalled();
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
@@ -137,13 +138,13 @@ describe('UserService', () => {
       ).rejects.toThrow('Não foi possível processar o recorte da imagem.');
 
       expect(mockGetCroppedImg).toHaveBeenCalledWith(imageSrc, pixelCrop);
-      expect(mockUploadImageToCloudinary).not.toHaveBeenCalled();
+      expect(mockUploadImage).not.toHaveBeenCalled();
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
     it('should throw when uploaded avatar url is empty', async () => {
       mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImageToCloudinary.mockResolvedValue({
+      mockUploadImage.mockResolvedValue({
         url: '',
         publicId: 'avatar-public-id'
       });
@@ -157,13 +158,13 @@ describe('UserService', () => {
       ).rejects.toThrow('Avatar não informado.');
 
       expect(mockGetCroppedImg).toHaveBeenCalledWith(imageSrc, pixelCrop);
-      expect(mockUploadImageToCloudinary).toHaveBeenCalledWith(croppedFile);
+      expect(mockUploadImage).toHaveBeenCalledWith(croppedFile);
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
     it('should propagate image upload errors', async () => {
       mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImageToCloudinary.mockRejectedValue(
+      mockUploadImage.mockRejectedValue(
         new Error('Erro ao fazer upload da imagem.')
       );
 
@@ -180,7 +181,7 @@ describe('UserService', () => {
 
     it('should propagate UserAPI update avatar errors', async () => {
       mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImageToCloudinary.mockResolvedValue({
+      mockUploadImage.mockResolvedValue({
         url: 'https://cdn.example.com/avatar.png',
         publicId: 'avatar-public-id'
       });

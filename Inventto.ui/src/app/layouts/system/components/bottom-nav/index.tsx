@@ -1,16 +1,23 @@
 import { Link, useLocation } from 'react-router';
 
+import { usePermission } from '@/features/permissions/';
+
 import { cn } from '@/shared/utils';
 
 import { navLinks } from '../../consts/navlinks-siderbar';
 
 export function MobileBottomNav() {
   const { pathname } = useLocation();
+  const { can } = usePermission();
+
+  const filteredLinks = navLinks.filter(
+    ({ permission }) => !permission || can(permission)
+  );
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t bg-white md:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
       <div className="grid h-full grid-cols-2">
-        {navLinks.map((link) => {
+        {filteredLinks.map((link) => {
           const isActive = pathname.startsWith(link.href);
 
           return (

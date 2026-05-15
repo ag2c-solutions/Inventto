@@ -1,4 +1,4 @@
-import type { MovementType } from '../../../types';
+import type { MovementType } from '../../../../domain/entities';
 
 export const ENTRY_REASONS = ['Compra', 'Devolução'] as const;
 export const WITHDRAWAL_REASONS = ['Venda', 'Troca', 'Uso Interno'] as const;

@@ -69,7 +69,7 @@ describe('ProductBasicInfo', () => {
         hasVariants: false,
         name: 'Produto Existente',
         sku: 'SKU-EXISTENTE'
-      }
+      } as never
     };
 
     renderWithProductProvider(<ProductBasicInfo />, { providerProps });
@@ -93,7 +93,7 @@ describe('ProductBasicInfo', () => {
     expect(stockInput).toHaveValue(10);
 
     await user.clear(stockInput);
-    expect(stockInput).toHaveValue(null);
+    expect(stockInput).toHaveValue(0);
   });
 
   describe('Logic of the "HasVariants" Switch', () => {
@@ -106,11 +106,20 @@ describe('ProductBasicInfo', () => {
     it('should be disabled in "Edit" mode if the product ALREADY has variants (hasVariants: true).', () => {
       const providerProps: Partial<ProductFormProviderProps> = {
         mode: 'Edit' as const,
-        // @ts-expect-error product
         product: {
           ...mockFormData,
-          hasVariants: true
-        }
+          hasVariants: true,
+          allImages: [
+            {
+              id: 'img1',
+              file: new File([''], 'test.png', { type: 'image/png' }),
+              name: 'test.png',
+              src: 'blob:mock-url',
+              type: 'image/png',
+              isPrimary: true
+            }
+          ]
+        } as never
       };
 
       renderWithProductProvider(<ProductBasicInfo />, { providerProps });
@@ -126,8 +135,18 @@ describe('ProductBasicInfo', () => {
         mode: 'Edit' as const,
         product: {
           ...mockFormData,
-          hasVariants: false
-        }
+          hasVariants: false,
+          allImages: [
+            {
+              id: 'img1',
+              file: new File([''], 'test.png', { type: 'image/png' }),
+              name: 'test.png',
+              src: 'blob:mock-url',
+              type: 'image/png',
+              isPrimary: false
+            }
+          ]
+        } as never
       };
 
       renderWithProductProvider(<ProductBasicInfo />, { providerProps });

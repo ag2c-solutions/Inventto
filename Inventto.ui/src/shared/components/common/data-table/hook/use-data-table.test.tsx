@@ -7,13 +7,16 @@ import { DataTableContext, useDataTable } from './use-data-table';
 const MockTableInstance = {
   getCoreRowModel: vi.fn(),
   setPageSize: vi.fn()
-} as unknown as Table<any>;
+} as unknown as Table<unknown>;
 
 const MockProvider = ({ children }: { children: React.ReactNode }) => (
   <DataTableContext.Provider
     value={{
       table: MockTableInstance,
-      renderSubRow: vi.fn() as (row: Row<any>, index: number) => React.ReactNode
+      renderSubRow: vi.fn() as (
+        row: Row<unknown>,
+        index: number
+      ) => React.ReactNode
     }}
   >
     {children}

@@ -3,7 +3,7 @@ import type { TableMeta } from '@tanstack/react-table';
 
 import { SimpleDataTable } from '@/shared/components/common/simple-data-table';
 
-import type { Movement, MovementItem } from '../../domain/entities';
+import type { Movement, MovementItem } from '../../../domain/entities';
 
 import { columnsMovementsItemsTable } from './columns';
 

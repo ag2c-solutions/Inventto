@@ -1,24 +1,46 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Movement, MovementItem } from '../../domain/entities';
+const mockUsePermission = vi.fn();
+
+vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
+  usePermission: () => mockUsePermission()
+}));
+
+import type { Movement, MovementItem } from '../../../domain/entities';
 
 import { MovementsItemsTable } from './index';
 
+type MockColumn = {
+  cell?: (ctx: {
+    row: { original: Record<string, unknown> };
+    table: { options: { meta: unknown } };
+  }) => React.ReactNode;
+  accessorKey?: string;
+};
+
 vi.mock('@/shared/components/common/simple-data-table', () => ({
-  SimpleDataTable: ({ data, columns, meta }: any) => (
+  SimpleDataTable: ({
+    data,
+    columns,
+    meta
+  }: {
+    data: Record<string, unknown>[];
+    columns: MockColumn[];
+    meta?: unknown;
+  }) => (
     <table data-testid="mock-simple-table">
       <tbody>
-        {data.map((row: any, rowIndex: number) => (
+        {data.map((row, rowIndex) => (
           <tr key={rowIndex} data-testid="table-row">
-            {columns.map((col: any, colIndex: number) => (
+            {columns.map((col, colIndex) => (
               <td key={colIndex}>
                 {typeof col.cell === 'function'
                   ? col.cell({
                       row: { original: row },
                       table: { options: { meta } }
                     })
-                  : row[col.accessorKey]}
+                  : (row[col.accessorKey ?? ''] as React.ReactNode)}
               </td>
             ))}
           </tr>
@@ -29,13 +51,19 @@ vi.mock('@/shared/components/common/simple-data-table', () => ({
 }));
 
 vi.mock('@/shared/components/common/image-card', () => ({
-  ImageCard: ({ src, alt }: any) => (
+  ImageCard: ({ src, alt }: { src?: string; alt?: string }) => (
     <img data-testid="mock-image" src={src} alt={alt} />
   )
 }));
 
 vi.mock('@/shared/components/ui/badge', () => ({
-  Badge: ({ children, className }: any) => (
+  Badge: ({
+    children,
+    className
+  }: {
+    children?: React.ReactNode;
+    className?: string;
+  }) => (
     <span data-testid="mock-badge" className={className}>
       {children}
     </span>
@@ -93,6 +121,14 @@ const mockItems: MovementItem[] = [
 ];
 
 describe('MovementsItemsTable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUsePermission.mockReturnValue({
+      can: vi.fn(() => true),
+      isLoading: false
+    });
+  });
+
   it('should render the table and items correctly', () => {
     render(
       <MovementsItemsTable data={mockItems} parentData={mockParentEntry} />

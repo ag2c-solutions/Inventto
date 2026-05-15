@@ -1,9 +1,9 @@
 import type { Row } from '@tanstack/react-table';
 
 export const dateRangeFilter = (
-  row: Row<any>,
+  row: Row<unknown>,
   columnId: string,
-  value: any
+  value: { from?: Date; to?: Date } | null | undefined
 ) => {
   const dateValue = row.getValue(columnId);
   const { from, to } = value || {};
@@ -13,9 +13,15 @@ export const dateRangeFilter = (
 
   const rowDate = new Date(dateValue as string | number);
 
-  if (to) {
+  if (from && to) {
     return rowDate >= from && rowDate <= to;
   }
 
-  return rowDate >= from;
+  if (from) {
+    return rowDate >= from;
+  }
+
+  if (to) {
+    return rowDate <= to;
+  }
 };

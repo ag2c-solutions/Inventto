@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 
-import { Button } from '@/shared/components/ui/button';
+import { ActionButton } from '@/features/permissions';
 
 import { useMovementForm } from '../../hooks';
 
@@ -19,7 +19,8 @@ export function MovementFormFooter() {
           </span>
         </div>
 
-        <Button
+        <ActionButton
+          action="movement:create"
           size="lg"
           type="submit"
           disabled={!totalItems || totalItems === 0 || isSubmitting}
@@ -27,9 +28,10 @@ export function MovementFormFooter() {
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Finalizar Movimentação
-        </Button>
+        </ActionButton>
 
-        <Button
+        <ActionButton
+          action="movement:create"
           size="sm"
           type="submit"
           disabled={!totalItems || totalItems === 0 || isSubmitting}
@@ -37,7 +39,7 @@ export function MovementFormFooter() {
         >
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Finalizar
-        </Button>
+        </ActionButton>
       </div>
     </div>
   );

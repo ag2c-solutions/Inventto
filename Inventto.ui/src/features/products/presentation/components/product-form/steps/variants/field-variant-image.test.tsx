@@ -5,21 +5,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   IProductImage,
   IProductVariant
-} from '@/features/products/domain/entities';
-
+} from '../../../../../domain/entities';
 import type { ProductFormProviderProps } from '../../hook';
 import { renderWithProductProvider } from '../../mocks';
 
 import { ProductFormFieldVariantImages } from './field-variant-images';
 
 vi.mock('@/shared/components/common/image-card', () => ({
-  ImageCard: ({ alt, src }: any) => (
+  ImageCard: ({ alt, src }: { alt?: string; src?: string }) => (
     <img data-testid="image-card" src={src} alt={alt} />
   )
 }));
 
-vi.mock('@/app/services/image-upload/utils', () => ({
-  createCloudinaryThumbnail: (id: string) => `http://cloudinary/${id}`
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    createThumbnail: (publicId: string) => `http://cloudinary/${publicId}`
+  }
 }));
 
 vi.mock('./images-modal', () => ({
@@ -66,6 +67,7 @@ describe('ProductFormFieldVariantImages', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       product: {
         allImages: mockAllImages,
+        hasVariants: true,
         //@ts-expect-error incomplete variant data
         variants: [{ id: 'var1', images: mockVariantImages }]
       }
@@ -81,7 +83,9 @@ describe('ProductFormFieldVariantImages', () => {
     expect(images).toHaveLength(2);
     expect(images[0]).toHaveAttribute('src', 'blob:img1');
     expect(images[1]).toHaveAttribute('src', 'http://cloudinary/pub3');
-    expect(screen.getByRole('button', { name: '' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Adicionar imagens à variação' })
+    ).toBeInTheDocument();
   });
 
   it('The image modal should open when you click the add button.', async () => {
@@ -102,6 +106,7 @@ describe('ProductFormFieldVariantImages', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       product: {
         allImages: mockAllImages,
+        hasVariants: true,
         //@ts-expect-error incomplete variant data
         variants: [{ id: 'var1', images: mockVariantImages }]
       }
@@ -113,7 +118,7 @@ describe('ProductFormFieldVariantImages', () => {
     );
 
     const setPrimaryButtons = screen.getAllByLabelText(
-      'Definir como principal'
+      'Definir como imagem principal'
     );
 
     expect(setPrimaryButtons).toHaveLength(1);
@@ -129,6 +134,7 @@ describe('ProductFormFieldVariantImages', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       product: {
         allImages: mockAllImages,
+        hasVariants: true,
         //@ts-expect-error incomplete variant data
         variants: [{ id: 'var1', images: mockVariantImages }]
       }

@@ -22,7 +22,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       try {
         const { data } = await AuthService.getSession();
-
         setSession(data.session);
       } catch (error) {
         console.error('Erro na inicialização da auth:', error);
@@ -56,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextType>(
     () => ({
       session,
-      authUser: null,
       isAuthenticated: !!session,
       isLoading
     }),

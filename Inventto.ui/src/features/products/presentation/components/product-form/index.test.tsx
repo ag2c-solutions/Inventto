@@ -6,19 +6,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   useCategoriesQuery,
-  useCreateCategoryMutation
-} from '../../../category/hooks/use-query';
+  useCategoryAddMutation
+} from '@/features/categories';
+
 import {
-  useProductCreateMutation,
-  useProductUpdateMutation
-} from '../../../hooks/use-query';
+  useCreateProductMutation,
+  useUpdateProductMutation
+} from '../../hooks/use-mutation';
 
 import { ProductFormProvider } from './hook';
 import { ProductForm } from './index';
 
-vi.mock('../../hooks/use-query');
-vi.mock('../../../category/hooks/use-query');
+vi.mock('../../hooks/use-mutation');
+vi.mock('@/features/categories', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    useCategoriesQuery: vi.fn(),
+    useCategoryAddMutation: vi.fn()
+  };
+});
 vi.mock('@/app/services/image-upload');
+vi.mock('@/features/users', () => ({
+  useUser: () => ({ currentOrganization: { id: 'org-1' }, role: 'owner' })
+}));
 
 class ResizeObserverMock {
   observe() {}
@@ -38,9 +49,7 @@ const renderComponent = (mode: 'Create' | 'Edit' = 'Create') => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ProductFormProvider mode={mode}>
-          <ProductForm
-            label={mode === 'Create' ? 'Novo Produto' : 'Editar Produto'}
-          />
+          <ProductForm />
         </ProductFormProvider>
       </BrowserRouter>
     </QueryClientProvider>
@@ -51,30 +60,28 @@ describe('ProductForm UI Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(useProductCreateMutation).mockReturnValue({
+    vi.mocked(useCreateProductMutation).mockReturnValue({
       mutateAsync: vi.fn()
-    } as any);
+    } as never);
 
-    vi.mocked(useProductUpdateMutation).mockReturnValue({
+    vi.mocked(useUpdateProductMutation).mockReturnValue({
       mutateAsync: vi.fn()
-    } as any);
+    } as never);
 
     vi.mocked(useCategoriesQuery).mockReturnValue({
       data: [{ id: 'cat-1', name: 'Categoria Teste' }],
       isLoading: false,
       isError: false,
       error: null
-    } as any);
+    } as never);
 
-    vi.mocked(useCreateCategoryMutation).mockReturnValue({
+    vi.mocked(useCategoryAddMutation).mockReturnValue({
       mutateAsync: vi.fn()
-    } as any);
+    } as never);
   });
 
   it('should render the form with initial state', () => {
     renderComponent('Create');
-
-    expect(screen.getByText('Novo Produto')).toBeInTheDocument();
 
     expect(screen.getByText('Informações Básicas')).toBeInTheDocument();
 
@@ -122,7 +129,7 @@ describe('ProductForm UI Integration', () => {
   it('should render correctly in Edit mode', () => {
     renderComponent('Edit');
 
-    expect(screen.getByText('Editar Produto')).toBeInTheDocument();
+    expect(screen.getByText('Informações Básicas')).toBeInTheDocument();
   });
 
   it('should show validation errors when attempting to proceed with empty required fields', async () => {
@@ -139,7 +146,7 @@ describe('ProductForm UI Integration', () => {
     ).toBeInTheDocument();
 
     expect(
-      await screen.findByText('Categoria é obrigatória.')
+      await screen.findByText('Selecione pelo menos uma categoria.')
     ).toBeInTheDocument();
   });
 });

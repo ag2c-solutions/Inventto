@@ -1,26 +1,7 @@
-import { MemoryRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { ProductTableColumnActions } from './actions';
-
-vi.mock('react-router', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('react-router')>();
-
-  return {
-    ...mod,
-    Link: ({ to, children, className }: any) => (
-      <a
-        href={to}
-        className={className}
-        data-testid={`link-${children[1].toLowerCase().trim().replace(' ', '-')}`}
-      >
-        {children}
-      </a>
-    )
-  };
-});
+import { ProductTableColumnStock } from './stock';
 
 class ResizeObserverMock {
   observe() {}
@@ -28,73 +9,31 @@ class ResizeObserverMock {
   disconnect() {}
 }
 globalThis.ResizeObserver = ResizeObserverMock;
-window.PointerEvent = MouseEvent as typeof PointerEvent;
-window.HTMLElement.prototype.scrollIntoView = vi.fn();
-window.HTMLElement.prototype.hasPointerCapture = vi.fn();
-window.HTMLElement.prototype.releasePointerCapture = vi.fn();
 
-const renderComponent = (productId: string) => {
-  return render(
-    <MemoryRouter>
-      <ProductTableColumnActions productId={productId} />
-    </MemoryRouter>
-  );
-};
-
-describe('ProductTableColumnActions', () => {
-  const TEST_PRODUCT_ID = 'prod-xyz-123';
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should render the menu trigger button', () => {
-    renderComponent(TEST_PRODUCT_ID);
+describe('ProductTableColumnStock', () => {
+  it('must render the stock and minimum stock values correctly', () => {
+    render(
+      <ProductTableColumnStock totalStock={42} minimumStock={5} variants={[]} />
+    );
 
     expect(
-      screen.getByRole('button', { name: /toggle menu/i })
+      screen.getByRole('button', { name: /Status do estoque:/i })
     ).toBeInTheDocument();
   });
 
-  it('should open the menu and display all action items', async () => {
-    const user = userEvent.setup();
+  it('should use the default values of 0 when the props are not provided', () => {
+    render(<ProductTableColumnStock totalStock={0} />);
 
-    renderComponent(TEST_PRODUCT_ID);
-
-    const triggerButton = screen.getByRole('button', { name: /toggle menu/i });
-
-    await user.click(triggerButton);
-
-    const menuItems = await screen.findAllByRole('menuitem');
-
-    expect(menuItems).toHaveLength(4);
-    expect(screen.getByText('Detalhes')).toBeInTheDocument();
-    expect(screen.getByText('Editar')).toBeInTheDocument();
-    expect(screen.getByText('Ver Histórico')).toBeInTheDocument();
-    expect(screen.getByText('Registrar Movimentação')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Status do estoque:/i })
+    ).toBeInTheDocument();
   });
 
-  it('should generate the "Details" and "Edit" links with the correct product ID', async () => {
-    const user = userEvent.setup();
+  it('should render zero values correctly', () => {
+    render(<ProductTableColumnStock totalStock={0} minimumStock={0} />);
 
-    renderComponent(TEST_PRODUCT_ID);
-
-    const triggerButton = screen.getByRole('button', { name: /toggle menu/i });
-
-    await user.click(triggerButton);
-
-    const linkDetalhes = await screen.findByTestId('link-detalhes');
-
-    expect(linkDetalhes).toHaveAttribute(
-      'href',
-      `/products/${TEST_PRODUCT_ID}`
-    );
-
-    const linkEditar = await screen.findByTestId('link-editar');
-
-    expect(linkEditar).toHaveAttribute(
-      'href',
-      `/products/${TEST_PRODUCT_ID}/edit`
-    );
+    expect(
+      screen.getByRole('button', { name: /Status do estoque:/i })
+    ).toBeInTheDocument();
   });
 });

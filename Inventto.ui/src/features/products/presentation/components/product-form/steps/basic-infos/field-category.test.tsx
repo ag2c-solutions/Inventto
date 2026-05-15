@@ -17,16 +17,20 @@ const MOCK_CATEGORIES = [
   { id: 'cat3', name: 'Livros' }
 ];
 
-vi.mock('@/features/category/hooks/use-query', () => ({
-  useCategoriesQuery: () => ({
-    data: MOCK_CATEGORIES,
-    isLoading: false,
-    isError: false
-  }),
-  useCreateCategoryMutation: () => ({
-    mutateAsync: mocks.createCategory
-  })
-}));
+vi.mock('@/features/categories', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    useCategoriesQuery: () => ({
+      data: MOCK_CATEGORIES,
+      isLoading: false,
+      isError: false
+    }),
+    useCategoryAddMutation: () => ({
+      mutateAsync: mocks.createCategory
+    })
+  };
+});
 
 class ResizeObserverMock {
   observe() {}
@@ -49,9 +53,9 @@ describe('ProductFormFieldCategory (Integration)', () => {
   it('should render with the placeholder and muted style if there is no value', () => {
     renderWithProductProvider(<ProductFormFieldCategory />);
 
-    const combobox = screen.getByRole('combobox', { name: 'Categoria' });
+    const combobox = screen.getByRole('combobox', { name: 'Categorias' });
 
-    expect(combobox).toHaveTextContent('Selecione uma categoria');
+    expect(combobox).toHaveTextContent('Selecione categorias');
     expect(combobox).toHaveClass('text-muted-foreground');
   });
 
@@ -59,14 +63,14 @@ describe('ProductFormFieldCategory (Integration)', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       product: {
         ...mockFormData,
-        category: MOCK_CATEGORIES[0],
+        categories: [MOCK_CATEGORIES[0]],
         hasVariants: false
-      }
+      } as never
     };
 
     renderWithProductProvider(<ProductFormFieldCategory />, { providerProps });
 
-    const combobox = screen.getByRole('combobox', { name: 'Categoria' });
+    const combobox = screen.getByRole('combobox', { name: 'Categorias' });
 
     expect(combobox).toHaveTextContent('Eletrônicos');
     expect(combobox).not.toHaveClass('text-muted-foreground');
@@ -77,7 +81,7 @@ describe('ProductFormFieldCategory (Integration)', () => {
 
     renderWithProductProvider(<ProductFormFieldCategory />);
 
-    const combobox = screen.getByRole('combobox', { name: 'Categoria' });
+    const combobox = screen.getByRole('combobox', { name: 'Categorias' });
 
     await user.click(combobox);
 
@@ -103,7 +107,7 @@ describe('ProductFormFieldCategory (Integration)', () => {
 
     renderWithProductProvider(<ProductFormFieldCategory />);
 
-    const combobox = screen.getByRole('combobox', { name: 'Categoria' });
+    const combobox = screen.getByRole('combobox', { name: 'Categorias' });
 
     await user.click(combobox);
 
@@ -122,7 +126,7 @@ describe('ProductFormFieldCategory (Integration)', () => {
 
     renderWithProductProvider(<ProductFormFieldCategory />);
 
-    const combobox = screen.getByRole('combobox', { name: 'Categoria' });
+    const combobox = screen.getByRole('combobox', { name: 'Categorias' });
 
     await user.click(combobox);
 
@@ -141,7 +145,7 @@ describe('ProductFormFieldCategory (Integration)', () => {
 
     renderWithProductProvider(<ProductFormFieldCategory />);
 
-    const combobox = screen.getByRole('combobox', { name: 'Categoria' });
+    const combobox = screen.getByRole('combobox', { name: 'Categorias' });
 
     await user.click(combobox);
 

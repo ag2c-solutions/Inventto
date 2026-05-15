@@ -4,7 +4,11 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { AuthLayout } from '../layouts/auth/auth-layout';
 import { SystemLayout } from '../layouts/system/system-layout';
 
-import { protectedLoader, publicLoader } from './guards/auth-loader';
+import {
+  firstAccessLoader,
+  protectedLoader,
+  publicLoader
+} from './guards/auth-loader';
 import { PermissionRoute } from './guards/permission-router';
 
 const PageLoader = () => (
@@ -45,9 +49,20 @@ export const router = createBrowserRouter([
           );
           return { Component: PlaceholderPage };
         }
-      },
+      }
+    ]
+  },
+  {
+    path: '/auth/first-access',
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <AuthLayout />
+      </Suspense>
+    ),
+    loader: firstAccessLoader,
+    children: [
       {
-        path: 'first-access',
+        index: true,
         lazy: async () => {
           const { FirstAccessPage } = await import('@/features/auth/');
           return { Component: FirstAccessPage };

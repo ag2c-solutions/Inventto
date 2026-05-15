@@ -17,7 +17,11 @@ const steps = [
   { id: 'step-3', label: 'Revisão', component: <h1>Passo 3: Revisão</h1> }
 ];
 
-const WizardContextSpy = ({ onContext }: { onContext: (ctx: any) => void }) => {
+const WizardContextSpy = ({
+  onContext
+}: {
+  onContext: (ctx: ReturnType<typeof useWizard>) => void;
+}) => {
   const context = useWizard();
 
   onContext(context);
@@ -27,12 +31,12 @@ const WizardContextSpy = ({ onContext }: { onContext: (ctx: any) => void }) => {
 
 const renderWizard = (
   initialEntries = ['/'],
-  props: any = {},
+  props: Record<string, unknown> = {},
   extraChildren: React.ReactNode = null
 ) => {
   return render(
     <MemoryRouter initialEntries={initialEntries}>
-      <Wizard steps={steps} {...props}>
+      <Wizard steps={steps} onFinish={vi.fn()} {...props}>
         <WizardHeader />
         <WizardContent />
         {extraChildren}
@@ -181,7 +185,7 @@ describe('Wizard Component', () => {
 
   describe('Guard Clauses & Branch Coverage (Whitebox Testing)', () => {
     it('should ignore prevStep() when on the first step', () => {
-      let context: any;
+      let context = {} as ReturnType<typeof useWizard>;
 
       renderWizard(
         ['/'],
@@ -200,7 +204,7 @@ describe('Wizard Component', () => {
     });
 
     it('should ignore nextStep() when on the last step (without explicit finish)', () => {
-      let context: any;
+      let context = {} as ReturnType<typeof useWizard>;
 
       renderWizard(
         ['/?step=step-3'],
@@ -219,7 +223,7 @@ describe('Wizard Component', () => {
     });
 
     it('should ignore goToStep() with invalid indices (negative or out of bounds)', () => {
-      let context: any;
+      let context = {} as ReturnType<typeof useWizard>;
 
       renderWizard(
         ['/'],
@@ -241,7 +245,7 @@ describe('Wizard Component', () => {
     });
 
     it('should ignore all navigation actions while isLoading is true', async () => {
-      let context: any;
+      let context = {} as ReturnType<typeof useWizard>;
       const pendingPromise = new Promise(() => {});
       const mockValidate = vi.fn().mockReturnValue(pendingPromise);
 
@@ -286,7 +290,7 @@ describe('Wizard Component', () => {
     });
 
     it('should handle cancel action safely when onCancel is undefined', () => {
-      let context: any;
+      let context = {} as ReturnType<typeof useWizard>;
 
       renderWizard(
         ['/'],

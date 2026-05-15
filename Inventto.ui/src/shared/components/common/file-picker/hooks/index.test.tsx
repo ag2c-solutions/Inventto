@@ -18,7 +18,7 @@ const mockContextValue = [
 ];
 
 const MockProvider = ({ children }: { children: React.ReactNode }) => (
-  <FilePickerContext.Provider value={mockContextValue as any}>
+  <FilePickerContext.Provider value={mockContextValue as never}>
     {children}
   </FilePickerContext.Provider>
 );

@@ -17,7 +17,7 @@ vi.mock('@/features/auth', () => ({
   useAuth: vi.fn()
 }));
 
-vi.mock('@/shared/services/local-storage', () => ({
+vi.mock('@/infra/local-storage', () => ({
   LocalStorageService: {
     getItem: vi.fn(),
     setItem: vi.fn()

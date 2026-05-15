@@ -13,7 +13,7 @@ export const queryClient = new QueryClient({
       if (mutation.meta?.suppressErrorToast) return;
 
       const customMessage = mutation.meta?.errorMessage;
-      const backendMessage = (error as any)?.message || 'Erro desconhecido';
+      const backendMessage = error.message ?? 'Erro desconhecido';
 
       toast.error(customMessage || `Erro na operação: ${backendMessage}`);
     },

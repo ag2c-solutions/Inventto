@@ -7,7 +7,7 @@ const mockFileA = {
   id: 'a',
   name: 'A.jpg',
   size: 100,
-  src: 'blob:a',
+  url: 'blob:a',
   file: new File([''], 'A.jpg'),
   isPrimary: true
 };
@@ -16,7 +16,7 @@ const mockFileB = {
   id: 'b',
   name: 'B.png',
   size: 50,
-  src: 'blob:b',
+  url: 'blob:b',
   file: new File([''], 'B.png'),
   isPrimary: false
 };
@@ -25,7 +25,7 @@ const mockFileC = {
   id: 'c',
   name: 'C.gif',
   size: 200,
-  src: 'blob:c',
+  url: 'blob:c',
   file: new File([''], 'C.gif'),
   isPrimary: false
 };
@@ -55,7 +55,7 @@ describe('useFilePicker', () => {
   const renderMultiHook = (initialFiles = [], options = {}) => {
     return renderHook(() =>
       useFilePicker({
-        files: initialFiles as any,
+        files: initialFiles as never,
         onFilesChange: mockOnFilesChange,
         onFilesAdded: mockOnFilesAdded,
         maxFiles: 5,
@@ -72,8 +72,8 @@ describe('useFilePicker', () => {
       const { result } = renderMultiHook();
       const { addFiles } = result.current[1];
 
-      addFiles(null as any);
-      addFiles([] as any);
+      addFiles(null as never);
+      addFiles([] as never);
 
       expect(mockProcessNewFiles).not.toHaveBeenCalled();
       expect(mockOnFilesChange).not.toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe('useFilePicker', () => {
       });
 
       act(() => {
-        addFiles([mockFileB.file] as any);
+        addFiles([mockFileB.file] as never);
       });
 
       expect(mockOnFilesChange).toHaveBeenCalledWith([mockFileB]);
@@ -109,7 +109,7 @@ describe('useFilePicker', () => {
       });
 
       act(() => {
-        addFiles([mockFileB.file] as any);
+        addFiles([mockFileB.file] as never);
       });
 
       expect(mockOnFilesChange).toHaveBeenCalledWith([mockFileA, mockFileB]);
@@ -125,7 +125,7 @@ describe('useFilePicker', () => {
       const { addFiles } = result.current[1];
 
       act(() => {
-        addFiles([mockFileC.file, mockFileC.file] as any);
+        addFiles([mockFileC.file, mockFileC.file] as never);
       });
 
       expect(result.current[0].errors).toEqual([
@@ -146,7 +146,7 @@ describe('useFilePicker', () => {
       });
 
       act(() => {
-        addFiles([mockFileA.file] as any);
+        addFiles([mockFileA.file] as never);
       });
 
       expect(mockOnFilesAdded).toHaveBeenCalledWith([mockFileA]);
@@ -246,7 +246,9 @@ describe('useFilePicker', () => {
       expect(inputProps.multiple).toBe(true);
       expect(inputProps.className).toBe('custom');
       expect(inputProps.onChange).toBeInstanceOf(Function);
-      expect(inputProps.ref.current).toBeDefined();
+      expect(
+        (inputProps.ref as React.RefObject<HTMLInputElement>).current
+      ).toBeDefined();
     });
   });
 });

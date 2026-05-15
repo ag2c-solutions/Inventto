@@ -78,7 +78,7 @@ describe('CategoryApi', () => {
     it('should throw "Erro de conexão" for network errors', async () => {
       mockOverrideTypes.mockResolvedValue({
         data: null,
-        error: { message: 'Network request failed', code: '' }
+        error: { message: 'Network request failed', code: '', details: null }
       });
 
       await expect(CategoryApi.getAll()).rejects.toThrow(
@@ -126,7 +126,8 @@ describe('CategoryApi', () => {
         data: null,
         error: {
           message: 'duplicate key value violates unique constraint',
-          code: '23505'
+          code: '23505',
+          details: null
         }
       });
 

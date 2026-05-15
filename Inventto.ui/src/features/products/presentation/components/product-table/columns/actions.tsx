@@ -96,6 +96,7 @@ export function ProductTableColumnActions({
               </Link>
             </ActionButton>
           </DropdownMenuItem>
+          {/* TODO: product:delete — adicionar ação de inativar/excluir com ActionButton action="product:delete" */}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

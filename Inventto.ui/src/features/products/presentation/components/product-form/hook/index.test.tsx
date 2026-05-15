@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
+  const actual = await importOriginal<Record<string, unknown>>();
 
   return {
     ...actual,
@@ -30,29 +30,35 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
-vi.mock('@/app/services/image-upload', () => ({
-  uploadImageToCloudinary: mocks.uploadImage
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    uploadImage: mocks.uploadImage
+  }
 }));
 
-vi.mock('../../../hooks/use-query', () => ({
-  useProductCreateMutation: () => ({ mutateAsync: mocks.createMutate }),
-  useProductUpdateMutation: () => ({ mutateAsync: mocks.updateMutate })
+vi.mock('../../../hooks/use-mutation', () => ({
+  useCreateProductMutation: () => ({ mutateAsync: mocks.createMutate }),
+  useUpdateProductMutation: () => ({ mutateAsync: mocks.updateMutate })
 }));
 
-vi.mock('../utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../utils')>();
-  return {
-    ...actual,
-    generateVariants: mocks.generateVariants
-  };
-});
+vi.mock('../utils/generate-variants', () => ({
+  generateVariants: mocks.generateVariants
+}));
 
-vi.mock('@/app/services/local-storage', () => ({
+vi.mock('@/infra/local-storage', () => ({
   LocalStorageService: mocks.localStorage
 }));
 
-const wrapper = ({ children, mode = 'Create', product }: any) => (
-  <ProductFormProvider mode={mode} product={product}>
+const wrapper = ({
+  children,
+  mode = 'Create',
+  product
+}: {
+  children?: React.ReactNode;
+  mode?: 'Create' | 'Edit';
+  product?: unknown;
+}) => (
+  <ProductFormProvider mode={mode} product={product as never}>
     {children}
   </ProductFormProvider>
 );
@@ -62,9 +68,10 @@ const mockFile = new File([''], 'test.png', { type: 'image/png' });
 const mockProductData = {
   name: 'Test Product',
   sku: 'TEST-SKU',
-  category: { id: '1', name: 'Test Category' },
+  categories: [{ id: '1', name: 'Test Category' }],
   stock: 10,
   minimumStock: 5,
+  isActive: true,
   hasVariants: false,
   attributes: [],
   variants: [],
@@ -180,16 +187,16 @@ describe('ProductFormProvider Hook', () => {
 
       const isValidEmpty = await result.current.handleNextStep({
         id: 'BasicInfo'
-      } as any);
+      } as never);
       expect(isValidEmpty).toBe(false);
 
       act(() => {
-        result.current.form.reset(mockProductData as any);
+        result.current.form.reset(mockProductData as never);
       });
 
       const isValidFilled = await result.current.handleNextStep({
         id: 'BasicInfo'
-      } as any);
+      } as never);
 
       expect(isValidFilled).toBe(true);
     });
@@ -200,7 +207,7 @@ describe('ProductFormProvider Hook', () => {
       act(() => {
         result.current.handleVariantSwitch(true);
         result.current.form.setValue('attributes', [
-          { name: 'Color', values: 'Red' }
+          { name: 'Color', slug: 'color', type: 'text', values: ['Red'] }
         ]);
       });
 
@@ -209,7 +216,7 @@ describe('ProductFormProvider Hook', () => {
       await act(async () => {
         isValid = await result.current.handleNextStep({
           id: 'Attributes'
-        } as any);
+        } as never);
       });
 
       // @ts-expect-error variable assigned inside act
@@ -226,7 +233,7 @@ describe('ProductFormProvider Hook', () => {
 
       const isValid = await result.current.handleNextStep({
         id: 'Attributes'
-      } as any);
+      } as never);
 
       expect(isValid).toBe(false);
     });
@@ -240,7 +247,7 @@ describe('ProductFormProvider Hook', () => {
 
       const isValid = await result.current.handleNextStep({
         id: 'Variants'
-      } as any);
+      } as never);
 
       expect(isValid).toBeDefined();
     });
@@ -249,7 +256,7 @@ describe('ProductFormProvider Hook', () => {
       const { result } = renderHook(() => useProductForm(), { wrapper });
       const isValid = await result.current.handleNextStep({
         id: 'Summary'
-      } as any);
+      } as never);
 
       expect(isValid).toBe(true);
     });
@@ -271,7 +278,7 @@ describe('ProductFormProvider Hook', () => {
               id: '1',
               file: mockFile,
               name: 'img1',
-              src: 'blob:url1',
+              url: 'blob:url1',
               type: 'image/png',
               isPrimary: false
             },
@@ -279,12 +286,12 @@ describe('ProductFormProvider Hook', () => {
               id: '2',
               file: mockFile,
               name: 'img2',
-              src: 'blob:url2',
+              url: 'blob:url2',
               type: 'image/png',
               isPrimary: true
             }
           ]
-        } as any);
+        } as never);
       });
 
       await act(async () => {
@@ -314,13 +321,13 @@ describe('ProductFormProvider Hook', () => {
           allImages: [
             {
               id: 'existing',
-              src: 'existing-url',
+              url: 'existing-url',
               name: 'img',
               type: 'image/png',
               isPrimary: true
             }
           ]
-        } as any);
+        } as never);
       });
 
       await act(async () => {
@@ -360,11 +367,15 @@ describe('ProductFormProvider Hook', () => {
       const { result } = renderHook(() => useProductForm(), { wrapper });
 
       act(() => {
-        result.current.form.reset(mockProductData as any);
+        result.current.form.reset(mockProductData as never);
       });
 
       await act(async () => {
-        await result.current.onSubmit();
+        try {
+          await result.current.onSubmit();
+        } catch {
+          // createMutate rejection propagates — verify navigate was not called
+        }
       });
 
       expect(mocks.navigate).not.toHaveBeenCalled();

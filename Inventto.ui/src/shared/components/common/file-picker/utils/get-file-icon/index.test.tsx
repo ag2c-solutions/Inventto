@@ -12,7 +12,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getFileIcon } from '.';
 
 vi.mock('lucide-react', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('lucide-react')>();
+  const actual = await importOriginal<Record<string, unknown>>();
   return {
     ...actual,
     FileArchiveIcon: vi.fn(),

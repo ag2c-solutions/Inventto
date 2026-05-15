@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, renderHook, type RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
+import { UserContext } from '@/features/users';
+
 import type { IProduct } from '../../../../domain/entities';
 import {
   ProductFormProvider,
@@ -37,13 +39,17 @@ const wrapper = ({ mode = 'Create', product }: RenderHookProps = {}) => {
       : ['/products/create'];
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={initialEntries}>
-        <ProductFormProvider mode={mode} product={product}>
-          {children}
-        </ProductFormProvider>
-      </MemoryRouter>
-    </QueryClientProvider>
+    <UserContext.Provider
+      value={{ currentOrganization: { id: 'org-1' }, role: 'owner' } as never}
+    >
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={initialEntries}>
+          <ProductFormProvider mode={mode} product={product}>
+            {children}
+          </ProductFormProvider>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </UserContext.Provider>
   );
 
   return wrapper;
