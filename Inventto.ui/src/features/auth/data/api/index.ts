@@ -1,5 +1,3 @@
-import type { AuthError } from '@supabase/supabase-js';
-
 import { supabase } from '@/infra/supabase';
 
 import type { Session } from '../../domain/entities';
@@ -15,7 +13,7 @@ export class AuthAPI {
     });
 
     if (error) {
-      handleAuthError(error);
+      handleAuthError(error, 'signIn');
     }
 
     return data;
@@ -32,7 +30,7 @@ export class AuthAPI {
     });
 
     if (authError) {
-      handleAuthError(authError);
+      handleAuthError(authError, 'signUp');
     }
 
     if (!authData.user) {
@@ -44,7 +42,7 @@ export class AuthAPI {
 
   static async signOut() {
     const { error } = await supabase.auth.signOut();
-    if (error) throw new Error('Falha ao sair do sistema.');
+    if (error) handleAuthError(error, 'signOut');
   }
 
   static async getSession() {
@@ -79,21 +77,15 @@ export class AuthAPI {
     userId: string;
     orgId: string;
   }) {
-    try {
-      const { error: authError } = await supabase.auth.updateUser({
-        password: newPassword
-      });
+    const { error: authError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    if (authError) handleAuthError(authError, 'completeFirstAccess');
 
-      if (authError) throw authError;
-
-      const { error: dbError } = await supabase.rpc('confirm_first_access', {
-        p_user_id: userId,
-        p_organization_id: orgId
-      });
-
-      if (dbError) throw dbError;
-    } catch (error) {
-      handleAuthError(error as AuthError);
-    }
+    const { error: dbError } = await supabase.rpc('confirm_first_access', {
+      p_user_id: userId,
+      p_organization_id: orgId
+    });
+    if (dbError) handleAuthError(dbError, 'completeFirstAccess');
   }
 }

@@ -6,6 +6,7 @@ import {
   useMemo,
   useState
 } from 'react';
+import { toast } from 'sonner';
 
 import type { AuthContextType, Session } from '../../domain/entities';
 import { AuthService } from '../../domain/services';
@@ -25,6 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(data.session);
       } catch (error) {
         console.error('Erro na inicialização da auth:', error);
+        toast.error(
+          'Não foi possível inicializar a autenticação. Tente recarregar a página.'
+        );
       } finally {
         setIsLoading(false);
       }

@@ -1,9 +1,4 @@
-import { useNavigate } from 'react-router';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, LockKeyhole } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-
-import { useUser } from '@/features/users';
 
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -23,41 +18,10 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import {
-  type FirstAccessFormValues,
-  firstAccessSchema
-} from '../../../domain/validators';
-import { useAuth } from '../../hooks/use-auth';
-import { useCompleteFirstAccessMutation } from '../../hooks/use-mutations';
+import { useFirstAccess } from '../../hooks/use-first-access';
 
 export function FirstAccessPage() {
-  const navigate = useNavigate();
-  const { session } = useAuth();
-  const { currentOrganization } = useUser();
-  const { mutateAsync, isPending } = useCompleteFirstAccessMutation();
-  const isReady = !!currentOrganization?.id;
-
-  const form = useForm<FirstAccessFormValues>({
-    resolver: zodResolver(firstAccessSchema),
-    defaultValues: { password: '', confirmPassword: '' }
-  });
-
-  const onSubmit = async (data: FirstAccessFormValues) => {
-    if (!session) {
-      return;
-    }
-
-    await mutateAsync({
-      newPassword: data.password,
-      userId: session.user.id
-    })
-      .then(() => {
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        return;
-      });
-  };
+  const { form, onSubmit, isReady, isPending } = useFirstAccess();
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">

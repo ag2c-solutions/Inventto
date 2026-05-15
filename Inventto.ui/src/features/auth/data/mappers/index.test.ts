@@ -13,8 +13,7 @@ describe('Auth Mappers', () => {
         email: 'john@acme.com',
         password: 'securePassword123',
         document: '12345678900',
-        slug: 'acme-corp',
-        role: 'admin'
+        slug: 'acme-corp'
       };
 
       const result = AuthMapper.toSupabaseMetadata(payload);
