@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, LockKeyhole } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+import { useUser } from '@/features/users';
+
 import { Button } from '@/shared/components/ui/button';
 import {
   Card,
@@ -31,7 +33,9 @@ import { useCompleteFirstAccessMutation } from '../../hooks/use-mutations';
 export function FirstAccessPage() {
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { currentOrganization } = useUser();
   const { mutateAsync, isPending } = useCompleteFirstAccessMutation();
+  const isReady = !!currentOrganization?.id;
 
   const form = useForm<FirstAccessFormValues>({
     resolver: zodResolver(firstAccessSchema),
@@ -48,7 +52,7 @@ export function FirstAccessPage() {
       userId: session.user.id
     })
       .then(() => {
-        navigate('/products', { replace: true });
+        navigate('/', { replace: true });
       })
       .catch(() => {
         return;
@@ -101,8 +105,14 @@ export function FirstAccessPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!isReady || isPending}
+              >
+                {(!isReady || isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Confirmar e Acessar
               </Button>
             </form>

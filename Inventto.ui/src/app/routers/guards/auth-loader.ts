@@ -42,3 +42,16 @@ export async function publicLoader() {
 
   return null;
 }
+
+export async function firstAccessLoader(): Promise<Response | null> {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
+
+  if (!session) return redirect('/auth/login');
+
+  const profile = await UserAPI.getProfile(session.user.id);
+
+  if (!profile?.mustChangePassword) return redirect('/');
+
+  return null;
+}

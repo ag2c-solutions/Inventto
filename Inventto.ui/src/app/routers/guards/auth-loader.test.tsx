@@ -1,7 +1,11 @@
 import type { LoaderFunctionArgs } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { protectedLoader, publicLoader } from './auth-loader';
+import {
+  firstAccessLoader,
+  protectedLoader,
+  publicLoader
+} from './auth-loader';
 
 const mockGetSession = vi.fn();
 const mockGetProfile = vi.fn();
@@ -92,6 +96,48 @@ describe('Auth Guards (Loaders)', () => {
       });
 
       const response = await publicLoader();
+
+      expect(response).toBeInstanceOf(Response);
+
+      const redirectUrl = (response as Response).headers.get('Location');
+
+      expect(redirectUrl).toBe('/');
+    });
+  });
+
+  describe('firstAccessLoader (Require First Access)', () => {
+    it('should redirect to /auth/login when user is NOT authenticated', async () => {
+      mockGetSession.mockResolvedValue({
+        data: { session: null }
+      });
+
+      const response = await firstAccessLoader();
+
+      expect(response).toBeInstanceOf(Response);
+
+      const redirectUrl = (response as Response).headers.get('Location');
+
+      expect(redirectUrl).toBe('/auth/login');
+    });
+
+    it('should allow access (return null) when user is authenticated and mustChangePassword is true', async () => {
+      mockGetSession.mockResolvedValue({
+        data: { session: { user: { id: '1' } } }
+      });
+      mockGetProfile.mockResolvedValue({ mustChangePassword: true });
+
+      const response = await firstAccessLoader();
+
+      expect(response).toBeNull();
+    });
+
+    it('should redirect to / when user is authenticated but mustChangePassword is false', async () => {
+      mockGetSession.mockResolvedValue({
+        data: { session: { user: { id: '1' } } }
+      });
+      mockGetProfile.mockResolvedValue({ mustChangePassword: false });
+
+      const response = await firstAccessLoader();
 
       expect(response).toBeInstanceOf(Response);
 
