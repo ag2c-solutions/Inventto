@@ -4,7 +4,7 @@ import { usePermission } from '@/features/permissions/';
 
 import { cn } from '@/shared/utils';
 
-import { navLinks } from '../../consts/navlinks-siderbar';
+import { navLinks } from '../../constants/navlinks-sidebar';
 
 export function MobileBottomNav() {
   const { pathname } = useLocation();

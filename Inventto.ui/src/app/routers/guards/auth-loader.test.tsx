@@ -54,7 +54,7 @@ describe('Auth Guards (Loaders)', () => {
     it('should redirect to login with "redirectTo" param when user is NOT authenticated', async () => {
       mockGetSession.mockResolvedValue(null);
 
-      const targetUrl = 'http://localhost:3000/app/products/123?filter=active';
+      const targetUrl = 'http://localhost:3000/products/123?filter=active';
       const request = createRequest(targetUrl);
       const response = await protectedLoader({
         request,
@@ -65,11 +65,45 @@ describe('Auth Guards (Loaders)', () => {
       expect(response).toBeInstanceOf(Response);
 
       const redirectUrl = (response as Response).headers.get('Location');
-      const expectedRedirectPath = `/app/products/123?filter=active`;
+      const expectedRedirectPath = '/products/123?filter=active';
 
       expect(redirectUrl).toBe(
         `/auth/login?redirectTo=${encodeURIComponent(expectedRedirectPath)}`
       );
+    });
+
+    it('should redirect to /auth/first-access when mustChangePassword is true', async () => {
+      mockGetSession.mockResolvedValue({ user: { id: '1' } });
+      mockGetProfile.mockResolvedValue({ mustChangePassword: true });
+
+      const request = createRequest('http://localhost:3000/products');
+      const response = await protectedLoader({
+        request,
+        params: {},
+        context: {}
+      } as LoaderFunctionArgs);
+
+      expect(response).toBeInstanceOf(Response);
+
+      const redirectUrl = (response as Response).headers.get('Location');
+      expect(redirectUrl).toBe('/auth/first-access');
+    });
+
+    it('should redirect to / when mustChangePassword is false and path is /auth/first-access', async () => {
+      mockGetSession.mockResolvedValue({ user: { id: '1' } });
+      mockGetProfile.mockResolvedValue({ mustChangePassword: false });
+
+      const request = createRequest('http://localhost:3000/auth/first-access');
+      const response = await protectedLoader({
+        request,
+        params: {},
+        context: {}
+      } as LoaderFunctionArgs);
+
+      expect(response).toBeInstanceOf(Response);
+
+      const redirectUrl = (response as Response).headers.get('Location');
+      expect(redirectUrl).toBe('/');
     });
   });
 

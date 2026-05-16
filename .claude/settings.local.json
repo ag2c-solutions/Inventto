@@ -26,7 +26,8 @@
       "Bash(Remove-Item \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\app\\\\routers\\\\guards\\\\permission-router.tsx\" -Force)",
       "Bash(Remove-Item \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\app\\\\routers\\\\guards\\\\permission-router.test.tsx\" -Force)",
       "Bash(Get-ChildItem \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\app\\\\routers\\\\guards\\\\\")",
-      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\features\\\\users\")"
+      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\features\\\\users\")",
+      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\Rafael\\\\Desktop\\\\Projects\\\\Inventto\\\\Inventto.ui\\\\src\\\\features\\\\permissions\")"
     ]
   }
 }

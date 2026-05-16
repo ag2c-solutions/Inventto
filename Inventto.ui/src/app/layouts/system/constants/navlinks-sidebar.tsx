@@ -6,25 +6,25 @@ export const navLinks: NavItem[] = [
   {
     label: 'Equipe',
     href: '/team',
-    icon: <Users className="w-5 h-5" />,
+    icon: Users,
     permission: 'team:manage'
   },
   {
     label: 'Produtos',
     href: '/products',
-    icon: <Package className="w-5 h-5" />,
+    icon: Package,
     permission: 'product:view'
   },
   {
     label: 'Movimentação',
     href: '/movements',
-    icon: <ArrowLeftRight className="w-5 h-5" />,
+    icon: ArrowLeftRight,
     permission: 'movement:view'
   },
   {
     label: 'Configurações',
     href: '/settings',
-    icon: <Settings className="w-5 h-5" />,
+    icon: Settings,
     permission: 'org:manage'
   }
 ];

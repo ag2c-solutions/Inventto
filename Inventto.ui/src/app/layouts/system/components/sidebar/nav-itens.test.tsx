@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { navLinks } from '../../consts/navlinks-siderbar';
+import { navLinks } from '../../constants/navlinks-sidebar';
 
 import { NavItens } from './nav-itens';
 
@@ -11,7 +11,15 @@ const mocks = vi.hoisted(() => ({
   usePermission: vi.fn()
 }));
 
-vi.mock('@/features/permissions', () => ({
+vi.mock('@/features/permissions', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...(actual as object),
+    usePermission: mocks.usePermission
+  };
+});
+
+vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
   usePermission: mocks.usePermission
 }));
 
