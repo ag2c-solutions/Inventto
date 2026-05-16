@@ -1,10 +1,11 @@
 import { type z } from 'zod';
 
+import type { Role } from '@/features/permissions';
+
 import { ProductAPI } from '../../data/api';
 import {
   type CreateProduct,
   type IProduct,
-  type ProductUserRole,
   type UpdateProduct
 } from '../entities';
 import { createProductSchema, updateProductSchema } from '../validators';
@@ -12,7 +13,7 @@ import { createProductSchema, updateProductSchema } from '../validators';
 export class ProductService {
   static async getAll(
     organizationId?: string,
-    role?: ProductUserRole
+    role?: Role
   ): Promise<IProduct[]> {
     if (!organizationId?.trim()) {
       throw new Error('Nenhuma organização selecionada.');

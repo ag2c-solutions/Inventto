@@ -2,22 +2,19 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useUser } from '@/features/users';
 
-import { MovementApi } from '../../data/api';
+import { MovementService } from '../../domain/services';
+import { MOVEMENT_KEYS } from '../constants';
 
 export function useMovementsQuery(filters?: { productId?: string }) {
-  const { currentOrganization: organization } = useUser();
-  const organizationId = organization?.id;
+  const { currentOrganization } = useUser();
 
   return useQuery({
-    queryKey: ['movements', organizationId, filters],
-    queryFn: () => {
-      if (!organizationId) throw new Error('Nenhuma organização selecionada.');
-
-      return MovementApi.getAll({
-        organizationId,
+    queryKey: MOVEMENT_KEYS.list(currentOrganization?.id, filters),
+    queryFn: () =>
+      MovementService.getAll({
+        organization: currentOrganization,
         productId: filters?.productId
-      });
-    },
-    enabled: !!organizationId
+      }),
+    enabled: !!currentOrganization
   });
 }

@@ -10,8 +10,6 @@ export const productStockStatusSchema = z.enum([
   'healthy'
 ]);
 
-export const productUserRoleSchema = z.string();
-
 export const attributeTypeSchema = z.enum([
   'text',
   'color',

@@ -1,3 +1,5 @@
+export type Role = 'owner' | 'manager' | 'sales';
+
 export type PermissionAction =
   | 'product:view'
   | 'product:create'

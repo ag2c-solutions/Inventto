@@ -1,15 +1,18 @@
-import type { UserRole } from '@/features/users';
+import type { Role } from '@/features/permissions';
 
 export type MemberStatus = 'active' | 'inactive' | 'invited';
 
-export interface IOrganization {
+export interface Organization {
   id: string;
-  ownerId: string;
   name: string;
   slug: string;
+}
+
+export interface OrganizationWithDetails extends Organization {
+  ownerId: string;
   document?: string;
-  settings: OrganizationSettings;
   createdAt: Date;
+  settings: OrganizationSettings;
 }
 
 export interface IMember {
@@ -19,7 +22,7 @@ export interface IMember {
   name: string;
   email: string;
   avatarUrl?: string;
-  role: UserRole;
+  role: Role;
   status: MemberStatus;
   joinedAt: Date;
   isMe: boolean;

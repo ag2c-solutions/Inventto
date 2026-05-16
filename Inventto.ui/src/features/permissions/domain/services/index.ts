@@ -1,10 +1,8 @@
-import type { UserRole } from '@/features/users';
-
-import { ROLE_PERMISSIONS } from '../constants';
-import type { PermissionAction } from '../entities';
+import { ROLE_PERMISSIONS } from '../constants/permissions';
+import type { PermissionAction, Role } from '../entities';
 
 export class PermissionService {
-  static can(role: UserRole | undefined, action: PermissionAction): boolean {
+  static can(role: Role | undefined, action: PermissionAction): boolean {
     if (!role) {
       return false;
     }

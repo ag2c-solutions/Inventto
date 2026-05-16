@@ -2,13 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MovementApi } from '../../data/api';
 import type { Movement } from '../../domain/entities';
+import { MovementService } from '../../domain/services';
 
 const mockUseUser = vi.fn();
 
-vi.mock('../../data/api', () => ({
-  MovementApi: {
+vi.mock('../../domain/services', () => ({
+  MovementService: {
     getAll: vi.fn()
   }
 }));
@@ -34,7 +34,7 @@ describe('useMovementsQuery', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('should fetch movements using MovementApi.getAll with organizationId', async () => {
+  it('should fetch movements using MovementService.getAll with organization', async () => {
     const mockMovements: Movement[] = [
       {
         id: 'mov-1',
@@ -48,21 +48,21 @@ describe('useMovementsQuery', () => {
       }
     ];
 
-    vi.mocked(MovementApi.getAll).mockResolvedValue(mockMovements);
+    vi.mocked(MovementService.getAll).mockResolvedValue(mockMovements);
 
     const { result } = renderHook(() => useMovementsQuery(), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(MovementApi.getAll).toHaveBeenCalledWith({
-      organizationId: 'org-1',
+    expect(MovementService.getAll).toHaveBeenCalledWith({
+      organization: { id: 'org-1' },
       productId: undefined
     });
     expect(result.current.data).toEqual(mockMovements);
   });
 
   it('should pass productId filter when provided', async () => {
-    vi.mocked(MovementApi.getAll).mockResolvedValue([]);
+    vi.mocked(MovementService.getAll).mockResolvedValue([]);
 
     const { result } = renderHook(
       () => useMovementsQuery({ productId: 'prod-123' }),
@@ -71,8 +71,8 @@ describe('useMovementsQuery', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(MovementApi.getAll).toHaveBeenCalledWith({
-      organizationId: 'org-1',
+    expect(MovementService.getAll).toHaveBeenCalledWith({
+      organization: { id: 'org-1' },
       productId: 'prod-123'
     });
   });
@@ -83,6 +83,6 @@ describe('useMovementsQuery', () => {
     const { result } = renderHook(() => useMovementsQuery(), { wrapper });
 
     expect(result.current.fetchStatus).toBe('idle');
-    expect(MovementApi.getAll).not.toHaveBeenCalled();
+    expect(MovementService.getAll).not.toHaveBeenCalled();
   });
 });

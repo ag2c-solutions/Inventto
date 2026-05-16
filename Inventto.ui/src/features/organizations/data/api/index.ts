@@ -1,12 +1,10 @@
-import type { UserRole } from '@/features/users';
-
 import { supabase, tempClient } from '@/infra/supabase';
 
 import type {
   IMember,
-  IOrganization,
   MemberStatus,
-  OrganizationSettings
+  OrganizationSettings,
+  OrganizationWithDetails
 } from '../../domain/entities';
 import type {
   CandidateMemberDTO,
@@ -18,7 +16,7 @@ import { handleOrganizationError } from '../handlers/error-handler';
 import { OrganizationMapper } from '../mapper';
 
 export class OrganizationApi {
-  static async getById(orgId: string): Promise<IOrganization> {
+  static async getById(orgId: string): Promise<OrganizationWithDetails> {
     try {
       const { data, error } = await supabase
         .from('organizations')
@@ -162,7 +160,7 @@ export class OrganizationApi {
 
   static async updateMemberRole(
     memberId: string,
-    newRole: UserRole
+    newRole: 'manager' | 'sales'
   ): Promise<void> {
     try {
       const { error } = await supabase

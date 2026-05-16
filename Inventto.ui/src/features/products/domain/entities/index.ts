@@ -9,7 +9,6 @@ import type {
   productInputBaseSchema,
   productSchema,
   productStockStatusSchema,
-  productUserRoleSchema,
   productVariantInputSchema,
   productVariantSchema,
   updateProductSchema,
@@ -18,7 +17,6 @@ import type {
 } from '../validators';
 
 export type ProductStockStatus = z.infer<typeof productStockStatusSchema>;
-export type ProductUserRole = z.infer<typeof productUserRoleSchema>;
 export type AttributeType = z.infer<typeof attributeTypeSchema>;
 export type VariantOption = z.infer<typeof variantOptionSchema>;
 export type IProductAttribute = z.infer<typeof productAttributeSchema>;

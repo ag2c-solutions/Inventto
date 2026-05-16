@@ -13,14 +13,11 @@ import type {
 } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth';
+import type { Role } from '@/features/permissions';
 
 import { LocalStorageService } from '@/infra/local-storage';
 
-import type {
-  User,
-  UserOrganizationContext,
-  UserRole
-} from '../../domain/entities';
+import type { User, UserOrganization } from '../../domain/entities';
 import { UserService } from '../../domain/services';
 
 import { useUserProfileQuery } from './use-query';
@@ -33,9 +30,9 @@ interface UserContextType {
   isError: boolean;
   error: Error | null;
   isAuthenticated: boolean;
-  currentOrganization: UserOrganizationContext | null;
-  role: UserRole | undefined;
-  availableOrganizations: UserOrganizationContext[];
+  currentOrganization: UserOrganization | null;
+  role: Role | undefined;
+  availableOrganizations: UserOrganization[];
   refetch: (
     options?: RefetchOptions
   ) => Promise<QueryObserverResult<User | null, Error>>;

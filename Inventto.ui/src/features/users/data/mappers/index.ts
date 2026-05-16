@@ -1,4 +1,4 @@
-import type { User, UserOrganizationContext } from '../../domain/entities';
+import type { User, UserOrganization } from '../../domain/entities';
 import type { OrganizationMemberDTO, UserWithOrganizationDTO } from '../dtos';
 
 export class UserMapper {
@@ -21,7 +21,7 @@ export class UserMapper {
 
   private static mapOrganizationMember(
     member: OrganizationMemberDTO
-  ): UserOrganizationContext {
+  ): UserOrganization {
     if (!member.organizations) {
       throw new Error(
         `Inconsistência de dados: Membro ${member.organization_id} sem dados da organização.`

@@ -2,7 +2,7 @@ import { UserAPI } from '../../data/api';
 import type {
   UpdateAvatarVariables,
   User,
-  UserOrganizationContext
+  UserOrganization
 } from '../entities';
 
 export class UserService {
@@ -47,7 +47,7 @@ export class UserService {
 
   static getDefaultOrganization(
     user: User | null | undefined
-  ): UserOrganizationContext | null {
+  ): UserOrganization | null {
     if (!user?.availableOrganizations.length) {
       return null;
     }
@@ -58,7 +58,7 @@ export class UserService {
   static getOrganizationById(
     user: User | null | undefined,
     organizationId: string | null
-  ): UserOrganizationContext | null {
+  ): UserOrganization | null {
     if (!user?.availableOrganizations.length) {
       return null;
     }
@@ -77,7 +77,7 @@ export class UserService {
   static selectOrganization(
     user: User | null | undefined,
     organizationId: string
-  ): UserOrganizationContext {
+  ): UserOrganization {
     if (!user) {
       throw new Error('Usuário não carregado.');
     }

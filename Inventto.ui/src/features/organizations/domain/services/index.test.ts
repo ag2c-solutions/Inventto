@@ -181,14 +181,4 @@ describe('OrganizationService', () => {
       );
     });
   });
-
-  describe('forceDeleteMember', () => {
-    it('deve delegar para OrganizationApi.forceDeleteMember com os parâmetros corretos', async () => {
-      vi.mocked(OrganizationApi.forceDeleteMember).mockResolvedValue(undefined);
-      await OrganizationService.forceDeleteMember('member-1');
-      expect(OrganizationApi.forceDeleteMember).toHaveBeenCalledWith(
-        'member-1'
-      );
-    });
-  });
 });

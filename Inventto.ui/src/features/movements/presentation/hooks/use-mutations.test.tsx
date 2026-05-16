@@ -33,7 +33,7 @@ describe('useMovementCreateMutation', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('should call MovementService.create with input + organizationId', async () => {
+  it('should call MovementService.create with input + organization', async () => {
     vi.mocked(MovementService.create).mockResolvedValue('new-mov-id');
 
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -52,7 +52,7 @@ describe('useMovementCreateMutation', () => {
 
     expect(MovementService.create).toHaveBeenCalledWith({
       input,
-      organizationId: 'org-1'
+      organization: { id: 'org-1' }
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['movements'] });
@@ -61,6 +61,10 @@ describe('useMovementCreateMutation', () => {
 
   it('should throw when no organization is selected', async () => {
     mockUseUser.mockReturnValue({ currentOrganization: null });
+
+    vi.mocked(MovementService.create).mockRejectedValue(
+      new Error('Nenhuma organização selecionada.')
+    );
 
     const { result } = renderHook(() => useMovementCreateMutation(), {
       wrapper
@@ -73,5 +77,10 @@ describe('useMovementCreateMutation', () => {
         items: []
       })
     ).rejects.toThrow('Nenhuma organização selecionada.');
+
+    expect(MovementService.create).toHaveBeenCalledWith({
+      input: { type: 'entry', reason: 'Test', items: [] },
+      organization: null
+    });
   });
 });

@@ -1,6 +1,4 @@
-import type { UserRole } from '@/features/users';
-
-import type { PermissionAction } from '../entities';
+import type { PermissionAction, Role } from '../entities';
 
 const SALES_PERMISSIONS: PermissionAction[] = [
   'product:view',
@@ -39,7 +37,7 @@ const OWNER_PERMISSIONS: PermissionAction[] = [
   'movement:view_costs'
 ];
 
-export const ROLE_PERMISSIONS: Record<UserRole, PermissionAction[]> = {
+export const ROLE_PERMISSIONS: Record<Role, PermissionAction[]> = {
   sales: SALES_PERMISSIONS,
   manager: MANAGER_PERMISSIONS,
   owner: OWNER_PERMISSIONS

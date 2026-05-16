@@ -1,10 +1,8 @@
-export type UserRole = 'owner' | 'manager' | 'sales';
+import type { Organization } from '@/features/organizations';
+import type { Role } from '@/features/permissions';
 
-export interface UserOrganizationContext {
-  id: string;
-  name: string;
-  slug: string;
-  role: UserRole;
+export interface UserOrganization extends Organization {
+  role: Role;
 }
 
 export interface User {
@@ -15,7 +13,7 @@ export interface User {
   mustChangePassword: boolean;
   createdAt: Date;
   updatedAt: Date;
-  availableOrganizations: UserOrganizationContext[];
+  availableOrganizations: UserOrganization[];
 }
 
 export interface PixelCrop {

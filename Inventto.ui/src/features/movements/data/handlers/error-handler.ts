@@ -1,6 +1,8 @@
 import { isPostgrestError } from '@/infra/supabase/guards/is-postgres-error';
 
 export function handleMovementError(error: unknown, operation: string): never {
+  console.error(`Erro em Movement Service [${operation}]:`, error);
+
   if (isPostgrestError(error)) {
     if (error.code === '42501') {
       throw new Error(
@@ -49,9 +51,7 @@ export function handleMovementError(error: unknown, operation: string): never {
   }
 
   if (error instanceof Error) {
-    throw new Error(
-      `Error ao executar [MovementApi.${operation}]: ${error.message}`
-    );
+    throw new Error(error.message);
   }
 
   throw new Error('Ocorreu um erro inesperado ao processar a movimentação.');
