@@ -27,7 +27,7 @@ import {
 import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
 
 import { useAvatarChange } from './hook';
-import { AvatarChangeForm } from './index';
+import { AvatarChange } from './index';
 
 const { mockedUseUpdateAvatarMutation, mockedUseUser } = vi.hoisted(() => {
   return {
@@ -42,6 +42,14 @@ vi.mock('../../hooks/use-mutation', () => ({
 
 vi.mock('../../hooks/use-user', () => ({
   useUser: mockedUseUser
+}));
+
+vi.mock('../../utils/get-cropped-img', () => ({
+  getCroppedImg: vi
+    .fn()
+    .mockResolvedValue(
+      new File(['content'], 'avatar.png', { type: 'image/png' })
+    )
 }));
 
 vi.mock('@/shared/components/ui/avatar', () => ({
@@ -91,7 +99,12 @@ vi.mock('react-easy-crop', () => ({
   )
 }));
 
-describe('AvatarChangeForm Feature', () => {
+window.PointerEvent = MouseEvent as typeof PointerEvent;
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+
+describe('AvatarChange Feature', () => {
   const user = userEvent.setup();
   const mockMutate = vi.fn();
   const defaultUser = {
@@ -125,6 +138,10 @@ describe('AvatarChangeForm Feature', () => {
     });
   });
 
+  const openDialog = async () => {
+    await user.click(screen.getByRole('button'));
+  };
+
   const selectFile = async () => {
     const file = new File(['(⌐□_□)'], 'avatar.png', { type: 'image/png' });
     const input = screen.getByLabelText(/Upload image file/i);
@@ -136,25 +153,30 @@ describe('AvatarChangeForm Feature', () => {
 
   describe('Integration Tests (Component UI)', () => {
     describe('Estado Inicial', () => {
-      it('deve renderizar o avatar atual do usuário', () => {
-        render(<AvatarChangeForm />);
+      it('deve renderizar o avatar atual do usuário', async () => {
+        render(<AvatarChange />);
 
-        const avatarImage = screen.getByRole('img');
+        await openDialog();
+
+        const avatarImage = await screen.findByRole('img');
 
         expect(avatarImage).toHaveAttribute('src', defaultUser.avatarUrl);
       });
 
-      it('deve mostrar o botão de upload inicialmente', () => {
-        render(<AvatarChangeForm />);
+      it('deve mostrar o botão de upload inicialmente', async () => {
+        render(<AvatarChange />);
 
-        expect(screen.getByText(/carregar foto/i)).toBeInTheDocument();
+        await openDialog();
+
+        expect(await screen.findByText(/carregar foto/i)).toBeInTheDocument();
       });
     });
 
     describe('Fluxo de Seleção e Edição', () => {
       it('deve exibir o Cropper após selecionar um arquivo', async () => {
-        render(<AvatarChangeForm />);
+        render(<AvatarChange />);
 
+        await openDialog();
         await selectFile();
 
         expect(await screen.findByTestId('mock-cropper')).toBeInTheDocument();
@@ -165,9 +187,10 @@ describe('AvatarChangeForm Feature', () => {
         ).toBeInTheDocument();
       });
 
-      it('deve permitir cancelar a edição e limpar o arquivo', async () => {
-        render(<AvatarChangeForm />);
+      it('deve limpar o arquivo ao clicar em Trocar Imagem', async () => {
+        render(<AvatarChange />);
 
+        await openDialog();
         await selectFile();
 
         const secondaryBtn = await screen.findByText(/trocar imagem/i);
@@ -175,12 +198,12 @@ describe('AvatarChangeForm Feature', () => {
         await user.click(secondaryBtn);
 
         expect(screen.queryByTestId('mock-cropper')).not.toBeInTheDocument();
-        expect(screen.getByText(/carregar foto/i)).toBeInTheDocument();
       });
 
       it('deve atualizar o zoom via slider', async () => {
-        render(<AvatarChangeForm />);
+        render(<AvatarChange />);
 
+        await openDialog();
         await selectFile();
 
         const slider = await screen.findByTestId('mock-slider');
@@ -193,8 +216,9 @@ describe('AvatarChangeForm Feature', () => {
 
     describe('Fluxo de Salvamento (Submit)', () => {
       it('deve disparar a mutation com os dados corretos ao salvar', async () => {
-        render(<AvatarChangeForm />);
+        render(<AvatarChange />);
 
+        await openDialog();
         await selectFile();
 
         const cropBtn = await screen.findByText('Simulate Crop');
@@ -206,19 +230,10 @@ describe('AvatarChangeForm Feature', () => {
         await user.click(saveBtn);
 
         expect(mockMutate).toHaveBeenCalledTimes(1);
-        expect(mockMutate).toHaveBeenCalledWith(
-          expect.objectContaining({
-            userId: defaultUser.id,
-            imageSrc: 'blob:mock-preview-url',
-            pixelCrop: expect.objectContaining({
-              width: 200,
-              height: 200
-            })
-          }),
-          expect.objectContaining({
-            onSuccess: expect.any(Function)
-          })
-        );
+        expect(mockMutate).toHaveBeenCalledWith({
+          userId: defaultUser.id,
+          file: expect.any(File)
+        });
       });
 
       it('não deve salvar se as coordenadas de corte não estiverem definidas', async () => {
@@ -226,8 +241,9 @@ describe('AvatarChangeForm Feature', () => {
           () => <div data-testid="dumb-cropper" />
         );
 
-        render(<AvatarChangeForm />);
+        render(<AvatarChange />);
 
+        await openDialog();
         await selectFile();
         await screen.findByTestId('dumb-cropper');
 
@@ -240,60 +256,59 @@ describe('AvatarChangeForm Feature', () => {
     });
 
     describe('Estado de Loading', () => {
-      it('deve desabilitar botões enquanto a mutation está pendente', () => {
+      it('deve desabilitar botões enquanto a mutation está pendente', async () => {
         mockedUseUpdateAvatarMutation.mockReturnValue({
           mutate: mockMutate,
           isPending: true,
           status: 'pending'
         });
 
-        render(<AvatarChangeForm />);
+        render(<AvatarChange />);
 
-        const cancelBtn = screen.getByText(/cancelar/i).closest('button');
+        await openDialog();
 
-        expect(cancelBtn).toBeDisabled();
+        const cancelBtn = await screen.findByText(/cancelar/i);
+
+        expect(cancelBtn.closest('button')).toBeDisabled();
       });
     });
   });
 
   describe('Unit Tests (Hook Logic)', () => {
     it('deve inicializar com valores padrão', () => {
-      const { result } = renderHook(() => useAvatarChange({}));
+      const { result } = renderHook(() => useAvatarChange());
 
       expect(result.current.files).toEqual([]);
       expect(result.current.zoom).toBe(1);
     });
 
     describe('Guard Clauses (handleSave)', () => {
-      it('não deve salvar se não houver usuário logado', () => {
+      it('não deve salvar se não houver usuário logado', async () => {
         mockedUseUser.mockReturnValue({ user: null });
 
-        const { result } = renderHook(() => useAvatarChange({}));
+        const { result } = renderHook(() => useAvatarChange());
 
-        act(() => {
-          result.current.handleSave();
+        await act(async () => {
+          await result.current.handleSave();
         });
 
         expect(mockMutate).not.toHaveBeenCalled();
       });
 
-      it('não deve salvar se não houver arquivo selecionado', () => {
-        const { result } = renderHook(() => useAvatarChange({}));
+      it('não deve salvar se não houver arquivo selecionado', async () => {
+        const { result } = renderHook(() => useAvatarChange());
 
-        act(() => {
-          result.current.handleSave();
+        await act(async () => {
+          await result.current.handleSave();
         });
 
         expect(mockMutate).not.toHaveBeenCalled();
       });
     });
 
-    describe('Callback onSuccess', () => {
-      it('deve resetar o estado e chamar onSuccess externo após sucesso da mutation', () => {
-        const onExternalSuccess = vi.fn();
-        const { result } = renderHook(() =>
-          useAvatarChange({ onSuccess: onExternalSuccess })
-        );
+    describe('handleSave', () => {
+      it('deve chamar mutate com userId e File ao salvar', async () => {
+        const { result } = renderHook(() => useAvatarChange());
 
         act(() => {
           result.current.setFiles([{ url: 'blob:file' } as FileWithPreview]);
@@ -308,21 +323,14 @@ describe('AvatarChangeForm Feature', () => {
           );
         });
 
-        act(() => {
-          result.current.handleSave();
+        await act(async () => {
+          await result.current.handleSave();
         });
 
-        expect(mockMutate).toHaveBeenCalled();
-
-        const mutationOptions = mockMutate.mock.calls[0][1];
-
-        act(() => {
-          mutationOptions.onSuccess();
+        expect(mockMutate).toHaveBeenCalledWith({
+          userId: defaultUser.id,
+          file: expect.any(File)
         });
-
-        expect(result.current.files).toEqual([]);
-        expect(result.current.zoom).toBe(1);
-        expect(onExternalSuccess).toHaveBeenCalled();
       });
     });
   });

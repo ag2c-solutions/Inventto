@@ -1,33 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CloudinaryService } from '@/infra/cloudinary';
-
 import { UserAPI } from '../../data/api';
-import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
-import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
 import type { User } from '../entities';
 
 import { UserService } from './index';
 
-vi.mock('@/infra/cloudinary', () => ({
-  CloudinaryService: {
-    uploadImage: vi.fn()
-  }
-}));
-
-vi.mock('../../presentation/utils/get-cropped-img', () => ({
-  getCroppedImg: vi.fn()
-}));
-
 vi.mock('../../data/api', () => ({
   UserAPI: {
+    saveProfileImage: vi.fn(),
     updateAvatar: vi.fn(),
     updatePassword: vi.fn()
   }
 }));
 
-const mockGetCroppedImg = vi.mocked(getCroppedImg);
-const mockUploadImage = vi.mocked(CloudinaryService.uploadImage);
+const mockUploadImage = vi.mocked(UserAPI.saveProfileImage);
 const mockUpdateAvatar = vi.mocked(UserAPI.updateAvatar);
 const mockUpdatePassword = vi.mocked(UserAPI.updatePassword);
 
@@ -62,35 +48,16 @@ describe('UserService', () => {
 
   describe('updateAvatar', () => {
     const userId = 'user-123';
-    const imageSrc = 'data:image/png;base64,image';
-
-    const pixelCrop: PixelCrop = {
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100
-    };
-
-    const croppedFile = {
-      name: 'avatar.png',
+    const croppedFile = new File(['content'], 'avatar.png', {
       type: 'image/png'
-    } as File;
+    });
 
-    it('should crop image, upload it and update avatar successfully', async () => {
-      mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImage.mockResolvedValue({
-        url: 'https://cdn.example.com/avatar.png',
-        publicId: 'avatar-public-id'
-      });
+    it('should upload file and update avatar successfully', async () => {
+      mockUploadImage.mockResolvedValue('https://cdn.example.com/avatar.png');
       mockUpdateAvatar.mockResolvedValue();
 
-      await UserService.updateAvatar({
-        userId,
-        imageSrc,
-        pixelCrop
-      });
+      await UserService.updateAvatar({ userId, file: croppedFile });
 
-      expect(mockGetCroppedImg).toHaveBeenCalledWith(imageSrc, pixelCrop);
       expect(mockUploadImage).toHaveBeenCalledWith(croppedFile);
       expect(mockUpdateAvatar).toHaveBeenCalledWith(
         userId,
@@ -100,101 +67,42 @@ describe('UserService', () => {
 
     it('should throw when user id is empty', async () => {
       await expect(
-        UserService.updateAvatar({
-          userId: '   ',
-          imageSrc,
-          pixelCrop
-        })
+        UserService.updateAvatar({ userId: '   ', file: croppedFile })
       ).rejects.toThrow('Usuário não informado.');
 
-      expect(mockGetCroppedImg).not.toHaveBeenCalled();
       expect(mockUploadImage).not.toHaveBeenCalled();
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
-    it('should throw when image src is empty', async () => {
+    it('should throw when file is not provided', async () => {
       await expect(
-        UserService.updateAvatar({
-          userId,
-          imageSrc: '   ',
-          pixelCrop
-        })
+        UserService.updateAvatar({ userId, file: null as unknown as File })
       ).rejects.toThrow('Imagem não informada.');
 
-      expect(mockGetCroppedImg).not.toHaveBeenCalled();
       expect(mockUploadImage).not.toHaveBeenCalled();
-      expect(mockUpdateAvatar).not.toHaveBeenCalled();
-    });
-
-    it('should throw when cropped image cannot be generated', async () => {
-      mockGetCroppedImg.mockResolvedValue(null);
-
-      await expect(
-        UserService.updateAvatar({
-          userId,
-          imageSrc,
-          pixelCrop
-        })
-      ).rejects.toThrow('Não foi possível processar o recorte da imagem.');
-
-      expect(mockGetCroppedImg).toHaveBeenCalledWith(imageSrc, pixelCrop);
-      expect(mockUploadImage).not.toHaveBeenCalled();
-      expect(mockUpdateAvatar).not.toHaveBeenCalled();
-    });
-
-    it('should throw when uploaded avatar url is empty', async () => {
-      mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImage.mockResolvedValue({
-        url: '',
-        publicId: 'avatar-public-id'
-      });
-
-      await expect(
-        UserService.updateAvatar({
-          userId,
-          imageSrc,
-          pixelCrop
-        })
-      ).rejects.toThrow('Avatar não informado.');
-
-      expect(mockGetCroppedImg).toHaveBeenCalledWith(imageSrc, pixelCrop);
-      expect(mockUploadImage).toHaveBeenCalledWith(croppedFile);
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
     it('should propagate image upload errors', async () => {
-      mockGetCroppedImg.mockResolvedValue(croppedFile);
       mockUploadImage.mockRejectedValue(
         new Error('Erro ao fazer upload da imagem.')
       );
 
       await expect(
-        UserService.updateAvatar({
-          userId,
-          imageSrc,
-          pixelCrop
-        })
+        UserService.updateAvatar({ userId, file: croppedFile })
       ).rejects.toThrow('Erro ao fazer upload da imagem.');
 
       expect(mockUpdateAvatar).not.toHaveBeenCalled();
     });
 
     it('should propagate UserAPI update avatar errors', async () => {
-      mockGetCroppedImg.mockResolvedValue(croppedFile);
-      mockUploadImage.mockResolvedValue({
-        url: 'https://cdn.example.com/avatar.png',
-        publicId: 'avatar-public-id'
-      });
+      mockUploadImage.mockResolvedValue('https://cdn.example.com/avatar.png');
       mockUpdateAvatar.mockRejectedValue(
         new Error('Você não tem permissão para realizar esta alteração.')
       );
 
       await expect(
-        UserService.updateAvatar({
-          userId,
-          imageSrc,
-          pixelCrop
-        })
+        UserService.updateAvatar({ userId, file: croppedFile })
       ).rejects.toThrow('Você não tem permissão para realizar esta alteração.');
 
       expect(mockUpdateAvatar).toHaveBeenCalledWith(

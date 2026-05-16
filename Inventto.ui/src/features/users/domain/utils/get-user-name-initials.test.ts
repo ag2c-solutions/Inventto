@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getUserNameInitials } from './index';
+import { getUserNameInitials } from './get-user-name-initials';
 
 describe('User Utils', () => {
   describe('getUserNameInitials', () => {

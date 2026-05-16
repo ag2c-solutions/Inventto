@@ -51,13 +51,7 @@ describe('User mutations', () => {
   describe('useUpdateAvatarMutation', () => {
     const variables = {
       userId: 'user-123',
-      imageSrc: 'data:image/png;base64,image',
-      pixelCrop: {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 100
-      }
+      file: new File(['content'], 'avatar.png', { type: 'image/png' })
     };
 
     it('should call UserService.updateAvatar with mutation variables', async () => {
@@ -85,10 +79,6 @@ describe('User mutations', () => {
 
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: ['users', 'profile', variables.userId]
-      });
-
-      expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ['auth']
       });
     });
 

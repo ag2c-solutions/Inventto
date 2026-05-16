@@ -4,11 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useUpdatePasswordMutation } from '../../../hooks/use-mutation';
 import { type ChangePasswordFormData, changePasswordSchema } from '../schema';
 
-type UseChangePasswordProps = {
-  onSuccess?: () => void;
-};
-
-export function useChangePassword({ onSuccess }: UseChangePasswordProps) {
+export function useChangePassword() {
   const { mutateAsync, isPending } = useUpdatePasswordMutation();
 
   const form = useForm<ChangePasswordFormData>({
@@ -21,14 +17,9 @@ export function useChangePassword({ onSuccess }: UseChangePasswordProps) {
   });
 
   const handleSubmit = async (data: ChangePasswordFormData) => {
-    await mutateAsync(data.password, {
-      onSuccess: () => {
-        form.reset();
-        onSuccess?.();
-      }
-    }).catch(() => {
-      return;
-    });
+    await mutateAsync(data.password);
+
+    form.reset();
   };
 
   return {

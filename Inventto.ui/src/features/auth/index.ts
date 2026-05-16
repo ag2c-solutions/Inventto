@@ -1,4 +1,5 @@
 export type { AuthContextType, Session } from './domain/entities';
+export { AuthService } from './domain/services';
 export { firstAccessSchema, passwordSchema } from './domain/validators';
 export { AuthProvider, useAuth } from './presentation/hooks/use-auth';
 export { useSignOutMutation } from './presentation/hooks/use-mutations';

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useChangePassword } from './hook';
-import { ChangePasswordForm } from './index';
+import { PasswordChange } from './index';
 
 const { mockedUseUpdatePasswordMutation } = vi.hoisted(() => {
   return {
@@ -23,7 +23,12 @@ vi.mock('sonner', () => ({
   }
 }));
 
-describe('ChangePasswordForm Feature', () => {
+window.PointerEvent = MouseEvent as typeof PointerEvent;
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+
+describe('PasswordChange Feature', () => {
   const user = userEvent.setup();
   const mockMutate = vi.fn();
 
@@ -43,6 +48,10 @@ describe('ChangePasswordForm Feature', () => {
     vi.restoreAllMocks();
   });
 
+  const openDialog = async () => {
+    await user.click(screen.getByRole('button', { name: /alterar senha/i }));
+  };
+
   const getInputs = () => {
     const inputs = screen.getAllByPlaceholderText('••••••••');
 
@@ -53,8 +62,10 @@ describe('ChangePasswordForm Feature', () => {
   };
 
   describe('Integration Tests (UI Flow)', () => {
-    it('should render fields and buttons correctly', () => {
-      render(<ChangePasswordForm />);
+    it('should render fields and buttons correctly', async () => {
+      render(<PasswordChange />);
+
+      await openDialog();
 
       expect(screen.getByText(/^Nova Senha$/i)).toBeInTheDocument();
       expect(screen.getByText(/Confirmar Nova Senha/i)).toBeInTheDocument();
@@ -64,7 +75,9 @@ describe('ChangePasswordForm Feature', () => {
     });
 
     it('should toggle password visibility when clicking the icon', async () => {
-      render(<ChangePasswordForm />);
+      render(<PasswordChange />);
+
+      await openDialog();
 
       const { passwordInput } = getInputs();
       const toggleBtn = screen.getAllByRole('button', {
@@ -79,7 +92,9 @@ describe('ChangePasswordForm Feature', () => {
     });
 
     it('should toggle confirm password visibility', async () => {
-      render(<ChangePasswordForm />);
+      render(<PasswordChange />);
+
+      await openDialog();
 
       const { confirmInput } = getInputs();
       const toggleBtn = screen.getAllByRole('button', {
@@ -98,7 +113,9 @@ describe('ChangePasswordForm Feature', () => {
     });
 
     it('should display validation errors when submitted empty', async () => {
-      render(<ChangePasswordForm />);
+      render(<PasswordChange />);
+
+      await openDialog();
 
       await user.click(
         screen.getByRole('button', { name: /Atualizar Senha/i })
@@ -112,7 +129,9 @@ describe('ChangePasswordForm Feature', () => {
     });
 
     it('should display error when passwords do not match', async () => {
-      render(<ChangePasswordForm />);
+      render(<PasswordChange />);
+
+      await openDialog();
 
       const { passwordInput, confirmInput } = getInputs();
 
@@ -131,18 +150,10 @@ describe('ChangePasswordForm Feature', () => {
       expect(mockMutate).not.toHaveBeenCalled();
     });
 
-    it('should call onCancel when cancel button is clicked', async () => {
-      const onCancelMock = vi.fn();
-
-      render(<ChangePasswordForm onCancel={onCancelMock} />);
-
-      await user.click(screen.getByRole('button', { name: /Cancelar/i }));
-
-      expect(onCancelMock).toHaveBeenCalledTimes(1);
-    });
-
     it('should submit the form with valid data', async () => {
-      render(<ChangePasswordForm />);
+      render(<PasswordChange />);
+
+      await openDialog();
 
       const { passwordInput, confirmInput } = getInputs();
 
@@ -153,22 +164,19 @@ describe('ChangePasswordForm Feature', () => {
       );
 
       await waitFor(() => {
-        expect(mockMutate).toHaveBeenCalledWith(
-          'StrongPass123!',
-          expect.objectContaining({
-            onSuccess: expect.any(Function)
-          })
-        );
+        expect(mockMutate).toHaveBeenCalledWith('StrongPass123!');
       });
     });
 
-    it('should disable fields during submission (Loading)', () => {
+    it('should disable fields during submission (Loading)', async () => {
       mockedUseUpdatePasswordMutation.mockReturnValue({
         mutateAsync: mockMutate,
         isPending: true
       });
 
-      render(<ChangePasswordForm />);
+      render(<PasswordChange />);
+
+      await openDialog();
 
       const { passwordInput } = getInputs();
 
@@ -177,11 +185,8 @@ describe('ChangePasswordForm Feature', () => {
   });
 
   describe('Unit Tests (Hook Logic)', () => {
-    it('should reset form and call onSuccess after mutation success', async () => {
-      const onSuccessExternal = vi.fn();
-      const { result } = renderHook(() =>
-        useChangePassword({ onSuccess: onSuccessExternal })
-      );
+    it('should call mutateAsync with the password on submit', async () => {
+      const { result } = renderHook(() => useChangePassword());
 
       await act(async () => {
         await result.current.handleSubmit({
@@ -190,36 +195,7 @@ describe('ChangePasswordForm Feature', () => {
         });
       });
 
-      expect(mockMutate).toHaveBeenCalled();
-
-      const mutationOptions = mockMutate.mock.calls[0][1];
-
-      act(() => {
-        mutationOptions.onSuccess();
-      });
-
-      expect(onSuccessExternal).toHaveBeenCalled();
-    });
-
-    it('should execute success flow without errors even without defined onSuccess callback', async () => {
-      const { result } = renderHook(() => useChangePassword({}));
-
-      await act(async () => {
-        await result.current.handleSubmit({
-          password: 'ValidPass123!',
-          confirmPassword: 'ValidPass123!'
-        });
-      });
-
-      expect(mockMutate).toHaveBeenCalled();
-
-      const mutationOptions = mockMutate.mock.calls[0][1];
-
-      expect(() => {
-        act(() => {
-          mutationOptions.onSuccess();
-        });
-      }).not.toThrow();
+      expect(mockMutate).toHaveBeenCalledWith('ValidPass123!');
     });
   });
 });

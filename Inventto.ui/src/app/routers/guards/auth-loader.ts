@@ -1,12 +1,10 @@
 import { type LoaderFunctionArgs, redirect } from 'react-router';
 
-import { UserAPI } from '@/features/users';
-
-import { supabase } from '@/infra/supabase';
+import { AuthService } from '@/features/auth';
+import { UserService } from '@/features/users';
 
 export async function protectedLoader({ request }: LoaderFunctionArgs) {
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
+  const session = await AuthService.getSession();
   const url = new URL(request.url);
   const pathname = url.pathname;
 
@@ -17,9 +15,9 @@ export async function protectedLoader({ request }: LoaderFunctionArgs) {
     return redirect(`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`);
   }
 
-  const profile = await UserAPI.getProfile(session.user.id);
+  const profile = await UserService.getProfile(session.user.id);
 
-  const mustChangePassword = profile?.mustChangePassword || false;
+  const mustChangePassword = profile.mustChangePassword;
   const isAtFirstAccessPage = pathname === '/auth/first-access';
 
   if (mustChangePassword && !isAtFirstAccessPage) {
@@ -34,24 +32,21 @@ export async function protectedLoader({ request }: LoaderFunctionArgs) {
 }
 
 export async function publicLoader() {
-  const { data } = await supabase.auth.getSession();
+  const session = await AuthService.getSession();
 
-  if (data.session) {
-    return redirect('/');
-  }
+  if (session) return redirect('/');
 
   return null;
 }
 
 export async function firstAccessLoader(): Promise<Response | null> {
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
+  const session = await AuthService.getSession();
 
   if (!session) return redirect('/auth/login');
 
-  const profile = await UserAPI.getProfile(session.user.id);
+  const profile = await UserService.getProfile(session.user.id);
 
-  if (!profile?.mustChangePassword) return redirect('/');
+  if (!profile.mustChangePassword) return redirect('/');
 
   return null;
 }

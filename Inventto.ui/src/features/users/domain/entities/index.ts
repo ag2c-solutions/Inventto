@@ -17,3 +17,15 @@ export interface User {
   updatedAt: Date;
   availableOrganizations: UserOrganizationContext[];
 }
+
+export interface PixelCrop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface UpdateAvatarVariables {
+  userId: string;
+  file: File;
+}

@@ -2,15 +2,12 @@ import { useCallback, useState } from 'react';
 
 import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
 
+import type { PixelCrop } from '../../../../domain/entities';
 import { useUpdateAvatarMutation } from '../../../hooks/use-mutation';
 import { useUser } from '../../../hooks/use-user';
-import type { PixelCrop } from '../../../utils/pixel-crop.types';
+import { getCroppedImg } from '../../../utils/get-cropped-img';
 
-type UseAvatarChangeProps = {
-  onSuccess?: () => void;
-};
-
-export function useAvatarChange({ onSuccess }: UseAvatarChangeProps) {
+export function useAvatarChange() {
   const { user } = useUser();
   const { mutate, isPending } = useUpdateAvatarMutation();
   const [files, setFiles] = useState<FileWithPreview[]>([]);
@@ -33,22 +30,17 @@ export function useAvatarChange({ onSuccess }: UseAvatarChangeProps) {
     setZoom(1);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user || files.length === 0 || !croppedAreaPixels) return;
 
-    mutate(
-      {
-        userId: user.id,
-        imageSrc: files[0].url,
-        pixelCrop: croppedAreaPixels
-      },
-      {
-        onSuccess: () => {
-          reset();
-          onSuccess?.();
-        }
-      }
-    );
+    const croppedFile = await getCroppedImg(files[0].url, croppedAreaPixels);
+
+    if (!croppedFile) return;
+
+    mutate({
+      userId: user.id,
+      file: croppedFile
+    });
   };
 
   return {

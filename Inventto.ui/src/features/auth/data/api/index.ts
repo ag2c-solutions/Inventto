@@ -46,12 +46,22 @@ export class AuthAPI {
   }
 
   static async getSession() {
-    return await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      handleAuthError(error, 'getSession');
+    }
+
+    if (!data.session) {
+      throw new Error('Nenhuma sessão encontrada.');
+    }
+
+    return data.session;
   }
 
   static async isAuthenticated() {
-    const { data } = await supabase.auth.getSession();
-    return !!data.session;
+    const session = await this.getSession();
+    return !!session;
   }
 
   static async subscribeToAuthChanges(

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
 import type { User } from '../../domain/entities';
@@ -8,6 +9,12 @@ import { handleUserError } from '../handlers/error-handler';
 import { UserMapper } from '../mappers';
 
 import { UserAPI } from './index';
+
+vi.mock('@/infra/cloudinary', () => ({
+  CloudinaryService: {
+    uploadImage: vi.fn()
+  }
+}));
 
 vi.mock('@/infra/supabase', () => ({
   supabase: {
@@ -32,6 +39,7 @@ const mockSupabaseFrom = vi.mocked(supabase.from);
 const mockUpdateUser = vi.mocked(supabase.auth.updateUser);
 const mockHandleUserError = vi.mocked(handleUserError);
 const mockToDomain = vi.mocked(UserMapper.toDomain);
+const mockUploadImage = vi.mocked(CloudinaryService.uploadImage);
 
 function createGetProfileQueryMock(result: {
   data: UserWithOrganizationDTO | null;
@@ -305,6 +313,41 @@ describe('UserAPI', () => {
       });
 
       expect(mockHandleUserError).toHaveBeenCalledWith(error, 'updatePassword');
+    });
+  });
+
+  describe('saveProfileImage', () => {
+    const file = new File(['content'], 'avatar.png', { type: 'image/png' });
+
+    it('should upload image and return url successfully', async () => {
+      mockUploadImage.mockResolvedValue({
+        url: 'https://cdn.example.com/avatar.png',
+        publicId: 'avatar-public-id'
+      });
+
+      const result = await UserAPI.saveProfileImage(file);
+
+      expect(CloudinaryService.uploadImage).toHaveBeenCalledWith(file);
+      expect(result).toBe('https://cdn.example.com/avatar.png');
+    });
+
+    it('should call handleUserError when upload fails', async () => {
+      const error = new Error('Upload failed');
+
+      mockUploadImage.mockRejectedValue(error);
+
+      mockHandleUserError.mockImplementation(() => {
+        throw new Error('Upload failed');
+      });
+
+      await expect(UserAPI.saveProfileImage(file)).rejects.toThrow(
+        'Upload failed'
+      );
+
+      expect(mockHandleUserError).toHaveBeenCalledWith(
+        error,
+        'saveProfileImage'
+      );
     });
   });
 });

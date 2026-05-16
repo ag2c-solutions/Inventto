@@ -22,8 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
-        const { data } = await AuthService.getSession();
-        setSession(data.session);
+        const session = await AuthService.getSession();
+        setSession(session);
       } catch (error) {
         console.error('Erro na inicialização da auth:', error);
         toast.error(

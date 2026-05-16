@@ -16,6 +16,10 @@ export function handleUserError(
     if (error.code === '42501') {
       throw new Error('Você não tem permissão para realizar esta alteração.');
     }
+
+    if (error.message.toLowerCase().includes('network')) {
+      throw new Error('Erro de conexão. Verifique sua internet.');
+    }
   }
 
   if (error instanceof Error) {

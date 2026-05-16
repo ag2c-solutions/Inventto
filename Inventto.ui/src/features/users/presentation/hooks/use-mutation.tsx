@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { type UpdateAvatarVariables, UserService } from '../../domain/services';
+import type { UpdateAvatarVariables } from '../../domain/entities';
+import { UserService } from '../../domain/services';
 import { USERS_KEYS } from '../constants';
 
 export function useUpdateAvatarMutation() {
@@ -15,10 +16,6 @@ export function useUpdateAvatarMutation() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: USERS_KEYS.profile(variables.userId)
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: ['auth']
       });
     },
 
