@@ -53,7 +53,7 @@ export class AuthAPI {
     }
 
     if (!data.session) {
-      throw new Error('Nenhuma sessão encontrada.');
+      return null;
     }
 
     return data.session;

@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
 
-interface SubmitingButtonProps extends ComponentProps<typeof Button> {
+interface SubmittingButtonProps extends ComponentProps<typeof Button> {
   label?: string;
   Icon?: LucideIcon;
   showLabel?: boolean;
@@ -11,13 +11,13 @@ interface SubmitingButtonProps extends ComponentProps<typeof Button> {
   onClick?: () => void;
 }
 
-export const SubmitingButton = ({
+export const SubmittingButton = ({
   label,
   state,
   showLabel = true,
   Icon,
   ...props
-}: SubmitingButtonProps) => {
+}: SubmittingButtonProps) => {
   return state ? (
     <Button type="submit" disabled {...props}>
       <Loader2 className="mr-0.5 h-3 w-3 animate-spin" />

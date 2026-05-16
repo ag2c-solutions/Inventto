@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
-import { SubmitingButton } from '@/shared/components/common/submiting-button';
+import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
@@ -135,7 +135,7 @@ export function PasswordChange() {
               Cancelar
             </Button>
           </DialogClose>
-          <SubmitingButton
+          <SubmittingButton
             form="change-password"
             type="submit"
             state={isSubmitting}

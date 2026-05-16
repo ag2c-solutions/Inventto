@@ -7,4 +7,5 @@ export {
 export { generateSlug } from './formatters/generate-slug';
 export { debounce } from './objects/debounce';
 export { stripUndefined } from './objects/strip-undefined';
+export { parseColorValue } from './parses/color-value';
 export { validateDocument } from './validators/validate-document';

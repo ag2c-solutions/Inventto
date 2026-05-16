@@ -1,5 +1,3 @@
-'use client';
-
 import { type DragEvent, useCallback, useRef, useState } from 'react';
 
 type DropzoneOptions = {

@@ -19,6 +19,7 @@ export function MobileBottomNav() {
       <div className="grid h-full grid-cols-2">
         {filteredLinks.map((link) => {
           const isActive = pathname.startsWith(link.href);
+          const Icon = link.icon;
 
           return (
             <Link
@@ -34,7 +35,7 @@ export function MobileBottomNav() {
               <div
                 className={cn('p-1 rounded-full', isActive && 'bg-primary/10')}
               >
-                {link.icon}
+                <Icon />
               </div>
               {link.label}
             </Link>
