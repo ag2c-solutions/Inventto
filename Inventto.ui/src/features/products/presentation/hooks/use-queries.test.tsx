@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductService } from '../../domain/services';
 
-import { useProductByIDQuery, useProductsQuery } from './use-query';
+import { useProductByIDQuery, useProductsQuery } from './use-queries';
 
 const { mockUseUser } = vi.hoisted(() => ({
   mockUseUser: vi.fn()
@@ -45,11 +45,17 @@ beforeEach(() => {
 });
 
 describe('useProductsQuery', () => {
-  it('deve chamar ProductService.getAll com organizationId e role', async () => {
+  it('deve chamar ProductService.getAll com organization e role', async () => {
     vi.mocked(ProductService.getAll).mockResolvedValue([]);
+
     const { result } = renderHook(() => useProductsQuery(), { wrapper });
+
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(ProductService.getAll).toHaveBeenCalledWith('org-1', 'manager');
+
+    expect(ProductService.getAll).toHaveBeenCalledWith(
+      { id: 'org-1' },
+      'manager'
+    );
   });
 
   it('deve ter fetchStatus idle quando currentOrganization é null', () => {

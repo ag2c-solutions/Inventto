@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useProductByIDQuery } from '../../hooks/use-query';
+import { useProductByIDQuery } from '../../hooks/use-queries';
 
 import { ProductDetailsPage } from './index';
 
@@ -16,7 +16,7 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
-vi.mock('../../hooks/use-query');
+vi.mock('../../hooks/use-queries');
 
 class ResizeObserverMock {
   observe() {}

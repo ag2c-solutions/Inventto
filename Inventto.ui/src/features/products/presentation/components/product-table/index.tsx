@@ -24,7 +24,7 @@ import {
 } from '@/shared/components/common/data-table';
 
 import type { IProduct } from '../../../domain/entities';
-import { useProductsQuery } from '../../hooks/use-query';
+import { useProductsQuery } from '../../hooks/use-queries';
 import { productVariantsTableColumns } from '../variants-table/columns';
 
 import { columnsProductListTable } from './columns';

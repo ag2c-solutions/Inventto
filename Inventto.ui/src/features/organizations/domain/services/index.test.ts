@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrganizationApi } from '../../data/api';
 
 import { OrganizationService } from './index';
-
 vi.mock('../../data/api', () => ({
   OrganizationApi: {
     getById: vi.fn(),
@@ -24,20 +23,6 @@ const mockOrganization = { id: 'org-1', role: 'owner' } as never;
 describe('OrganizationService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  describe('getOrganizationId (via métodos públicos)', () => {
-    it('deve lançar "Organization ID is required" quando organization é null', async () => {
-      await expect(OrganizationService.getById(null)).rejects.toThrow(
-        'ID da organização é obrigatório.'
-      );
-    });
-
-    it('deve lançar quando organization.id é string vazia', async () => {
-      await expect(
-        OrganizationService.getById({ id: '', role: 'owner' } as never)
-      ).rejects.toThrow('ID da organização é obrigatório.');
-    });
   });
 
   describe('getById', () => {

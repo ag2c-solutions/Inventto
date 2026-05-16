@@ -100,8 +100,7 @@ export const productBaseSchema = productInputBaseSchema.extend({
     .number()
     .min(0, 'Preço de custo não pode ser negativo.')
     .optional(),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional()
+  createdAt: z.string().optional()
 });
 
 export const createProductWithVariantsSchema = productInputBaseSchema.extend({

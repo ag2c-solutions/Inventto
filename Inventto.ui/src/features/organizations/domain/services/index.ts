@@ -8,19 +8,11 @@ import type {
   Organization,
   OrganizationSettings
 } from '../entities';
+import { getOrganizationId } from '../utils/get-organization-id';
 
 export class OrganizationService {
-  private static getOrganizationId = (
-    organization: Organization | null
-  ): string => {
-    if (!organization?.id) {
-      throw new Error('ID da organização é obrigatório.');
-    }
-    return organization.id;
-  };
-
   static async getById(organization: Organization | null) {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.getById(orgId);
   }
@@ -29,7 +21,7 @@ export class OrganizationService {
     organization: Organization | null,
     currentUserId: string
   ) {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     if (!currentUserId?.trim()) {
       throw new Error('ID do usuário é obrigatório.');
@@ -39,7 +31,7 @@ export class OrganizationService {
   }
 
   static async getCandidatesMembers(organization: Organization | null) {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.getCandidatesMembers(orgId);
   }
@@ -52,7 +44,7 @@ export class OrganizationService {
     organization: Organization | null,
     settings: OrganizationSettings
   ): Promise<void> {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.update(orgId, { settings });
   }
@@ -61,7 +53,7 @@ export class OrganizationService {
     organization: Organization | null,
     data: CreateMember
   ): Promise<void> {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.createMember(orgId, data);
   }
@@ -77,7 +69,7 @@ export class OrganizationService {
       );
     }
 
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.replicateMember(orgId, userId, role);
   }

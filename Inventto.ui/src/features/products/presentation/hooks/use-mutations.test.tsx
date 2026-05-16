@@ -28,7 +28,7 @@ import { ProductService } from '../../domain/services';
 import {
   useCreateProductMutation,
   useUpdateProductMutation
-} from './use-mutation';
+} from './use-mutations';
 
 describe('useCreateProductMutation', () => {
   let queryClient: QueryClient;
@@ -45,15 +45,19 @@ describe('useCreateProductMutation', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('deve chamar ProductService.add com o produto e o organizationId do currentOrganization', async () => {
+  it('deve chamar ProductService.add com o produto e o currentOrganization', async () => {
     const mockProduct = { id: 'p-1', name: 'Produto A' } as never;
     vi.mocked(ProductService.add).mockResolvedValue(mockProduct);
+
     const { result } = renderHook(() => useCreateProductMutation(), {
       wrapper
     });
+
     const payload = { name: 'Produto A' } as never;
+
     await result.current.mutateAsync(payload);
-    expect(ProductService.add).toHaveBeenCalledWith(payload, 'org-1');
+
+    expect(ProductService.add).toHaveBeenCalledWith(payload, { id: 'org-1' });
   });
 
   it('deve invalidar PRODUCTS_KEYS.all no onSuccess', async () => {
@@ -82,15 +86,21 @@ describe('useUpdateProductMutation', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('deve chamar ProductService.update com o produto e o organizationId do currentOrganization', async () => {
+  it('deve chamar ProductService.update com o produto e o currentOrganization', async () => {
     const mockProduct = { id: 'p-1', name: 'Produto Atualizado' } as never;
     vi.mocked(ProductService.update).mockResolvedValue(mockProduct);
+
     const { result } = renderHook(() => useUpdateProductMutation(), {
       wrapper
     });
+
     const payload = { id: 'p-1', name: 'Produto Atualizado' } as never;
+
     await result.current.mutateAsync(payload);
-    expect(ProductService.update).toHaveBeenCalledWith(payload, 'org-1');
+
+    expect(ProductService.update).toHaveBeenCalledWith(payload, {
+      id: 'org-1'
+    });
   });
 
   it('deve invalidar PRODUCTS_KEYS.all e PRODUCTS_KEYS.detail(product.id) no onSuccess', async () => {

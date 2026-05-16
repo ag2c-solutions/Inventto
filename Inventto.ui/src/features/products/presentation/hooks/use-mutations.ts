@@ -8,8 +8,7 @@ import type {
   UpdateProduct
 } from '../../domain/entities';
 import { ProductService } from '../../domain/services';
-
-import { PRODUCTS_KEYS } from './use-query';
+import { PRODUCTS_KEYS } from '../constants/query-keys';
 
 type CreateProductMutationInput = Omit<CreateProduct, 'organizationId'>;
 type UpdateProductMutationInput = Omit<UpdateProduct, 'organizationId'>;
@@ -17,21 +16,17 @@ type UpdateProductMutationInput = Omit<UpdateProduct, 'organizationId'>;
 export function useCreateProductMutation() {
   const queryClient = useQueryClient();
   const { currentOrganization } = useUser();
-  const organizationId = currentOrganization?.id;
 
   return useMutation<IProduct, Error, CreateProductMutationInput>({
     mutationKey: ['products', 'create'],
-
-    mutationFn: (product) => ProductService.add(product, organizationId),
-
+    meta: {
+      successMessage: 'Produto criado com sucesso!'
+    },
+    mutationFn: (product) => ProductService.add(product, currentOrganization),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: PRODUCTS_KEYS.all
       });
-    },
-
-    meta: {
-      successMessage: 'Produto criado com sucesso!'
     }
   });
 }
@@ -39,13 +34,14 @@ export function useCreateProductMutation() {
 export function useUpdateProductMutation() {
   const queryClient = useQueryClient();
   const { currentOrganization } = useUser();
-  const organizationId = currentOrganization?.id;
 
   return useMutation<IProduct, Error, UpdateProductMutationInput>({
     mutationKey: ['products', 'update'],
-
-    mutationFn: (product) => ProductService.update(product, organizationId),
-
+    meta: {
+      successMessage: 'Produto atualizado com sucesso!'
+    },
+    mutationFn: (product) =>
+      ProductService.update(product, currentOrganization),
     onSuccess: (product) => {
       queryClient.invalidateQueries({
         queryKey: PRODUCTS_KEYS.all
@@ -54,10 +50,6 @@ export function useUpdateProductMutation() {
       queryClient.invalidateQueries({
         queryKey: PRODUCTS_KEYS.detail(product.id)
       });
-    },
-
-    meta: {
-      successMessage: 'Produto atualizado com sucesso!'
     }
   });
 }

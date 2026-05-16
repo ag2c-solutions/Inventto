@@ -1,5 +1,6 @@
 import { type z } from 'zod';
 
+import { getOrganizationId, type Organization } from '@/features/organizations';
 import type { Role } from '@/features/permissions';
 
 import { ProductAPI } from '../../data/api';
@@ -12,12 +13,10 @@ import { createProductSchema, updateProductSchema } from '../validators';
 
 export class ProductService {
   static async getAll(
-    organizationId?: string,
+    organization: Organization | null,
     role?: Role
   ): Promise<IProduct[]> {
-    if (!organizationId?.trim()) {
-      throw new Error('Nenhuma organização selecionada.');
-    }
+    const organizationId = getOrganizationId(organization);
 
     if (!role?.trim()) {
       throw new Error('Usuário sem cargo.');
@@ -40,11 +39,9 @@ export class ProductService {
 
   static async add(
     product: Omit<CreateProduct, 'organizationId'>,
-    organizationId?: string
+    organization: Organization | null
   ): Promise<IProduct> {
-    if (!organizationId?.trim()) {
-      throw new Error('Nenhuma organização selecionada.');
-    }
+    const organizationId = getOrganizationId(organization);
 
     const validProduct = ProductService.validateCreateProduct({
       ...product,
@@ -56,11 +53,9 @@ export class ProductService {
 
   static async update(
     product: Omit<UpdateProduct, 'organizationId'>,
-    organizationId?: string
+    organization: Organization | null
   ): Promise<IProduct> {
-    if (!organizationId?.trim()) {
-      throw new Error('Nenhuma organização selecionada.');
-    }
+    const organizationId = getOrganizationId(organization);
 
     const validProduct = ProductService.validateUpdateProduct({
       ...product,

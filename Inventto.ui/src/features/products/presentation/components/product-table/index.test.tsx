@@ -5,11 +5,11 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { IProduct } from '../../../domain/entities';
-import { useProductsQuery } from '../../hooks/use-query';
+import { useProductsQuery } from '../../hooks/use-queries';
 
 import { ProductListTable } from './index';
 
-vi.mock('../../hooks/use-query');
+vi.mock('../../hooks/use-queries');
 
 vi.mock('@/features/users', () => ({
   useUser: vi.fn().mockReturnValue({

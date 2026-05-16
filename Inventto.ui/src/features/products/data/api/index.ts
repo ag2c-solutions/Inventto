@@ -5,18 +5,18 @@ import type {
   IProduct,
   UpdateProduct
 } from '../../domain/entities';
+import { SELECT_QUERY_INTERNALS } from '../constants/select-query-internals';
+import { SELECT_QUERY_SALES } from '../constants/select-query-sales';
 import type { ProductAttributeDTO, ProductDTO } from '../dtos';
 import { handleProductError } from '../handlers/error-handler';
 import { ProductMapper } from '../mapper';
-
-import { selectQuery, selectQueryForSales } from './queries';
 
 export class ProductAPI {
   static async getAllForInternals(organizationId: string): Promise<IProduct[]> {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(selectQuery)
+        .select(SELECT_QUERY_INTERNALS)
         .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
         .overrideTypes<ProductDTO[], { merge: false }>();
@@ -33,7 +33,7 @@ export class ProductAPI {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(selectQueryForSales)
+        .select(SELECT_QUERY_SALES)
         .eq('organization_id', organizationId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -51,7 +51,7 @@ export class ProductAPI {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(selectQuery)
+        .select(SELECT_QUERY_INTERNALS)
         .eq('id', id)
         .single()
         .overrideTypes<ProductDTO, { merge: false }>();
@@ -83,8 +83,6 @@ export class ProductAPI {
       return data;
     } catch (error) {
       handleProductError(error, 'getGlobalAttributes');
-
-      return [];
     }
   }
 

@@ -12,12 +12,12 @@ import {
 import {
   useCreateProductMutation,
   useUpdateProductMutation
-} from '../../hooks/use-mutation';
+} from '../../hooks/use-mutations';
 
 import { ProductFormProvider } from './hook';
 import { ProductForm } from './index';
 
-vi.mock('../../hooks/use-mutation');
+vi.mock('../../hooks/use-mutations');
 vi.mock('@/features/categories', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {

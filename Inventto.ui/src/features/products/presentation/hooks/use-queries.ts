@@ -4,24 +4,15 @@ import { useUser } from '@/features/users';
 
 import { ProductAPI } from '../../data/api';
 import { ProductService } from '../../domain/services';
-
-export const PRODUCTS_KEYS = {
-  all: ['products'] as const,
-  list: (organizationId?: string | null) =>
-    [...PRODUCTS_KEYS.all, 'list', organizationId] as const,
-  detail: (productId?: string | null) =>
-    [...PRODUCTS_KEYS.all, 'detail', productId] as const,
-  globalAttributes: ['products', 'global-attributes'] as const
-};
+import { PRODUCTS_KEYS } from '../constants/query-keys';
 
 export function useProductsQuery() {
-  const { currentOrganization: organization, role } = useUser();
-  const organizationId = organization?.id;
+  const { currentOrganization, role } = useUser();
 
   return useQuery({
-    queryKey: PRODUCTS_KEYS.list(organizationId),
-    queryFn: () => ProductService.getAll(organizationId, role),
-    enabled: !!organizationId && !!role,
+    queryKey: PRODUCTS_KEYS.list(currentOrganization?.id),
+    queryFn: () => ProductService.getAll(currentOrganization, role),
+    enabled: !!currentOrganization && !!role,
     staleTime: 1000 * 60 * 5
   });
 }
