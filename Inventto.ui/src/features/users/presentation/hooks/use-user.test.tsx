@@ -6,7 +6,7 @@ import { useAuth } from '@/features/auth';
 
 import { LocalStorageService } from '@/infra/local-storage';
 
-import type { User, UserOrganizationContext } from '../../domain/entities';
+import type { User, UserOrganization } from '../../domain/entities';
 import { UserService } from '../../domain/services';
 
 import { useUserProfileQuery } from './use-query';
@@ -44,7 +44,7 @@ const mockSelectOrganization = vi.mocked(UserService.selectOrganization);
 
 const STORAGE_ORG_KEY = 'inventto:current-org-id';
 
-const availableOrganizations: UserOrganizationContext[] = [
+const availableOrganizations: UserOrganization[] = [
   {
     id: 'organization-123',
     name: 'Inventto',

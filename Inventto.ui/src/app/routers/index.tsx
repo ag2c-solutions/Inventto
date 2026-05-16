@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 
+import { CanNavigate } from '@/features/permissions';
+
 import { AuthLayout } from '../layouts/auth/auth-layout';
 import { SystemLayout } from '../layouts/system/system-layout';
 
@@ -9,7 +11,6 @@ import {
   protectedLoader,
   publicLoader
 } from './guards/auth-loader';
-import { PermissionRoute } from './guards/permission-router';
 
 const PageLoader = () => (
   <div className="flex h-screen w-full items-center justify-center">
@@ -85,7 +86,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'products',
-        element: <PermissionRoute required="product:view" />,
+        element: <CanNavigate required="product:view" />,
         children: [
           {
             index: true,
@@ -96,7 +97,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'create',
-            element: <PermissionRoute required="product:create" />,
+            element: <CanNavigate required="product:create" />,
             children: [
               {
                 index: true,
@@ -111,7 +112,7 @@ export const router = createBrowserRouter([
           },
           {
             path: ':productId',
-            element: <PermissionRoute required="product:view" />,
+            element: <CanNavigate required="product:view" />,
             children: [
               {
                 index: true,
@@ -126,7 +127,7 @@ export const router = createBrowserRouter([
           },
           {
             path: ':productId/edit',
-            element: <PermissionRoute required="product:edit" />,
+            element: <CanNavigate required="product:edit" />,
             children: [
               {
                 index: true,
@@ -143,7 +144,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'movements',
-        element: <PermissionRoute required="movement:view" />,
+        element: <CanNavigate required="movement:view" />,
         children: [
           {
             index: true,
@@ -156,7 +157,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'new',
-            element: <PermissionRoute required="movement:create" />,
+            element: <CanNavigate required="movement:create" />,
             children: [
               {
                 index: true,
@@ -173,7 +174,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'team',
-        element: <PermissionRoute required="team:manage" />,
+        element: <CanNavigate required="team:manage" />,
         children: [
           {
             index: true,
@@ -188,7 +189,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: <PermissionRoute required="org:manage" />,
+        element: <CanNavigate required="org:manage" />,
         children: [
           {
             index: true,

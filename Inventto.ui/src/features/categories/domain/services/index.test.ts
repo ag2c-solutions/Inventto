@@ -37,5 +37,17 @@ describe('CategoryService', () => {
         CategoryService.add({ name: 'Duplicata', organizationId: 'org-1' })
       ).rejects.toThrow('Já existe uma categoria com este nome.');
     });
+
+    it('should throw when organizationId is empty', async () => {
+      await expect(
+        CategoryService.add({ name: 'Roupas', organizationId: '' })
+      ).rejects.toThrow('Nenhuma organização selecionada.');
+    });
+
+    it('should throw when organizationId is whitespace', async () => {
+      await expect(
+        CategoryService.add({ name: 'Roupas', organizationId: '   ' })
+      ).rejects.toThrow('Nenhuma organização selecionada.');
+    });
   });
 });

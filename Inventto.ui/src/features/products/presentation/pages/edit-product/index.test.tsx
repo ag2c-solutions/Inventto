@@ -11,8 +11,8 @@ import {
 import {
   useCreateProductMutation,
   useUpdateProductMutation
-} from '../../hooks/use-mutation';
-import { useProductByIDQuery } from '../../hooks/use-query';
+} from '../../hooks/use-mutations';
+import { useProductByIDQuery } from '../../hooks/use-queries';
 
 import { EditProductPage } from './index';
 
@@ -24,8 +24,8 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
-vi.mock('../../hooks/use-query');
-vi.mock('../../hooks/use-mutation');
+vi.mock('../../hooks/use-queries');
+vi.mock('../../hooks/use-mutations');
 vi.mock('@/features/categories', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {

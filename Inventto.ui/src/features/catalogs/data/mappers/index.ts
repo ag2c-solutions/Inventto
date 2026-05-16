@@ -1,8 +1,8 @@
-import type { Catalog, PublicStorefront } from '../../domain/entities';
 import type {
+  Catalog,
   CreateCatalogPayload,
-  UpdateCatalogPayload
-} from '../../domain/services';
+  PublicStorefront
+} from '../../domain/entities';
 import type { CatalogDTO, PublicCatalogResponseDTO } from '../dtos';
 import { formatThemeForPersistence, parseThemeConfig } from '../utils';
 
@@ -16,17 +16,15 @@ export class CatalogMapper {
       description: dto.description || '',
       isActive: dto.is_active,
       themeConfig: parseThemeConfig(dto.theme_config),
-      createdAt: new Date(dto.created_at),
-      publicUrl: `${window.location.origin}/c/${dto.slug}`
+      createdAt: new Date(dto.created_at)
     };
   }
 
   static toPersistence(
-    payload: Partial<
-      (CreateCatalogPayload | UpdateCatalogPayload) & { isActive?: boolean }
-    >
+    payload: Partial<CreateCatalogPayload & { isActive?: boolean }>
   ): Partial<CatalogDTO> {
     return {
+      organization_id: payload.organizationId,
       name: payload.name,
       slug: payload.slug,
       whatsapp_number: payload.whatsappNumber,

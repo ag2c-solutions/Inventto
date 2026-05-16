@@ -58,14 +58,13 @@ export const signUpSchema = z.intersection(organizationSchema, userSchema);
 
 export const firstAccessSchema = z
   .object({
-    password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
+    password: passwordSchema,
     confirmPassword: z.string()
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'As senhas não coincidem',
+    message: 'As senhas não conferem.',
     path: ['confirmPassword']
   });
 
-export type Organization = z.infer<typeof organizationSchema>;
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
 export type FirstAccessFormValues = z.infer<typeof firstAccessSchema>;

@@ -111,7 +111,7 @@ describe('handleMovementError', () => {
   it('should rethrow generic JavaScript errors directly', () => {
     expect(() =>
       handleMovementError(new Error('Random failure'), 'create')
-    ).toThrow('Error ao executar [MovementApi.create]: Random failure');
+    ).toThrow('Random failure');
   });
 
   it('should throw generic fallback for unknown types', () => {

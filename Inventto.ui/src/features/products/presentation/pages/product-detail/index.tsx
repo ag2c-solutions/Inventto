@@ -8,7 +8,7 @@ import { ProductBasicInfosCard } from '../../components/basic-infos-card';
 import { ProductImageCarousel } from '../../components/image-carousel';
 import { ProductInventoryCard } from '../../components/inventory-card';
 import { ProductOptionsSelect } from '../../components/options-select';
-import { useProductByIDQuery } from '../../hooks/use-query';
+import { useProductByIDQuery } from '../../hooks/use-queries';
 import { getVariantImages } from '../../utils/get-variant-images';
 
 interface ProductParams {

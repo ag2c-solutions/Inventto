@@ -76,14 +76,18 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const preselectId = searchParams.get('preselect');
+
     if (preselectId && products.length > 0 && !isLoadingProducts) {
       const found = products.find((p) => p.id === preselectId);
+
       if (found) {
         setSelectedProduct(found);
         setIsDialogOpen(true);
         setSearchParams((prev) => {
           const newParams = new URLSearchParams(prev);
+
           newParams.delete('preselect');
+
           return newParams;
         });
       }
@@ -92,7 +96,9 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
 
   const onChangeType = (type: MovementType) => {
     form.setValue('type', type);
+
     setReasonOptions([...ReasonOptions[type]] as MovementReason[]);
+
     form.trigger();
   };
 
@@ -103,12 +109,12 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
 
   const toggleDialog = (open: boolean) => {
     setIsDialogOpen(open);
+
     if (!open) setSelectedProduct(null);
   };
 
   const addItem = (newItems: FormItem[]) => {
     const currentItems = form.getValues('items');
-
     const safeNewItems = newItems.map((item) => ({
       ...item,
       currentStock: item.currentStock ?? 0,
@@ -155,18 +161,16 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
       }))
     };
 
-    try {
-      await createMutation.mutateAsync(inputPayload);
+    await createMutation.mutateAsync(inputPayload);
 
-      form.reset();
-      navigate('/movements');
-    } catch (error) {
-      console.error('Submit failed (handled globally):', error);
-    }
+    form.reset();
+
+    navigate('/movements');
   };
 
   const handleCancel = () => {
     form.reset();
+
     navigate('/movements');
   };
 

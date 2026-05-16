@@ -78,11 +78,11 @@ describe('handleOrganizationError', () => {
     ).toThrow('Ocorreu um erro inesperado.');
   });
 
-  it('deve chamar console.error com o prefixo OrganizationService.<action> em todos os casos', () => {
+  it('deve chamar console.error com o prefixo padronizado em todos os casos', () => {
     const error = makePostgrestError({ code: '42501' });
     expect(() => handleOrganizationError(error, 'getById')).toThrow();
     expect(consoleSpy).toHaveBeenCalledWith(
-      'OrganizationService.getById:',
+      'Erro em Organization Service [getById]:',
       error
     );
   });

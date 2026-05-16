@@ -17,17 +17,16 @@ export function useOrganizationQuery() {
 }
 
 export function useOrganizationMembersQuery() {
-  const { currentOrganization } = useUser();
+  const { currentOrganization, user } = useUser();
 
   return useQuery({
     queryKey: currentOrganization?.id
       ? ORG_KEYS.members(currentOrganization.id)
       : ['members', 'null'],
-    queryFn: () => {
-      return OrganizationService.getMembers(currentOrganization);
-    },
+    queryFn: () =>
+      OrganizationService.getMembers(currentOrganization, user?.id ?? ''),
     enabled: !!currentOrganization,
-    staleTime: 1000 * 60 * 5 // 5 minutos
+    staleTime: 1000 * 60 * 5
   });
 }
 

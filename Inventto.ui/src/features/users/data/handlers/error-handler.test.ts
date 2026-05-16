@@ -63,4 +63,17 @@ describe('handleUserError', () => {
       'Ocorreu um erro inesperado ao processar os dados do usuário.'
     );
   });
+
+  it('should throw connection error when message includes network', () => {
+    const error = {
+      code: 'UNKNOWN',
+      message: 'network error occurred',
+      details: '',
+      hint: ''
+    } as PostgrestError;
+
+    expect(() => handleUserError(error, 'test')).toThrow(
+      'Erro de conexão. Verifique sua internet.'
+    );
+  });
 });

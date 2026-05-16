@@ -1,27 +1,19 @@
-import { NavLink } from 'react-router';
-
-import { usePermission } from '@/features/permissions/';
+import { ProtectedLink } from '@/features/permissions';
 
 import { SidebarMenuButton } from '@/shared/components/ui/sidebar';
 import { cn } from '@/shared/utils';
 
-import { navLinks } from '../../consts/navlinks-siderbar';
+import { navLinks } from '../../constants/navlinks-sidebar';
 
 export const NavItens = () => {
-  const { can } = usePermission();
-
-  const filteredNavLinks = navLinks.filter(({ permission }) => {
-    if (!permission) return true;
-
-    return can(permission);
-  });
   return (
     <nav>
       <ul className="space-y-2">
-        {filteredNavLinks.map(({ href, icon, label }) => {
+        {navLinks.map(({ href, icon: Icon, label, permission }) => {
           return (
             <li key={href}>
-              <NavLink
+              <ProtectedLink
+                required={permission}
                 to={href}
                 className={({ isActive }) =>
                   cn(
@@ -31,10 +23,10 @@ export const NavItens = () => {
                 }
               >
                 <SidebarMenuButton tooltip={label}>
-                  {icon}
+                  {<Icon className="w-5 h-5" />}
                   <span>{label}</span>
                 </SidebarMenuButton>
-              </NavLink>
+              </ProtectedLink>
             </li>
           );
         })}

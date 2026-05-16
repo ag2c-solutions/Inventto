@@ -1,12 +1,10 @@
-import type { UserRole } from '@/features/users';
-
 import { supabase, tempClient } from '@/infra/supabase';
 
 import type {
   IMember,
-  IOrganization,
   MemberStatus,
-  OrganizationSettings
+  OrganizationSettings,
+  OrganizationWithDetails
 } from '../../domain/entities';
 import type {
   CandidateMemberDTO,
@@ -18,7 +16,7 @@ import { handleOrganizationError } from '../handlers/error-handler';
 import { OrganizationMapper } from '../mapper';
 
 export class OrganizationApi {
-  static async getById(orgId: string): Promise<IOrganization> {
+  static async getById(orgId: string): Promise<OrganizationWithDetails> {
     try {
       const { data, error } = await supabase
         .from('organizations')
@@ -78,11 +76,11 @@ export class OrganizationApi {
     }
   }
 
-  static async getMembers(orgId: string): Promise<IMember[]> {
+  static async getMembers(
+    orgId: string,
+    currentUserId: string
+  ): Promise<IMember[]> {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const currentUserId = session.session?.user.id || '';
-
       const { data, error } = await supabase
         .from('organization_members')
         .select(`*, profiles:profile_id (id, full_name, email, avatar_url)`)
@@ -120,6 +118,9 @@ export class OrganizationApi {
     data: CreateMemberDTO
   ): Promise<void> {
     try {
+      // tempClient é usado intencionalmente aqui para evitar que o OWNER
+      // seja deslogado durante a criação do novo usuário. Não substituir
+      // por supabase.auth.signUp — isso encerraria a sessão atual.
       const { error } = await tempClient.auth.signUp({
         email: data.email,
         password: data.password,
@@ -159,7 +160,7 @@ export class OrganizationApi {
 
   static async updateMemberRole(
     memberId: string,
-    newRole: UserRole
+    newRole: 'manager' | 'sales'
   ): Promise<void> {
     try {
       const { error } = await supabase

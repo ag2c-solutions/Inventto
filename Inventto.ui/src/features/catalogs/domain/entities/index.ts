@@ -36,7 +36,22 @@ export interface Catalog {
   isActive: boolean;
   themeConfig: CatalogThemeConfig;
   createdAt: Date;
-  publicUrl: string;
+}
+
+export interface CreateCatalogPayload {
+  organizationId: string;
+  name: string;
+  slug: string;
+  whatsappNumber: string;
+  description?: string;
+  themeConfig: CatalogThemeConfig;
+}
+
+export interface UpdateCatalogPayload
+  extends Partial<Omit<CreateCatalogPayload, 'slug' | 'organizationId'>> {
+  id: string;
+  slug?: string;
+  isActive?: boolean;
 }
 
 export interface CatalogItem {

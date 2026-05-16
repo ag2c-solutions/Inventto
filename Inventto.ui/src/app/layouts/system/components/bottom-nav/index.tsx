@@ -4,7 +4,7 @@ import { usePermission } from '@/features/permissions/';
 
 import { cn } from '@/shared/utils';
 
-import { navLinks } from '../../consts/navlinks-siderbar';
+import { navLinks } from '../../constants/navlinks-sidebar';
 
 export function MobileBottomNav() {
   const { pathname } = useLocation();
@@ -19,6 +19,7 @@ export function MobileBottomNav() {
       <div className="grid h-full grid-cols-2">
         {filteredLinks.map((link) => {
           const isActive = pathname.startsWith(link.href);
+          const Icon = link.icon;
 
           return (
             <Link
@@ -34,7 +35,7 @@ export function MobileBottomNav() {
               <div
                 className={cn('p-1 rounded-full', isActive && 'bg-primary/10')}
               >
-                {link.icon}
+                <Icon />
               </div>
               {link.label}
             </Link>

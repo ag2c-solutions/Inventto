@@ -2,11 +2,12 @@ import { stripUndefined } from '@/shared/utils';
 
 import { supabase } from '@/infra/supabase';
 
-import type { Catalog, PublicStorefront } from '../../domain/entities';
 import type {
+  Catalog,
   CreateCatalogPayload,
+  PublicStorefront,
   UpdateCatalogPayload
-} from '../../domain/services';
+} from '../../domain/entities';
 import type { CatalogDTO } from '../dtos';
 import { handleCatalogError } from '../handlers/error-handler';
 import { CatalogMapper } from '../mappers';

@@ -1,7 +1,7 @@
 import type {
   IMember,
-  IOrganization,
-  OrganizationSettings
+  OrganizationSettings,
+  OrganizationWithDetails
 } from '../../domain/entities';
 import type {
   BusinessScheduleDTO,
@@ -14,7 +14,7 @@ import type {
 import { mapSchedule } from '../utils';
 
 export class OrganizationMapper {
-  static toDomain(dto: OrganizationDTO): IOrganization {
+  static toDomain(dto: OrganizationDTO): OrganizationWithDetails {
     const s = dto.settings || {};
     const identity = s.identity || {};
     const operational = s.operational || {};
@@ -42,8 +42,8 @@ export class OrganizationMapper {
       name: dto.name,
       slug: dto.slug,
       document: dto.document || undefined,
-      settings,
-      createdAt: new Date(dto.created_at)
+      createdAt: new Date(dto.created_at),
+      settings
     };
   }
 
@@ -63,8 +63,7 @@ export class OrganizationMapper {
       avatarUrl: profile?.avatar_url || undefined,
       role: dto.role,
       joinedAt: new Date(dto.created_at),
-      isMe: dto.profile_id === currentUserId,
-      canManage: dto.role === 'owner' || dto.role === 'manager'
+      isMe: dto.profile_id === currentUserId
     };
   }
 
@@ -79,8 +78,7 @@ export class OrganizationMapper {
       role: 'sales',
       status: 'active',
       joinedAt: new Date(),
-      isMe: false,
-      canManage: false
+      isMe: false
     };
   }
 

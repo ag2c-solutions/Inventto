@@ -1,4 +1,4 @@
-import type { UserOrganizationContext } from '@/features/users/';
+import type { Organization } from '@/features/organizations';
 
 import { AuthAPI } from '../../data/api';
 import type { SignInPayload, SignUpPayload } from '../../data/dtos';
@@ -37,7 +37,7 @@ export class AuthService {
   }: {
     newPassword: string;
     userId: string;
-    organization: UserOrganizationContext | null;
+    organization: Organization | null;
   }) {
     if (!organization?.id) {
       throw new Error('Organização não encontrada.');

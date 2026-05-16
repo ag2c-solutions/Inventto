@@ -1,3 +1,5 @@
+import type { Organization } from '@/features/organizations';
+
 export type MovementType = 'entry' | 'withdrawal' | 'adjustment';
 
 interface MovementUser {
@@ -50,4 +52,9 @@ export interface CreateMovementInput {
   reason: string;
   documentNumber?: string;
   items: CreateMovementItemInput[];
+}
+
+export interface CreateMovementPayload {
+  input: CreateMovementInput;
+  organization: Organization | null;
 }

@@ -27,8 +27,7 @@ const mockCatalog: Catalog = {
     layout: { mode: 'grid', productsPerPage: 10 },
     behavior: { displayPrice: true, whatsappMessage: 'Olá' }
   },
-  createdAt: new Date(),
-  publicUrl: 'https://example.com/c/teste'
+  createdAt: new Date()
 };
 
 describe('CatalogService', () => {
@@ -41,6 +40,7 @@ describe('CatalogService', () => {
       vi.mocked(CatalogApi.add).mockResolvedValue(mockCatalog);
 
       const payload = {
+        organizationId: 'org-1',
         name: 'Novo',
         slug: 'novo',
         whatsappNumber: '123',
@@ -67,6 +67,7 @@ describe('CatalogService', () => {
 
       await expect(
         CatalogService.add({
+          organizationId: 'org-1',
           name: 'A',
           slug: 'ocupado',
           whatsappNumber: '1',

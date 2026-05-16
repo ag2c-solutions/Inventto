@@ -36,7 +36,7 @@ vi.mock('@/infra/cloudinary', () => ({
   }
 }));
 
-vi.mock('../../../hooks/use-mutation', () => ({
+vi.mock('../../../hooks/use-mutations', () => ({
   useCreateProductMutation: () => ({ mutateAsync: mocks.createMutate }),
   useUpdateProductMutation: () => ({ mutateAsync: mocks.updateMutate })
 }));

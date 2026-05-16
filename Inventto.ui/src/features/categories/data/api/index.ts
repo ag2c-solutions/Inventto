@@ -1,7 +1,6 @@
 import { supabase } from '@/infra/supabase';
 
-import type { Category } from '../../domain/entities';
-import type { CreateCategoryPayload } from '../../domain/services';
+import type { Category, CreateCategoryPayload } from '../../domain/entities';
 import type { CategoryDTO } from '../dtos';
 import { handleCategoryError } from '../handlers/error-handler';
 import { CategoryMapper } from '../mappers';
@@ -35,9 +34,7 @@ export class CategoryApi {
         .single()
         .overrideTypes<CategoryDTO, { merge: false }>();
 
-      if (error) {
-        handleCategoryError(error, 'add');
-      }
+      if (error) throw error;
 
       if (!data) {
         throw new Error('Erro inesperado: Categoria não retornada.');
@@ -45,8 +42,6 @@ export class CategoryApi {
 
       return CategoryMapper.toDomain(data);
     } catch (error) {
-      // Relança erros que já foram tratados (mensagens legíveis para o usuário)
-      if (error instanceof Error) throw error;
       handleCategoryError(error, 'add');
     }
   }

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { PixelCrop } from '../../domain/entities';
+
 import { getCroppedImg } from './get-cropped-img';
-import type { PixelCrop } from './pixel-crop.types';
 
 vi.mock('./create-image', () => ({
   createImage: vi.fn()

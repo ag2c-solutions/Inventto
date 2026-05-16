@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { categorySchema } from '@/features/categories';
-
 export const attributeSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Nome do atributo é obrigatório.'),
@@ -52,10 +50,10 @@ export const variantSchema = z.object({
   images: z.array(ProductVariantImageSchema)
 });
 
-const FormCategorySchema = z.custom<z.infer<typeof categorySchema>>(
-  (val) => categorySchema.safeParse(val).success,
-  'Categoria é obrigatória.'
-);
+const FormCategorySchema = z.object({
+  id: z.string(),
+  name: z.string()
+});
 
 export const productSchemaWithVariants = z.object({
   id: z.string().optional(),

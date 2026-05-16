@@ -170,6 +170,7 @@ describe('CatalogApi', () => {
       });
 
       const payload = {
+        organizationId: 'org-1',
         name: 'Novo',
         slug: 'novo',
         whatsappNumber: '123',
@@ -205,6 +206,7 @@ describe('CatalogApi', () => {
 
       await expect(
         CatalogApi.add({
+          organizationId: 'org-1',
           name: 'A',
           slug: 'teste',
           whatsappNumber: '1',
@@ -229,6 +231,7 @@ describe('CatalogApi', () => {
 
       await expect(
         CatalogApi.add({
+          organizationId: 'org-1',
           name: 'A',
           slug: 'teste',
           whatsappNumber: '1',

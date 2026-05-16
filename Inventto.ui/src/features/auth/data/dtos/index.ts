@@ -16,7 +16,6 @@ export interface SignUpPayload {
   document?: string;
   slug?: string;
   fullName: string;
-  role?: string;
   email: string;
   password: string;
 }

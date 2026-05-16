@@ -1,3 +1,4 @@
+import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
 import type { User } from '../../domain/entities';
@@ -46,6 +47,16 @@ export class UserAPI {
 
     if (error) {
       handleUserError(error, 'updatePassword');
+    }
+  }
+
+  static async saveProfileImage(file: File): Promise<string> {
+    try {
+      const { url } = await CloudinaryService.uploadImage(file);
+
+      return url;
+    } catch (error) {
+      handleUserError(error, 'saveProfileImage');
     }
   }
 }

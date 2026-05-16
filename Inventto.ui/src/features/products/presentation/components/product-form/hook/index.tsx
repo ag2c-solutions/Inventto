@@ -11,7 +11,7 @@ import { LOCAL_STORAGE_KEY } from '../../../constants/product-form-key';
 import {
   useCreateProductMutation,
   useUpdateProductMutation
-} from '../../../hooks/use-mutation';
+} from '../../../hooks/use-mutations';
 import { toCreateProductInput } from '../adapters/to-create-product-input';
 import { toUpdateProductInput } from '../adapters/to-update-product-input';
 import { type ProductFormData, productSchema } from '../schema';

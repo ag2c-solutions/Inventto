@@ -1,9 +1,7 @@
-export { UserAPI } from './data/api';
-export type { UserOrganizationContext, UserRole } from './domain/entities';
 export { UserService } from './domain/services';
-export { getUserNameInitials } from './domain/utils';
-export { AvatarChangeForm } from './presentation/components/avatar-change-form';
-export { ChangePasswordForm } from './presentation/components/change-password-form';
+export { getUserNameInitials } from './domain/utils/get-user-name-initials';
+export { AvatarChange } from './presentation/components/avatar-change';
+export { PasswordChange } from './presentation/components/password-change';
 export { USERS_KEYS } from './presentation/constants';
 export {
   UserContext,

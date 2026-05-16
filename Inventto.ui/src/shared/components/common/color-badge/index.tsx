@@ -1,6 +1,6 @@
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
-import { parseColorValue } from '@/shared/utils/parses/color-value';
+import { parseColorValue } from '@/shared/utils';
 
 interface ColorBadgeProps {
   color: string;

@@ -5,17 +5,18 @@ import { useUser } from '@/features/users';
 import { CategoryService } from '../../domain/services';
 
 export function useCategoryAddMutation() {
-  const { currentOrganization: organization } = useUser();
+  const { currentOrganization } = useUser();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ['categories', 'add'],
-    mutationFn: (name: string) => {
-      if (!organization?.id) {
-        throw new Error('Nenhuma organização selecionada.');
-      }
-
-      return CategoryService.add({ name, organizationId: organization.id });
+    mutationFn: (name: string) =>
+      CategoryService.add({
+        name,
+        organizationId: currentOrganization?.id ?? ''
+      }),
+    meta: {
+      successMessage: 'Categoria adicionada com sucesso.'
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });

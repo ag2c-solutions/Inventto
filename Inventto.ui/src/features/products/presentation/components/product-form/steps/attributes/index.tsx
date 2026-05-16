@@ -4,7 +4,7 @@ import { useFieldArray } from 'react-hook-form';
 import { Button } from '@/shared/components/ui/button';
 
 import type { AttributeType } from '../../../../../domain/entities';
-import { useGlobalAttributesQuery } from '../../../../hooks/use-query';
+import { useGlobalAttributesQuery } from '../../../../hooks/use-queries';
 import { useProductForm } from '../../hook';
 import type { ProductFormWithVariantsData } from '../../schema';
 

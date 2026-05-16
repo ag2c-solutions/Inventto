@@ -1,3 +1,5 @@
+export type Role = 'owner' | 'manager' | 'sales';
+
 export type PermissionAction =
   | 'product:view'
   | 'product:create'
@@ -13,7 +15,6 @@ export type PermissionAction =
   | 'movement:view_costs'
   | 'movement:details'
   | 'team:manage'
-  | 'metrics:view_costs'
   | 'customer:view'
   | 'customer:manage'
   | 'order:view_all'

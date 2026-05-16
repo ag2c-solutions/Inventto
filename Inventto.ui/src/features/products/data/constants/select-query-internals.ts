@@ -1,0 +1,44 @@
+export const SELECT_QUERY_INTERNALS = `
+  id,
+  organization_id,
+  name,
+  sku,
+  description,
+  stock,
+  minimum_stock,
+  cost_price,
+  has_variants,
+  is_active,
+  created_at,
+  categories:product_categories(
+    category:categories(id, name)
+  ),
+  product_attributes(
+    id,
+    label,
+    slug,
+    type,
+    values
+  ),
+  product_images(
+    id,
+    url,
+    name,
+    type,
+    public_id,
+    is_primary
+  ),
+  product_variants(
+    id,
+    sku,
+    stock,
+    minimum_stock,
+    cost_price,
+    is_active,
+    options,
+    product_variant_images(
+      image_id,
+      is_primary
+    )
+  )
+`;

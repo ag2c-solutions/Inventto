@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, type LucideIcon, Shield, User } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { UserRole } from '@/features/users';
+import type { Role } from '@/features/permissions';
 
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -38,7 +38,7 @@ export function RoleColumn({ member }: RoleCellProps) {
   const isChanged = currentRole !== member.role;
 
   const roleConfig: Record<
-    UserRole,
+    Role,
     { label: string; icon: LucideIcon; style: string }
   > = {
     owner: {

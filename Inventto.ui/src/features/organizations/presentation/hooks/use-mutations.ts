@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { type UserRole, USERS_KEYS, useUser } from '@/features/users';
+import type { Role } from '@/features/permissions';
+import { USERS_KEYS, useUser } from '@/features/users';
 
 import type {
   CreateMember,
@@ -90,9 +91,6 @@ export function useReplicateMemberMutation() {
       queryClient.invalidateQueries({
         queryKey: ORG_KEYS.candidates(currentOrganization?.id ?? '')
       });
-      queryClient.invalidateQueries({
-        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
-      });
     },
     meta: {
       successMessage: 'Membro importado com sucesso!'
@@ -104,7 +102,7 @@ export function useUpdateMemberRoleMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ memberId, role }: { memberId: string; role: UserRole }) =>
+    mutationFn: ({ memberId, role }: { memberId: string; role: Role }) =>
       OrganizationService.updateMemberRole(memberId, role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });

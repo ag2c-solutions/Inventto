@@ -1,39 +1,37 @@
-import type { UserOrganizationContext, UserRole } from '@/features/users';
+import type { Role } from '@/features/permissions';
 
 import { OrganizationApi } from '../../data/api';
 import type {
   CreateMember,
   CreateOrganizationInput,
   MemberStatus,
+  Organization,
   OrganizationSettings
 } from '../entities';
+import { getOrganizationId } from '../utils/get-organization-id';
 
 export class OrganizationService {
-  private static getOrganizationId = (
-    organization: UserOrganizationContext | null
-  ): string => {
-    if (!organization?.id) {
-      throw new Error('Organization ID is required');
-    }
-    return organization.id;
-  };
-
-  static async getById(organization: UserOrganizationContext | null) {
-    const orgId = this.getOrganizationId(organization);
+  static async getById(organization: Organization | null) {
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.getById(orgId);
   }
 
-  static async getMembers(organization: UserOrganizationContext | null) {
-    const orgId = this.getOrganizationId(organization);
+  static async getMembers(
+    organization: Organization | null,
+    currentUserId: string
+  ) {
+    const orgId = getOrganizationId(organization);
 
-    return OrganizationApi.getMembers(orgId);
+    if (!currentUserId?.trim()) {
+      throw new Error('ID do usuário é obrigatório.');
+    }
+
+    return OrganizationApi.getMembers(orgId, currentUserId);
   }
 
-  static async getCandidatesMembers(
-    organization: UserOrganizationContext | null
-  ) {
-    const orgId = this.getOrganizationId(organization);
+  static async getCandidatesMembers(organization: Organization | null) {
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.getCandidatesMembers(orgId);
   }
@@ -43,37 +41,49 @@ export class OrganizationService {
   }
 
   static async update(
-    organization: UserOrganizationContext | null,
+    organization: Organization | null,
     settings: OrganizationSettings
   ): Promise<void> {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.update(orgId, { settings });
   }
 
   static async createMember(
-    organization: UserOrganizationContext | null,
+    organization: Organization | null,
     data: CreateMember
   ): Promise<void> {
-    const orgId = this.getOrganizationId(organization);
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.createMember(orgId, data);
   }
 
   static async replicateMember(
-    organization: UserOrganizationContext | null,
+    organization: Organization | null,
     userId: string,
-    role: 'manager' | 'sales'
+    role: Role
   ): Promise<void> {
-    const orgId = this.getOrganizationId(organization);
+    if (role === 'owner') {
+      throw new Error(
+        'Usuário não pode ser replicado com cargo de proprietário'
+      );
+    }
+
+    const orgId = getOrganizationId(organization);
 
     return OrganizationApi.replicateMember(orgId, userId, role);
   }
 
   static async updateMemberRole(
     memberId: string,
-    newRole: UserRole
+    newRole: Role
   ): Promise<void> {
+    if (newRole === 'owner') {
+      throw new Error(
+        'Usuário não pode ser atualizado com cargo de proprietário'
+      );
+    }
+
     return OrganizationApi.updateMemberRole(memberId, newRole);
   }
 
@@ -82,9 +92,5 @@ export class OrganizationService {
     newStatus: MemberStatus
   ): Promise<void> {
     return OrganizationApi.updateMemberStatus(memberId, newStatus);
-  }
-
-  static async forceDeleteMember(memberId: string): Promise<void> {
-    return OrganizationApi.forceDeleteMember(memberId);
   }
 }

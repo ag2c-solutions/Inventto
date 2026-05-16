@@ -1,4 +1,4 @@
-import type { UserRole } from '@/features/users';
+import type { Role } from '@/features/permissions';
 
 import type { MemberStatus } from '../../domain/entities';
 
@@ -24,7 +24,7 @@ export interface OrganizationMemberDTO {
   id: string;
   organization_id: string;
   profile_id: string;
-  role: UserRole;
+  role: Role;
   status: MemberStatus;
   created_at: string;
   profiles: {

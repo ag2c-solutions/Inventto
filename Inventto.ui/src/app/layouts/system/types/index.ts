@@ -1,10 +1,10 @@
-import type { ReactElement } from 'react';
+import type { LucideIcon } from 'lucide-react';
 
 import type { PermissionAction } from '@/features/permissions';
 
 export interface NavItem {
   label: string;
   href: string;
-  icon: ReactElement;
+  icon: LucideIcon;
   permission?: PermissionAction;
 }

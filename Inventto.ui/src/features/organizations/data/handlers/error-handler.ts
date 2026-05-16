@@ -1,7 +1,7 @@
 import { isPostgrestError } from '@/infra/supabase/guards/is-postgres-error';
 
 export function handleOrganizationError(error: unknown, action: string): never {
-  console.error(`OrganizationService.${action}:`, error);
+  console.error(`Erro em Organization Service [${action}]:`, error);
 
   if (isPostgrestError(error)) {
     switch (error.code) {

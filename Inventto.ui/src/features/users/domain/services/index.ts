@@ -1,41 +1,38 @@
-import { CloudinaryService } from '@/infra/cloudinary';
-
 import { UserAPI } from '../../data/api';
-import { getCroppedImg } from '../../presentation/utils/get-cropped-img';
-import type { PixelCrop } from '../../presentation/utils/pixel-crop.types';
-import type { User, UserOrganizationContext } from '../entities';
-
-export interface UpdateAvatarVariables {
-  userId: string;
-  imageSrc: string;
-  pixelCrop: PixelCrop;
-}
+import type {
+  UpdateAvatarVariables,
+  User,
+  UserOrganization
+} from '../entities';
 
 export class UserService {
+  static async getProfile(userId: string): Promise<User> {
+    if (!userId?.trim()) {
+      throw new Error('ID do usuário é obrigatório.');
+    }
+
+    const profile = await UserAPI.getProfile(userId);
+
+    if (!profile) {
+      throw new Error('Usuário não encontrado.');
+    }
+
+    return profile;
+  }
+
   static async updateAvatar({
     userId,
-    imageSrc,
-    pixelCrop
+    file: File
   }: UpdateAvatarVariables): Promise<void> {
     if (!userId?.trim()) {
       throw new Error('Usuário não informado.');
     }
 
-    if (!imageSrc?.trim()) {
+    if (!File) {
       throw new Error('Imagem não informada.');
     }
 
-    const croppedFile = await getCroppedImg(imageSrc, pixelCrop);
-
-    if (!croppedFile) {
-      throw new Error('Não foi possível processar o recorte da imagem.');
-    }
-
-    const { url } = await CloudinaryService.uploadImage(croppedFile);
-
-    if (!url?.trim()) {
-      throw new Error('Avatar não informado.');
-    }
+    const url = await UserAPI.saveProfileImage(File);
 
     await UserAPI.updateAvatar(userId, url);
   }
@@ -50,7 +47,7 @@ export class UserService {
 
   static getDefaultOrganization(
     user: User | null | undefined
-  ): UserOrganizationContext | null {
+  ): UserOrganization | null {
     if (!user?.availableOrganizations.length) {
       return null;
     }
@@ -61,7 +58,7 @@ export class UserService {
   static getOrganizationById(
     user: User | null | undefined,
     organizationId: string | null
-  ): UserOrganizationContext | null {
+  ): UserOrganization | null {
     if (!user?.availableOrganizations.length) {
       return null;
     }
@@ -80,7 +77,7 @@ export class UserService {
   static selectOrganization(
     user: User | null | undefined,
     organizationId: string
-  ): UserOrganizationContext {
+  ): UserOrganization {
     if (!user) {
       throw new Error('Usuário não carregado.');
     }

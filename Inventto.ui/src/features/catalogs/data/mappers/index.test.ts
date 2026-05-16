@@ -38,7 +38,6 @@ describe('CatalogMapper', () => {
       expect(result.whatsappNumber).toBe('551199999999');
       expect(result.themeConfig.colors.primary).toBe('#FF0000');
       expect(result.themeConfig.branding.showCover).toBe(false);
-      expect(result.publicUrl).toContain('/c/catalogo-teste');
     });
 
     it('deve aplicar Defaults se o theme_config vier vazio ou parcial', () => {

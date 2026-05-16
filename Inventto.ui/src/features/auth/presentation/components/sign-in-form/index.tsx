@@ -1,7 +1,5 @@
-import { Link, useNavigate } from 'react-router';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Link } from 'react-router';
 import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 
 import { Logo } from '@/app/brand/logo';
 
@@ -22,37 +20,10 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import { useSignInMutation } from '../../hooks/use-mutations';
-
-import { type SignInFormData, signInSchema } from './schema';
+import { useSignInForm } from './use-sign-in-form';
 
 export function SignInForm() {
-  const { mutateAsync } = useSignInMutation();
-  const navigate = useNavigate();
-
-  const form = useForm<SignInFormData>({
-    resolver: zodResolver(signInSchema),
-    defaultValues: {
-      email: '',
-      password: ''
-    }
-  });
-
-  const onSubmit = async (data: SignInFormData) => {
-    await mutateAsync(data)
-      .then(() => {
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        form.setValue('password', '');
-
-        setTimeout(() => {
-          form.setFocus('password');
-        }, 0);
-
-        return;
-      });
-  };
+  const { form, onSubmit } = useSignInForm();
 
   return (
     <Card className="w-full max-w-md">

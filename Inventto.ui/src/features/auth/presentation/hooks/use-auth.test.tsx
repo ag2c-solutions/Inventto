@@ -55,9 +55,7 @@ describe('useAuth Hook', () => {
       user: { id: '1', email: 'updated?' }
     } as Session;
 
-    vi.mocked(AuthService.getSession).mockResolvedValue({
-      data: { session: sessionRef1 }
-    } as never);
+    vi.mocked(AuthService.getSession).mockResolvedValue(sessionRef1 as never);
 
     let authCallback: (session: Session | null) => void;
 
@@ -95,9 +93,7 @@ describe('useAuth Hook', () => {
   });
 
   it('should initialize with loading=true and then finish loading (Unauthenticated)', async () => {
-    vi.mocked(AuthService.getSession).mockResolvedValue({
-      data: { session: null }
-    } as never);
+    vi.mocked(AuthService.getSession).mockResolvedValue(null as never);
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
       async () => {
@@ -123,9 +119,7 @@ describe('useAuth Hook', () => {
       user: { id: 'user-123', email: 'test@test.com' }
     };
 
-    vi.mocked(AuthService.getSession).mockResolvedValue({
-      data: { session: mockSession }
-    } as never);
+    vi.mocked(AuthService.getSession).mockResolvedValue(mockSession as never);
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockResolvedValue(() => {});
 
@@ -140,9 +134,7 @@ describe('useAuth Hook', () => {
   });
 
   it('should update session when subscribeToAuthChanges triggers', async () => {
-    vi.mocked(AuthService.getSession).mockResolvedValue({
-      data: { session: null }
-    } as never);
+    vi.mocked(AuthService.getSession).mockResolvedValue(null as never);
 
     let authCallback: (session: Session | null) => void;
 
@@ -174,9 +166,9 @@ describe('useAuth Hook', () => {
   it('should handle session expiration (Logout event)', async () => {
     const initialSession = { access_token: 'token', user: { id: '1' } };
 
-    vi.mocked(AuthService.getSession).mockResolvedValue({
-      data: { session: initialSession }
-    } as never);
+    vi.mocked(AuthService.getSession).mockResolvedValue(
+      initialSession as never
+    );
 
     let authCallback: (session: Session | null) => void;
 
