@@ -1,6 +1,6 @@
 import { thumbnail } from '@cloudinary/url-gen/actions/resize';
 import { Cloudinary } from '@cloudinary/url-gen/index';
-import { center } from '@cloudinary/url-gen/qualifiers/textAlignment';
+import { xyCenter } from '@cloudinary/url-gen/qualifiers/gravity';
 
 import { CLOUD_NAME, UPLOAD_PRESET, UPLOAD_URL } from '../constants';
 import type {
@@ -59,7 +59,7 @@ export class CloudinaryService {
     const myImage = this.cld.image(publicId);
 
     myImage
-      .resize(thumbnail().width(width).height(height).gravity(center()))
+      .resize(thumbnail().width(width).height(height).gravity(xyCenter()))
       .format('auto')
       .quality(quality);
 
