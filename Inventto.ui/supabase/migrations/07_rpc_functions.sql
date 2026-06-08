@@ -41,14 +41,27 @@ BEGIN
 
   -- CASO 1: É um Owner criando uma empresa nova
   IF (v_meta->>'company_name') IS NOT NULL THEN
-    INSERT INTO public.organizations (name, document, slug, owner_id)
+    INSERT INTO public.organizations (name, document, slug, owner_id, business_area_id)
     VALUES (
       v_meta->>'company_name',
       v_meta->>'company_document',
       v_meta->>'company_slug',
-      new.id
+      new.id,
+      (v_meta->>'business_area_id')::uuid
     )
     RETURNING id INTO v_org_id;
+
+    -- Materializa categorias do template da área escolhida em public.categories
+    INSERT INTO public.categories (organization_id, name)
+    SELECT v_org_id, bac.name
+    FROM public.business_area_categories bac
+    WHERE bac.business_area_id = (v_meta->>'business_area_id')::uuid;
+
+    -- Materializa atributos do template da área escolhida em public.organization_attributes
+    INSERT INTO public.organization_attributes (organization_id, label, slug, type, "values")
+    SELECT v_org_id, baa.label, baa.slug, baa.type, baa."values"
+    FROM public.business_area_attributes baa
+    WHERE baa.business_area_id = (v_meta->>'business_area_id')::uuid;
 
     INSERT INTO public.organization_members (organization_id, profile_id, role, status)
     VALUES (v_org_id, new.id, 'owner', 'active');

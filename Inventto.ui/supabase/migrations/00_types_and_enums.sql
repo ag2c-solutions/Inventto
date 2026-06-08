@@ -21,3 +21,6 @@ CREATE TYPE public.movement_type AS ENUM ('entry', 'withdrawal', 'adjustment');
 
 -- Status do Membro
 CREATE TYPE public.member_status AS ENUM ('active', 'inactive', 'invited');
+
+-- Áreas de Negócio
+CREATE TYPE public.business_area_code AS ENUM ('clothing', 'petshop', 'other');
