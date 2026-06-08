@@ -16,11 +16,6 @@ export const envSchema = z.object({
     presetName: z
       .string({ error: 'VITE_CLOUDINARY_PRESET_NAME é obrigatória' })
       .min(1, 'VITE_CLOUDINARY_PRESET_NAME é obrigatória')
-  }),
-  api: z.object({
-    baseUrl: z
-      .string({ error: 'VITE_API_BASE_URL é obrigatória' })
-      .min(1, 'VITE_API_BASE_URL é obrigatória')
   })
 });
 
