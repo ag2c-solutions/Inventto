@@ -1,51 +1,66 @@
 import { Outlet } from 'react-router';
-import { Quote } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
+
+import { Logo } from '@/app/brand/logo';
 
 export function AuthLayout() {
   return (
     <>
       <div className="relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-          <div className="absolute inset-0 bg-zinc-900" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-40" />
+        <div className="relative hidden h-full flex-col bg-primary p-2 px-10 text-primary-foreground lg:flex dark:border-r">
+          <div className="absolute inset-0 overflow-hidden">
+            <div
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage:
+                  'repeating-linear-gradient(45deg, #ffffff 0, #ffffff 1px, transparent 1px, transparent 10px)'
+              }}
+            />
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle at center, #ffffff 1px, transparent 1px)',
+                backgroundSize: '24px 24px'
+              }}
+            />
+          </div>
+
+          <div className="relative z-20">
+            <Logo className="[&>figcaption]:text-primary-foreground" showText />
+          </div>
+
+          <div className="relative z-20 flex-1 flex flex-col justify-center max-w-md mt-8">
+            <h1 className="text-4xl font-bold tracking-tight mb-4 text-primary-foreground">
+              Sua loja inteira em um só lugar.
+            </h1>
+            <p className="text-xl text-primary-foreground/80">
+              Estoque auditável, catálogos com preço e uma vitrine online que
+              recebe pedidos direto no seu painel. Sem planilha, sem perder
+              venda no WhatsApp.
+            </p>
+          </div>
 
           <div className="relative z-20 mt-auto">
-            <blockquote className="space-y-2">
-              <div className="mb-4 rounded-full bg-white/10 w-fit p-2">
-                <Quote className="h-6 w-6" />
-              </div>
-              <p className="text-lg">
-                &ldquo;O Inventto transformou a maneira como gerenciamos nosso
-                estoque. Deixamos de perder vendas por falta de estoque em menos
-                de 3 meses de uso.&rdquo;
-              </p>
-              <footer className="text-sm text-zinc-400">
-                Sofia Martinez, CEO da Modas & Cia
-              </footer>
-            </blockquote>
+            <ul className="space-y-4 text-base font-medium">
+              <li className="flex items-center gap-3">
+                <CircleCheck className="h-5 w-5 text-primary-foreground/80" />
+                Controle de estoque que não mente
+              </li>
+              <li className="flex items-center gap-3">
+                <CircleCheck className="h-5 w-5 text-primary-foreground/80" />
+                Vitrine pronta para vender pelo link
+              </li>
+              <li className="flex items-center gap-3">
+                <CircleCheck className="h-5 w-5 text-primary-foreground/80" />
+                Equipe com permissões por papel
+              </li>
+            </ul>
           </div>
         </div>
         <div className="relative flex h-full flex-col bg-background p-4 lg:p-8">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px] flex-1">
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[372px] flex-1">
             <Outlet />
-
-            <p className="px-8 text-center text-sm text-muted-foreground">
-              Ao clicar em continuar, você concorda com nossos{' '}
-              <a
-                href="/terms"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Termos de Serviço
-              </a>{' '}
-              e{' '}
-              <a
-                href="/privacy"
-                className="underline underline-offset-4 hover:text-primary"
-              >
-                Política de Privacidade
-              </a>
-              .
-            </p>
           </div>
         </div>
       </div>

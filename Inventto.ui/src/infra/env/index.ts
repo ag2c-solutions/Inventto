@@ -12,9 +12,6 @@ export function validateEnv(raw: RawEnv): Env {
     cloudinary: {
       cloudName: raw['VITE_CLOUDINARY_NAME'],
       presetName: raw['VITE_CLOUDINARY_PRESET_NAME']
-    },
-    api: {
-      baseUrl: raw['VITE_API_BASE_URL']
     }
   };
 

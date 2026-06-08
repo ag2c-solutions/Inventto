@@ -45,7 +45,7 @@ O sistema divide-se em duas grandes zonas:
 
 ### Tempo real & Testes
 
-- SignalR / SSE
+- Supabase Realtime
 - Vitest
 - React Testing Library
 
@@ -62,7 +62,8 @@ src
 │   └── routers/
 │
 ├── infra/
-│   ├── api/
+│   ├── supabase/
+│   ├── cloudinary/
 │   ├── env/
 │   └── realtime/
 │

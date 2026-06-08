@@ -6,8 +6,7 @@ const VALID_RAW = {
   VITE_SUPABASE_URL: 'https://supabase.example.com',
   VITE_SUPABASE_ANON_KEY: 'anon-key-123',
   VITE_CLOUDINARY_NAME: 'my-cloud',
-  VITE_CLOUDINARY_PRESET_NAME: 'my-preset',
-  VITE_API_BASE_URL: 'https://api.example.com'
+  VITE_CLOUDINARY_PRESET_NAME: 'my-preset'
 };
 
 describe('validateEnv', () => {
@@ -20,7 +19,6 @@ describe('validateEnv', () => {
     expect(result.cloudinary.presetName).toBe(
       VALID_RAW.VITE_CLOUDINARY_PRESET_NAME
     );
-    expect(result.api.baseUrl).toBe(VALID_RAW.VITE_API_BASE_URL);
   });
 
   it('deve lançar um erro com prefixo [env] quando há variáveis inválidas', () => {
@@ -41,12 +39,6 @@ describe('validateEnv', () => {
     ).toThrow('supabase.anonKey');
   });
 
-  it('deve listar api.baseUrl na mensagem de erro quando VITE_API_BASE_URL está ausente', () => {
-    expect(() => validateEnv({ ...VALID_RAW, VITE_API_BASE_URL: '' })).toThrow(
-      'api.baseUrl'
-    );
-  });
-
   it('deve listar cloudinary.cloudName na mensagem de erro quando VITE_CLOUDINARY_NAME está ausente', () => {
     expect(() =>
       validateEnv({ ...VALID_RAW, VITE_CLOUDINARY_NAME: '' })
@@ -65,15 +57,13 @@ describe('validateEnv', () => {
         VITE_SUPABASE_URL: '',
         VITE_SUPABASE_ANON_KEY: '',
         VITE_CLOUDINARY_NAME: '',
-        VITE_CLOUDINARY_PRESET_NAME: '',
-        VITE_API_BASE_URL: ''
+        VITE_CLOUDINARY_PRESET_NAME: ''
       });
 
     expect(fn).toThrow('supabase.url');
     expect(fn).toThrow('supabase.anonKey');
     expect(fn).toThrow('cloudinary.cloudName');
     expect(fn).toThrow('cloudinary.presetName');
-    expect(fn).toThrow('api.baseUrl');
   });
 
   it('deve rejeitar variável definida como undefined', () => {
