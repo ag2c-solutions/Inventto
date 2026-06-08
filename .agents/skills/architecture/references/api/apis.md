@@ -20,19 +20,28 @@ Responsáveis por:
 APIs devem ser classes com métodos estáticos.
 
 ```ts
+import { supabase } from '@/infra/supabase';
+
+import { ProductMapper } from '../mapper/product-mapper';
+import { handleProductError } from '../handlers/product-error-handler';
+import type { Product } from '../../domain/entities/product.model';
+
 export class ProductAPI {
-  static async create(product: Product) {
+  static async create(product: Product): Promise<Product> {
     try {
-      const payload = ProductMapper.toDTO(product)
+      const payload = ProductMapper.toDTO(product);
 
-      const { data } = await httpClient.post(
-        '/products',
-        payload
-      )
+      const { data, error } = await supabase
+        .from('products')
+        .insert(payload)
+        .select()
+        .single();
 
-      return ProductMapper.toDomain(data)
+      if (error) throw error;
+
+      return ProductMapper.toDomain(data);
     } catch (error) {
-      handleProductError(error, 'createProduct')
+      return handleProductError(error, 'createProduct');
     }
   }
 }
@@ -42,7 +51,7 @@ export class ProductAPI {
 
 # API pode usar
 
-- httpClient
+- cliente supabase (@/infra/supabase)
 - DTO
 - mapper
 - handlers
@@ -63,16 +72,6 @@ export class ProductAPI {
 
 ```text
 infra/api/
-```
-
----
-
-# Interceptors
-
-Configurados no bootstrap:
-
-```text
-app/bootstrap.ts
 ```
 
 ---

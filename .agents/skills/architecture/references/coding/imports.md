@@ -5,7 +5,7 @@
 Sempre usar `@/` para imports absolutos a partir de `src/`.
 
 ```ts
-import { identityClient } from '@/infra/api';
+import { supabase } from '@/infra/supabase'
 import { Button } from '@/shared/components/ui/button';
 ```
 
@@ -36,7 +36,7 @@ Features podem importar:
 
 ```ts
 import { Datatable } from '@/shared/components/common/datatable';
-import { identityClient } from '@/infra/api';
+import { supabase } from '@/infra/supabase'
 import { getProducts } from '@/features/products';
 ```
 
@@ -96,7 +96,7 @@ Ordem padrão do projeto:
 ```ts
 import { useQuery } from '@tanstack/react-query';
 
-import { identityClient } from '@/infra/api';
+import { supabase } from '@/infra/supabase'
 import { Button } from '@/shared/components/ui/button';
 
 import { OperatorAPI } from '../../data/api/operator-api';

@@ -10,9 +10,10 @@ src/
 │   └── routers/        # Definição de rotas e guards
 │
 ├── infra/
-│   ├── api/            # Clientes HTTP base e interceptores
+│   ├── supabase/       # Cliente Supabase (SDK), constants e fronteira de dados
+│   ├── cloudinary/     # Upload de imagens
 │   ├── env/            # Validação e acesso às variáveis de ambiente
-│   └── realtime/       # Clientes SSE, SignalR e integrações em tempo real
+│   └── realtime/       # Wrapper sobre o Supabase Realtime
 │
 ├── shared/
 │   ├── components/
@@ -83,6 +84,7 @@ features/<feature-name>/
 | Utilitário global | `shared/utils/` |
 | Constante global | `shared/constants/` |
 | Tipo global agnóstico ao domínio | `shared/types/` |
-| Cliente HTTP base | `infra/api/` |
+| Cliente Supabase (SDK) base | `infra/supabase/` |
+| Upload de imagens | `infra/cloudinary/` |
 | Variável de ambiente validada | `infra/env/` |
-| Cliente SSE/SignalR | `infra/realtime/` |
+| Wrapper de tempo real (Supabase RT) | `infra/realtime/` |
