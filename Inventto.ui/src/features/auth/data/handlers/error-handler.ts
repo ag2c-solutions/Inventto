@@ -36,7 +36,10 @@ export function handleAuthError(
       message.includes('token has expired')
     )
       throw new Error('O código expirou. Solicite um novo código.');
-    if (message.includes('otp') || message.includes('invalid token'))
+    if (
+      (message.includes('otp') && !message.includes('expired')) ||
+      message.includes('invalid token')
+    )
       throw new Error('Código inválido. Verifique e tente novamente.');
     if (message.includes('password should be at least'))
       throw new Error('A senha é muito fraca. Escolha uma senha mais forte.');
