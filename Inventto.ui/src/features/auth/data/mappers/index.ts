@@ -6,7 +6,8 @@ export class AuthMapper {
       full_name: payload.fullName,
       company_name: payload.companyName,
       company_document: payload.document || null,
-      company_slug: payload.slug || '',
+      business_area_id: payload.businessAreaId,
+      terms_accepted_at: new Date().toISOString(),
       avatar_url: '' // Usuário não possui avatar no cadastro; definido posteriormente em configurações de perfil
     };
   }

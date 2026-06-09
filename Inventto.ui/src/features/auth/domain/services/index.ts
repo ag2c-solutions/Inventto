@@ -1,7 +1,12 @@
 import type { Organization } from '@/features/organizations';
 
 import { AuthAPI } from '../../data/api';
-import type { SignInPayload, SignUpPayload } from '../../data/dtos';
+import type {
+  ResendOtpPayload,
+  SignInPayload,
+  SignUpPayload,
+  VerifyOtpPayload
+} from '../../data/dtos';
 import type { Session } from '../entities';
 
 export class AuthService {
@@ -11,6 +16,14 @@ export class AuthService {
 
   static async signUp(args: SignUpPayload) {
     return AuthAPI.signUp(args);
+  }
+
+  static async verifyOtp(args: VerifyOtpPayload) {
+    return AuthAPI.verifyOtp(args);
+  }
+
+  static async resendOtp(args: ResendOtpPayload) {
+    return AuthAPI.resendOtp(args);
   }
 
   static async signOut() {

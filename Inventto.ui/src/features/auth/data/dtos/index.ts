@@ -2,7 +2,8 @@ export interface CreateUserMetadataDTO {
   full_name: string;
   company_name: string;
   company_document: string | null;
-  company_slug: string;
+  business_area_id: string;
+  terms_accepted_at: string;
   avatar_url?: string;
 }
 
@@ -14,8 +15,18 @@ export interface SignInPayload {
 export interface SignUpPayload {
   companyName: string;
   document?: string;
-  slug?: string;
   fullName: string;
   email: string;
   password: string;
+  businessAreaId: string;
+  acceptedTerms: true;
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  token: string;
+}
+
+export interface ResendOtpPayload {
+  email: string;
 }

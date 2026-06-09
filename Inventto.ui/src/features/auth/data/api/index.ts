@@ -1,7 +1,12 @@
 import { supabase } from '@/infra/supabase';
 
 import type { Session } from '../../domain/entities';
-import type { SignInPayload, SignUpPayload } from '../dtos';
+import type {
+  ResendOtpPayload,
+  SignInPayload,
+  SignUpPayload,
+  VerifyOtpPayload
+} from '../dtos';
 import { handleAuthError } from '../handlers/error-handler';
 import { AuthMapper } from '../mappers';
 
@@ -13,12 +18,19 @@ export class AuthAPI {
     });
 
     if (error) {
+      // handleAuthError distingue "email not confirmed" (conta pendente de OTP)
+      // de credencial inválida neutra (RN002), evitando mascaramento.
       handleAuthError(error, 'signIn');
     }
 
     return data;
   }
 
+  /**
+   * Cria a conta pendente de verificação e dispara o código OTP por e-mail.
+   * Não retorna sessão ativa — o usuário precisa confirmar o código (verifyOtp)
+   * para ativar a conta.
+   */
   static async signUp(payload: SignUpPayload) {
     const metadata = AuthMapper.toSupabaseMetadata(payload);
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -37,7 +49,44 @@ export class AuthAPI {
       throw new Error('Erro ao criar usuário de autenticação.');
     }
 
-    return authData;
+    // Conta criada no estado pendente; sessão ainda não está ativa.
+    // A sessão só é emitida após verifyOtp confirmar o código.
+    return { user: authData.user };
+  }
+
+  /**
+   * Confirma o código OTP enviado ao e-mail e ativa a conta.
+   * Usa type: 'signup' para o fluxo de confirmação de cadastro.
+   * Para login condicional (conta pendente tentando logar), o type
+   * correto precisa ser validado via supabase start — ver AUTH-03.
+   */
+  static async verifyOtp({ email, token }: VerifyOtpPayload) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup'
+    });
+
+    if (error) {
+      handleAuthError(error, 'verifyOtp');
+    }
+
+    return data;
+  }
+
+  /**
+   * Reenvia o código OTP de confirmação de cadastro.
+   * A UI controla o cooldown de 45s após chamar este método.
+   */
+  static async resendOtp({ email }: ResendOtpPayload) {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email
+    });
+
+    if (error) {
+      handleAuthError(error, 'resendOtp');
+    }
   }
 
   static async signOut() {
