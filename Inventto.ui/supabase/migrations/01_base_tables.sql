@@ -61,10 +61,11 @@ CREATE TABLE public.profiles (
   email text NOT NULL,
   avatar_url text,
   must_change_password BOOLEAN DEFAULT false,
-  
+  terms_accepted_at timestamp with time zone,
+
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  
+
   CONSTRAINT profiles_pkey PRIMARY KEY (id)
 );
 
@@ -82,15 +83,13 @@ CREATE TABLE public.organizations (
   business_area_id uuid NOT NULL REFERENCES public.business_areas(id),
 
   name     text NOT NULL,
-  slug     text NOT NULL,
   document text,
   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
 
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
 
-  CONSTRAINT organizations_pkey    PRIMARY KEY (id),
-  CONSTRAINT organizations_slug_key UNIQUE (slug)
+  CONSTRAINT organizations_pkey PRIMARY KEY (id)
 );
 
 CREATE TRIGGER handle_updated_at_organizations 

@@ -11,11 +11,12 @@ CREATE TABLE public.catalogs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
-  slug text,
+  slug text NOT NULL,
   is_active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
-  
-  CONSTRAINT catalogs_pkey PRIMARY KEY (id)
+
+  CONSTRAINT catalogs_pkey     PRIMARY KEY (id),
+  CONSTRAINT catalogs_slug_key UNIQUE (slug)
 );
 
 -- ==============================================================================
