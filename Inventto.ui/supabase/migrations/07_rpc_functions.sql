@@ -30,22 +30,23 @@ DECLARE
   v_meta JSONB := new.raw_user_meta_data;
 BEGIN
   -- Cria o Profile com a flag de senha provisória se vier nos metadados
-  INSERT INTO public.profiles (id, email, full_name, avatar_url, must_change_password)
+  -- terms_accepted_at: persistido apenas no signup de Owner (RN006). NULL para employees.
+  INSERT INTO public.profiles (id, email, full_name, avatar_url, must_change_password, terms_accepted_at)
   VALUES (
-    new.id, 
-    new.email, 
-    v_meta->>'full_name', 
+    new.id,
+    new.email,
+    v_meta->>'full_name',
     v_meta->>'avatar_url',
-    COALESCE((v_meta->>'must_change_password')::boolean, false)
+    COALESCE((v_meta->>'must_change_password')::boolean, false),
+    (v_meta->>'terms_accepted_at')::timestamptz
   );
 
   -- CASO 1: É um Owner criando uma empresa nova
   IF (v_meta->>'company_name') IS NOT NULL THEN
-    INSERT INTO public.organizations (name, document, slug, owner_id, business_area_id)
+    INSERT INTO public.organizations (name, document, owner_id, business_area_id)
     VALUES (
       v_meta->>'company_name',
       v_meta->>'company_document',
-      v_meta->>'company_slug',
       new.id,
       (v_meta->>'business_area_id')::uuid
     )
@@ -575,12 +576,12 @@ END;
 $$;
 
 -- ==============================================================================
--- 7. ORGANIZAÇÕES: CREATE NEW ORGANIZATION
+-- 7. ORGANIZAÇÕES: CREATE NEW ORGANIZATION (RF006)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.create_new_organization(
-  p_name TEXT,
-  p_slug TEXT,
-  p_document TEXT DEFAULT NULL
+  p_name             TEXT,
+  p_document         TEXT DEFAULT NULL,
+  p_business_area_id UUID DEFAULT NULL
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -588,20 +589,28 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_org_id UUID;
-  v_user_id UUID := auth.uid();
+  v_org_id          UUID;
+  v_user_id         UUID := auth.uid();
+  v_business_area_id UUID;
 BEGIN
-  -- 1. Validação de Slug Único
-  IF EXISTS (SELECT 1 FROM public.organizations WHERE slug = p_slug) THEN
-    RAISE EXCEPTION 'Este identificador (slug) já está em uso por outra organização.';
+  -- Resolve business_area_id: usa o informado ou cai em 'other' (RF006 — criação rápida).
+  -- Template de categorias/atributos NÃO é materializado aqui (RN008 — exclusivo do signup).
+  -- Nota: slug pertence a Catalogs/Storefront (RN063).
+  v_business_area_id := COALESCE(
+    p_business_area_id,
+    (SELECT id FROM public.business_areas WHERE code = 'other' LIMIT 1)
+  );
+
+  IF v_business_area_id IS NULL THEN
+    RAISE EXCEPTION 'business_area_id não informado e área "other" não encontrada no seed.';
   END IF;
 
-  -- 2. Inserção da Organização
-  INSERT INTO public.organizations (name, slug, document, owner_id)
-  VALUES (p_name, p_slug, p_document, v_user_id)
+  -- Inserção da Organização
+  INSERT INTO public.organizations (name, document, owner_id, business_area_id)
+  VALUES (p_name, p_document, v_user_id, v_business_area_id)
   RETURNING id INTO v_org_id;
 
-  -- 3. Inserção do Membro (Dono)
+  -- Inserção do Membro (Dono)
   INSERT INTO public.organization_members (organization_id, profile_id, role, status)
   VALUES (v_org_id, v_user_id, 'owner', 'active');
 
@@ -672,4 +681,4 @@ BEGIN
   ON CONFLICT (organization_id, profile_id) 
   DO UPDATE SET role = p_role, status = 'active';
 END;
-$$;
+$$;

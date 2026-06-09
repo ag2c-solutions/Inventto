@@ -36,7 +36,8 @@ CREATE TABLE public.business_area_categories (
   business_area_id uuid NOT NULL REFERENCES public.business_areas(id) ON DELETE CASCADE,
   name             text NOT NULL,
 
-  CONSTRAINT business_area_categories_pkey PRIMARY KEY (id)
+  CONSTRAINT business_area_categories_pkey          PRIMARY KEY (id),
+  CONSTRAINT business_area_categories_area_name_key UNIQUE (business_area_id, name)
 );
 
 -- 2c. Atributos-template por área (materializa em public.organization_attributes no signup)
@@ -61,10 +62,11 @@ CREATE TABLE public.profiles (
   email text NOT NULL,
   avatar_url text,
   must_change_password BOOLEAN DEFAULT false,
-  
+  terms_accepted_at timestamp with time zone,
+
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  
+
   CONSTRAINT profiles_pkey PRIMARY KEY (id)
 );
 
@@ -82,15 +84,13 @@ CREATE TABLE public.organizations (
   business_area_id uuid NOT NULL REFERENCES public.business_areas(id),
 
   name     text NOT NULL,
-  slug     text NOT NULL,
   document text,
   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
 
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
 
-  CONSTRAINT organizations_pkey    PRIMARY KEY (id),
-  CONSTRAINT organizations_slug_key UNIQUE (slug)
+  CONSTRAINT organizations_pkey PRIMARY KEY (id)
 );
 
 CREATE TRIGGER handle_updated_at_organizations 
@@ -172,4 +172,4 @@ CREATE POLICY "Members can view organization attributes"
 
 CREATE POLICY "Managers can manage organization attributes"
   ON public.organization_attributes FOR ALL
-  USING (public.has_role(organization_id, 'manager'));
+  USING (public.has_role(organization_id, 'manager'));
