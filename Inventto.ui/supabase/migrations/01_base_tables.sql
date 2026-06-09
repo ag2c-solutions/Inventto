@@ -172,4 +172,4 @@ CREATE POLICY "Members can view organization attributes"
 
 CREATE POLICY "Managers can manage organization attributes"
   ON public.organization_attributes FOR ALL
-  USING (public.has_role(organization_id, 'manager'));
+  USING (public.has_role(organization_id, 'manager'));

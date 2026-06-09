@@ -576,11 +576,12 @@ END;
 $$;
 
 -- ==============================================================================
--- 7. ORGANIZAÇÕES: CREATE NEW ORGANIZATION
+-- 7. ORGANIZAÇÕES: CREATE NEW ORGANIZATION (RF006)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.create_new_organization(
-  p_name TEXT,
-  p_document TEXT DEFAULT NULL
+  p_name             TEXT,
+  p_document         TEXT DEFAULT NULL,
+  p_business_area_id UUID DEFAULT NULL
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -588,14 +589,25 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_org_id UUID;
-  v_user_id UUID := auth.uid();
+  v_org_id          UUID;
+  v_user_id         UUID := auth.uid();
+  v_business_area_id UUID;
 BEGIN
-  -- Inserção da Organização
-  -- Nota: slug pertence a Catalogs/Storefront (RN063). Não é definido aqui.
+  -- Resolve business_area_id: usa o informado ou cai em 'other' (RF006 — criação rápida).
   -- Template de categorias/atributos NÃO é materializado aqui (RN008 — exclusivo do signup).
-  INSERT INTO public.organizations (name, document, owner_id)
-  VALUES (p_name, p_document, v_user_id)
+  -- Nota: slug pertence a Catalogs/Storefront (RN063).
+  v_business_area_id := COALESCE(
+    p_business_area_id,
+    (SELECT id FROM public.business_areas WHERE code = 'other' LIMIT 1)
+  );
+
+  IF v_business_area_id IS NULL THEN
+    RAISE EXCEPTION 'business_area_id não informado e área "other" não encontrada no seed.';
+  END IF;
+
+  -- Inserção da Organização
+  INSERT INTO public.organizations (name, document, owner_id, business_area_id)
+  VALUES (p_name, p_document, v_user_id, v_business_area_id)
   RETURNING id INTO v_org_id;
 
   -- Inserção do Membro (Dono)
@@ -669,4 +681,4 @@ BEGIN
   ON CONFLICT (organization_id, profile_id) 
   DO UPDATE SET role = p_role, status = 'active';
 END;
-$$;
+$$;
