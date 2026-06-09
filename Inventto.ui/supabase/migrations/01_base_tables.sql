@@ -36,7 +36,8 @@ CREATE TABLE public.business_area_categories (
   business_area_id uuid NOT NULL REFERENCES public.business_areas(id) ON DELETE CASCADE,
   name             text NOT NULL,
 
-  CONSTRAINT business_area_categories_pkey PRIMARY KEY (id)
+  CONSTRAINT business_area_categories_pkey          PRIMARY KEY (id),
+  CONSTRAINT business_area_categories_area_name_key UNIQUE (business_area_id, name)
 );
 
 -- 2c. Atributos-template por área (materializa em public.organization_attributes no signup)
