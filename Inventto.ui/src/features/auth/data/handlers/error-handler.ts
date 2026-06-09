@@ -2,6 +2,11 @@ import type { AuthError } from '@supabase/supabase-js';
 
 import { isPostgrestError } from '@/infra/supabase';
 
+// Erro distinguível para conta pendente de verificação de e-mail.
+// A UI usa este símbolo para cair no Passo 2 (OTP) sem mascarar como
+// credencial inválida neutra (RN002 aplica-se apenas a senha errada).
+export const EMAIL_NOT_CONFIRMED_ERROR = 'EMAIL_NOT_CONFIRMED';
+
 export function handleAuthError(
   error: AuthError | Error | unknown,
   action: string
@@ -22,8 +27,20 @@ export function handleAuthError(
 
     if (message.includes('invalid login credentials'))
       throw new Error('E-mail ou senha incorretos.');
+    if (message.includes('email not confirmed'))
+      throw new Error(EMAIL_NOT_CONFIRMED_ERROR);
     if (message.includes('user already registered'))
       throw new Error('Este e-mail já está em uso.');
+    if (
+      message.includes('otp expired') ||
+      message.includes('token has expired')
+    )
+      throw new Error('O código expirou. Solicite um novo código.');
+    if (
+      (message.includes('otp') && !message.includes('expired')) ||
+      message.includes('invalid token')
+    )
+      throw new Error('Código inválido. Verifique e tente novamente.');
     if (message.includes('password should be at least'))
       throw new Error('A senha é muito fraca. Escolha uma senha mais forte.');
     if (message.includes('rate limit'))

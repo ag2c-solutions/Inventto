@@ -200,6 +200,8 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
+# PENDÊNCIA (AUTH-02): manter false durante desenvolvimento; virar true no card de corte final
+# quando UI+API estiverem prontas e testadas end-to-end.
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
@@ -207,8 +209,9 @@ secure_password_change = false
 max_frequency = "1s"
 # Number of characters used in the email OTP.
 otp_length = 6
-# Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+# Janela de 5 min reduz risco de brute-force e exposição do código na caixa de entrada.
+# O reenvio com cooldown de 45s (AUTH-03 wireframe) cobre atrasos de entrega.
+otp_expiry = 300
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
