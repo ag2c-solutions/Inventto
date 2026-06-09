@@ -1,6 +1,8 @@
 export type { AuthContextType, Session } from './domain/entities';
 export { AuthService } from './domain/services';
 export { firstAccessSchema, passwordSchema } from './domain/validators';
+export type { OtpStepProps } from './presentation/components/otp-step';
+export { OtpStep } from './presentation/components/otp-step';
 export { AuthProvider, useAuth } from './presentation/hooks/use-auth';
 export { useSignOutMutation } from './presentation/hooks/use-mutations';
 export { FirstAccessPage } from './presentation/pages/first-access';

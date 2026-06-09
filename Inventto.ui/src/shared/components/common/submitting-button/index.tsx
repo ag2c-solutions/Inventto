@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 
 interface SubmittingButtonProps extends ComponentProps<typeof Button> {
   label?: string;
+  loadingLabel?: string;
   Icon?: LucideIcon;
   showLabel?: boolean;
   state: boolean;
@@ -13,6 +14,7 @@ interface SubmittingButtonProps extends ComponentProps<typeof Button> {
 
 export const SubmittingButton = ({
   label,
+  loadingLabel,
   state,
   showLabel = true,
   Icon,
@@ -21,7 +23,7 @@ export const SubmittingButton = ({
   return state ? (
     <Button type="submit" disabled {...props}>
       <Loader2 className="mr-0.5 h-3 w-3 animate-spin" />
-      {showLabel ? label : null}
+      {showLabel ? (loadingLabel ?? label) : null}
     </Button>
   ) : (
     <Button type="submit" {...props}>
