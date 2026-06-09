@@ -53,16 +53,11 @@ export function useOtpStep({ onSubmit, onResend }: UseOtpStepOptions) {
     setCode(value);
   }, []);
 
-  const resetCode = useCallback(() => {
-    setCode('');
-  }, []);
-
   return {
     code,
     cooldown,
     handleCodeChange,
     handleResend,
-    handleSubmit,
-    resetCode
+    handleSubmit
   };
 }

@@ -96,7 +96,7 @@ export function OtpStep({
         )}
       </div>
 
-      <div className=" flex flex-col items-center gap-2 w-full max-w-84">
+      <div className="flex flex-col items-center gap-2 w-full max-w-84">
         <SubmittingButton
           type="button"
           className="w-full h-9"
