@@ -4,11 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 
 import type { WizardStep } from '@/shared/components/common/wizard';
-import {
-  formatDocument,
-  generateSlug,
-  normalizeDocument
-} from '@/shared/utils';
+import { formatDocument, normalizeDocument } from '@/shared/utils';
 
 import {
   type SignUpFormValues as SignUpFormData,
@@ -20,7 +16,6 @@ interface SignUpFormContextType {
   form: UseFormReturn<SignUpFormData>;
   isCnpj: boolean;
   actions: {
-    handleCompanyNameChange: (value: string) => void;
     handleDocumentChange: (value: string) => void;
     handleBeforeNextStep: (currentStep: WizardStep) => Promise<boolean>;
     onSubmit: () => Promise<void>;
@@ -31,7 +26,7 @@ interface SignUpFormContextType {
 const SignUpFormContext = createContext<SignUpFormContextType | null>(null);
 
 export function SignUpFormProvider({ children }: { children: ReactNode }) {
-  const { mutateAsync } = useSignUpMutation();
+  const { mutateAsync: signUp } = useSignUpMutation();
   const [isCnpj, setIsCnpj] = useState(false);
   const navigate = useNavigate();
 
@@ -42,21 +37,14 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
       companyName: '',
       document: '',
       corporateName: '',
-      slug: '',
+      businessAreaId: '',
       fullName: '',
       email: '',
       password: '',
-      passwordConfirmation: ''
+      passwordConfirmation: '',
+      acceptedTerms: false
     }
   });
-
-  const handleCompanyNameChange = (value: string) => {
-    form.setValue('companyName', value, { shouldValidate: true });
-
-    if (!form.getFieldState('slug').isDirty) {
-      form.setValue('slug', generateSlug(value));
-    }
-  };
 
   const handleDocumentChange = (value: string) => {
     form.setValue('document', formatDocument(value));
@@ -72,31 +60,48 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
       return await form.trigger([
         'companyName',
         'document',
-        'slug',
+        'businessAreaId',
         ...(isCnpj ? (['corporateName'] as const) : [])
       ]);
     }
 
     if (currentStep.id === 'user') {
-      return await form.trigger([
+      const isValid = await form.trigger([
         'fullName',
         'email',
         'password',
-        'passwordConfirmation'
+        'passwordConfirmation',
+        'acceptedTerms'
       ]);
+
+      if (!isValid) return false;
+
+      // Submete o cadastro ao avançar do passo 2 → 3
+      const data = form.getValues();
+
+      try {
+        await signUp({
+          companyName: data.companyName,
+          document: data.document,
+          fullName: data.fullName,
+          email: data.email,
+          password: data.password,
+          businessAreaId: data.businessAreaId,
+          acceptedTerms: true
+        });
+        return true;
+      } catch {
+        return false;
+      }
     }
 
     return true;
   };
 
-  const handleSubmit = async (data: SignUpFormData) => {
-    await mutateAsync(data)
-      .then(() => {
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        return;
-      });
+  // onFinish não é mais usado: o wizard chega ao passo 3 (OTP) que tem CTA próprio.
+  // Mantemos a assinatura para compatibilidade com o WizardControl.
+  const handleSubmit = async () => {
+    // Noop: o submit final ocorre dentro do VerificationStep via verifyOtp.
   };
 
   const handleCancel = () => {
@@ -107,10 +112,9 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
     form,
     isCnpj,
     actions: {
-      handleCompanyNameChange,
       handleDocumentChange,
       handleBeforeNextStep,
-      onSubmit: form.handleSubmit(handleSubmit),
+      onSubmit: handleSubmit,
       handleCancel
     }
   };

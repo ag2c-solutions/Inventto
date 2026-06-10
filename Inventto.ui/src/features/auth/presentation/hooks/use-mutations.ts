@@ -22,9 +22,28 @@ export function useSignInMutation() {
 export function useSignUpMutation() {
   return useMutation({
     mutationKey: ['auth', 'signup'],
-    mutationFn: AuthService.signUp,
+    mutationFn: AuthService.signUp
+  });
+}
+
+export function useVerifyOtpMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['auth', 'verify-otp'],
+    mutationFn: AuthService.verifyOtp,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    }
+  });
+}
+
+export function useResendOtpMutation() {
+  return useMutation({
+    mutationKey: ['auth', 'resend-otp'],
+    mutationFn: AuthService.resendOtp,
     meta: {
-      successMessage: 'Conta criada com sucesso! Faça login para continuar.'
+      errorMessage: 'Não foi possível reenviar o código de verificação.'
     }
   });
 }

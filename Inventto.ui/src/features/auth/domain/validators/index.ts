@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 import { normalizeDocument, validateDocument } from '@/shared/utils';
 
-const slugRegex = /^[a-z0-9-]+$/;
-
 export const passwordSchema = z
   .string()
   .min(8, 'A senha deve ter no mínimo 8 caracteres.')
+  .max(32, 'A senha deve ter no máximo 32 caracteres.')
   .regex(/[A-Z]/, 'Deve conter pelo menos uma letra maiúscula.')
+  .regex(/[a-z]/, 'Deve conter pelo menos uma letra minúscula.')
   .regex(/[0-9]/, 'Deve conter pelo menos um número.')
   .regex(/[^A-Za-z0-9]/, 'Deve conter pelo menos um caractere especial.');
 
@@ -18,16 +18,10 @@ export const organizationSchema = z
       .string()
       .min(1, 'O documento é obrigatório.')
       .refine((val) => validateDocument(val), {
-        message: 'Documento (CPF ou CNPJ) inválido.'
+        message: 'Documento inválido. Verifique os números.'
       }),
     corporateName: z.string().optional(),
-    slug: z
-      .string()
-      .min(3, 'O slug deve ter pelo menos 3 caracteres.')
-      .regex(
-        slugRegex,
-        'O slug deve conter apenas letras minúsculas, números e hifens.'
-      )
+    businessAreaId: z.string().min(1, 'Selecione uma área de atuação.')
   })
   .superRefine((data, ctx) => {
     const cleanDoc = normalizeDocument(data.document);
@@ -47,10 +41,13 @@ export const userSchema = z
     fullName: z.string().min(3, 'Informe seu nome completo.'),
     email: z.email('Informe um e-mail válido.'),
     password: passwordSchema,
-    passwordConfirmation: z.string()
+    passwordConfirmation: z.string(),
+    acceptedTerms: z.boolean().refine((v) => v === true, {
+      message: 'É preciso aceitar os Termos para continuar.'
+    })
   })
   .refine((data) => data.password === data.passwordConfirmation, {
-    message: 'As senhas não conferem.',
+    message: 'As senhas não coincidem.',
     path: ['passwordConfirmation']
   });
 

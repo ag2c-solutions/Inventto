@@ -76,7 +76,9 @@ describe('Auth Mutations', () => {
         email: 'new@test.com',
         password: '123',
         fullName: 'New',
-        companyName: 'Corp'
+        companyName: 'Corp',
+        businessAreaId: 'area-1',
+        acceptedTerms: true as const
       };
 
       await result.current.mutateAsync(payload);
