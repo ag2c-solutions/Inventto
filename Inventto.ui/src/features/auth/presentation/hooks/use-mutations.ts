@@ -41,7 +41,10 @@ export function useVerifyOtpMutation() {
 export function useResendOtpMutation() {
   return useMutation({
     mutationKey: ['auth', 'resend-otp'],
-    mutationFn: AuthService.resendOtp
+    mutationFn: AuthService.resendOtp,
+    meta: {
+      errorMessage: 'Não foi possível reenviar o código de verificação.'
+    }
   });
 }
 

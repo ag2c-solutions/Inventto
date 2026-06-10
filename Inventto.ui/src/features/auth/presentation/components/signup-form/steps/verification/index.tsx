@@ -13,6 +13,7 @@ import { useSignUpForm } from '../../hook';
 function maskEmail(email: string): string {
   const [local, domain] = email.split('@');
   if (!domain) return email;
+  if (local.length <= 1) return `•••@${domain}`;
   return `${local[0]}•••@${domain}`;
 }
 
@@ -51,7 +52,7 @@ export function VerificationStep() {
 
   const handleResend = () => {
     resendOtp({ email }).catch(() => {
-      // erro tratado pelo MutationCache global
+      toast.error('Não foi possível reenviar o código. Tente novamente.');
     });
   };
 

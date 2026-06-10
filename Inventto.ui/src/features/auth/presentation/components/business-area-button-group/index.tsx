@@ -26,7 +26,7 @@ export function BusinessAreaButtonGroup({
     <div className="space-y-2">
       <div
         className="flex flex-wrap gap-2"
-        role="group"
+        role="radiogroup"
         aria-label="Área de atuação"
       >
         {BUSINESS_AREA_OPTIONS.map((option) => {

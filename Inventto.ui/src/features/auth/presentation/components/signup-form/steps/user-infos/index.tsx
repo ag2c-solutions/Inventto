@@ -158,7 +158,7 @@ export function UserStep() {
                 htmlFor="accepted-terms"
                 className="font-normal cursor-pointer"
               >
-                Li e aceito os{' '}
+                Li e aceito os {/* TODO: criar rota /terms */}
                 <a
                   href="/terms"
                   target="_blank"
@@ -168,7 +168,7 @@ export function UserStep() {
                 >
                   Termos de Uso
                 </a>{' '}
-                e a{' '}
+                e a {/* TODO: criar rota /privacy */}
                 <a
                   href="/privacy"
                   target="_blank"
