@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
 
 import { useWizard } from '@/shared/components/common/wizard';
 
@@ -40,20 +39,13 @@ export function VerificationStep() {
   const handleSubmit = async (code: string) => {
     resetVerify();
 
-    await verifyOtp({ email, token: code })
-      .then(() => {
-        toast.success('Conta ativada com sucesso! Bem-vindo(a).');
-        navigate('/', { replace: true });
-      })
-      .catch(() => {
-        // erro exibido via errorMessage
-      });
+    await verifyOtp({ email, token: code });
+
+    navigate('/', { replace: true });
   };
 
   const handleResend = () => {
-    resendOtp({ email }).catch(() => {
-      toast.error('Não foi possível reenviar o código. Tente novamente.');
-    });
+    resendOtp({ email });
   };
 
   const handleBack = () => {
