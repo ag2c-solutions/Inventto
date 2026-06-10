@@ -59,7 +59,7 @@ export function AuthLayout() {
           </div>
         </div>
         <div className="relative flex h-full flex-col bg-background p-4 lg:p-8">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[372px] flex-1">
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:max-w-lg flex-1">
             <Outlet />
           </div>
         </div>
