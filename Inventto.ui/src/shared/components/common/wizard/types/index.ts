@@ -4,6 +4,9 @@ export interface WizardStep {
   id: string;
   label: string;
   component: ReactNode;
+  hideControls?: boolean;
+  nextLabel?: string;
+  nextHint?: string;
 }
 
 type WizardState = {

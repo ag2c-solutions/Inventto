@@ -22,59 +22,64 @@ export function WizardControl({
 }: WizardControlProps) {
   const { state, actions } = useWizard();
 
-  return (
-    <div
-      className={cn('flex justify-between items-center mt-6', className)}
-      {...props}
-    >
-      <div className="flex-1">
-        {!state.isFirstStep && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={actions.prevStep}
-            disabled={state.isLoading}
-          >
-            {labels?.back || 'Voltar'}
-          </Button>
-        )}
-      </div>
+  if (state.currentStep.hideControls) return null;
 
-      <div className="flex gap-2">
+  const nextLabel = state.currentStep.nextLabel || labels?.next || 'Avançar';
+
+  return (
+    <div className={cn('flex flex-col gap-1 mt-6', className)} {...props}>
+      {state.isLastStep ? (
+        <Button
+          type="button"
+          className="w-full"
+          onClick={actions.handleFinish}
+          disabled={state.isLoading}
+        >
+          {state.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {labels?.finish || 'Finalizar'}
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          className="w-full"
+          onClick={actions.nextStep}
+          disabled={state.isLoading}
+        >
+          {state.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {nextLabel}
+        </Button>
+      )}
+
+      {state.currentStep.nextHint && (
+        <p className="text-center text-xs text-muted-foreground py-1">
+          {state.currentStep.nextHint}
+        </p>
+      )}
+
+      {!state.isFirstStep && (
         <Button
           type="button"
           variant="ghost"
-          onClick={actions.handleCancel}
+          className="w-full text-muted-foreground"
+          onClick={actions.prevStep}
           disabled={state.isLoading}
-          className="text-muted-foreground hover:text-destructive"
         >
-          {labels?.cancel || 'Cancelar'}
+          {labels?.back || 'Voltar'}
         </Button>
+      )}
 
-        {state.isLastStep ? (
-          <Button
+      {state.isFirstStep && (
+        <p className="text-center text-sm text-muted-foreground mt-2">
+          <button
             type="button"
-            onClick={actions.handleFinish}
+            className="hover:underline disabled:opacity-50"
+            onClick={actions.handleCancel}
             disabled={state.isLoading}
           >
-            {state.isLoading && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {labels?.finish || 'Finalizar'}
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={actions.nextStep}
-            disabled={state.isLoading}
-          >
-            {state.isLoading && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {labels?.next || 'Avançar'}
-          </Button>
-        )}
-      </div>
+            {labels?.cancel || 'Cancelar'}
+          </button>
+        </p>
+      )}
     </div>
   );
 }
