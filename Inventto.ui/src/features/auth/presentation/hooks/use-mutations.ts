@@ -48,6 +48,18 @@ export function useResendOtpMutation() {
   });
 }
 
+export function useRecoverPasswordMutation() {
+  return useMutation({
+    mutationKey: ['auth', 'recover-password'],
+    mutationFn: AuthService.recoverPassword,
+    // RN002 (anti-enumeração): nenhum toast de sucesso ou erro — o feedback
+    // é a própria tela neutra "sent", que não revela se o e-mail existe.
+    meta: {
+      suppressErrorToast: true
+    }
+  });
+}
+
 export function useSignOutMutation() {
   const queryClient = useQueryClient();
 

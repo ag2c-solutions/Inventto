@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../../domain/services';
 
 import {
+  useRecoverPasswordMutation,
   useSignInMutation,
   useSignOutMutation,
   useSignUpMutation
@@ -14,7 +15,8 @@ vi.mock('../../domain/services', () => ({
   AuthService: {
     signIn: vi.fn(),
     signUp: vi.fn(),
-    signOut: vi.fn()
+    signOut: vi.fn(),
+    recoverPassword: vi.fn()
   }
 }));
 
@@ -87,6 +89,40 @@ describe('Auth Mutations', () => {
         payload,
         expect.anything()
       );
+    });
+  });
+
+  describe('useRecoverPasswordMutation', () => {
+    it('should call AuthService.recoverPassword with the email', async () => {
+      vi.mocked(AuthService.recoverPassword).mockResolvedValue();
+
+      const { result } = renderHook(() => useRecoverPasswordMutation(), {
+        wrapper
+      });
+
+      await result.current.mutateAsync({ email: 'test@test.com' });
+
+      expect(AuthService.recoverPassword).toHaveBeenCalledWith(
+        { email: 'test@test.com' },
+        expect.anything()
+      );
+    });
+
+    it('should suppress the global error toast even on failure (RN002)', async () => {
+      vi.mocked(AuthService.recoverPassword).mockRejectedValue(
+        new Error('rate limit')
+      );
+
+      const { result } = renderHook(() => useRecoverPasswordMutation(), {
+        wrapper
+      });
+
+      await expect(
+        result.current.mutateAsync({ email: 'test@test.com' })
+      ).rejects.toThrow();
+
+      const mutation = queryClient.getMutationCache().getAll()[0];
+      expect(mutation.meta?.suppressErrorToast).toBe(true);
     });
   });
 

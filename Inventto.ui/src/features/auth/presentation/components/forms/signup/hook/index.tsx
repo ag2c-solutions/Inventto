@@ -9,8 +9,8 @@ import { formatDocument, normalizeDocument } from '@/shared/utils';
 import {
   type SignUpFormValues as SignUpFormData,
   signUpSchema
-} from '../../../../domain/validators';
-import { useSignUpMutation } from '../../../hooks/use-mutations';
+} from '../../../../../domain/validators';
+import { useSignUpMutation } from '../../../../hooks/use-mutations';
 
 interface SignUpFormContextType {
   form: UseFormReturn<SignUpFormData>;
@@ -76,7 +76,6 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
 
       if (!isValid) return false;
 
-      // Submete o cadastro ao avançar do passo 2 → 3
       const data = form.getValues();
 
       try {
@@ -98,12 +97,6 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  // onFinish não é mais usado: o wizard chega ao passo 3 (OTP) que tem CTA próprio.
-  // Mantemos a assinatura para compatibilidade com o WizardControl.
-  const handleSubmit = async () => {
-    // Noop: o submit final ocorre dentro do VerificationStep via verifyOtp.
-  };
-
   const handleCancel = () => {
     navigate('/auth/login');
   };
@@ -114,8 +107,9 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
     actions: {
       handleDocumentChange,
       handleBeforeNextStep,
-      onSubmit: handleSubmit,
-      handleCancel
+      handleCancel,
+      // Noop: o submit final ocorre no passo OTP (VerificationStep), não no Wizard.
+      onSubmit: async () => {}
     }
   };
 

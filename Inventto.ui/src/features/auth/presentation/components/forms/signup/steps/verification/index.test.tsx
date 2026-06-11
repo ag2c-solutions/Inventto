@@ -11,7 +11,6 @@ const mockResendOtp = vi.fn();
 const mockPrevStep = vi.fn();
 const mockNavigate = vi.fn();
 
-// Mock do hook useSignUpForm para fornecer email
 vi.mock('../../hook', () => ({
   useSignUpForm: () => ({
     form: {
@@ -23,8 +22,7 @@ vi.mock('../../hook', () => ({
   })
 }));
 
-// Mock das mutations — path correto em relação a steps/verification
-vi.mock('../../../../hooks/use-mutations', () => ({
+vi.mock('../../../../../hooks/use-mutations', () => ({
   useVerifyOtpMutation: () => ({
     mutateAsync: mockVerifyOtp,
     isPending: false,
@@ -37,7 +35,6 @@ vi.mock('../../../../hooks/use-mutations', () => ({
   })
 }));
 
-// Mock do useWizard
 vi.mock('@/shared/components/common/wizard', () => ({
   useWizard: () => ({
     actions: {
@@ -54,7 +51,6 @@ vi.mock('react-router', async () => {
   };
 });
 
-// Mock do input-otp
 vi.mock('@/shared/components/ui/input-otp', () => ({
   InputOTP: ({
     onChange,
@@ -84,7 +80,6 @@ vi.mock('@/shared/components/ui/input-otp', () => ({
   InputOTPSlot: () => null
 }));
 
-// Mock do sonner toast
 vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
@@ -117,7 +112,6 @@ describe('VerificationStep', () => {
 
     expect(screen.getByText('Verifique seu e-mail')).toBeInTheDocument();
 
-    // E-mail mascarado: joana@email.com → j•••@email.com
     expect(screen.getByText(/j•••@email\.com/i)).toBeInTheDocument();
 
     expect(

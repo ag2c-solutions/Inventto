@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../data/handlers/error-handler';
+import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../../data/handlers/error-handler';
 import {
   useResendOtpMutation,
   useSignInMutation,
   useVerifyOtpMutation
-} from '../../hooks/use-mutations';
+} from '../../../hooks/use-mutations';
 
 import { type SignInFormData, signInSchema } from './schema';
 

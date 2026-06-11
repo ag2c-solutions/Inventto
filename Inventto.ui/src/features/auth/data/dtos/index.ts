@@ -30,3 +30,7 @@ export interface VerifyOtpPayload {
 export interface ResendOtpPayload {
   email: string;
 }
+
+export interface RecoverPasswordPayload {
+  email: string;
+}

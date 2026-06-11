@@ -2,6 +2,7 @@ import { supabase } from '@/infra/supabase';
 
 import type { Session } from '../../domain/entities';
 import type {
+  RecoverPasswordPayload,
   ResendOtpPayload,
   SignInPayload,
   SignUpPayload,
@@ -86,6 +87,22 @@ export class AuthAPI {
 
     if (error) {
       handleAuthError(error, 'resendOtp');
+    }
+  }
+
+  /**
+   * Dispara o e-mail de redefinição de senha (RF004). O link aponta para a
+   * tela de redefinição (AUTH-07). O Supabase responde de forma neutra —
+   * não confirma nem nega a existência da conta (RN002); erros aqui são
+   * relançados, mas a UI mantém o feedback neutro.
+   */
+  static async recoverPassword({ email }: RecoverPasswordPayload) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`
+    });
+
+    if (error) {
+      handleAuthError(error, 'recoverPassword');
     }
   }
 

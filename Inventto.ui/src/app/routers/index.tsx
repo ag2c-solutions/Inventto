@@ -45,10 +45,8 @@ export const router = createBrowserRouter([
       {
         path: 'forgot-password',
         lazy: async () => {
-          const { PlaceholderPage } = await import(
-            '@/shared/components/common/placeholder-page'
-          );
-          return { Component: PlaceholderPage };
+          const { RecoverPasswordPage } = await import('@/features/auth/');
+          return { Component: RecoverPasswordPage };
         }
       }
     ]

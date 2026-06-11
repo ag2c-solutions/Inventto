@@ -2,6 +2,7 @@ import type { Organization } from '@/features/organizations';
 
 import { AuthAPI } from '../../data/api';
 import type {
+  RecoverPasswordPayload,
   ResendOtpPayload,
   SignInPayload,
   SignUpPayload,
@@ -24,6 +25,10 @@ export class AuthService {
 
   static async resendOtp(args: ResendOtpPayload) {
     return AuthAPI.resendOtp(args);
+  }
+
+  static async recoverPassword(args: RecoverPasswordPayload) {
+    return AuthAPI.recoverPassword(args);
   }
 
   static async signOut() {

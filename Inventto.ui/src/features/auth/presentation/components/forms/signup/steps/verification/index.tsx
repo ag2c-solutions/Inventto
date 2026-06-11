@@ -5,9 +5,9 @@ import { useWizard } from '@/shared/components/common/wizard';
 import {
   useResendOtpMutation,
   useVerifyOtpMutation
-} from '../../../../hooks/use-mutations';
-import { maskEmail } from '../../../../utils/mask-email';
-import { OtpStep } from '../../../otp-step/';
+} from '../../../../../hooks/use-mutations';
+import { maskEmail } from '../../../../../utils/mask-email';
+import { OtpStep } from '../../../../otp-step/';
 import { useSignUpForm } from '../../hook';
 
 export function VerificationStep() {
