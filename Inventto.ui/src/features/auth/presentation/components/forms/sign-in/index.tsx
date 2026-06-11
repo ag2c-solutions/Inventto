@@ -20,8 +20,8 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import { maskEmail } from '../../utils/mask-email';
-import { OtpStep } from '../otp-step';
+import { maskEmail } from '../../../utils/mask-email';
+import { OtpStep } from '../../otp-step';
 
 import { useSignInForm } from './use-sign-in-form';
 

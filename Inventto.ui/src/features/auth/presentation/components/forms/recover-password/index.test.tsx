@@ -7,7 +7,7 @@ import { RecoverPasswordForm } from './index';
 
 const mockRecoverPassword = vi.fn();
 
-vi.mock('../../hooks/use-mutations', () => ({
+vi.mock('../../../hooks/use-mutations', () => ({
   useRecoverPasswordMutation: () => ({ mutateAsync: mockRecoverPassword })
 }));
 
