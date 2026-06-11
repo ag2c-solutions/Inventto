@@ -20,7 +20,7 @@ export interface OtpStepProps {
   errorMessage?: string | null;
   showBack?: boolean;
   backLabel?: string;
-  onSubmit: (code: string) => void;
+  onSubmit: (code: string) => Promise<void>;
   onResend: () => void;
   onBack?: () => void;
 }

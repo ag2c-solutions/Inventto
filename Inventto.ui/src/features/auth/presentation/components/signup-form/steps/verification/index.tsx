@@ -6,20 +6,14 @@ import {
   useResendOtpMutation,
   useVerifyOtpMutation
 } from '../../../../hooks/use-mutations';
+import { maskEmail } from '../../../../utils/mask-email';
 import { OtpStep } from '../../../otp-step/';
 import { useSignUpForm } from '../../hook';
 
-function maskEmail(email: string): string {
-  const [local, domain] = email.split('@');
-  if (!domain) return email;
-  if (local.length <= 1) return `•••@${domain}`;
-  return `${local[0]}•••@${domain}`;
-}
-
 export function VerificationStep() {
+  const navigate = useNavigate();
   const { form } = useSignUpForm();
   const { actions: wizardActions } = useWizard();
-  const navigate = useNavigate();
 
   const email = form.getValues('email');
   const maskedEmail = maskEmail(email);
@@ -44,12 +38,13 @@ export function VerificationStep() {
     navigate('/', { replace: true });
   };
 
-  const handleResend = () => {
-    resendOtp({ email });
+  const handleResend = async () => {
+    await resendOtp({ email });
   };
 
   const handleBack = () => {
     resetVerify();
+
     wizardActions.prevStep();
   };
 

@@ -4,8 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OtpStep } from './index';
 
-// input-otp usa document.elementFromPoint que não existe no jsdom.
-// Substituímos por um <input> simples que honra a mesma API de onChange(string).
 vi.mock('@/shared/components/ui/input-otp', () => ({
   InputOTP: ({
     onChange,
@@ -25,7 +23,6 @@ vi.mock('@/shared/components/ui/input-otp', () => ({
       maxLength={maxLength}
       disabled={disabled}
       onChange={(e) => onChange?.(e.target.value)}
-      // Filtra props do DOM que não pertencem a <input>
       data-testid="otp-input"
       readOnly={onChange === undefined}
     />
@@ -53,8 +50,6 @@ describe('OtpStep', () => {
 
   const renderComponent = (props = {}) =>
     render(<OtpStep {...defaultProps} {...props} />);
-
-  // ─── Renderização ────────────────────────────────────────────────────────────
 
   it('deve renderizar título, subtítulo e CTA', () => {
     renderComponent();
@@ -98,8 +93,6 @@ describe('OtpStep', () => {
     ).toBeInTheDocument();
   });
 
-  // ─── Estado: empty / typing ──────────────────────────────────────────────────
-
   it('deve manter o CTA desabilitado enquanto o código está incompleto', async () => {
     renderComponent();
 
@@ -137,8 +130,6 @@ describe('OtpStep', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
-  // ─── Estado: error ───────────────────────────────────────────────────────────
-
   it('deve exibir a mensagem de erro quando errorMessage for fornecida', () => {
     renderComponent({
       errorMessage: 'Código inválido ou expirado. Tente novamente.'
@@ -163,8 +154,6 @@ describe('OtpStep', () => {
     expect(screen.getByRole('textbox')).not.toBeDisabled();
   });
 
-  // ─── Estado: sending ─────────────────────────────────────────────────────────
-
   it('deve desabilitar o input e exibir "Verificando..." quando isSending=true', () => {
     renderComponent({ isSending: true });
 
@@ -179,8 +168,6 @@ describe('OtpStep', () => {
       screen.getByRole('button', { name: /não recebeu\? reenviar código/i })
     ).toBeDisabled();
   });
-
-  // ─── Estado: cooldown ────────────────────────────────────────────────────────
 
   it('deve iniciar cooldown e desabilitar o botão de reenvio ao clicar em reenviar', async () => {
     const onResend = vi.fn();
@@ -197,10 +184,9 @@ describe('OtpStep', () => {
     expect(resendBtn).toHaveTextContent(/reenviar código \(\d+s\)/i);
   });
 
-  // ─── Botão voltar ────────────────────────────────────────────────────────────
-
   it('deve chamar onBack ao clicar no botão voltar', async () => {
     const onBack = vi.fn();
+
     renderComponent({ showBack: true, onBack });
 
     await user.click(screen.getByRole('button', { name: /voltar/i }));

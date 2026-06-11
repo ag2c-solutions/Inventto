@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { handleAuthError } from './error-handler';
+import { EMAIL_NOT_CONFIRMED_ERROR, handleAuthError } from './error-handler';
 
 const action = 'testAction';
 
@@ -18,6 +18,20 @@ describe('handleAuthError', () => {
   it('should throw "E-mail ou senha incorretos" for invalid credentials', () => {
     const error = makeAuthError('Invalid login credentials', 400);
     expect(() => handleAuthError(error, action)).toThrow(
+      'E-mail ou senha incorretos.'
+    );
+  });
+
+  it('should throw the EMAIL_NOT_CONFIRMED discriminator for unconfirmed email', () => {
+    const error = makeAuthError('Email not confirmed', 400);
+    expect(() => handleAuthError(error, action)).toThrow(
+      EMAIL_NOT_CONFIRMED_ERROR
+    );
+  });
+
+  it('should NOT mask unconfirmed email as invalid credentials', () => {
+    const error = makeAuthError('Email not confirmed', 400);
+    expect(() => handleAuthError(error, action)).not.toThrow(
       'E-mail ou senha incorretos.'
     );
   });
