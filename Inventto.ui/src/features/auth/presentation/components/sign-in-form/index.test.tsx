@@ -6,12 +6,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SignInForm } from './index';
 
 const mockMutateAsync = vi.fn();
+const mockVerifyOtp = vi.fn();
+const mockResendOtp = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('../../hooks/use-mutations', () => ({
   useSignInMutation: () => ({
     mutateAsync: mockMutateAsync,
     isPending: false
-  })
+  }),
+  useVerifyOtpMutation: () => ({
+    mutateAsync: mockVerifyOtp,
+    isPending: false,
+    error: null,
+    reset: vi.fn()
+  }),
+  useResendOtpMutation: () => ({ mutateAsync: mockResendOtp })
 }));
 
 const mockNavigate = vi.fn();
@@ -25,6 +34,37 @@ vi.mock('react-router', async () => {
 
 vi.mock('@/app/brand/logo', () => ({
   Logo: () => <div data-testid="mock-logo">Logo</div>
+}));
+
+// input-otp usa document.elementFromPoint que não existe no jsdom
+vi.mock('@/shared/components/ui/input-otp', () => ({
+  InputOTP: ({
+    onChange,
+    value,
+    disabled,
+    maxLength
+  }: {
+    onChange?: (val: string) => void;
+    value?: string;
+    disabled?: boolean;
+    maxLength?: number;
+    [key: string]: unknown;
+  }) => (
+    <input
+      role="textbox"
+      aria-label="Código de verificação de 6 dígitos"
+      value={value ?? ''}
+      maxLength={maxLength}
+      disabled={disabled}
+      onChange={(e) => onChange?.(e.target.value)}
+      data-testid="otp-input"
+      readOnly={onChange === undefined}
+    />
+  ),
+  InputOTPGroup: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  InputOTPSlot: () => null
 }));
 
 describe('SignInForm Component', () => {
@@ -120,5 +160,68 @@ describe('SignInForm Component', () => {
 
     expect(emailInput).toHaveValue('admin@inventto.com');
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('should show the neutral error message inline on invalid credentials', async () => {
+    mockMutateAsync.mockRejectedValue(new Error('E-mail ou senha incorretos.'));
+
+    renderComponent();
+
+    await user.type(screen.getByLabelText(/e-mail/i), 'admin@inventto.com');
+    await user.type(screen.getByLabelText(/senha/i), 'WrongPass');
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/e-mail ou senha incorretos/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('should switch to OTP verification when email is pending confirmation', async () => {
+    mockMutateAsync.mockRejectedValue(new Error('EMAIL_NOT_CONFIRMED'));
+
+    renderComponent();
+
+    await user.type(screen.getByLabelText(/e-mail/i), 'pending@inventto.com');
+    await user.type(screen.getByLabelText(/senha/i), 'ValidPass123!');
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Confirme seu e-mail')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/p•••@inventto\.com/)).toBeInTheDocument();
+    expect(mockResendOtp).toHaveBeenCalledWith({
+      email: 'pending@inventto.com'
+    });
+    expect(
+      screen.queryByText(/e-mail ou senha incorretos/i)
+    ).not.toBeInTheDocument();
+
+    // Voltar retorna ao Passo 1
+    await user.click(
+      screen.getByRole('button', { name: /voltar para o e-mail/i })
+    );
+    expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+  });
+
+  it('should disable submit with neutral note when throttled', async () => {
+    mockMutateAsync.mockRejectedValue(
+      new Error('Muitas tentativas. Aguarde um momento e tente novamente.')
+    );
+
+    renderComponent();
+
+    await user.type(screen.getByLabelText(/e-mail/i), 'admin@inventto.com');
+    await user.type(screen.getByLabelText(/senha/i), 'SomePass123!');
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/muitas tentativas\. aguarde um instante/i)
+      ).toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: /entrar/i })).toBeDisabled();
   });
 });
