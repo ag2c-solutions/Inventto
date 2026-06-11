@@ -12,13 +12,6 @@ import {
 
 import { type SignInFormData, signInSchema } from './schema';
 
-// RN005: o throttle é reflexo do rate limit nativo do provedor, não bloqueio
-// aplicacional — apenas desabilita o submit por um instante.
-const THROTTLE_COOLDOWN_MS = 30_000;
-
-export const THROTTLED_MESSAGE =
-  'Muitas tentativas. Aguarde um instante e tente novamente.';
-
 export function useSignInForm() {
   const { mutateAsync: signIn } = useSignInMutation();
   const {
@@ -33,8 +26,6 @@ export function useSignInForm() {
   // E-mail pendente de confirmação: quando preenchido, o formulário está no
   // Passo 2 (OtpStep) — RF003/RN003.
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [isThrottled, setIsThrottled] = useState(false);
 
   const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -42,29 +33,21 @@ export function useSignInForm() {
   });
 
   const onSubmit = async (data: SignInFormData) => {
-    setFormError(null);
-
     await signIn(data)
       .then(() => navigate('/', { replace: true }))
       .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : '';
 
         if (message === EMAIL_NOT_CONFIRMED_ERROR) {
-          // Credencial válida com e-mail pendente: vai para o Passo 2 e
-          // dispara o envio do código — sem erro neutro (RN003).
+          // Controle de fluxo, não erro: credencial válida com e-mail
+          // pendente vai para o Passo 2 e dispara o envio do código (RN003).
           setPendingEmail(data.email);
           resendOtp({ email: data.email }).catch(() => {});
           return;
         }
 
-        if (message.includes('Muitas tentativas')) {
-          setIsThrottled(true);
-          setFormError(THROTTLED_MESSAGE);
-          setTimeout(() => setIsThrottled(false), THROTTLE_COOLDOWN_MS);
-        } else {
-          setFormError(message || 'E-mail ou senha incorretos.');
-        }
-
+        // Demais erros são exibidos via toast pelo MutationCache global;
+        // aqui só o comportamento de UX do formulário.
         form.setValue('password', '');
         setTimeout(() => form.setFocus('password'), 0);
       });
@@ -93,8 +76,6 @@ export function useSignInForm() {
   return {
     form,
     onSubmit,
-    formError,
-    isThrottled,
     pendingEmail,
     isVerifying,
     verifyErrorMessage:

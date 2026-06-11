@@ -11,10 +11,7 @@ export function useSignInMutation() {
     mutationKey: ['auth', 'signin'],
     mutationFn: AuthService.signIn,
     meta: {
-      successMessage: 'Bem-vindo de volta!',
-      // O formulário trata o erro inline (neutro RN002, throttled RN005,
-      // e-mail pendente RN003) — sem toast genérico.
-      suppressErrorToast: true
+      successMessage: 'Bem-vindo de volta!'
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });

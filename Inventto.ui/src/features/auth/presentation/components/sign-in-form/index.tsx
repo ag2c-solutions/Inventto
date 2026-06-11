@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { InfoIcon, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 import { Logo } from '@/app/brand/logo';
 
@@ -29,8 +29,6 @@ export function SignInForm() {
   const {
     form,
     onSubmit,
-    formError,
-    isThrottled,
     pendingEmail,
     isVerifying,
     verifyErrorMessage,
@@ -106,23 +104,10 @@ export function SignInForm() {
                   </FormItem>
                 )}
               />
-              {formError && (
-                <p
-                  role="alert"
-                  aria-live="assertive"
-                  className={
-                    isThrottled
-                      ? 'text-sm text-muted-foreground flex items-start gap-1.5'
-                      : 'text-sm text-destructive flex items-start gap-1.5'
-                  }
-                >
-                  <InfoIcon className="size-4 mt-0.5 shrink-0" /> {formError}
-                </p>
-              )}
               <Button
                 type="submit"
                 className="w-full"
-                disabled={form.formState.isSubmitting || isThrottled}
+                disabled={form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

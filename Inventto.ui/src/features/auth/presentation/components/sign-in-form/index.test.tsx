@@ -162,22 +162,6 @@ describe('SignInForm Component', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('should show the neutral error message inline on invalid credentials', async () => {
-    mockMutateAsync.mockRejectedValue(new Error('E-mail ou senha incorretos.'));
-
-    renderComponent();
-
-    await user.type(screen.getByLabelText(/e-mail/i), 'admin@inventto.com');
-    await user.type(screen.getByLabelText(/senha/i), 'WrongPass');
-    await user.click(screen.getByRole('button', { name: /entrar/i }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/e-mail ou senha incorretos/i)
-      ).toBeInTheDocument();
-    });
-  });
-
   it('should switch to OTP verification when email is pending confirmation', async () => {
     mockMutateAsync.mockRejectedValue(new Error('EMAIL_NOT_CONFIRMED'));
 
@@ -195,33 +179,11 @@ describe('SignInForm Component', () => {
     expect(mockResendOtp).toHaveBeenCalledWith({
       email: 'pending@inventto.com'
     });
-    expect(
-      screen.queryByText(/e-mail ou senha incorretos/i)
-    ).not.toBeInTheDocument();
 
     // Voltar retorna ao Passo 1
     await user.click(
       screen.getByRole('button', { name: /voltar para o e-mail/i })
     );
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
-  });
-
-  it('should disable submit with neutral note when throttled', async () => {
-    mockMutateAsync.mockRejectedValue(
-      new Error('Muitas tentativas. Aguarde um momento e tente novamente.')
-    );
-
-    renderComponent();
-
-    await user.type(screen.getByLabelText(/e-mail/i), 'admin@inventto.com');
-    await user.type(screen.getByLabelText(/senha/i), 'SomePass123!');
-    await user.click(screen.getByRole('button', { name: /entrar/i }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(/muitas tentativas\. aguarde um instante/i)
-      ).toBeInTheDocument();
-    });
-    expect(screen.getByRole('button', { name: /entrar/i })).toBeDisabled();
   });
 });

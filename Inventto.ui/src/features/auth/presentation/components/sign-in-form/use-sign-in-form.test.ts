@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../data/handlers/error-handler';
 
-import { THROTTLED_MESSAGE, useSignInForm } from './use-sign-in-form';
+import { useSignInForm } from './use-sign-in-form';
 
 const mockMutateAsync = vi.fn();
 const mockVerifyOtp = vi.fn();
@@ -86,7 +86,6 @@ describe('useSignInForm', () => {
       expect(result.current.form.getValues('password')).toBe('');
     });
 
-    expect(result.current.formError).toBe('E-mail ou senha incorretos.');
     expect(result.current.pendingEmail).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -104,28 +103,7 @@ describe('useSignInForm', () => {
     });
 
     expect(result.current.pendingEmail).toBe('pending@test.com');
-    expect(result.current.formError).toBeNull();
     expect(mockResendOtp).toHaveBeenCalledWith({ email: 'pending@test.com' });
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('should set throttled state and disable retries on rate limit', async () => {
-    mockMutateAsync.mockRejectedValue(
-      new Error('Muitas tentativas. Aguarde um momento e tente novamente.')
-    );
-
-    const { result } = renderHook(() => useSignInForm(), { wrapper });
-
-    await act(async () => {
-      await result.current.onSubmit({
-        email: 'test@test.com',
-        password: 'Pass123!'
-      });
-    });
-
-    expect(result.current.isThrottled).toBe(true);
-    expect(result.current.formError).toBe(THROTTLED_MESSAGE);
-    expect(result.current.pendingEmail).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
