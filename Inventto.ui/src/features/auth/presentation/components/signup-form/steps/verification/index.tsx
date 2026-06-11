@@ -11,9 +11,9 @@ import { OtpStep } from '../../../otp-step/';
 import { useSignUpForm } from '../../hook';
 
 export function VerificationStep() {
+  const navigate = useNavigate();
   const { form } = useSignUpForm();
   const { actions: wizardActions } = useWizard();
-  const navigate = useNavigate();
 
   const email = form.getValues('email');
   const maskedEmail = maskEmail(email);
@@ -38,12 +38,13 @@ export function VerificationStep() {
     navigate('/', { replace: true });
   };
 
-  const handleResend = () => {
-    resendOtp({ email });
+  const handleResend = async () => {
+    await resendOtp({ email });
   };
 
   const handleBack = () => {
     resetVerify();
+
     wizardActions.prevStep();
   };
 

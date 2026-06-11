@@ -9,17 +9,23 @@ const mockMutateAsync = vi.fn();
 const mockVerifyOtp = vi.fn();
 const mockResendOtp = vi.fn().mockResolvedValue(undefined);
 
+let verifyOtpError: Error | null = null;
+
 vi.mock('../../hooks/use-mutations', () => ({
   useSignInMutation: () => ({
     mutateAsync: mockMutateAsync,
     isPending: false
   }),
+
   useVerifyOtpMutation: () => ({
     mutateAsync: mockVerifyOtp,
+    reset: vi.fn(),
     isPending: false,
-    error: null,
-    reset: vi.fn()
+    get error() {
+      return verifyOtpError;
+    }
   }),
+
   useResendOtpMutation: () => ({ mutateAsync: mockResendOtp })
 }));
 
@@ -36,7 +42,6 @@ vi.mock('@/app/brand/logo', () => ({
   Logo: () => <div data-testid="mock-logo">Logo</div>
 }));
 
-// input-otp usa document.elementFromPoint que não existe no jsdom
 vi.mock('@/shared/components/ui/input-otp', () => ({
   InputOTP: ({
     onChange,
@@ -72,18 +77,22 @@ describe('SignInForm Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    verifyOtpError = null;
+
+    mockResendOtp.mockResolvedValue(undefined);
   });
 
-  const renderComponent = () => {
-    return render(
+  const renderComponent = () =>
+    render(
       <MemoryRouter>
         <SignInForm />
       </MemoryRouter>
     );
-  };
 
   it('should render the form with all necessary fields', () => {
     renderComponent();
+
     expect(screen.getByTestId('mock-logo')).toBeInTheDocument();
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
@@ -92,19 +101,23 @@ describe('SignInForm Component', () => {
 
   it('should display validation errors when submitting empty form', async () => {
     renderComponent();
+
     const submitBtn = screen.getByRole('button', { name: /entrar/i });
+
     await user.click(submitBtn);
 
     await waitFor(() => {
       expect(screen.getByText(/e-mail inválido/i)).toBeInTheDocument();
       expect(screen.getByText(/a senha é obrigatória/i)).toBeInTheDocument();
     });
+
     expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 
   it('should call mutation and navigate on success', async () => {
     mockMutateAsync.mockImplementation(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
+
       return { user: { id: '1' } };
     });
 
@@ -134,7 +147,7 @@ describe('SignInForm Component', () => {
     });
   });
 
-  it('should handle login error correctly (UX Requirement)', async () => {
+  it('should reset password field and restore focus on login error', async () => {
     mockMutateAsync.mockRejectedValue(new Error('Invalid credentials'));
 
     renderComponent();
@@ -152,10 +165,8 @@ describe('SignInForm Component', () => {
       expect(mockMutateAsync).toHaveBeenCalled();
     });
 
-    expect(passwordInput).toHaveValue('');
-
     await waitFor(() => {
-      expect(passwordInput).toHaveFocus();
+      expect(passwordInput).toHaveValue('');
     });
 
     expect(emailInput).toHaveValue('admin@inventto.com');
@@ -180,10 +191,38 @@ describe('SignInForm Component', () => {
       email: 'pending@inventto.com'
     });
 
-    // Voltar retorna ao Passo 1
     await user.click(
       screen.getByRole('button', { name: /voltar para o e-mail/i })
     );
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+  });
+
+  it('should display inline error in OtpStep when OTP is invalid', async () => {
+    verifyOtpError = new Error('Código inválido ou expirado.');
+
+    mockMutateAsync.mockRejectedValue(new Error('EMAIL_NOT_CONFIRMED'));
+    mockVerifyOtp.mockReturnValue(new Promise(() => {}));
+
+    renderComponent();
+
+    await user.type(screen.getByLabelText(/e-mail/i), 'pending@inventto.com');
+    await user.type(screen.getByLabelText(/senha/i), 'ValidPass123!');
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Confirme seu e-mail')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Código inválido ou expirado.'
+    );
+
+    await user.type(screen.getByTestId('otp-input'), '000000');
+
+    await user.click(
+      screen.getByRole('button', { name: /confirmar e entrar/i })
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

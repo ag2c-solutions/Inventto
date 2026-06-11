@@ -14,18 +14,16 @@ import { type SignInFormData, signInSchema } from './schema';
 
 export function useSignInForm() {
   const { mutateAsync: signIn } = useSignInMutation();
+  const { mutateAsync: resendOtp } = useResendOtpMutation();
+  const navigate = useNavigate();
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+
   const {
     mutateAsync: verifyOtp,
     isPending: isVerifying,
     error: verifyError,
     reset: resetVerify
   } = useVerifyOtpMutation();
-  const { mutateAsync: resendOtp } = useResendOtpMutation();
-  const navigate = useNavigate();
-
-  // E-mail pendente de confirmação: quando preenchido, o formulário está no
-  // Passo 2 (OtpStep) — RF003/RN003.
-  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -39,38 +37,39 @@ export function useSignInForm() {
         const message = error instanceof Error ? error.message : '';
 
         if (message === EMAIL_NOT_CONFIRMED_ERROR) {
-          // Controle de fluxo, não erro: credencial válida com e-mail
-          // pendente vai para o Passo 2 e dispara o envio do código (RN003).
           setPendingEmail(data.email);
-          resendOtp({ email: data.email }).catch(() => {});
+
+          resendOtp({ email: data.email });
           return;
         }
 
-        // Demais erros são exibidos via toast pelo MutationCache global;
-        // aqui só o comportamento de UX do formulário.
-        form.setValue('password', '');
-        setTimeout(() => form.setFocus('password'), 0);
+        form.resetField('password');
+        queueMicrotask(() => form.setFocus('password'));
       });
   };
 
-  const handleVerifyOtp = (code: string) => {
+  const handleVerifyOtp = async (code: string) => {
     if (!pendingEmail) return;
+
     resetVerify();
 
-    verifyOtp({ email: pendingEmail, token: code })
-      .then(() => navigate('/', { replace: true }))
-      .catch(() => {});
+    await verifyOtp({ email: pendingEmail, token: code });
+
+    navigate('/', { replace: true });
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     if (!pendingEmail) return;
-    resendOtp({ email: pendingEmail }).catch(() => {});
+
+    await resendOtp({ email: pendingEmail });
   };
 
   const handleBackToCredentials = () => {
     resetVerify();
+
     setPendingEmail(null);
-    form.setValue('password', '');
+
+    form.resetField('password');
   };
 
   return {

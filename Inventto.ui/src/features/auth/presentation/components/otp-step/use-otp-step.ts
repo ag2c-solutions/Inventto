@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const COOLDOWN_SECONDS = 45;
 
 interface UseOtpStepOptions {
-  onSubmit: (code: string) => void;
+  onSubmit: (code: string) => Promise<void>;
   onResend: () => void;
 }
 
@@ -31,8 +31,10 @@ export function useOtpStep({ onSubmit, onResend }: UseOtpStepOptions) {
       setCooldown((prev) => {
         if (prev <= 1) {
           clearCooldownInterval();
+
           return 0;
         }
+
         return prev - 1;
       });
     }, 1000);
@@ -43,9 +45,9 @@ export function useOtpStep({ onSubmit, onResend }: UseOtpStepOptions) {
     startCooldown();
   }, [onResend, startCooldown]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (code.length === 6) {
-      onSubmit(code);
+      await onSubmit(code);
     }
   }, [code, onSubmit]);
 
