@@ -107,8 +107,9 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
     actions: {
       handleDocumentChange,
       handleBeforeNextStep,
-      onSubmit: async () => {},
-      handleCancel
+      handleCancel,
+      // Noop: o submit final ocorre no passo OTP (VerificationStep), não no Wizard.
+      onSubmit: async () => {}
     }
   };
 
