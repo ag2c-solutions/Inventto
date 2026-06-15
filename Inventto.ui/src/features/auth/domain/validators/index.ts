@@ -59,7 +59,7 @@ export const firstAccessSchema = z
     confirmPassword: z.string()
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'As senhas não conferem.',
+    message: 'As senhas não coincidem.',
     path: ['confirmPassword']
   });
 

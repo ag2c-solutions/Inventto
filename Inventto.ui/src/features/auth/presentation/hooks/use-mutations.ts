@@ -90,19 +90,32 @@ export function useSignOutMutation() {
   });
 }
 
-export function useCompleteFirstAccessMutation() {
+export function useSetFirstAccessPasswordMutation() {
+  return useMutation({
+    mutationKey: ['auth', 'set-first-access-password'],
+    mutationFn: (payload: { newPassword: string; email: string }) =>
+      AuthService.setFirstAccessPassword(payload),
+    meta: {
+      errorMessage: 'Não foi possível definir a senha. Tente novamente.'
+    }
+  });
+}
+
+export function useConfirmFirstAccessMutation() {
   const queryClient = useQueryClient();
   const { currentOrganization } = useUser();
 
   return useMutation({
-    mutationKey: ['auth', 'complete-first-access'],
-    mutationFn: (payload: { newPassword: string; userId: string }) =>
-      AuthService.completeFirstAccess({
+    mutationKey: ['auth', 'confirm-first-access'],
+    mutationFn: (payload: { email: string; token: string; userId: string }) =>
+      AuthService.confirmFirstAccess({
         ...payload,
         organization: currentOrganization
       }),
+    // Erros de OTP (código inválido, expirado) são exibidos inline no OtpStep.
     meta: {
-      successMessage: 'Senha alterada com sucesso! Faça login para continuar.'
+      successMessage: 'Acesso ativado. Bem-vindo(a) ao Inventto!',
+      suppressErrorToast: true
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });

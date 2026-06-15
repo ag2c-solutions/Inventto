@@ -38,3 +38,15 @@ export interface RecoverPasswordPayload {
 export interface ResetPasswordPayload {
   newPassword: string;
 }
+
+export interface SetFirstAccessPasswordPayload {
+  newPassword: string;
+  email: string;
+}
+
+export interface ConfirmFirstAccessPayload {
+  email: string;
+  token: string;
+  userId: string;
+  orgId: string;
+}

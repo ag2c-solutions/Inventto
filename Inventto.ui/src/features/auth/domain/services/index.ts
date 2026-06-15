@@ -58,11 +58,22 @@ export class AuthService {
     return AuthAPI.subscribeToAuthChanges(callback);
   }
 
-  static async completeFirstAccess({
+  static async setFirstAccessPassword({
+    newPassword,
+    email
+  }: {
+    newPassword: string;
+    email: string;
+  }) {
+    return AuthAPI.setFirstAccessPassword({ newPassword, email });
+  }
+
+  static async confirmFirstAccess({
     organization,
     ...rest
   }: {
-    newPassword: string;
+    email: string;
+    token: string;
     userId: string;
     organization: Organization | null;
   }) {
@@ -70,6 +81,6 @@ export class AuthService {
       throw new Error('Organização não encontrada.');
     }
 
-    return AuthAPI.completeFirstAccess({ ...rest, orgId: organization.id });
+    return AuthAPI.confirmFirstAccess({ ...rest, orgId: organization.id });
   }
 }

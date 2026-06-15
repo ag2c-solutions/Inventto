@@ -7,7 +7,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useFirstAccess } from './use-first-access';
 
 const mockNavigate = vi.fn();
-const mockMutateAsync = vi.fn();
+const mockSetPassword = vi.fn();
+const mockConfirmAccess = vi.fn();
+const mockResendOtp = vi.fn();
 
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
@@ -23,9 +25,17 @@ vi.mock('@/features/users', () => ({
 }));
 
 vi.mock('./use-mutations', () => ({
-  useCompleteFirstAccessMutation: () => ({
-    mutateAsync: mockMutateAsync,
+  useSetFirstAccessPasswordMutation: () => ({
+    mutateAsync: mockSetPassword,
     isPending: false
+  }),
+  useConfirmFirstAccessMutation: () => ({
+    mutateAsync: mockConfirmAccess,
+    isPending: false,
+    error: null
+  }),
+  useResendOtpMutation: () => ({
+    mutate: mockResendOtp
   })
 }));
 
@@ -33,7 +43,9 @@ import { useUser } from '@/features/users';
 
 import { useAuth } from './use-auth';
 
-const mockSession = { user: { id: 'user-123' } } as never;
+const mockSession = {
+  user: { id: 'user-123', email: 'user@example.com' }
+} as never;
 
 describe('useFirstAccess', () => {
   let queryClient: QueryClient;
@@ -87,7 +99,13 @@ describe('useFirstAccess', () => {
     expect(result.current.isReady).toBe(true);
   });
 
-  it('should not call mutation when session is null', async () => {
+  it('should start on password step', () => {
+    const { result } = renderHook(() => useFirstAccess(), { wrapper });
+
+    expect(result.current.step).toBe('password');
+  });
+
+  it('should not call mutation when session is null on P1 submit', async () => {
     vi.mocked(useAuth).mockReturnValue({
       session: null,
       isAuthenticated: false,
@@ -98,26 +116,62 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmit({
+      await result.current.onSubmitPassword({
         password: 'NewPass123!',
         confirmPassword: 'NewPass123!'
       });
     });
 
-    expect(mockMutateAsync).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockSetPassword).not.toHaveBeenCalled();
   });
 
-  it('should navigate to "/" on successful submit', async () => {
-    mockMutateAsync.mockResolvedValue(undefined);
+  it('should advance to otp step on successful P1 submit', async () => {
+    mockSetPassword.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmit({
+      await result.current.onSubmitPassword({
         password: 'NewPass123!',
         confirmPassword: 'NewPass123!'
       });
+    });
+
+    await waitFor(() => {
+      expect(result.current.step).toBe('otp');
+    });
+  });
+
+  it('should remain on password step when P1 fails', async () => {
+    mockSetPassword.mockRejectedValue(new Error('Failed'));
+
+    const { result } = renderHook(() => useFirstAccess(), { wrapper });
+
+    await act(async () => {
+      await result.current.onSubmitPassword({
+        password: 'NewPass123!',
+        confirmPassword: 'NewPass123!'
+      });
+    });
+
+    expect(result.current.step).toBe('password');
+  });
+
+  it('should navigate to "/" on successful P2 OTP submit', async () => {
+    mockSetPassword.mockResolvedValue(undefined);
+    mockConfirmAccess.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useFirstAccess(), { wrapper });
+
+    await act(async () => {
+      await result.current.onSubmitPassword({
+        password: 'NewPass123!',
+        confirmPassword: 'NewPass123!'
+      });
+    });
+
+    await act(async () => {
+      await result.current.onSubmitOtp('123456');
     });
 
     await waitFor(() => {
@@ -125,18 +179,54 @@ describe('useFirstAccess', () => {
     });
   });
 
-  it('should not navigate on submit error', async () => {
-    mockMutateAsync.mockRejectedValue(new Error('Update failed'));
+  it('should not navigate when P2 OTP fails', async () => {
+    mockSetPassword.mockResolvedValue(undefined);
+    mockConfirmAccess.mockRejectedValue(new Error('Código inválido'));
 
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmit({
+      await result.current.onSubmitPassword({
         password: 'NewPass123!',
         confirmPassword: 'NewPass123!'
       });
     });
 
+    await act(async () => {
+      await result.current.onSubmitOtp('000000');
+    });
+
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('should return to password step when onBackToPassword is called', async () => {
+    mockSetPassword.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useFirstAccess(), { wrapper });
+
+    await act(async () => {
+      await result.current.onSubmitPassword({
+        password: 'NewPass123!',
+        confirmPassword: 'NewPass123!'
+      });
+    });
+
+    act(() => {
+      result.current.onBackToPassword();
+    });
+
+    expect(result.current.step).toBe('password');
+  });
+
+  it('should call resendOtp with user email', () => {
+    const { result } = renderHook(() => useFirstAccess(), { wrapper });
+
+    act(() => {
+      result.current.onResendOtp();
+    });
+
+    expect(mockResendOtp).toHaveBeenCalledWith({
+      email: 'user@example.com'
+    });
   });
 });

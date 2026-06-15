@@ -2,9 +2,11 @@ import { supabase } from '@/infra/supabase';
 
 import type { AuthChangeEvent, Session } from '../../domain/entities';
 import type {
+  ConfirmFirstAccessPayload,
   RecoverPasswordPayload,
   ResendOtpPayload,
   ResetPasswordPayload,
+  SetFirstAccessPasswordPayload,
   SignInPayload,
   SignUpPayload,
   VerifyOtpPayload
@@ -160,24 +162,51 @@ export class AuthAPI {
     };
   }
 
-  static async completeFirstAccess({
+  /**
+   * P1 do primeiro acesso: define a senha e dispara o OTP de confirmação de
+   * e-mail. O type 'signup' é usado para usuários convidados pendentes de
+   * confirmação — validar no supabase local se o fluxo de convite (RF012)
+   * mantém email_confirmed=false até este ponto.
+   */
+  static async setFirstAccessPassword({
     newPassword,
-    userId,
-    orgId
-  }: {
-    newPassword: string;
-    userId: string;
-    orgId: string;
-  }) {
+    email
+  }: SetFirstAccessPasswordPayload) {
     const { error: authError } = await supabase.auth.updateUser({
       password: newPassword
     });
-    if (authError) handleAuthError(authError, 'completeFirstAccess');
+    if (authError) handleAuthError(authError, 'setFirstAccessPassword');
+
+    const { error: otpError } = await supabase.auth.resend({
+      type: 'signup',
+      email
+    });
+    if (otpError) handleAuthError(otpError, 'setFirstAccessPassword');
+  }
+
+  /**
+   * P2 do primeiro acesso: verifica o OTP e, em seguida, ativa o acesso via
+   * RPC (status='active', must_change_password=false). A RPC só roda após o
+   * OTP ser confirmado — garantindo que o e-mail foi verificado antes da
+   * ativação (RN015).
+   */
+  static async confirmFirstAccess({
+    email,
+    token,
+    userId,
+    orgId
+  }: ConfirmFirstAccessPayload) {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup'
+    });
+    if (verifyError) handleAuthError(verifyError, 'confirmFirstAccess');
 
     const { error: dbError } = await supabase.rpc('confirm_first_access', {
       p_user_id: userId,
       p_organization_id: orgId
     });
-    if (dbError) handleAuthError(dbError, 'completeFirstAccess');
+    if (dbError) handleAuthError(dbError, 'confirmFirstAccess');
   }
 }

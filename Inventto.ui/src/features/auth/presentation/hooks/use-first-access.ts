@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -10,30 +11,70 @@ import {
 } from '../../domain/validators';
 
 import { useAuth } from './use-auth';
-import { useCompleteFirstAccessMutation } from './use-mutations';
+import {
+  useConfirmFirstAccessMutation,
+  useResendOtpMutation,
+  useSetFirstAccessPasswordMutation
+} from './use-mutations';
+
+type FirstAccessStep = 'password' | 'otp';
 
 export function useFirstAccess() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { currentOrganization } = useUser();
-  const { mutateAsync, isPending } = useCompleteFirstAccessMutation();
+  const [step, setStep] = useState<FirstAccessStep>('password');
+
+  const { mutateAsync: setPassword, isPending: isPendingPassword } =
+    useSetFirstAccessPasswordMutation();
+  const {
+    mutateAsync: confirmAccess,
+    isPending: isPendingOtp,
+    error: otpError
+  } = useConfirmFirstAccessMutation();
+  const { mutate: resendOtp } = useResendOtpMutation();
+
   const isReady = !!currentOrganization?.id;
+  const email = session?.user.email ?? '';
 
   const form = useForm<FirstAccessFormValues>({
     resolver: zodResolver(firstAccessSchema),
     defaultValues: { password: '', confirmPassword: '' }
   });
 
-  const onSubmit = async (data: FirstAccessFormValues) => {
+  const onSubmitPassword = async (data: FirstAccessFormValues) => {
     if (!session) return;
 
-    await mutateAsync({
-      newPassword: data.password,
-      userId: session.user.id
-    })
+    await setPassword({ newPassword: data.password, email })
+      .then(() => setStep('otp'))
+      .catch(() => {});
+  };
+
+  const onSubmitOtp = async (code: string) => {
+    if (!session) return;
+
+    await confirmAccess({ email, token: code, userId: session.user.id })
       .then(() => navigate('/', { replace: true }))
       .catch(() => {});
   };
 
-  return { form, onSubmit, isReady, isPending };
+  const onResendOtp = () => {
+    if (email) resendOtp({ email });
+  };
+
+  const onBackToPassword = () => setStep('password');
+
+  return {
+    step,
+    form,
+    email,
+    isReady,
+    isPendingPassword,
+    isPendingOtp,
+    otpError: otpError?.message ?? null,
+    onSubmitPassword,
+    onSubmitOtp,
+    onResendOtp,
+    onBackToPassword
+  };
 }
