@@ -7,7 +7,7 @@ export function ResetPasswordPage() {
   // do link de recovery na inicialização e estabelece uma sessão temporária.
   // Sem sessão (token ausente/expirado/já usado), a tela inteira vira o
   // estado de erro — o formulário nem aparece.
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isRecoverySession, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -23,7 +23,7 @@ export function ResetPasswordPage() {
 
   return (
     <div className="bg-background">
-      {isAuthenticated ? <ResetPasswordForm /> : <InvalidResetLink />}
+      {isRecoverySession ? <ResetPasswordForm /> : <InvalidResetLink />}
     </div>
   );
 }

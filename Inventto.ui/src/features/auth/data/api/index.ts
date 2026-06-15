@@ -1,6 +1,6 @@
 import { supabase } from '@/infra/supabase';
 
-import type { Session } from '../../domain/entities';
+import type { AuthChangeEvent, Session } from '../../domain/entities';
 import type {
   RecoverPasswordPayload,
   ResendOtpPayload,
@@ -147,12 +147,12 @@ export class AuthAPI {
   }
 
   static async subscribeToAuthChanges(
-    callback: (session: Session | null) => void
+    callback: (event: AuthChangeEvent, session: Session | null) => void
   ) {
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      callback(session);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
     });
 
     return () => {

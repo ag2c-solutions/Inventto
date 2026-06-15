@@ -47,7 +47,8 @@ describe('useFirstAccess', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: mockSession,
       isAuthenticated: true,
-      isLoading: false
+      isLoading: false,
+      isRecoverySession: false
     });
     vi.mocked(useUser).mockReturnValue({
       currentOrganization: {
@@ -90,7 +91,8 @@ describe('useFirstAccess', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: null,
       isAuthenticated: false,
-      isLoading: false
+      isLoading: false,
+      isRecoverySession: false
     });
 
     const { result } = renderHook(() => useFirstAccess(), { wrapper });

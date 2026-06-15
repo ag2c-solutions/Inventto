@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Session } from '../../domain/entities';
+import type { AuthChangeEvent, Session } from '../../domain/entities';
 import { AuthService } from '../../domain/services';
 
 import { AuthProvider, useAuth } from './use-auth';
@@ -57,7 +57,7 @@ describe('useAuth Hook', () => {
 
     vi.mocked(AuthService.getSession).mockResolvedValue(sessionRef1 as never);
 
-    let authCallback: (session: Session | null) => void;
+    let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
       async (cb) => {
@@ -73,7 +73,7 @@ describe('useAuth Hook', () => {
     expect(result.current.session).toBe(sessionRef1);
 
     act(() => {
-      if (authCallback) authCallback(sessionRef2);
+      if (authCallback) authCallback('SIGNED_IN', sessionRef2);
     });
 
     expect(result.current.session).toBe(sessionRef1);
@@ -136,7 +136,7 @@ describe('useAuth Hook', () => {
   it('should update session when subscribeToAuthChanges triggers', async () => {
     vi.mocked(AuthService.getSession).mockResolvedValue(null as never);
 
-    let authCallback: (session: Session | null) => void;
+    let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
       async (cb) => {
@@ -156,7 +156,7 @@ describe('useAuth Hook', () => {
     } as Session;
 
     act(() => {
-      if (authCallback) authCallback(newSession);
+      if (authCallback) authCallback('SIGNED_IN', newSession);
     });
 
     expect(result.current.session).toEqual(newSession);
@@ -170,7 +170,7 @@ describe('useAuth Hook', () => {
       initialSession as never
     );
 
-    let authCallback: (session: Session | null) => void;
+    let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
 
     vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
       async (cb) => {
@@ -184,10 +184,88 @@ describe('useAuth Hook', () => {
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
 
     act(() => {
-      if (authCallback) authCallback(null);
+      if (authCallback) authCallback('SIGNED_OUT', null);
     });
 
     expect(result.current.session).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it('should set isRecoverySession to true on PASSWORD_RECOVERY event', async () => {
+    vi.mocked(AuthService.getSession).mockResolvedValue(null as never);
+
+    let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
+
+    vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
+      async (cb) => {
+        authCallback = cb;
+        return () => {};
+      }
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      if (authCallback)
+        authCallback('PASSWORD_RECOVERY', { access_token: 'token' } as Session);
+    });
+
+    expect(result.current.isRecoverySession).toBe(true);
+  });
+
+  it('should keep isRecoverySession false on SIGNED_IN event', async () => {
+    vi.mocked(AuthService.getSession).mockResolvedValue(null as never);
+
+    let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
+
+    vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
+      async (cb) => {
+        authCallback = cb;
+        return () => {};
+      }
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      if (authCallback)
+        authCallback('SIGNED_IN', { access_token: 'token' } as Session);
+    });
+
+    expect(result.current.isRecoverySession).toBe(false);
+  });
+
+  it('should reset isRecoverySession to false on SIGNED_OUT event', async () => {
+    vi.mocked(AuthService.getSession).mockResolvedValue(null as never);
+
+    let authCallback: (event: AuthChangeEvent, session: Session | null) => void;
+
+    vi.mocked(AuthService.subscribeToAuthChanges).mockImplementation(
+      async (cb) => {
+        authCallback = cb;
+        return () => {};
+      }
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      if (authCallback)
+        authCallback('PASSWORD_RECOVERY', { access_token: 'token' } as Session);
+    });
+
+    expect(result.current.isRecoverySession).toBe(true);
+
+    act(() => {
+      if (authCallback) authCallback('SIGNED_OUT', null);
+    });
+
+    expect(result.current.isRecoverySession).toBe(false);
   });
 });

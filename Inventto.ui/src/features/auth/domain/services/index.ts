@@ -9,7 +9,7 @@ import type {
   SignUpPayload,
   VerifyOtpPayload
 } from '../../data/dtos';
-import type { Session } from '../entities';
+import type { AuthChangeEvent, Session } from '../entities';
 
 export class AuthService {
   static async signIn(args: SignInPayload) {
@@ -53,7 +53,7 @@ export class AuthService {
   }
 
   static async subscribeToAuthChanges(
-    callback: (session: Session | null) => void
+    callback: (event: AuthChangeEvent, session: Session | null) => void
   ) {
     return AuthAPI.subscribeToAuthChanges(callback);
   }

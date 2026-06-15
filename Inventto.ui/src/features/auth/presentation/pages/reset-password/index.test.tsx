@@ -38,6 +38,7 @@ describe('ResetPasswordPage', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: null,
       isAuthenticated: false,
+      isRecoverySession: false,
       isLoading: true
     });
 
@@ -51,6 +52,7 @@ describe('ResetPasswordPage', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: { user: { id: '1' } } as never,
       isAuthenticated: true,
+      isRecoverySession: true,
       isLoading: false
     });
 
@@ -68,6 +70,7 @@ describe('ResetPasswordPage', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: null,
       isAuthenticated: false,
+      isRecoverySession: false,
       isLoading: false
     });
 
@@ -84,6 +87,24 @@ describe('ResetPasswordPage', () => {
     expect(
       screen.getByRole('link', { name: 'Recuperar senha de novo' })
     ).toHaveAttribute('href', '/auth/forgot-password');
+    expect(
+      screen.queryByRole('heading', { name: 'Defina sua nova senha' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render InvalidResetLink when authenticated but NOT a recovery session (sessão normal)', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      session: { user: { id: '1' } } as never,
+      isAuthenticated: true,
+      isRecoverySession: false,
+      isLoading: false
+    });
+
+    renderPage();
+
+    expect(
+      screen.getByRole('heading', { name: 'Link expirado ou inválido' })
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Defina sua nova senha' })
     ).not.toBeInTheDocument();
