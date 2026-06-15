@@ -4,11 +4,12 @@ import { AuthAPI } from '../../data/api';
 import type {
   RecoverPasswordPayload,
   ResendOtpPayload,
+  ResetPasswordPayload,
   SignInPayload,
   SignUpPayload,
   VerifyOtpPayload
 } from '../../data/dtos';
-import type { Session } from '../entities';
+import type { AuthChangeEvent, Session } from '../entities';
 
 export class AuthService {
   static async signIn(args: SignInPayload) {
@@ -31,6 +32,14 @@ export class AuthService {
     return AuthAPI.recoverPassword(args);
   }
 
+  static async resetPassword(args: ResetPasswordPayload) {
+    await AuthAPI.resetPassword(args);
+
+    // A sessão de recovery é de uso único (RN012/RN013): encerra após a
+    // troca para que o usuário entre com as novas credenciais no /login.
+    return AuthAPI.signOut();
+  }
+
   static async signOut() {
     return AuthAPI.signOut();
   }
@@ -44,7 +53,7 @@ export class AuthService {
   }
 
   static async subscribeToAuthChanges(
-    callback: (session: Session | null) => void
+    callback: (event: AuthChangeEvent, session: Session | null) => void
   ) {
     return AuthAPI.subscribeToAuthChanges(callback);
   }

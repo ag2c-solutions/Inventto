@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { organizationSchema, passwordSchema, userSchema } from './index';
+import {
+  organizationSchema,
+  passwordSchema,
+  resetPasswordSchema,
+  userSchema
+} from './index';
 
 describe('passwordSchema', () => {
   it('deve aceitar senha válida com todos os requisitos', () => {
@@ -144,5 +149,38 @@ describe('userSchema', () => {
       email: 'not-an-email'
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('resetPasswordSchema', () => {
+  const validBase = {
+    password: 'StrongPass123!',
+    confirmPassword: 'StrongPass123!'
+  };
+
+  it('deve aceitar senha forte com confirmação idêntica', () => {
+    const result = resetPasswordSchema.safeParse(validBase);
+    expect(result.success).toBe(true);
+  });
+
+  it('deve rejeitar senha fraca (RN001)', () => {
+    const result = resetPasswordSchema.safeParse({
+      password: 'fraca',
+      confirmPassword: 'fraca'
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('deve rejeitar quando as senhas não coincidem', () => {
+    const result = resetPasswordSchema.safeParse({
+      ...validBase,
+      confirmPassword: 'OutraSenha123!'
+    });
+    expect(result.success).toBe(false);
+
+    const issue = result.error?.issues.find(
+      (i) => i.path[0] === 'confirmPassword'
+    );
+    expect(issue?.message).toBe('As senhas não coincidem.');
   });
 });

@@ -6,6 +6,7 @@ import { AuthService } from '../../domain/services';
 
 import {
   useRecoverPasswordMutation,
+  useResetPasswordMutation,
   useSignInMutation,
   useSignOutMutation,
   useSignUpMutation
@@ -16,7 +17,8 @@ vi.mock('../../domain/services', () => ({
     signIn: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
-    recoverPassword: vi.fn()
+    recoverPassword: vi.fn(),
+    resetPassword: vi.fn()
   }
 }));
 
@@ -123,6 +125,40 @@ describe('Auth Mutations', () => {
 
       const mutation = queryClient.getMutationCache().getAll()[0];
       expect(mutation.meta?.suppressErrorToast).toBe(true);
+    });
+  });
+
+  describe('useResetPasswordMutation', () => {
+    it('should call AuthService.resetPassword and invalidate auth queries on success', async () => {
+      vi.mocked(AuthService.resetPassword).mockResolvedValue();
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+      const { result } = renderHook(() => useResetPasswordMutation(), {
+        wrapper
+      });
+
+      await result.current.mutateAsync({ newPassword: 'NewPass123!' });
+
+      expect(AuthService.resetPassword).toHaveBeenCalledWith(
+        { newPassword: 'NewPass123!' },
+        expect.anything()
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auth'] });
+    });
+
+    it('should expose the success toast message via meta', async () => {
+      vi.mocked(AuthService.resetPassword).mockResolvedValue();
+
+      const { result } = renderHook(() => useResetPasswordMutation(), {
+        wrapper
+      });
+
+      await result.current.mutateAsync({ newPassword: 'NewPass123!' });
+
+      const mutation = queryClient.getMutationCache().getAll()[0];
+      expect(mutation.meta?.successMessage).toBe(
+        'Senha redefinida. Faça login com suas novas credenciais.'
+      );
     });
   });
 

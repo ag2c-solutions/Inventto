@@ -1,9 +1,10 @@
 import { supabase } from '@/infra/supabase';
 
-import type { Session } from '../../domain/entities';
+import type { AuthChangeEvent, Session } from '../../domain/entities';
 import type {
   RecoverPasswordPayload,
   ResendOtpPayload,
+  ResetPasswordPayload,
   SignInPayload,
   SignUpPayload,
   VerifyOtpPayload
@@ -106,6 +107,21 @@ export class AuthAPI {
     }
   }
 
+  /**
+   * Redefine a senha a partir da sessão de recovery estabelecida pelo token
+   * do link de redefinição (AUTH-07, RF004). Sem sessão válida, o Supabase
+   * rejeita a chamada com "Auth session missing".
+   */
+  static async resetPassword({ newPassword }: ResetPasswordPayload) {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      handleAuthError(error, 'resetPassword');
+    }
+  }
+
   static async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) handleAuthError(error, 'signOut');
@@ -131,12 +147,12 @@ export class AuthAPI {
   }
 
   static async subscribeToAuthChanges(
-    callback: (session: Session | null) => void
+    callback: (event: AuthChangeEvent, session: Session | null) => void
   ) {
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      callback(session);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
     });
 
     return () => {

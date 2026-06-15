@@ -52,6 +52,26 @@ export const router = createBrowserRouter([
     ]
   },
   {
+    // Destino do redirectTo do e-mail de recuperação (AUTH-06/07). Fica fora
+    // do publicLoader: o token válido estabelece uma sessão de recovery e o
+    // loader redirecionaria para '/' antes de o formulário aparecer.
+    path: '/auth/reset-password',
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <AuthLayout />
+      </Suspense>
+    ),
+    children: [
+      {
+        index: true,
+        lazy: async () => {
+          const { ResetPasswordPage } = await import('@/features/auth/');
+          return { Component: ResetPasswordPage };
+        }
+      }
+    ]
+  },
+  {
     path: '/auth/first-access',
     element: (
       <Suspense fallback={<PageLoader />}>

@@ -60,6 +60,21 @@ export function useRecoverPasswordMutation() {
   });
 }
 
+export function useResetPasswordMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['auth', 'reset-password'],
+    mutationFn: AuthService.resetPassword,
+    meta: {
+      successMessage: 'Senha redefinida. Faça login com suas novas credenciais.'
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    }
+  });
+}
+
 export function useSignOutMutation() {
   const queryClient = useQueryClient();
 
