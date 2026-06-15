@@ -76,10 +76,13 @@ export function FirstAccessPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nova senha</FormLabel>
+                      <FormLabel htmlFor="first-access-password">
+                        Nova senha
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="first-access-password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             {...field}
@@ -117,10 +120,13 @@ export function FirstAccessPage() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirmar senha</FormLabel>
+                      <FormLabel htmlFor="first-access-confirm-password">
+                        Confirmar senha
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input
+                            id="first-access-confirm-password"
                             type={showConfirmPassword ? 'text' : 'password'}
                             placeholder="Digite a senha novamente"
                             {...field}
