@@ -3,10 +3,6 @@ import { InvalidResetLink } from '../../components/invalid-reset-link';
 import { useAuth } from '../../hooks/use-auth';
 
 export function ResetPasswordPage() {
-  // Validação do token no load (RN012/RN013): o supabase-js processa o token
-  // do link de recovery na inicialização e estabelece uma sessão temporária.
-  // Sem sessão (token ausente/expirado/já usado), a tela inteira vira o
-  // estado de erro — o formulário nem aparece.
   const { isRecoverySession, isLoading } = useAuth();
 
   if (isLoading) {
