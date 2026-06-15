@@ -4,6 +4,7 @@ import { AuthAPI } from '../../data/api';
 import type {
   RecoverPasswordPayload,
   ResendOtpPayload,
+  ResetPasswordPayload,
   SignInPayload,
   SignUpPayload,
   VerifyOtpPayload
@@ -29,6 +30,14 @@ export class AuthService {
 
   static async recoverPassword(args: RecoverPasswordPayload) {
     return AuthAPI.recoverPassword(args);
+  }
+
+  static async resetPassword(args: ResetPasswordPayload) {
+    await AuthAPI.resetPassword(args);
+
+    // A sessão de recovery é de uso único (RN012/RN013): encerra após a
+    // troca para que o usuário entre com as novas credenciais no /login.
+    return AuthAPI.signOut();
   }
 
   static async signOut() {

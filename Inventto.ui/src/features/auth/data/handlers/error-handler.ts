@@ -43,6 +43,10 @@ export function handleAuthError(
       throw new Error('Código inválido. Verifique e tente novamente.');
     if (message.includes('password should be at least'))
       throw new Error('A senha é muito fraca. Escolha uma senha mais forte.');
+    if (message.includes('should be different'))
+      throw new Error('A nova senha deve ser diferente da senha atual.');
+    if (message.includes('auth session missing'))
+      throw new Error('Sessão expirada ou inválida. Tente novamente.');
     if (message.includes('rate limit'))
       throw new Error(
         'Muitas tentativas. Aguarde um momento e tente novamente.'

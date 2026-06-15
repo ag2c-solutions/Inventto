@@ -53,6 +53,23 @@ describe('handleAuthError', () => {
     );
   });
 
+  it('should throw "A nova senha deve ser diferente" when reusing the current password', () => {
+    const error = makeAuthError(
+      'New password should be different from the old password.',
+      422
+    );
+    expect(() => handleAuthError(error, action)).toThrow(
+      'A nova senha deve ser diferente da senha atual.'
+    );
+  });
+
+  it('should throw "Sessão expirada ou inválida" when the auth session is missing', () => {
+    const error = makeAuthError('Auth session missing!', 400);
+    expect(() => handleAuthError(error, action)).toThrow(
+      'Sessão expirada ou inválida. Tente novamente.'
+    );
+  });
+
   it('should throw "Muitas tentativas" for rate limit error', () => {
     const error = makeAuthError('Rate limit exceeded', 429);
     expect(() => handleAuthError(error, action)).toThrow(
