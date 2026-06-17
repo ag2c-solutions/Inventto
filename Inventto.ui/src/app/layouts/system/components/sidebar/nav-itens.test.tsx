@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { navLinks } from '../../constants/navlinks-sidebar';
+import { navGroups } from '../../constants/navlinks-sidebar';
 
 import { NavItens } from './nav-itens';
 
@@ -24,14 +24,42 @@ vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
 }));
 
 vi.mock('@/shared/components/ui/sidebar', () => ({
-  SidebarMenuButton: ({ children }: { children: ReactNode }) => (
+  SidebarGroup: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>
+  ),
+  SidebarGroupLabel: ({ children }: { children: ReactNode }) => (
+    <div data-testid="group-label">{children}</div>
+  ),
+  SidebarMenu: ({ children }: { children: ReactNode }) => <ul>{children}</ul>,
+  SidebarMenuItem: ({ children }: { children: ReactNode }) => (
+    <li>{children}</li>
+  ),
+  SidebarMenuButton: ({
+    children,
+    isActive,
+    'aria-current': ariaCurrent
+  }: {
+    children: ReactNode;
+    isActive?: boolean;
+    'aria-current'?: React.AriaAttributes['aria-current'];
+  }) => (
+    <div data-active={isActive} aria-current={ariaCurrent}>
+      {children}
+    </div>
   )
 }));
 
+// Helper: flattens all enabled items across all groups
+const allEnabledItems = navGroups.flatMap(({ items }) =>
+  items.filter(({ enabled }) => enabled !== false)
+);
+
 describe('NavItens', () => {
-  it('deve renderizar todos os links quando o usuário tem todas as permissões', () => {
-    mocks.usePermission.mockReturnValue({ can: vi.fn().mockReturnValue(true) });
+  it('deve renderizar todos os links habilitados quando o usuário tem todas as permissões', () => {
+    mocks.usePermission.mockReturnValue({
+      can: vi.fn().mockReturnValue(true),
+      isLoading: false
+    });
 
     render(
       <MemoryRouter>
@@ -39,14 +67,15 @@ describe('NavItens', () => {
       </MemoryRouter>
     );
 
-    for (const link of navLinks) {
-      expect(screen.getByText(link.label)).toBeInTheDocument();
+    for (const item of allEnabledItems) {
+      expect(screen.getByText(item.label)).toBeInTheDocument();
     }
   });
 
   it('deve renderizar apenas os links para os quais o usuário tem permissão', () => {
     mocks.usePermission.mockReturnValue({
-      can: vi.fn((action) => action === 'product:view')
+      can: vi.fn((action) => action === 'product:view'),
+      isLoading: false
     });
 
     render(
@@ -57,47 +86,21 @@ describe('NavItens', () => {
 
     expect(screen.getByText('Produtos')).toBeInTheDocument();
 
-    const outrosLinks = navLinks.filter(({ label }) => label !== 'Produtos');
-    for (const link of outrosLinks) {
-      expect(screen.queryByText(link.label)).not.toBeInTheDocument();
+    // Itens sem permission sempre aparecem quando enabled — apenas verifica
+    // os que têm uma permission que o usuário não possui
+    const outrosLinks = allEnabledItems.filter(
+      ({ label, permission }) => label !== 'Produtos' && !!permission
+    );
+    for (const item of outrosLinks) {
+      expect(screen.queryByText(item.label)).not.toBeInTheDocument();
     }
   });
 
-  it('deve aplicar a classe bg-primary ao link ativo', () => {
-    mocks.usePermission.mockReturnValue({ can: vi.fn().mockReturnValue(true) });
-
-    render(
-      <MemoryRouter initialEntries={['/products']}>
-        <NavItens />
-      </MemoryRouter>
-    );
-
-    const activeLink = screen.getByRole('link', { name: /produtos/i });
-    expect(activeLink).toHaveClass('bg-primary');
-  });
-
-  it('deve não aplicar a classe bg-primary aos links inativos', () => {
-    mocks.usePermission.mockReturnValue({ can: vi.fn().mockReturnValue(true) });
-
-    render(
-      <MemoryRouter initialEntries={['/products']}>
-        <NavItens />
-      </MemoryRouter>
-    );
-
-    const inactiveLinks = navLinks
-      .filter(({ href }) => href !== '/products')
-      .map(({ label }) =>
-        screen.getByRole('link', { name: new RegExp(label, 'i') })
-      );
-
-    for (const link of inactiveLinks) {
-      expect(link).not.toHaveClass('bg-primary');
-    }
-  });
-
-  it('deve renderizar os links como elementos <a> com o href correto', () => {
-    mocks.usePermission.mockReturnValue({ can: vi.fn().mockReturnValue(true) });
+  it('não deve renderizar itens com enabled=false mesmo com todas as permissões', () => {
+    mocks.usePermission.mockReturnValue({
+      can: vi.fn().mockReturnValue(true),
+      isLoading: false
+    });
 
     render(
       <MemoryRouter>
@@ -105,11 +108,100 @@ describe('NavItens', () => {
       </MemoryRouter>
     );
 
-    for (const link of navLinks) {
-      const anchor = screen.getByRole('link', {
-        name: new RegExp(link.label, 'i')
-      });
-      expect(anchor).toHaveAttribute('href', link.href);
+    const disabledItems = navGroups.flatMap(({ items }) =>
+      items.filter(({ enabled }) => enabled === false)
+    );
+
+    for (const item of disabledItems) {
+      expect(screen.queryByText(item.label)).not.toBeInTheDocument();
     }
+  });
+
+  it('deve não renderizar um grupo quando nenhum item é visível', () => {
+    // Only product:view → ADMINISTRAÇÃO group has no visible items
+    mocks.usePermission.mockReturnValue({
+      can: vi.fn((action) => action === 'product:view'),
+      isLoading: false
+    });
+
+    render(
+      <MemoryRouter>
+        <NavItens />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText('ADMINISTRAÇÃO')).not.toBeInTheDocument();
+  });
+
+  it('deve renderizar os rótulos dos grupos visíveis', () => {
+    mocks.usePermission.mockReturnValue({
+      can: vi.fn().mockReturnValue(true),
+      isLoading: false
+    });
+
+    render(
+      <MemoryRouter>
+        <NavItens />
+      </MemoryRouter>
+    );
+
+    // Only groups that have at least one enabled item should be rendered
+    const groupsWithEnabledItems = navGroups.filter(({ items }) =>
+      items.some(({ enabled }) => enabled !== false)
+    );
+
+    for (const { group } of groupsWithEnabledItems) {
+      expect(screen.getByText(group)).toBeInTheDocument();
+    }
+  });
+
+  it('deve aplicar data-active=true ao link da rota atual', () => {
+    mocks.usePermission.mockReturnValue({
+      can: vi.fn().mockReturnValue(true),
+      isLoading: false
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/products']}>
+        <NavItens />
+      </MemoryRouter>
+    );
+
+    const produtosWrapper = screen
+      .getByText('Produtos')
+      .closest('[data-active]');
+    expect(produtosWrapper).toHaveAttribute('data-active', 'true');
+  });
+
+  it('deve renderizar os links como elementos <a> com o href correto', () => {
+    mocks.usePermission.mockReturnValue({
+      can: vi.fn().mockReturnValue(true),
+      isLoading: false
+    });
+
+    render(
+      <MemoryRouter>
+        <NavItens />
+      </MemoryRouter>
+    );
+
+    for (const item of allEnabledItems) {
+      const anchor = screen.getByRole('link', {
+        name: new RegExp(item.label, 'i')
+      });
+      expect(anchor).toHaveAttribute('href', item.href);
+    }
+  });
+
+  it('deve retornar null enquanto as permissões estão carregando', () => {
+    mocks.usePermission.mockReturnValue({ can: vi.fn(), isLoading: true });
+
+    const { container } = render(
+      <MemoryRouter>
+        <NavItens />
+      </MemoryRouter>
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 });

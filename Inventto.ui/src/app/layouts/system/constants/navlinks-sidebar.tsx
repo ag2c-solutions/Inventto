@@ -1,30 +1,93 @@
-import { ArrowLeftRight, Package, Settings, Users } from 'lucide-react';
+import {
+  ArrowRightLeft,
+  ClipboardList,
+  Layers,
+  LayoutDashboard,
+  Package,
+  Settings,
+  ShoppingCart,
+  Store,
+  Users
+} from 'lucide-react';
 
-import type { NavItem } from '../types';
+import type { NavGroup } from '../types';
 
-export const navLinks: NavItem[] = [
+export const navGroups: NavGroup[] = [
   {
-    label: 'Equipe',
-    href: '/team',
-    icon: Users,
-    permission: 'team:manage'
+    group: 'OPERAÇÃO',
+    items: [
+      {
+        label: 'Dashboard',
+        href: '/',
+        icon: LayoutDashboard,
+        enabled: false
+      },
+      {
+        label: 'Pedidos',
+        href: '/pedidos',
+        icon: ClipboardList,
+        permission: 'order:view_own',
+        enabled: false
+      },
+      {
+        label: 'Venda no balcão',
+        href: '/pdv',
+        icon: ShoppingCart,
+        permission: 'order:view_own',
+        enabled: false
+      }
+    ]
   },
   {
-    label: 'Produtos',
-    href: '/products',
-    icon: Package,
-    permission: 'product:view'
+    group: 'INVENTÁRIO',
+    items: [
+      {
+        label: 'Produtos',
+        href: '/products',
+        icon: Package,
+        permission: 'product:view',
+        enabled: true
+      },
+      {
+        label: 'Movimentações',
+        href: '/movements',
+        icon: ArrowRightLeft,
+        permission: 'movement:view',
+        enabled: true
+      },
+      {
+        label: 'Catálogos',
+        href: '/catalogos',
+        icon: Layers,
+        permission: 'catalog:view',
+        enabled: false
+      },
+      {
+        label: 'Vitrines',
+        href: '/storefronts',
+        icon: Store,
+        permission: 'storefront:manage',
+        enabled: false
+      }
+    ]
   },
   {
-    label: 'Movimentação',
-    href: '/movements',
-    icon: ArrowLeftRight,
-    permission: 'movement:view'
-  },
-  {
-    label: 'Configurações',
-    href: '/settings',
-    icon: Settings,
-    permission: 'org:manage'
+    group: 'ADMINISTRAÇÃO',
+    items: [
+      {
+        label: 'Equipe',
+        href: '/team',
+        icon: Users,
+        permission: 'team:manage',
+        enabled: true
+      },
+      {
+        label: 'Organização',
+        href: '/settings',
+        icon: Settings,
+        permission: 'org:manage',
+        enabled: true
+      }
+    ]
   }
 ];

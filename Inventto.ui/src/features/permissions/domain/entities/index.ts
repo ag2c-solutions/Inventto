@@ -22,6 +22,7 @@ export type PermissionAction =
   | 'order:manage'
   | 'catalog:view'
   | 'catalog:manage'
+  | 'storefront:manage'
   | 'financial:view'
   | 'org:create'
   | 'org:update'

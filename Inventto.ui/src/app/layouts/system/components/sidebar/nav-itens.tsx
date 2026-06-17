@@ -1,36 +1,61 @@
-import { ProtectedLink } from '@/features/permissions';
+import { NavLink, useLocation } from 'react-router';
 
-import { SidebarMenuButton } from '@/shared/components/ui/sidebar';
-import { cn } from '@/shared/utils';
+import { usePermission } from '@/features/permissions';
 
-import { navLinks } from '../../constants/navlinks-sidebar';
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem
+} from '@/shared/components/ui/sidebar';
+
+import { navGroups } from '../../constants/navlinks-sidebar';
 
 export const NavItens = () => {
+  const { can, isLoading } = usePermission();
+  const { pathname } = useLocation();
+
+  if (isLoading) return null;
+
   return (
-    <nav>
-      <ul className="space-y-2">
-        {navLinks.map(({ href, icon: Icon, label, permission }) => {
-          return (
-            <li key={href}>
-              <ProtectedLink
-                required={permission}
-                to={href}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-4 py-2 px-3 rounded-md font-medium text-sm transition-all duration-200 overflow-hidden',
-                    isActive && 'bg-primary text-primary-foreground shadow-md'
-                  )
-                }
-              >
-                <SidebarMenuButton tooltip={label}>
-                  {<Icon className="w-5 h-5" />}
-                  <span>{label}</span>
-                </SidebarMenuButton>
-              </ProtectedLink>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <>
+      {navGroups.map(({ group, items }) => {
+        const visibleItems = items.filter(
+          ({ enabled, permission }) =>
+            enabled !== false && (!permission || can(permission))
+        );
+
+        if (visibleItems.length === 0) return null;
+
+        return (
+          <SidebarGroup key={group}>
+            <SidebarGroupLabel>{group}</SidebarGroupLabel>
+            <SidebarMenu>
+              {visibleItems.map(({ href, icon: Icon, label }) => {
+                const isActive =
+                  href === '/' ? pathname === '/' : pathname.startsWith(href);
+
+                return (
+                  <SidebarMenuItem key={href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={label}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <NavLink to={href} end={href === '/'}>
+                        <Icon />
+                        <span>{label}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+        );
+      })}
+    </>
   );
 };

@@ -23,7 +23,8 @@ const MANAGER_PERMISSIONS: PermissionAction[] = [
   'order:view_all',
   'order:manage',
   'catalog:manage',
-  'category:create'
+  'category:create',
+  'storefront:manage'
 ];
 
 const OWNER_PERMISSIONS: PermissionAction[] = [
