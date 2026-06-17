@@ -35,8 +35,6 @@ export class AuthService {
   static async resetPassword(args: ResetPasswordPayload) {
     await AuthAPI.resetPassword(args);
 
-    // A sessão de recovery é de uso único (RN012/RN013): encerra após a
-    // troca para que o usuário entre com as novas credenciais no /login.
     return AuthAPI.signOut();
   }
 

@@ -81,7 +81,7 @@ describe('Auth Mutations', () => {
         password: '123',
         fullName: 'New',
         companyName: 'Corp',
-        businessAreaId: 'area-1',
+        businessAreaCode: 'clothing',
         acceptedTerms: true as const
       };
 

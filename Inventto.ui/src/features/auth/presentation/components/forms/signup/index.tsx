@@ -11,8 +11,8 @@ export function SignUpForm() {
   const { actions } = useSignUpForm();
 
   return (
-    <div className="w-full">
-      <form className=" rounded-2xl shadow p-4 px-6 w-full">
+    <div className="w-full max-w-[480px] mx-auto">
+      <form className="w-full">
         <Wizard
           steps={steps}
           urlParamKey="step"

@@ -136,3 +136,29 @@ FOR UPDATE USING (public.has_role(id, 'owner'));
 -- C. MEMBERS
 CREATE POLICY "Members can view list of members" ON public.organization_members
 FOR SELECT USING (public.is_org_member(organization_id));
+
+-- ==============================================================================
+-- 7. ATIVAÇÃO DE SEGURANÇA
+-- ==============================================================================
+ALTER TABLE public.business_area_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_area_attributes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles                 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organizations            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organization_members     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organization_attributes  ENABLE ROW LEVEL SECURITY;
+
+-- Leitura pública das áreas de negócio (necessária no signup antes de autenticação)
+CREATE POLICY "Anyone can view business area categories"
+  ON public.business_area_categories FOR SELECT USING (true);
+
+CREATE POLICY "Anyone can view business area attributes"
+  ON public.business_area_attributes FOR SELECT USING (true);
+
+-- organization_attributes: acesso restrito a membros da org
+CREATE POLICY "Members can view organization attributes"
+  ON public.organization_attributes FOR SELECT
+  USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Managers can manage organization attributes"
+  ON public.organization_attributes FOR ALL
+  USING (public.has_role(organization_id, 'manager'));

@@ -31,21 +31,21 @@ export function WizardControl({
       {state.isLastStep ? (
         <Button
           type="button"
-          className="w-full"
+          className="w-full h-10 text-base font-semibold rounded-xl"
           onClick={actions.handleFinish}
           disabled={state.isLoading}
         >
-          {state.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {state.isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
           {labels?.finish || 'Finalizar'}
         </Button>
       ) : (
         <Button
           type="button"
-          className="w-full"
+          className="w-full h-10 text-base font-semibold rounded-xl"
           onClick={actions.nextStep}
           disabled={state.isLoading}
         >
-          {state.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {state.isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
           {nextLabel}
         </Button>
       )}
@@ -60,7 +60,7 @@ export function WizardControl({
         <Button
           type="button"
           variant="ghost"
-          className="w-full text-muted-foreground"
+          className="w-full text-muted-foreground mt-2"
           onClick={actions.prevStep}
           disabled={state.isLoading}
         >
@@ -69,10 +69,10 @@ export function WizardControl({
       )}
 
       {state.isFirstStep && (
-        <p className="text-center text-sm text-muted-foreground mt-2">
+        <p className="text-center text-[15px] text-muted-foreground mt-4">
           <button
             type="button"
-            className="hover:underline disabled:opacity-50"
+            className="text-foreground underline underline-offset-4 font-medium hover:text-primary transition-colors disabled:opacity-50"
             onClick={actions.handleCancel}
             disabled={state.isLoading}
           >

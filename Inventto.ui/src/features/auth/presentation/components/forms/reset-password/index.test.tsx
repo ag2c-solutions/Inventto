@@ -110,11 +110,13 @@ describe('ResetPasswordForm Component', () => {
     const passwordInput = screen.getByLabelText('Nova senha');
     expect(passwordInput).toHaveAttribute('type', 'password');
 
-    await user.click(screen.getByRole('button', { name: 'Mostrar senha' }));
+    await user.click(
+      screen.getAllByRole('button', { name: 'Mostrar senha' })[0]
+    );
 
     expect(passwordInput).toHaveAttribute('type', 'text');
     expect(
-      screen.getByRole('button', { name: 'Ocultar senha' })
+      screen.getAllByRole('button', { name: 'Ocultar senha' })[0]
     ).toBeInTheDocument();
   });
 });

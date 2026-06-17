@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
@@ -9,7 +9,7 @@ import {
 import { useResetPasswordMutation } from '../../../hooks/use-mutations';
 
 export function useResetPasswordForm() {
-  const navigate = useNavigate();
+  const [isSuccess, setIsSuccess] = useState(false);
   const { mutateAsync: resetPassword, isPending } = useResetPasswordMutation();
 
   const form = useForm<ResetPasswordFormValues>({
@@ -18,12 +18,10 @@ export function useResetPasswordForm() {
   });
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
-    // Erro de submit (ex.: sessão de recovery expirada) vira toast via
-    // MutationCache global; o usuário permanece no formulário.
     await resetPassword({ newPassword: data.password })
-      .then(() => navigate('/auth/login', { replace: true }))
+      .then(() => setIsSuccess(true))
       .catch(() => {});
   };
 
-  return { form, onSubmit, isPending };
+  return { form, onSubmit, isPending, isSuccess };
 }

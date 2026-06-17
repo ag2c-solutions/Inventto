@@ -22,19 +22,11 @@ export class AuthAPI {
     });
 
     if (error) {
-      // handleAuthError distingue "email not confirmed" (conta pendente de OTP)
-      // de credencial inválida neutra (RN002), evitando mascaramento.
       handleAuthError(error, 'signIn');
     }
 
     return data;
   }
-
-  /**
-   * Cria a conta pendente de verificação e dispara o código OTP por e-mail.
-   * Não retorna sessão ativa — o usuário precisa confirmar o código (verifyOtp)
-   * para ativar a conta.
-   */
   static async signUp(payload: SignUpPayload) {
     const metadata = AuthMapper.toSupabaseMetadata(payload);
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -53,17 +45,9 @@ export class AuthAPI {
       throw new Error('Erro ao criar usuário de autenticação.');
     }
 
-    // Conta criada no estado pendente; sessão ainda não está ativa.
-    // A sessão só é emitida após verifyOtp confirmar o código.
     return { user: authData.user };
   }
 
-  /**
-   * Confirma o código OTP enviado ao e-mail e ativa a conta.
-   * Usa type: 'signup' para o fluxo de confirmação de cadastro.
-   * Para login condicional (conta pendente tentando logar), o type
-   * correto precisa ser validado via supabase start — ver AUTH-03.
-   */
   static async verifyOtp({ email, token }: VerifyOtpPayload) {
     const { data, error } = await supabase.auth.verifyOtp({
       email,
@@ -78,10 +62,6 @@ export class AuthAPI {
     return data;
   }
 
-  /**
-   * Reenvia o código OTP de confirmação de cadastro.
-   * A UI controla o cooldown de 45s após chamar este método.
-   */
   static async resendOtp({ email }: ResendOtpPayload) {
     const { error } = await supabase.auth.resend({
       type: 'signup',
@@ -93,12 +73,6 @@ export class AuthAPI {
     }
   }
 
-  /**
-   * Dispara o e-mail de redefinição de senha (RF004). O link aponta para a
-   * tela de redefinição (AUTH-07). O Supabase responde de forma neutra —
-   * não confirma nem nega a existência da conta (RN002); erros aqui são
-   * relançados, mas a UI mantém o feedback neutro.
-   */
   static async recoverPassword({ email }: RecoverPasswordPayload) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`
@@ -109,11 +83,6 @@ export class AuthAPI {
     }
   }
 
-  /**
-   * Redefine a senha a partir da sessão de recovery estabelecida pelo token
-   * do link de redefinição (AUTH-07, RF004). Sem sessão válida, o Supabase
-   * rejeita a chamada com "Auth session missing".
-   */
   static async resetPassword({ newPassword }: ResetPasswordPayload) {
     const { error } = await supabase.auth.updateUser({
       password: newPassword
@@ -162,12 +131,6 @@ export class AuthAPI {
     };
   }
 
-  /**
-   * P1 do primeiro acesso: define a senha e dispara o OTP de confirmação de
-   * e-mail. O type 'signup' é usado para usuários convidados pendentes de
-   * confirmação — validar no supabase local se o fluxo de convite (RF012)
-   * mantém email_confirmed=false até este ponto.
-   */
   static async setFirstAccessPassword({
     newPassword,
     email
@@ -184,12 +147,6 @@ export class AuthAPI {
     if (otpError) handleAuthError(otpError, 'setFirstAccessPassword');
   }
 
-  /**
-   * P2 do primeiro acesso: verifica o OTP e, em seguida, ativa o acesso via
-   * RPC (status='active', must_change_password=false). A RPC só roda após o
-   * OTP ser confirmado — garantindo que o e-mail foi verificado antes da
-   * ativação (RN015).
-   */
   static async confirmFirstAccess({
     email,
     token,

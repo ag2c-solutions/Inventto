@@ -13,7 +13,7 @@ describe('Auth Mappers', () => {
         email: 'john@acme.com',
         password: 'securePassword123!',
         document: '12345678900',
-        businessAreaId: 'ba-uuid-001',
+        businessAreaCode: 'clothing',
         acceptedTerms: true
       };
 
@@ -22,7 +22,7 @@ describe('Auth Mappers', () => {
       expect(result.full_name).toBe('John Doe');
       expect(result.company_name).toBe('Acme Corp');
       expect(result.company_document).toBe('12345678900');
-      expect(result.business_area_id).toBe('ba-uuid-001');
+      expect(result.business_area_code).toBe('clothing');
       expect(result.avatar_url).toBe('');
       // terms_accepted_at deve ser um timestamp ISO válido
       expect(() => new Date(result.terms_accepted_at)).not.toThrow();
@@ -37,14 +37,14 @@ describe('Auth Mappers', () => {
         companyName: 'Minha Empresa Legal',
         email: 'jane@company.com',
         password: 'Password1!',
-        businessAreaId: 'ba-uuid-002',
+        businessAreaCode: 'petshop',
         acceptedTerms: true
       };
 
       const result = AuthMapper.toSupabaseMetadata(payload);
 
       expect(result).not.toHaveProperty('company_slug');
-      expect(result.business_area_id).toBe('ba-uuid-002');
+      expect(result.business_area_code).toBe('petshop');
       expect(result.terms_accepted_at).toBeDefined();
     });
 
@@ -54,7 +54,7 @@ describe('Auth Mappers', () => {
         companyName: 'No Doc Inc',
         email: 'nodoc@inc.com',
         password: 'Password1!',
-        businessAreaId: 'ba-uuid-003',
+        businessAreaCode: 'other',
         acceptedTerms: true
       };
 

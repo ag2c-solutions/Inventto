@@ -20,37 +20,29 @@ $$;
 -- 2. TABELAS DE ÁREA DE NEGÓCIO (AUTH-01b)
 -- ==============================================================================
 
--- 2a. Catálogo de áreas disponíveis (imutável — gerenciado via seed)
-CREATE TABLE public.business_areas (
-  id   uuid NOT NULL DEFAULT gen_random_uuid(),
-  code public.business_area_code NOT NULL,
-  name text NOT NULL,
-
-  CONSTRAINT business_areas_pkey PRIMARY KEY (id),
-  CONSTRAINT business_areas_code_key UNIQUE (code)
-);
+-- 2a. Catálogo de áreas disponíveis (removido a favor de enum direto)
 
 -- 2b. Categorias-template por área (materializa em public.categories no signup)
 CREATE TABLE public.business_area_categories (
-  id               uuid NOT NULL DEFAULT gen_random_uuid(),
-  business_area_id uuid NOT NULL REFERENCES public.business_areas(id) ON DELETE CASCADE,
-  name             text NOT NULL,
+  id                 uuid NOT NULL DEFAULT gen_random_uuid(),
+  business_area_code public.business_area_code NOT NULL,
+  name               text NOT NULL,
 
   CONSTRAINT business_area_categories_pkey          PRIMARY KEY (id),
-  CONSTRAINT business_area_categories_area_name_key UNIQUE (business_area_id, name)
+  CONSTRAINT business_area_categories_area_name_key UNIQUE (business_area_code, name)
 );
 
 -- 2c. Atributos-template por área (materializa em public.organization_attributes no signup)
 CREATE TABLE public.business_area_attributes (
-  id               uuid NOT NULL DEFAULT gen_random_uuid(),
-  business_area_id uuid NOT NULL REFERENCES public.business_areas(id) ON DELETE CASCADE,
-  label            text NOT NULL,
-  slug             text NOT NULL,
-  type             public.attribute_type NOT NULL,
-  "values"         jsonb NOT NULL DEFAULT '[]'::jsonb,
+  id                 uuid NOT NULL DEFAULT gen_random_uuid(),
+  business_area_code public.business_area_code NOT NULL,
+  label              text NOT NULL,
+  slug               text NOT NULL,
+  type               public.attribute_type NOT NULL,
+  "values"           jsonb NOT NULL DEFAULT '[]'::jsonb,
 
   CONSTRAINT business_area_attributes_pkey PRIMARY KEY (id),
-  CONSTRAINT business_area_attributes_area_slug_key UNIQUE (business_area_id, slug)
+  CONSTRAINT business_area_attributes_area_slug_key UNIQUE (business_area_code, slug)
 );
 
 -- ==============================================================================
@@ -78,10 +70,10 @@ FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 -- 4. TABELA ORGANIZATIONS (Tenant)
 -- ==============================================================================
 CREATE TABLE public.organizations (
-  id               uuid NOT NULL DEFAULT gen_random_uuid(),
-  owner_id         uuid NOT NULL REFERENCES public.profiles(id),
-  -- business_area_id NOT NULL: toda org escolhe uma área; 'other' é válida mas não carrega template.
-  business_area_id uuid NOT NULL REFERENCES public.business_areas(id),
+  id                 uuid NOT NULL DEFAULT gen_random_uuid(),
+  owner_id           uuid NOT NULL REFERENCES public.profiles(id),
+  -- business_area_code: toda org tem uma área; 'other' é válida mas não carrega template.
+  business_area_code public.business_area_code NOT NULL DEFAULT 'other',
 
   name     text NOT NULL,
   document text,
@@ -144,32 +136,3 @@ CREATE TRIGGER handle_updated_at_org_attrs
 BEFORE UPDATE ON public.organization_attributes
 FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
--- ==============================================================================
--- 7. ATIVAÇÃO DE SEGURANÇA
--- ==============================================================================
-ALTER TABLE public.business_areas           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.business_area_categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.business_area_attributes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles                 ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.organizations            ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.organization_members     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.organization_attributes  ENABLE ROW LEVEL SECURITY;
-
--- Leitura pública das áreas de negócio (necessária no signup antes de autenticação)
-CREATE POLICY "Anyone can view business areas"
-  ON public.business_areas FOR SELECT USING (true);
-
-CREATE POLICY "Anyone can view business area categories"
-  ON public.business_area_categories FOR SELECT USING (true);
-
-CREATE POLICY "Anyone can view business area attributes"
-  ON public.business_area_attributes FOR SELECT USING (true);
-
--- organization_attributes: acesso restrito a membros da org
-CREATE POLICY "Members can view organization attributes"
-  ON public.organization_attributes FOR SELECT
-  USING (public.is_org_member(organization_id));
-
-CREATE POLICY "Managers can manage organization attributes"
-  ON public.organization_attributes FOR ALL
-  USING (public.has_role(organization_id, 'manager'));

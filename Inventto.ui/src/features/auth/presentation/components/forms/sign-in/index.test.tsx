@@ -38,10 +38,6 @@ vi.mock('react-router', async () => {
   };
 });
 
-vi.mock('@/app/brand/logo', () => ({
-  Logo: () => <div data-testid="mock-logo">Logo</div>
-}));
-
 vi.mock('@/shared/components/ui/input-otp', () => ({
   InputOTP: ({
     onChange,
@@ -93,7 +89,6 @@ describe('SignInForm Component', () => {
   it('should render the form with all necessary fields', () => {
     renderComponent();
 
-    expect(screen.getByTestId('mock-logo')).toBeInTheDocument();
     expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();

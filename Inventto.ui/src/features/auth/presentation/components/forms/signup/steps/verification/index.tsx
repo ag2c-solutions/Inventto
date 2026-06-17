@@ -49,17 +49,25 @@ export function VerificationStep() {
   };
 
   return (
-    <OtpStep
-      title="Verifique seu e-mail"
-      sub={`Enviamos um código de 6 dígitos para ${maskedEmail}. Digite-o abaixo para ativar sua conta.`}
-      ctaLabel="Ativar minha conta"
-      showBack={true}
-      backLabel="Voltar para a etapa anterior"
-      isSending={isVerifying}
-      errorMessage={errorMessage}
-      onSubmit={handleSubmit}
-      onResend={handleResend}
-      onBack={handleBack}
-    />
+    <div className="flex w-full flex-col">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[15px] font-medium text-muted-foreground">
+          Passo 3 de 3
+        </span>
+      </div>
+
+      <OtpStep
+        title="Verifique seu e-mail"
+        sub={`Enviamos um código de 6 dígitos para ${maskedEmail}. Digite-o abaixo para ativar sua conta.`}
+        ctaLabel="Ativar minha conta"
+        showBack={true}
+        backLabel="Voltar para a etapa anterior"
+        isSending={isVerifying}
+        errorMessage={errorMessage}
+        onSubmit={handleSubmit}
+        onResend={handleResend}
+        onBack={handleBack}
+      />
+    </div>
   );
 }

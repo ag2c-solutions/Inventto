@@ -38,9 +38,7 @@ describe('useResetPasswordForm', () => {
     expect(mockResetPassword).toHaveBeenCalledWith({
       newPassword: 'NewPass123!'
     });
-    expect(mockNavigate).toHaveBeenCalledWith('/auth/login', {
-      replace: true
-    });
+    expect(result.current.isSuccess).toBe(true);
   });
 
   it('should keep the user on the form when the reset fails', async () => {
