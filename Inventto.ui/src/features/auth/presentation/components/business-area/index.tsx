@@ -45,7 +45,7 @@ export function BusinessAreaButtonGroup({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 isSelected
                   ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                  : 'border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground'
+                  : 'border bg-background text-foreground hover:bg-accent hover:text-accent-foreground'
               )}
             >
               {option.label}

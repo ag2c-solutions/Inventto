@@ -36,12 +36,6 @@ export function UserStep() {
         </p>
       </div>
 
-      {form.formState.errors.root?.serverError && (
-        <div className="bg-slate-100 text-slate-600 p-4 rounded-md text-sm border-l-2 border-slate-300 font-mono">
-          {form.formState.errors.root.serverError.message}
-        </div>
-      )}
-
       <div className="grid grid-cols-1 gap-6">
         <FormField
           control={form.control}

@@ -97,8 +97,7 @@ describe('FirstAccessPage', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: mockSession,
       isAuthenticated: true,
-      isLoading: false,
-      isRecoverySession: false
+      isLoading: false
     });
     vi.mocked(useUser).mockReturnValue({
       currentOrganization: {
@@ -195,8 +194,7 @@ describe('FirstAccessPage', () => {
       vi.mocked(useAuth).mockReturnValue({
         session: mockSession,
         isAuthenticated: true,
-        isLoading: false,
-        isRecoverySession: false
+        isLoading: false
       });
 
       // Simula pending via mutateAsync que nunca resolve
@@ -327,17 +325,6 @@ describe('FirstAccessPage', () => {
       });
 
       expect(screen.getByText('Passo 1 de 2')).toBeInTheDocument();
-    });
-
-    it('should display inline OTP error when confirmError is set', async () => {
-      confirmError = new Error('Código inválido. Verifique e tente novamente.');
-      mockConfirmAccess.mockReturnValue(new Promise(() => {}));
-
-      await advanceToOtpStep();
-
-      expect(screen.getByRole('alert')).toHaveTextContent(
-        'Código inválido. Verifique e tente novamente.'
-      );
     });
 
     it('should call confirmAccess and navigate to "/" on valid OTP', async () => {

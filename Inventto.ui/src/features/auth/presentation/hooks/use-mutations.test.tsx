@@ -6,10 +6,11 @@ import { AuthService } from '../../domain/services';
 
 import {
   useRecoverPasswordMutation,
-  useResetPasswordMutation,
+  useSetNewPasswordMutation,
   useSignInMutation,
   useSignOutMutation,
-  useSignUpMutation
+  useSignUpMutation,
+  useVerifyRecoveryOtpMutation
 } from './use-mutations';
 
 vi.mock('../../domain/services', () => ({
@@ -18,7 +19,8 @@ vi.mock('../../domain/services', () => ({
     signUp: vi.fn(),
     signOut: vi.fn(),
     recoverPassword: vi.fn(),
-    resetPassword: vi.fn()
+    verifyRecoveryOtp: vi.fn(),
+    completePasswordRecovery: vi.fn()
   }
 }));
 
@@ -128,18 +130,57 @@ describe('Auth Mutations', () => {
     });
   });
 
-  describe('useResetPasswordMutation', () => {
-    it('should call AuthService.resetPassword and invalidate auth queries on success', async () => {
-      vi.mocked(AuthService.resetPassword).mockResolvedValue();
+  describe('useVerifyRecoveryOtpMutation', () => {
+    it('should call AuthService.verifyRecoveryOtp and invalidate auth queries on success', async () => {
+      vi.mocked(AuthService.verifyRecoveryOtp).mockResolvedValue({} as never);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
-      const { result } = renderHook(() => useResetPasswordMutation(), {
+      const { result } = renderHook(() => useVerifyRecoveryOtpMutation(), {
+        wrapper
+      });
+
+      await result.current.mutateAsync({
+        email: 'test@test.com',
+        token: '123456'
+      });
+
+      expect(AuthService.verifyRecoveryOtp).toHaveBeenCalledWith(
+        { email: 'test@test.com', token: '123456' },
+        expect.anything()
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auth'] });
+    });
+
+    it('should suppress the global error toast (erro inline no OtpStep)', async () => {
+      vi.mocked(AuthService.verifyRecoveryOtp).mockRejectedValue(
+        new Error('Código inválido. Verifique e tente novamente.')
+      );
+
+      const { result } = renderHook(() => useVerifyRecoveryOtpMutation(), {
+        wrapper
+      });
+
+      await expect(
+        result.current.mutateAsync({ email: 'test@test.com', token: '000000' })
+      ).rejects.toThrow();
+
+      const mutation = queryClient.getMutationCache().getAll()[0];
+      expect(mutation.meta?.suppressErrorToast).toBe(true);
+    });
+  });
+
+  describe('useSetNewPasswordMutation', () => {
+    it('should call AuthService.completePasswordRecovery and invalidate auth queries on success', async () => {
+      vi.mocked(AuthService.completePasswordRecovery).mockResolvedValue();
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+      const { result } = renderHook(() => useSetNewPasswordMutation(), {
         wrapper
       });
 
       await result.current.mutateAsync({ newPassword: 'NewPass123!' });
 
-      expect(AuthService.resetPassword).toHaveBeenCalledWith(
+      expect(AuthService.completePasswordRecovery).toHaveBeenCalledWith(
         { newPassword: 'NewPass123!' },
         expect.anything()
       );
@@ -147,9 +188,9 @@ describe('Auth Mutations', () => {
     });
 
     it('should expose the success toast message via meta', async () => {
-      vi.mocked(AuthService.resetPassword).mockResolvedValue();
+      vi.mocked(AuthService.completePasswordRecovery).mockResolvedValue();
 
-      const { result } = renderHook(() => useResetPasswordMutation(), {
+      const { result } = renderHook(() => useSetNewPasswordMutation(), {
         wrapper
       });
 
@@ -157,7 +198,7 @@ describe('Auth Mutations', () => {
 
       const mutation = queryClient.getMutationCache().getAll()[0];
       expect(mutation.meta?.successMessage).toBe(
-        'Senha redefinida. Faça login com suas novas credenciais.'
+        'Senha redefinida com sucesso!'
       );
     });
   });

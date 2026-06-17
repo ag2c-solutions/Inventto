@@ -6,8 +6,8 @@ import type {
   RecoverPasswordPayload,
   ResendOtpPayload,
   ResetPasswordPayload,
-  SetFirstAccessPasswordPayload,
   SignInPayload,
+  signUpFirstAccess,
   SignUpPayload,
   VerifyOtpPayload
 } from '../dtos';
@@ -74,13 +74,27 @@ export class AuthAPI {
   }
 
   static async recoverPassword({ email }: RecoverPasswordPayload) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`
-    });
+    // O e-mail de recovery entrega um código OTP (template recovery.html),
+    // não um magic link — por isso não há redirectTo.
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
 
     if (error) {
       handleAuthError(error, 'recoverPassword');
     }
+  }
+
+  static async verifyRecoveryOtp({ email, token }: VerifyOtpPayload) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery'
+    });
+
+    if (error) {
+      handleAuthError(error, 'verifyRecoveryOtp');
+    }
+
+    return data;
   }
 
   static async resetPassword({ newPassword }: ResetPasswordPayload) {
@@ -131,39 +145,23 @@ export class AuthAPI {
     };
   }
 
-  static async setFirstAccessPassword({
-    newPassword,
-    email
-  }: SetFirstAccessPasswordPayload) {
-    const { error: authError } = await supabase.auth.updateUser({
-      password: newPassword
-    });
-    if (authError) handleAuthError(authError, 'setFirstAccessPassword');
-
+  static async signUpFirstAccess({ email }: signUpFirstAccess) {
     const { error: otpError } = await supabase.auth.resend({
       type: 'signup',
       email
     });
-    if (otpError) handleAuthError(otpError, 'setFirstAccessPassword');
+    if (otpError) handleAuthError(otpError, 'signUpFirstAccess');
   }
 
   static async confirmFirstAccess({
-    email,
-    token,
     userId,
     orgId
   }: ConfirmFirstAccessPayload) {
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'signup'
-    });
-    if (verifyError) handleAuthError(verifyError, 'confirmFirstAccess');
-
     const { error: dbError } = await supabase.rpc('confirm_first_access', {
       p_user_id: userId,
       p_organization_id: orgId
     });
+
     if (dbError) handleAuthError(dbError, 'confirmFirstAccess');
   }
 }

@@ -35,8 +35,10 @@ export function useVerifyOtpMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
+    // Erros de OTP (código inválido, expirado) são exibidos inline no OtpStep.
     meta: {
-      successMessage: 'E-mail verificado. Bem-vindo ao Inventto!'
+      successMessage: 'E-mail verificado. Bem-vindo ao Inventto!',
+      suppressErrorToast: true
     }
   });
 }
@@ -52,22 +54,38 @@ export function useRecoverPasswordMutation() {
   return useMutation({
     mutationKey: ['auth', 'recover-password'],
     mutationFn: AuthService.recoverPassword,
-    // RN002 (anti-enumeração): nenhum toast de sucesso ou erro — o feedback
-    // é a própria tela neutra "sent", que não revela se o e-mail existe.
+    // RN002 (anti-enumeração): nenhum toast de sucesso ou erro — o fluxo avança
+    // para o passo de OTP sem revelar se o e-mail existe.
     meta: {
       suppressErrorToast: true
     }
   });
 }
 
-export function useResetPasswordMutation() {
+export function useVerifyRecoveryOtpMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ['auth', 'reset-password'],
-    mutationFn: AuthService.resetPassword,
+    mutationKey: ['auth', 'verify-recovery-otp'],
+    mutationFn: AuthService.verifyRecoveryOtp,
+    // Erro de código inválido/expirado é exibido inline no OtpStep.
     meta: {
-      successMessage: 'Senha redefinida. Faça login com suas novas credenciais.'
+      suppressErrorToast: true
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    }
+  });
+}
+
+export function useSetNewPasswordMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['auth', 'set-new-password'],
+    mutationFn: AuthService.completePasswordRecovery,
+    meta: {
+      successMessage: 'Senha redefinida com sucesso!'
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
