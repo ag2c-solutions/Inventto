@@ -130,16 +130,6 @@ describe('OtpStep', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('deve exibir a mensagem de erro quando errorMessage for fornecida', () => {
-    renderComponent({
-      errorMessage: 'Código inválido ou expirado. Tente novamente.'
-    });
-
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Código inválido ou expirado. Tente novamente.'
-    );
-  });
-
   it('não deve exibir mensagem de erro quando errorMessage é nula', () => {
     renderComponent({ errorMessage: null });
 

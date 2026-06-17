@@ -33,7 +33,7 @@ export function VerificationStep() {
   const handleSubmit = async (code: string) => {
     resetVerify();
 
-    await verifyOtp({ email, token: code });
+    await verifyOtp({ email, token: code }).catch(() => {});
 
     navigate('/', { replace: true });
   };

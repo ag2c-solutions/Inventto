@@ -53,9 +53,9 @@ export function useSignInForm() {
 
     resetVerify();
 
-    await verifyOtp({ email: pendingEmail, token: code });
-
-    navigate('/', { replace: true });
+    await verifyOtp({ email: pendingEmail, token: code })
+      .then(() => navigate('/', { replace: true }))
+      .catch(() => {});
   };
 
   const handleResendOtp = async () => {

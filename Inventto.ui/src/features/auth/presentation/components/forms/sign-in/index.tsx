@@ -62,12 +62,6 @@ export function SignInForm() {
             </p>
           </div>
 
-          {form.formState.errors.root?.serverError && (
-            <div className="bg-slate-100 text-slate-600 p-4 rounded-md text-sm border-l-2 border-slate-300 font-mono">
-              {form.formState.errors.root.serverError.message}
-            </div>
-          )}
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField

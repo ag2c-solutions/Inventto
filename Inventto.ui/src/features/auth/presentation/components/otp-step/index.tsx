@@ -1,5 +1,5 @@
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
-import { InfoIcon, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import {
@@ -87,16 +87,6 @@ export function OtpStep({
             ))}
           </InputOTPGroup>
         </InputOTP>
-
-        {isError && (
-          <p
-            role="alert"
-            aria-live="assertive"
-            className="text-sm text-[#A24444] items-center flex gap-1.5 mt-2"
-          >
-            <InfoIcon className="size-4 mt-0.5" /> {errorMessage}
-          </p>
-        )}
       </div>
 
       <div className="flex flex-col items-center gap-4 w-full max-w-[400px] mt-4">

@@ -63,7 +63,8 @@ export class AuthService {
     newPassword: string;
     email: string;
   }) {
-    return AuthAPI.setFirstAccessPassword({ newPassword, email });
+    await AuthAPI.resetPassword({ newPassword });
+    await AuthAPI.signUpFirstAccess({ email });
   }
 
   static async confirmFirstAccess({
@@ -79,6 +80,14 @@ export class AuthService {
       throw new Error('Organização não encontrada.');
     }
 
-    return AuthAPI.confirmFirstAccess({ ...rest, orgId: organization.id });
+    await AuthAPI.verifyOtp({
+      email: rest.email,
+      token: rest.token
+    });
+
+    return AuthAPI.confirmFirstAccess({
+      userId: rest.userId,
+      orgId: organization.id
+    });
   }
 }

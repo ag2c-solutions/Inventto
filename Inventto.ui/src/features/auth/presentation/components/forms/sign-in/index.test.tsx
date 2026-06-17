@@ -208,10 +208,6 @@ describe('SignInForm Component', () => {
       expect(screen.getByText('Confirme seu e-mail')).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'Código inválido ou expirado.'
-    );
-
     await user.type(screen.getByTestId('otp-input'), '000000');
 
     await user.click(

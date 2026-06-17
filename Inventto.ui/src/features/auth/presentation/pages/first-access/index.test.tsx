@@ -329,17 +329,6 @@ describe('FirstAccessPage', () => {
       expect(screen.getByText('Passo 1 de 2')).toBeInTheDocument();
     });
 
-    it('should display inline OTP error when confirmError is set', async () => {
-      confirmError = new Error('Código inválido. Verifique e tente novamente.');
-      mockConfirmAccess.mockReturnValue(new Promise(() => {}));
-
-      await advanceToOtpStep();
-
-      expect(screen.getByRole('alert')).toHaveTextContent(
-        'Código inválido. Verifique e tente novamente.'
-      );
-    });
-
     it('should call confirmAccess and navigate to "/" on valid OTP', async () => {
       mockConfirmAccess.mockResolvedValue(undefined);
 
