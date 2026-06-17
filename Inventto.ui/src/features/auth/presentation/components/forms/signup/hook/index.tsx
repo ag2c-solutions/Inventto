@@ -37,7 +37,7 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
       companyName: '',
       document: '',
       corporateName: '',
-      businessAreaId: '',
+      businessAreaCode: '',
       fullName: '',
       email: '',
       password: '',
@@ -60,7 +60,7 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
       return await form.trigger([
         'companyName',
         'document',
-        'businessAreaId',
+        'businessAreaCode',
         ...(isCnpj ? (['corporateName'] as const) : [])
       ]);
     }
@@ -85,7 +85,7 @@ export function SignUpFormProvider({ children }: { children: ReactNode }) {
           fullName: data.fullName,
           email: data.email,
           password: data.password,
-          businessAreaId: data.businessAreaId,
+          businessAreaCode: data.businessAreaCode,
           acceptedTerms: true
         });
         return true;

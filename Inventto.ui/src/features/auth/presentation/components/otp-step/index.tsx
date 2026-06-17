@@ -2,7 +2,6 @@ import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { InfoIcon, Mail } from 'lucide-react';
 
 import { SubmittingButton } from '@/shared/components/common/submitting-button';
-import { Button } from '@/shared/components/ui/button';
 import {
   InputOTP,
   InputOTPGroup,
@@ -44,20 +43,24 @@ export function OtpStep({
   const isComplete = code.length === 6;
 
   return (
-    <div className="flex flex-col items-center gap-5 w-full pt-10">
+    <div className="flex flex-col items-center gap-6 w-full pt-6">
       <div
-        className="flex items-center justify-center size-16 rounded-full bg-muted"
+        className="flex items-center justify-center size-[72px] rounded-full border border-slate-200 bg-transparent"
         aria-hidden="true"
       >
-        <Mail className="size-7 text-muted-foreground" />
+        <Mail className="size-8 text-muted-foreground stroke-[1.5]" />
       </div>
 
-      <div className="flex flex-col items-center gap-1 text-center">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
-        <p className="text-sm text-muted-foreground">{sub}</p>
+      <div className="flex flex-col items-center gap-2 text-center max-w-sm">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          {title}
+        </h2>
+        <p className="text-[15px] text-muted-foreground leading-relaxed">
+          {sub}
+        </p>
       </div>
 
-      <div className="flex flex-col items-center gap-2 w-full">
+      <div className="flex flex-col items-center gap-2 w-full mt-2">
         <InputOTP
           maxLength={6}
           value={code}
@@ -75,9 +78,9 @@ export function OtpStep({
                 key={i}
                 index={i}
                 className={cn(
-                  'size-12 rounded-xl border border-input text-base font-semibold',
+                  'size-14 rounded-xl border border-slate-300 text-2xl font-medium',
                   'first:rounded-xl first:border last:rounded-xl last:border',
-                  isError && 'border-destructive bg-destructive/5'
+                  isError && 'border-[#A24444] bg-[#FDF3F3] text-[#A24444]'
                 )}
                 aria-label={`Dígito ${i + 1}`}
               />
@@ -89,17 +92,17 @@ export function OtpStep({
           <p
             role="alert"
             aria-live="assertive"
-            className="text-sm text-destructive items-center flex gap-1.5"
+            className="text-sm text-[#A24444] items-center flex gap-1.5 mt-2"
           >
             <InfoIcon className="size-4 mt-0.5" /> {errorMessage}
           </p>
         )}
       </div>
 
-      <div className="flex flex-col items-center gap-2 w-full max-w-84">
+      <div className="flex flex-col items-center gap-4 w-full max-w-[400px] mt-4">
         <SubmittingButton
           type="button"
-          className="w-full h-9"
+          className="w-full h-10 text-base font-semibold rounded-xl bg-primary"
           loadingLabel={'Verificando...'}
           label={ctaLabel}
           state={isSending}
@@ -108,30 +111,26 @@ export function OtpStep({
           aria-busy={isSending}
         />
 
-        <div className="flex items-center gap-3 justify-between w-full ">
-          <Button
+        <div className="flex flex-col items-center gap-2 w-full pt-2">
+          <button
             type="button"
-            variant="link"
-            size="sm"
             disabled={cooldown > 0 || isSending}
             onClick={handleResend}
-            className="text-muted-foreground"
+            className="text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             {cooldown > 0
               ? `Reenviar código (${cooldown}s)`
               : 'Não recebeu? Reenviar código'}
-          </Button>
+          </button>
 
           {showBack && (
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
               onClick={onBack}
-              className="text-muted-foreground"
+              className="text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors mt-2"
             >
               {backLabel}
-            </Button>
+            </button>
           )}
         </div>
       </div>

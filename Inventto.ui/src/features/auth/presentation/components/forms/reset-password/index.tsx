@@ -1,16 +1,8 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { CheckCircle, Eye, EyeOff } from 'lucide-react';
 
-import { Logo } from '@/app/brand/logo';
-
-import { Button } from '@/shared/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader
-} from '@/shared/components/ui/card';
+import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import {
   Form,
   FormControl,
@@ -24,65 +16,98 @@ import { Input } from '@/shared/components/ui/input';
 import { useResetPasswordForm } from './use-reset-password-form';
 
 export function ResetPasswordForm() {
-  const { form, onSubmit, isPending } = useResetPasswordForm();
+  const navigate = useNavigate();
+  const { form, onSubmit, isPending, isSuccess } = useResetPasswordForm();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        navigate('/auth/login', { replace: true });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, navigate]);
+
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="w-11/12 text-center flex flex-col items-center justify-center">
-        <Logo />
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div className="space-y-1 text-center">
-            <h2 className="text-2xl font-bold tracking-tight">
+    <div className="w-full">
+      {isSuccess ? (
+        <div className="flex flex-col items-center gap-6 text-center max-w-[480px] mx-auto pt-8">
+          <div className="w-full bg-[#6c8567] text-white rounded-2xl py-6 px-6 flex items-center justify-center gap-4 shadow-sm">
+            <CheckCircle
+              className="size-6 text-white shrink-0"
+              strokeWidth={1.5}
+            />
+            <span className="text-[17px] font-medium leading-relaxed">
+              Senha redefinida. Faça login com suas novas credenciais.
+            </span>
+          </div>
+          <div className="mt-4">
+            <p className="text-[17px] text-[#b0aca6]">
+              Redirecionando para{' '}
+              <span className="underline underline-offset-4">/login</span>...
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <div className="flex justify-between items-start mb-6">
+            <div className="text-[15px] font-medium text-[#b0aca6]">
+              Acesso por
+              <br />
+              token
+            </div>
+          </div>
+          <div className="space-y-2 text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
               Defina sua nova senha
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[15px] text-muted-foreground leading-relaxed">
               Crie uma senha forte para proteger sua conta.
             </p>
           </div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nova senha</FormLabel>
+                  <FormItem className="space-y-2 text-left">
+                    <FormLabel className="text-base font-semibold">
+                      Nova senha
+                    </FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input
                           type={showPassword ? 'text' : 'password'}
                           placeholder="••••••••"
                           disabled={isPending}
-                          className="pr-10"
+                          className="h-12 text-base px-4 pr-12 rounded-xl border-slate-300 font-sans tracking-widest placeholder:tracking-widest"
                           {...field}
                         />
                       </FormControl>
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        aria-label={
-                          showPassword ? 'Ocultar senha' : 'Mostrar senha'
-                        }
+                        tabIndex={-1}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? (
-                          <EyeOff className="size-4" />
+                          <EyeOff className="h-5 w-5" />
                         ) : (
-                          <Eye className="size-4" />
+                          <Eye className="h-5 w-5" />
                         )}
-                      </Button>
+                        <span className="sr-only">
+                          {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        </span>
+                      </button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[13px] text-[#b0aca6] leading-relaxed">
                       Mínimo de 8 caracteres, com letra maiúscula, minúscula,
                       número e caractere especial.
                     </p>
-                    <FormMessage />
+                    <FormMessage className="text-[#A24444]" />
                   </FormItem>
                 )}
               />
@@ -90,54 +115,63 @@ export function ResetPasswordForm() {
                 control={form.control}
                 name="confirmPassword"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirmar nova senha</FormLabel>
+                  <FormItem className="space-y-2 text-left">
+                    <FormLabel className="text-base font-semibold">
+                      Confirmar nova senha
+                    </FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input
                           type={showConfirmPassword ? 'text' : 'password'}
                           placeholder="Digite a senha novamente"
                           disabled={isPending}
-                          className="pr-10"
+                          className="h-12 text-base px-4 pr-12 rounded-xl border-slate-300"
                           {...field}
                         />
                       </FormControl>
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        aria-label={
-                          showConfirmPassword
-                            ? 'Ocultar confirmação de senha'
-                            : 'Mostrar confirmação de senha'
+                        tabIndex={-1}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
                         }
                       >
                         {showConfirmPassword ? (
-                          <EyeOff className="size-4" />
+                          <EyeOff className="h-5 w-5" />
                         ) : (
-                          <Eye className="size-4" />
+                          <Eye className="h-5 w-5" />
                         )}
-                      </Button>
+                        <span className="sr-only">
+                          {showConfirmPassword
+                            ? 'Ocultar senha'
+                            : 'Mostrar senha'}
+                        </span>
+                      </button>
                     </div>
-                    <FormMessage />
+                    <FormMessage className="text-[#A24444]" />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending ? 'Salvando…' : 'Redefinir senha'}
-              </Button>
+              <div className="flex flex-col items-center gap-6 pt-2">
+                <SubmittingButton
+                  className="w-full h-12 text-base font-semibold rounded-xl"
+                  state={isPending}
+                  label="Redefinir senha"
+                  loadingLabel="Salvando..."
+                />
+
+                <Link
+                  to="/auth/login"
+                  className="text-[15px] font-medium text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+                >
+                  Voltar para o Login
+                </Link>
+              </div>
             </form>
           </Form>
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <Link to="/auth/login" className="text-sm text-primary hover:underline">
-          Voltar para o Login
-        </Link>
-      </CardFooter>
-    </Card>
+      )}
+    </div>
   );
 }

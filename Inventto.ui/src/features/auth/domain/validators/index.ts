@@ -21,7 +21,7 @@ export const organizationSchema = z
         message: 'Documento inválido. Verifique os números.'
       }),
     corporateName: z.string().optional(),
-    businessAreaId: z.string().min(1, 'Selecione uma área de atuação.')
+    businessAreaCode: z.string().min(1, 'Selecione uma área de atuação.')
   })
   .superRefine((data, ctx) => {
     const cleanDoc = normalizeDocument(data.document);
@@ -59,7 +59,7 @@ export const firstAccessSchema = z
     confirmPassword: z.string()
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'As senhas não conferem.',
+    message: 'As senhas não coincidem.',
     path: ['confirmPassword']
   });
 

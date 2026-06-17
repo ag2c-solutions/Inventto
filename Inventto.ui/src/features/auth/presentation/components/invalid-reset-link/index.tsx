@@ -1,43 +1,45 @@
 import { Link } from 'react-router';
 import { TriangleAlert } from 'lucide-react';
 
-import { Logo } from '@/app/brand/logo';
-
-import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
-
-/**
- * Estado de erro do AUTH-07 (RN012/RN013): token de recovery ausente,
- * expirado ou já usado. Substitui a tela inteira — o formulário nem aparece.
- */
 export function InvalidResetLink() {
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="w-11/12 text-center flex flex-col items-center justify-center">
-        <Logo />
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-center gap-5 pt-4 text-center">
+    <div className="w-full">
+      <div className="flex flex-col items-center text-center max-w-[480px] mx-auto pt-8">
+        <div className="w-full flex justify-between items-start mb-6">
+          <div className="text-[15px] font-medium text-[#b0aca6] text-left">
+            Acesso por
+            <br />
+            token
+          </div>
+        </div>
+
+        <div className="w-full rounded-2xl border border-border bg-[#f6f5f1] py-12 px-8 flex flex-col items-center gap-6">
           <div
-            className="flex items-center justify-center size-16 rounded-full bg-destructive/10"
+            className="flex items-center justify-center size-[72px] rounded-full border border-[#f3f0ec] bg-white"
             aria-hidden="true"
           >
-            <TriangleAlert className="size-7 text-destructive" />
+            <TriangleAlert className="size-8 text-[#b0aca6] stroke-[1.5]" />
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <h2 className="text-2xl font-bold tracking-tight">
+          <div className="flex flex-col items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
               Link expirado ou inválido
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[17px] text-[#b0aca6] leading-relaxed">
               Este link de redefinição não é mais válido. Solicite uma nova
               redefinição para continuar.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link to="/auth/forgot-password">Recuperar senha de novo</Link>
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+
+        <div className="mt-6 w-full">
+          <Link
+            to="/auth/forgot-password"
+            className="flex items-center justify-center w-full h-12 text-base font-semibold rounded-xl border border-slate-300 bg-white text-foreground hover:bg-slate-50 transition-colors"
+          >
+            Recuperar senha de novo
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

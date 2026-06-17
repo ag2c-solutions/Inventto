@@ -43,29 +43,36 @@ BEGIN
 
   -- CASO 1: É um Owner criando uma empresa nova
   IF (v_meta->>'company_name') IS NOT NULL THEN
-    INSERT INTO public.organizations (name, document, owner_id, business_area_id)
-    VALUES (
-      v_meta->>'company_name',
-      v_meta->>'company_document',
-      new.id,
-      (v_meta->>'business_area_id')::uuid
-    )
-    RETURNING id INTO v_org_id;
+    -- Code da área com fallback seguro: nulo/vazio → 'other'.
+    -- Valor não-vazio fora do enum ainda falha no cast (input corrompido = fail loud).
+    DECLARE
+      v_area_code public.business_area_code :=
+        COALESCE(NULLIF(v_meta->>'business_area_code', ''), 'other')::public.business_area_code;
+    BEGIN
+      INSERT INTO public.organizations (name, document, owner_id, business_area_code)
+      VALUES (
+        v_meta->>'company_name',
+        v_meta->>'company_document',
+        new.id,
+        v_area_code
+      )
+      RETURNING id INTO v_org_id;
 
-    -- Materializa categorias do template da área escolhida em public.categories
-    INSERT INTO public.categories (organization_id, name)
-    SELECT v_org_id, bac.name
-    FROM public.business_area_categories bac
-    WHERE bac.business_area_id = (v_meta->>'business_area_id')::uuid;
+      -- Materializa categorias do template da área escolhida em public.categories
+      INSERT INTO public.categories (organization_id, name)
+      SELECT v_org_id, bac.name
+      FROM public.business_area_categories bac
+      WHERE bac.business_area_code = v_area_code;
 
-    -- Materializa atributos do template da área escolhida em public.organization_attributes
-    INSERT INTO public.organization_attributes (organization_id, label, slug, type, "values")
-    SELECT v_org_id, baa.label, baa.slug, baa.type, baa."values"
-    FROM public.business_area_attributes baa
-    WHERE baa.business_area_id = (v_meta->>'business_area_id')::uuid;
+      -- Materializa atributos do template da área escolhida em public.organization_attributes
+      INSERT INTO public.organization_attributes (organization_id, label, slug, type, "values")
+      SELECT v_org_id, baa.label, baa.slug, baa.type, baa."values"
+      FROM public.business_area_attributes baa
+      WHERE baa.business_area_code = v_area_code;
 
-    INSERT INTO public.organization_members (organization_id, profile_id, role, status)
-    VALUES (v_org_id, new.id, 'owner', 'active');
+      INSERT INTO public.organization_members (organization_id, profile_id, role, status)
+      VALUES (v_org_id, new.id, 'owner', 'active');
+    END;
   
   -- CASO 2: É um Provisionamento Manual (Admin criando funcionário)
   ELSIF (v_meta->>'organization_id') IS NOT NULL THEN
@@ -579,9 +586,9 @@ $$;
 -- 7. ORGANIZAÇÕES: CREATE NEW ORGANIZATION (RF006)
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.create_new_organization(
-  p_name             TEXT,
-  p_document         TEXT DEFAULT NULL,
-  p_business_area_id UUID DEFAULT NULL
+  p_name               TEXT,
+  p_document           TEXT DEFAULT NULL,
+  p_business_area_code public.business_area_code DEFAULT 'other'
 )
 RETURNS UUID
 LANGUAGE plpgsql
@@ -591,23 +598,13 @@ AS $$
 DECLARE
   v_org_id          UUID;
   v_user_id         UUID := auth.uid();
-  v_business_area_id UUID;
 BEGIN
-  -- Resolve business_area_id: usa o informado ou cai em 'other' (RF006 — criação rápida).
   -- Template de categorias/atributos NÃO é materializado aqui (RN008 — exclusivo do signup).
   -- Nota: slug pertence a Catalogs/Storefront (RN063).
-  v_business_area_id := COALESCE(
-    p_business_area_id,
-    (SELECT id FROM public.business_areas WHERE code = 'other' LIMIT 1)
-  );
-
-  IF v_business_area_id IS NULL THEN
-    RAISE EXCEPTION 'business_area_id não informado e área "other" não encontrada no seed.';
-  END IF;
 
   -- Inserção da Organização
-  INSERT INTO public.organizations (name, document, owner_id, business_area_id)
-  VALUES (p_name, p_document, v_user_id, v_business_area_id)
+  INSERT INTO public.organizations (name, document, owner_id, business_area_code)
+  VALUES (p_name, p_document, v_user_id, COALESCE(p_business_area_code, 'other'))
   RETURNING id INTO v_org_id;
 
   -- Inserção do Membro (Dono)

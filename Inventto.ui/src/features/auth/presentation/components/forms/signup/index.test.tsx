@@ -283,7 +283,7 @@ describe('SignUpForm Feature', () => {
             companyName: 'Inventto Tech',
             fullName: 'Admin',
             email: 'admin@test.com',
-            businessAreaId: 'clothing',
+            businessAreaCode: 'clothing',
             acceptedTerms: true
           })
         );
@@ -454,7 +454,7 @@ describe('SignUpForm Feature', () => {
           companyName: 'Test Company',
           document: '123.456.789-09',
           corporateName: '',
-          businessAreaId: 'clothing',
+          businessAreaCode: 'clothing',
           fullName: 'Valid User',
           email: 'valid@test.com',
           password: 'StrongPass123!',

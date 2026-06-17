@@ -50,7 +50,7 @@ describe('organizationSchema', () => {
   const validBase = {
     companyName: 'Inventto Tech',
     document: '123.456.789-09',
-    businessAreaId: 'clothing'
+    businessAreaCode: 'clothing'
   };
 
   it('deve aceitar schema válido', () => {
@@ -58,7 +58,7 @@ describe('organizationSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('deve rejeitar quando businessAreaId está ausente', () => {
+  it('deve rejeitar quando businessAreaCode está ausente', () => {
     const result = organizationSchema.safeParse({
       companyName: 'Inventto',
       document: '123.456.789-09'
@@ -66,13 +66,13 @@ describe('organizationSchema', () => {
     expect(result.success).toBe(false);
 
     const paths = result.error?.issues.map((i) => i.path[0]);
-    expect(paths).toContain('businessAreaId');
+    expect(paths).toContain('businessAreaCode');
   });
 
-  it('deve rejeitar quando businessAreaId é string vazia', () => {
+  it('deve rejeitar quando businessAreaCode é string vazia', () => {
     const result = organizationSchema.safeParse({
       ...validBase,
-      businessAreaId: ''
+      businessAreaCode: ''
     });
     expect(result.success).toBe(false);
 
@@ -92,7 +92,7 @@ describe('organizationSchema', () => {
     const result = organizationSchema.safeParse({
       companyName: 'Inventto',
       document: '33.400.689/0001-09',
-      businessAreaId: 'clothing'
+      businessAreaCode: 'clothing'
     });
     expect(result.success).toBe(false);
 

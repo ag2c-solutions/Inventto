@@ -11,8 +11,7 @@ export const SELECT_PROFILE_QUERY = `
     organization_id,
     organizations (
       id,
-      name,
-      slug
+      name
     )
   )
 `;

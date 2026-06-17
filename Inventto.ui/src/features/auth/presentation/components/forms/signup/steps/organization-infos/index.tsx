@@ -16,25 +16,45 @@ export function OrganizationStep() {
   const { form, isCnpj, actions } = useSignUpForm();
 
   return (
-    <div className="">
-      <div className="mb-6">
-        <h1 className="text-2xl text-green-950 font-bold">Crie sua conta</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
+    <div className="flex w-full flex-col space-y-6">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[15px] font-medium text-muted-foreground">
+          Passo 1 de 3
+        </span>
+      </div>
+
+      <div className="flex flex-col space-y-2 text-left">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Crie sua conta
+        </h1>
+        <p className="text-[15px] text-muted-foreground pb-2">
           Vamos começar configurando o seu negócio. Leva menos de um minuto.
         </p>
       </div>
+
+      {form.formState.errors.root?.serverError && (
+        <div className="bg-slate-100 text-slate-600 p-4 rounded-md text-sm border-l-2 border-slate-300 font-mono">
+          {form.formState.errors.root.serverError.message}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6">
         <FormField
           control={form.control}
           name="companyName"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome fantasia da organização</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="text-base font-semibold">
+                Nome fantasia da organização
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Loja Inventto Matriz" {...field} />
+                <Input
+                  placeholder="Ex: Loja Inventto Matriz"
+                  className="h-12 text-base px-4 rounded-xl border-slate-300"
+                  {...field}
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[#A24444]" />
             </FormItem>
           )}
         />
@@ -43,11 +63,14 @@ export function OrganizationStep() {
           control={form.control}
           name="document"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Documento (CPF ou CNPJ)</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="text-base font-semibold">
+                Documento (CPF ou CNPJ)
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  className="h-12 text-base px-4 rounded-xl border-slate-300 font-mono tracking-wider"
                   {...field}
                   maxLength={18}
                   onChange={(e) => {
@@ -55,7 +78,7 @@ export function OrganizationStep() {
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-[#A24444]" />
             </FormItem>
           )}
         />
@@ -65,31 +88,43 @@ export function OrganizationStep() {
             control={form.control}
             name="corporateName"
             render={({ field }) => (
-              <FormItem className="animate-in zoom-in-95 duration-200">
-                <FormLabel>Razão Social</FormLabel>
+              <FormItem className="animate-in zoom-in-95 duration-200 space-y-2">
+                <FormLabel className="text-base font-semibold">
+                  Razão Social
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Razão Social Ltda" {...field} />
+                  <Input
+                    placeholder="Razão Social Ltda"
+                    className="h-12 text-base px-4 rounded-xl border-slate-300"
+                    {...field}
+                  />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-[#A24444]" />
               </FormItem>
             )}
           />
         )}
 
-        <FormItem>
-          <FormLabel>Área de atuação</FormLabel>
-          <Controller
-            control={form.control}
-            name="businessAreaId"
-            render={({ field, fieldState }) => (
-              <BusinessAreaButtonGroup
-                value={field.value}
-                onChange={field.onChange}
-                errorMessage={fieldState.error?.message}
+        <FormField
+          control={form.control}
+          name="businessAreaCode"
+          render={() => (
+            <FormItem>
+              <FormLabel>Área de atuação</FormLabel>
+              <Controller
+                control={form.control}
+                name="businessAreaCode"
+                render={({ field, fieldState }) => (
+                  <BusinessAreaButtonGroup
+                    value={field.value}
+                    onChange={field.onChange}
+                    errorMessage={fieldState.error?.message}
+                  />
+                )}
               />
-            )}
-          />
-        </FormItem>
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );

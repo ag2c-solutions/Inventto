@@ -2,7 +2,7 @@ export interface CreateUserMetadataDTO {
   full_name: string;
   company_name: string;
   company_document: string | null;
-  business_area_id: string;
+  business_area_code: string;
   terms_accepted_at: string;
   avatar_url?: string;
 }
@@ -18,7 +18,7 @@ export interface SignUpPayload {
   fullName: string;
   email: string;
   password: string;
-  businessAreaId: string;
+  businessAreaCode: string;
   acceptedTerms: true;
 }
 
@@ -37,4 +37,16 @@ export interface RecoverPasswordPayload {
 
 export interface ResetPasswordPayload {
   newPassword: string;
+}
+
+export interface SetFirstAccessPasswordPayload {
+  newPassword: string;
+  email: string;
+}
+
+export interface ConfirmFirstAccessPayload {
+  email: string;
+  token: string;
+  userId: string;
+  orgId: string;
 }
