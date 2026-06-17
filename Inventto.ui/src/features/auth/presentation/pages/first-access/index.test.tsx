@@ -97,8 +97,7 @@ describe('FirstAccessPage', () => {
     vi.mocked(useAuth).mockReturnValue({
       session: mockSession,
       isAuthenticated: true,
-      isLoading: false,
-      isRecoverySession: false
+      isLoading: false
     });
     vi.mocked(useUser).mockReturnValue({
       currentOrganization: {
@@ -195,8 +194,7 @@ describe('FirstAccessPage', () => {
       vi.mocked(useAuth).mockReturnValue({
         session: mockSession,
         isAuthenticated: true,
-        isLoading: false,
-        isRecoverySession: false
+        isLoading: false
       });
 
       // Simula pending via mutateAsync que nunca resolve

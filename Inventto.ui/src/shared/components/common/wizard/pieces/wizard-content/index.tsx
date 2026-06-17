@@ -10,7 +10,10 @@ export function WizardContent({ className, ...props }: ComponentProps<'div'>) {
 
   return (
     <Card
-      className={cn('p-4 md:p-6 h-full overflow-y-auto', className)}
+      className={cn(
+        'bg-transparent p-4 md:p-6 h-full overflow-y-auto',
+        className
+      )}
       {...props}
     >
       {state.currentStep?.component}

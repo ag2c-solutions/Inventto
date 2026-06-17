@@ -74,13 +74,27 @@ export class AuthAPI {
   }
 
   static async recoverPassword({ email }: RecoverPasswordPayload) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`
-    });
+    // O e-mail de recovery entrega um código OTP (template recovery.html),
+    // não um magic link — por isso não há redirectTo.
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
 
     if (error) {
       handleAuthError(error, 'recoverPassword');
     }
+  }
+
+  static async verifyRecoveryOtp({ email, token }: VerifyOtpPayload) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery'
+    });
+
+    if (error) {
+      handleAuthError(error, 'verifyRecoveryOtp');
+    }
+
+    return data;
   }
 
   static async resetPassword({ newPassword }: ResetPasswordPayload) {

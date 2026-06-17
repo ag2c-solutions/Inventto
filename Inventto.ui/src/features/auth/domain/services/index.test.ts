@@ -7,36 +7,54 @@ import { AuthService } from './index';
 vi.mock('../../data/api', () => ({
   AuthAPI: {
     resetPassword: vi.fn(),
+    verifyRecoveryOtp: vi.fn(),
     signOut: vi.fn()
   }
 }));
 
-describe('AuthService.resetPassword', () => {
+describe('AuthService.completePasswordRecovery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should reset the password and end the recovery session (RN012/RN013)', async () => {
+  it('should update the password keeping the session (sem signOut: cai no dashboard)', async () => {
     vi.mocked(AuthAPI.resetPassword).mockResolvedValue();
-    vi.mocked(AuthAPI.signOut).mockResolvedValue();
 
-    await AuthService.resetPassword({ newPassword: 'NewPass123!' });
+    await AuthService.completePasswordRecovery({ newPassword: 'NewPass123!' });
 
     expect(AuthAPI.resetPassword).toHaveBeenCalledWith({
       newPassword: 'NewPass123!'
     });
-    expect(AuthAPI.signOut).toHaveBeenCalled();
+    expect(AuthAPI.signOut).not.toHaveBeenCalled();
   });
 
-  it('should not end the session when the reset fails', async () => {
+  it('should propagate errors from the API', async () => {
     vi.mocked(AuthAPI.resetPassword).mockRejectedValue(
       new Error('Sessão expirada ou inválida. Tente novamente.')
     );
 
     await expect(
-      AuthService.resetPassword({ newPassword: 'NewPass123!' })
+      AuthService.completePasswordRecovery({ newPassword: 'NewPass123!' })
     ).rejects.toThrow();
+  });
+});
 
-    expect(AuthAPI.signOut).not.toHaveBeenCalled();
+describe('AuthService.verifyRecoveryOtp', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should delegate to AuthAPI.verifyRecoveryOtp', async () => {
+    vi.mocked(AuthAPI.verifyRecoveryOtp).mockResolvedValue({} as never);
+
+    await AuthService.verifyRecoveryOtp({
+      email: 'test@test.com',
+      token: '123456'
+    });
+
+    expect(AuthAPI.verifyRecoveryOtp).toHaveBeenCalledWith({
+      email: 'test@test.com',
+      token: '123456'
+    });
   });
 });

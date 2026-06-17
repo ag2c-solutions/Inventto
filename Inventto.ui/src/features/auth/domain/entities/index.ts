@@ -10,5 +10,4 @@ export interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  isRecoverySession: boolean;
 }

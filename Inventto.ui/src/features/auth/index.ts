@@ -7,6 +7,5 @@ export { AuthProvider, useAuth } from './presentation/hooks/use-auth';
 export { useSignOutMutation } from './presentation/hooks/use-mutations';
 export { FirstAccessPage } from './presentation/pages/first-access';
 export { RecoverPasswordPage } from './presentation/pages/recover-password';
-export { ResetPasswordPage } from './presentation/pages/reset-password';
 export { SignInPage } from './presentation/pages/sign-in';
 export { SignUpPage } from './presentation/pages/sign-up';

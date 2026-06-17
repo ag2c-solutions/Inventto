@@ -16,7 +16,6 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRecoverySession, setIsRecoverySession] = useState(false);
 
   useEffect(() => {
     let unsubscribe: () => void;
@@ -35,13 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const subscriptionResponse = await AuthService.subscribeToAuthChanges(
-        (event, newSession) => {
-          if (event === 'PASSWORD_RECOVERY') {
-            setIsRecoverySession(true);
-          } else if (event === 'SIGNED_OUT') {
-            setIsRecoverySession(false);
-          }
-
+        (_event, newSession) => {
           setSession((prevSession) => {
             if (prevSession?.access_token === newSession?.access_token) {
               return prevSession;
@@ -67,10 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       isAuthenticated: !!session,
-      isLoading,
-      isRecoverySession
+      isLoading
     }),
-    [session, isLoading, isRecoverySession]
+    [session, isLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

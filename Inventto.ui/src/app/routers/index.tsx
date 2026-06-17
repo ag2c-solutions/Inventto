@@ -52,21 +52,9 @@ export const router = createBrowserRouter([
     ]
   },
   {
+    // Compat: o fluxo de recuperação migrou para OTP em /auth/forgot-password.
     path: '/auth/reset-password',
-    element: (
-      <Suspense fallback={<PageLoader />}>
-        <AuthLayout />
-      </Suspense>
-    ),
-    children: [
-      {
-        index: true,
-        lazy: async () => {
-          const { ResetPasswordPage } = await import('@/features/auth/');
-          return { Component: ResetPasswordPage };
-        }
-      }
-    ]
+    element: <Navigate to="/auth/forgot-password" replace />
   },
   {
     path: '/auth/first-access',
