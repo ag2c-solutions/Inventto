@@ -44,7 +44,7 @@ export function OrganizationSwitcher() {
     return (
       <div className="flex items-center gap-2 p-2 text-sidebar-foreground/70">
         <div className="h-8 w-8 rounded-md bg-sidebar-primary/20 animate-pulse" />
-        <div className="h-4 w-24 bg-sidebar-primary/20 rounded animate-pulse" />
+        <div className="h-4 w-24 bg-sidebar-primary/20 rounded animate-pulse group-data-[collapsible=icon]:hidden" />
       </div>
     );
   }
@@ -71,13 +71,13 @@ export function OrganizationSwitcher() {
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0">
                   <span className="truncate font-medium">
                     {organization?.name}
                   </span>
                   <span className="truncate text-xs">{organization?.role}</span>
                 </div>
-                <ChevronsUpDown className="ml-auto" />
+                <ChevronsUpDown className="ml-auto shrink-0 transition-opacity duration-200 ease-linear group-data-[collapsible=icon]:opacity-0" />
               </SidebarMenuButton>
             </div>
           </PopoverTrigger>

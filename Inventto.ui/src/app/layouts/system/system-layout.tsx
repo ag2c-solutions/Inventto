@@ -5,10 +5,21 @@ import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
 import { SystemLayoutHeader } from './components/header/system-layout-header';
 import { SystemLayoutSidebar } from './components/sidebar';
 
+const SIDEBAR_COOKIE_NAME = 'sidebar_state';
+
+function getInitialSidebarState(): boolean {
+  if (typeof document === 'undefined') return true;
+  const match = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`));
+  if (!match) return true;
+  return match.split('=')[1] === 'true';
+}
+
 export const SystemLayout = () => {
   return (
     <SidebarProvider
-      defaultOpen={false}
+      defaultOpen={getInitialSidebarState()}
       className="bg-zinc-50 dark:bg-zinc-900"
       style={
         {
