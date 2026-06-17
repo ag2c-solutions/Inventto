@@ -7,4 +7,11 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   permission?: PermissionAction;
+  /** Desativado enquanto a rota do módulo não existir no router. */
+  enabled?: boolean;
+}
+
+export interface NavGroup {
+  group: string;
+  items: NavItem[];
 }
