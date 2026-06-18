@@ -11,6 +11,7 @@ import type {
   QueryObserverResult,
   RefetchOptions
 } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 import { useAuth } from '@/features/auth';
 import type { Role } from '@/features/permissions';
@@ -33,6 +34,7 @@ interface UserContextType {
   currentOrganization: UserOrganization | null;
   role: Role | undefined;
   availableOrganizations: UserOrganization[];
+  isSwitching: boolean;
   refetch: (
     options?: RefetchOptions
   ) => Promise<QueryObserverResult<User | null, Error>>;
@@ -49,6 +51,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     () => LocalStorageService.getItem<string>(STORAGE_ORG_KEY) ?? null
   );
 
+  // Flag de troca de contexto: ativada quando o selectedOrgId muda mas a
+  // currentOrganization ainda não refletiu o novo valor. As queries keyed
+  // por organization_id disparam automaticamente os skeletons nas telas.
+  const [isSwitching, setIsSwitching] = useState(false);
+
   const {
     data: user,
     isLoading,
@@ -60,6 +67,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const currentOrganization = useMemo(() => {
     return UserService.getOrganizationById(user, selectedOrgId);
   }, [user, selectedOrgId]);
+
+  // Quando currentOrganization se resolve para o novo org, a troca terminou.
+  useEffect(() => {
+    if (currentOrganization?.id === selectedOrgId) {
+      setIsSwitching(false);
+    }
+  }, [currentOrganization, selectedOrgId]);
 
   useEffect(() => {
     if (!user?.availableOrganizations.length) return;
@@ -76,18 +90,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const handleSetOrganization = useCallback(
     (orgId: string) => {
+      // RN010: ignorar seleção da org já ativa — fecha sem ação
+      if (currentOrganization?.id === orgId) return;
+
       try {
         const organization = UserService.selectOrganization(user, orgId);
 
+        setIsSwitching(true);
         setSelectedOrgId(organization.id);
         LocalStorageService.setItem(STORAGE_ORG_KEY, organization.id);
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn(error);
-        }
+      } catch {
+        // Falha ao trocar (org inválida/fora da lista): toast de alerta.
+        // TODO SHELL-12: migrar para o helper global de toast quando implementado.
+        toast.error('Não foi possível trocar de organização. Tente de novo.');
       }
     },
-    [user]
+    [user, currentOrganization]
   );
 
   const value = useMemo<UserContextType>(
@@ -101,6 +119,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       currentOrganization,
       role: currentOrganization?.role,
       availableOrganizations: user?.availableOrganizations ?? [],
+      isSwitching,
       setCurrentOrganization: handleSetOrganization
     }),
     [
@@ -111,6 +130,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       error,
       refetch,
       currentOrganization,
+      isSwitching,
       handleSetOrganization
     ]
   );

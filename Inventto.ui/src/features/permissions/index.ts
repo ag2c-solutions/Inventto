@@ -1,3 +1,4 @@
+export { ROLES_NAME } from './domain/constants/roles';
 export type { PermissionAction, Role } from './domain/entities';
 export { ActionButton } from './presentation/components/action-button/action-button';
 export { CanNavigate } from './presentation/components/can-navigate';
