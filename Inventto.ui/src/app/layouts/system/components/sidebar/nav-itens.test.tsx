@@ -24,6 +24,10 @@ vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
 }));
 
 vi.mock('@/shared/components/ui/sidebar', () => ({
+  useSidebar: vi.fn(() => ({
+    isMobile: false,
+    setOpenMobile: vi.fn()
+  })),
   SidebarGroup: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>
   ),
