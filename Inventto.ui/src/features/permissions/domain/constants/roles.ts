@@ -1,7 +1,7 @@
 import type { Role } from '../entities';
 
 export const ROLES_NAME: Record<Role, string> = {
-  owner: 'Proprietário',
+  owner: 'Dono',
   manager: 'Gerente',
-  sales: 'Vendas'
+  sales: 'Vendedor'
 };
