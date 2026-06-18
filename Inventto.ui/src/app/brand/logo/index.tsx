@@ -5,9 +5,31 @@ import InventtoIcon from '@/assets/icon.svg';
 interface LogoProps {
   className?: string;
   showText?: boolean;
+  variant?: 'default' | 'compact';
 }
 
-export const Logo = ({ className, showText = true }: LogoProps) => {
+export const Logo = ({
+  className,
+  showText = true,
+  variant = 'default'
+}: LogoProps) => {
+  if (variant === 'compact') {
+    return (
+      <figure className={cn('flex items-center gap-2', className)}>
+        <img
+          src={InventtoIcon}
+          alt="Inventto Logo"
+          className="h-7 w-7 shrink-0"
+        />
+        {showText && (
+          <figcaption className="text-green-950 text-base font-bold leading-none font-philosopher">
+            Inventto
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
+
   return (
     <figure
       className={cn(

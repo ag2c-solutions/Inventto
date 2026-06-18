@@ -7,7 +7,8 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
+  useSidebar
 } from '@/shared/components/ui/sidebar';
 
 import { navGroups } from '../../constants/navlinks-sidebar';
@@ -15,6 +16,7 @@ import { navGroups } from '../../constants/navlinks-sidebar';
 export const NavItens = () => {
   const { can, isLoading } = usePermission();
   const { pathname } = useLocation();
+  const { setOpenMobile, isMobile } = useSidebar();
 
   if (isLoading) return null;
 
@@ -44,7 +46,15 @@ export const NavItens = () => {
                       tooltip={label}
                       aria-current={isActive ? 'page' : undefined}
                     >
-                      <NavLink to={href} end={href === '/'}>
+                      <NavLink
+                        to={href}
+                        end={href === '/'}
+                        onClick={() => {
+                          if (isMobile) {
+                            setOpenMobile(false);
+                          }
+                        }}
+                      >
                         <Icon />
                         <span>{label}</span>
                       </NavLink>
