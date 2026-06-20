@@ -40,7 +40,7 @@ export const Logo = ({
       <img src={InventtoIcon} alt="Inventto Logo" className="absolute "></img>
 
       {showText && (
-        <figcaption className="pl-10 pt-1.5 text-green-950 text-3xl font-bold leading-none font-philosopher">
+        <figcaption className="pl-10 pt-1.5 text-green-950 dark:text-green-200 text-3xl font-bold leading-none font-philosopher">
           Inventto
         </figcaption>
       )}

@@ -20,7 +20,6 @@ export const SystemLayout = () => {
   return (
     <SidebarProvider
       defaultOpen={getInitialSidebarState()}
-      className="bg-zinc-50 dark:bg-zinc-900"
       style={
         {
           '--sidebar-width': 'calc(var(--spacing) * 72)'
