@@ -20,7 +20,9 @@ vi.mock('@/infra/supabase', () => ({
   supabase: {
     from: vi.fn(),
     auth: {
-      updateUser: vi.fn()
+      updateUser: vi.fn(),
+      getUser: vi.fn(),
+      signInWithPassword: vi.fn()
     }
   }
 }));
@@ -37,6 +39,8 @@ vi.mock('../mappers', () => ({
 
 const mockSupabaseFrom = vi.mocked(supabase.from);
 const mockUpdateUser = vi.mocked(supabase.auth.updateUser);
+const mockGetUser = vi.mocked(supabase.auth.getUser);
+const mockSignInWithPassword = vi.mocked(supabase.auth.signInWithPassword);
 const mockHandleUserError = vi.mocked(handleUserError);
 const mockToDomain = vi.mocked(UserMapper.toDomain);
 const mockUploadImage = vi.mocked(CloudinaryService.uploadImage);
@@ -269,14 +273,30 @@ describe('UserAPI', () => {
 
   describe('updatePassword', () => {
     it('should update password successfully', async () => {
-      mockUpdateUser.mockResolvedValue({
-        data: {
-          user: null
-        },
+      mockGetUser.mockResolvedValue({
+        data: { user: { email: 'rafael@test.com' } },
         error: null
       } as never);
 
-      await UserAPI.updatePassword('new-password');
+      mockSignInWithPassword.mockResolvedValue({
+        data: {},
+        error: null
+      } as never);
+
+      mockUpdateUser.mockResolvedValue({
+        data: { user: null },
+        error: null
+      } as never);
+
+      await UserAPI.updatePassword({
+        currentPassword: 'old-password',
+        newPassword: 'new-password'
+      });
+
+      expect(mockSignInWithPassword).toHaveBeenCalledWith({
+        email: 'rafael@test.com',
+        password: 'old-password'
+      });
 
       expect(mockUpdateUser).toHaveBeenCalledWith({
         password: 'new-password'
@@ -291,10 +311,18 @@ describe('UserAPI', () => {
         status: 400
       };
 
+      mockGetUser.mockResolvedValue({
+        data: { user: { email: 'rafael@test.com' } },
+        error: null
+      } as never);
+
+      mockSignInWithPassword.mockResolvedValue({
+        data: {},
+        error: null
+      } as never);
+
       mockUpdateUser.mockResolvedValue({
-        data: {
-          user: null
-        },
+        data: { user: null },
         error
       } as never);
 
@@ -302,15 +330,45 @@ describe('UserAPI', () => {
         throw new Error('A senha é muito fraca. Escolha uma senha mais forte.');
       });
 
-      await expect(UserAPI.updatePassword('123')).rejects.toThrow(
-        'A senha é muito fraca. Escolha uma senha mais forte.'
-      );
+      await expect(
+        UserAPI.updatePassword({
+          currentPassword: 'old-password',
+          newPassword: '123'
+        })
+      ).rejects.toThrow('A senha é muito fraca. Escolha uma senha mais forte.');
 
       expect(mockUpdateUser).toHaveBeenCalledWith({
         password: '123'
       });
 
       expect(mockHandleUserError).toHaveBeenCalledWith(error, 'updatePassword');
+    });
+
+    it('should throw CurrentPasswordInvalidError when current password is wrong', async () => {
+      const signInError = {
+        message: 'Invalid login credentials',
+        status: 400
+      };
+
+      mockGetUser.mockResolvedValue({
+        data: { user: { email: 'rafael@test.com' } },
+        error: null
+      } as never);
+
+      mockSignInWithPassword.mockResolvedValue({
+        data: {},
+        error: signInError
+      } as never);
+
+      await expect(
+        UserAPI.updatePassword({
+          currentPassword: 'wrong-password',
+          newPassword: 'new-password'
+        })
+      ).rejects.toThrow('Senha atual incorreta.');
+
+      expect(mockUpdateUser).not.toHaveBeenCalled();
+      expect(mockHandleUserError).not.toHaveBeenCalled();
     });
   });
 

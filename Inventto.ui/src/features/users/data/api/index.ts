@@ -1,7 +1,8 @@
 import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
-import type { User } from '../../domain/entities';
+import type { UpdatePasswordVariables, User } from '../../domain/entities';
+import { CurrentPasswordInvalidError } from '../../domain/errors';
 import type { UserWithOrganizationDTO } from '../dtos';
 import { handleUserError } from '../handlers/error-handler';
 import { UserMapper } from '../mappers';
@@ -40,13 +41,40 @@ export class UserAPI {
     }
   }
 
-  static async updatePassword(password: string): Promise<void> {
-    const { error } = await supabase.auth.updateUser({
-      password
+  static async updatePassword({
+    currentPassword,
+    newPassword
+  }: UpdatePasswordVariables): Promise<void> {
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser();
+
+    if (userError || !user?.email) {
+      handleUserError(
+        userError || new Error('Usuário não encontrado'),
+        'updatePassword'
+      );
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email as string,
+      password: currentPassword
     });
 
-    if (error) {
-      handleUserError(error, 'updatePassword');
+    if (signInError) {
+      if (signInError.message.includes('Invalid login credentials')) {
+        throw new CurrentPasswordInvalidError();
+      }
+      handleUserError(signInError, 'updatePassword');
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) {
+      handleUserError(updateError, 'updatePassword');
     }
   }
 

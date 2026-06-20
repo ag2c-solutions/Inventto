@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { UpdateAvatarVariables } from '../../domain/entities';
+import type {
+  UpdateAvatarVariables,
+  UpdatePasswordVariables
+} from '../../domain/entities';
 import { UserService } from '../../domain/services';
 import { USERS_KEYS } from '../constants';
 
@@ -29,10 +32,12 @@ export function useUpdatePasswordMutation() {
   return useMutation({
     mutationKey: ['users', 'update-password'],
 
-    mutationFn: (password: string) => UserService.updatePassword(password),
+    mutationFn: (variables: UpdatePasswordVariables) =>
+      UserService.updatePassword(variables),
 
     meta: {
-      successMessage: 'Senha atualizada com sucesso!'
+      successMessage: 'Senha alterada.',
+      suppressErrorToast: true
     }
   });
 }

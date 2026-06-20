@@ -1,6 +1,7 @@
 import { UserAPI } from '../../data/api';
 import type {
   UpdateAvatarVariables,
+  UpdatePasswordVariables,
   User,
   UserOrganization
 } from '../entities';
@@ -37,12 +38,19 @@ export class UserService {
     await UserAPI.updateAvatar(userId, url);
   }
 
-  static async updatePassword(password: string): Promise<void> {
-    if (!password?.trim()) {
-      throw new Error('Senha obrigatória.');
+  static async updatePassword({
+    currentPassword,
+    newPassword
+  }: UpdatePasswordVariables): Promise<void> {
+    if (!currentPassword?.trim()) {
+      throw new Error('Senha atual obrigatória.');
     }
 
-    await UserAPI.updatePassword(password);
+    if (!newPassword?.trim()) {
+      throw new Error('Nova senha obrigatória.');
+    }
+
+    await UserAPI.updatePassword({ currentPassword, newPassword });
   }
 
   static getDefaultOrganization(

@@ -7,12 +7,16 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,12 +27,16 @@ import { Input } from '@/shared/components/ui/input';
 import { useChangePassword } from './hook';
 
 export function PasswordChange() {
-  const { form, isSubmitting, handleSubmit } = useChangePassword();
+  const [isOpen, setIsOpen] = useState(false);
+  const { form, isSubmitting, handleSubmit } = useChangePassword(() =>
+    setIsOpen(false)
+  );
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           variant={'ghost'}
@@ -39,13 +47,62 @@ export function PasswordChange() {
           <span>Alterar senha</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Alterar senha</DialogTitle>
+          <DialogDescription>
+            Crie uma senha forte para manter sua conta protegida.
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form
             id="change-password"
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
+            <FormField
+              control={form.control}
+              name="currentPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha atual</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        {...field}
+                        disabled={isSubmitting}
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
+                        tabIndex={-1}
+                      >
+                        {showCurrentPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="sr-only">
+                          {showCurrentPassword
+                            ? 'Ocultar senha'
+                            : 'Mostrar senha'}
+                        </span>
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="password"
@@ -80,6 +137,10 @@ export function PasswordChange() {
                       </Button>
                     </div>
                   </FormControl>
+                  <FormDescription>
+                    Mínimo de 8 caracteres, com letra maiúscula, minúscula,
+                    número e caractere especial.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -90,12 +151,12 @@ export function PasswordChange() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirmar Nova Senha</FormLabel>
+                  <FormLabel>Confirmar nova senha</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
+                        placeholder="Digite a senha novamente"
                         {...field}
                         disabled={isSubmitting}
                         className="pr-10"
@@ -139,7 +200,7 @@ export function PasswordChange() {
             form="change-password"
             type="submit"
             state={isSubmitting}
-            label="Atualizar Senha"
+            label="Salvar senha"
           />
         </DialogFooter>
       </DialogContent>

@@ -109,9 +109,15 @@ describe('User mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync('new-password');
+      await result.current.mutateAsync({
+        currentPassword: 'old',
+        newPassword: 'new'
+      });
 
-      expect(mockUpdatePassword).toHaveBeenCalledWith('new-password');
+      expect(mockUpdatePassword).toHaveBeenCalledWith({
+        currentPassword: 'old',
+        newPassword: 'new'
+      });
     });
 
     it('should propagate update password errors', async () => {
@@ -121,11 +127,14 @@ describe('User mutations', () => {
         wrapper
       });
 
-      await expect(result.current.mutateAsync('')).rejects.toThrow(
-        'Senha obrigatória.'
-      );
+      await expect(
+        result.current.mutateAsync({ currentPassword: '', newPassword: '' })
+      ).rejects.toThrow('Senha obrigatória.');
 
-      expect(mockUpdatePassword).toHaveBeenCalledWith('');
+      expect(mockUpdatePassword).toHaveBeenCalledWith({
+        currentPassword: '',
+        newPassword: ''
+      });
     });
   });
 });

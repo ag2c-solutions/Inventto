@@ -4,6 +4,7 @@ import { passwordSchema } from '@/features/auth';
 
 export const changePasswordSchema = z
   .object({
+    currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
     password: passwordSchema,
     confirmPassword: z.string()
   })
