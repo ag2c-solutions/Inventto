@@ -230,10 +230,13 @@ describe('AvatarChange Feature', () => {
         await user.click(saveBtn);
 
         expect(mockMutate).toHaveBeenCalledTimes(1);
-        expect(mockMutate).toHaveBeenCalledWith({
-          userId: defaultUser.id,
-          file: expect.any(File)
-        });
+        expect(mockMutate).toHaveBeenCalledWith(
+          {
+            userId: defaultUser.id,
+            file: expect.any(File)
+          },
+          expect.objectContaining({ onSuccess: expect.any(Function) })
+        );
       });
 
       it('não deve salvar se as coordenadas de corte não estiverem definidas', async () => {
@@ -327,10 +330,13 @@ describe('AvatarChange Feature', () => {
           await result.current.handleSave();
         });
 
-        expect(mockMutate).toHaveBeenCalledWith({
-          userId: defaultUser.id,
-          file: expect.any(File)
-        });
+        expect(mockMutate).toHaveBeenCalledWith(
+          {
+            userId: defaultUser.id,
+            file: expect.any(File)
+          },
+          expect.objectContaining({ onSuccess: expect.any(Function) })
+        );
       });
     });
   });
