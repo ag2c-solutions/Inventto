@@ -37,6 +37,10 @@ export class OrganizationService {
   }
 
   static async create(payload: CreateOrganizationInput): Promise<string> {
+    if (!payload.name?.trim()) {
+      throw new Error('Nome da organização é obrigatório.');
+    }
+
     return OrganizationApi.create(payload);
   }
 

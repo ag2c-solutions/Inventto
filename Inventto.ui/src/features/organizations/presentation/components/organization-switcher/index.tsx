@@ -106,7 +106,7 @@ export function OrganizationSwitcher() {
             align="start"
             alignOffset={12}
             style={{
-              width: 'calc(var(--radix-popover-trigger-width) - 1.5rem)'
+              width: 'calc(272px - 1.5rem)'
             }}
           >
             <Command>

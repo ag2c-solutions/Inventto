@@ -40,7 +40,6 @@ export class OrganizationMapper {
       id: dto.id,
       ownerId: dto.owner_id,
       name: dto.name,
-      slug: dto.slug,
       document: dto.document || undefined,
       createdAt: new Date(dto.created_at),
       settings

@@ -20,7 +20,7 @@ export class OrganizationApi {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, owner_id, name, slug, document, settings, created_at')
+        .select('id, owner_id, name, document, settings, created_at')
         .eq('id', orgId)
         .single()
         .overrideTypes<OrganizationDTO, { merge: false }>();
@@ -34,14 +34,16 @@ export class OrganizationApi {
 
   static async create(payload: {
     name: string;
-    slug: string;
     document?: string;
+    sourceOrgId?: string;
+    replicateGroups?: string[];
   }): Promise<string> {
     try {
       const { data, error } = await supabase.rpc('create_new_organization', {
         p_name: payload.name,
-        p_slug: payload.slug,
-        p_document: payload.document || null
+        p_document: payload.document || null,
+        p_source_org_id: payload.sourceOrgId || null,
+        p_replicate_groups: payload.replicateGroups || null
       });
 
       if (error) throw error;

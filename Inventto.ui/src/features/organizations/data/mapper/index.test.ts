@@ -15,7 +15,6 @@ describe('OrganizationMapper', () => {
       id: 'org-1',
       owner_id: 'owner-1',
       name: 'Minha Empresa',
-      slug: 'minha-empresa',
       document: '12.345.678/0001-90',
       settings: {
         identity: { display_name: 'Empresa Display', logo_url: 'logo.png' },
@@ -34,7 +33,6 @@ describe('OrganizationMapper', () => {
       expect(result.id).toBe('org-1');
       expect(result.ownerId).toBe('owner-1');
       expect(result.name).toBe('Minha Empresa');
-      expect(result.slug).toBe('minha-empresa');
       expect(result.document).toBe('12.345.678/0001-90');
       expect(result.createdAt).toBeInstanceOf(Date);
     });
