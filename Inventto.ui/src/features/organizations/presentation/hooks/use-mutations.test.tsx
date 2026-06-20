@@ -106,7 +106,8 @@ describe('useUpdateOrganizationMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -150,7 +151,8 @@ describe('useCreateMemberMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -203,7 +205,8 @@ describe('useReplicateMemberMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -250,7 +253,8 @@ describe('useUpdateMemberRoleMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -297,7 +301,8 @@ describe('useUpdateMemberStatusMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }

@@ -31,7 +31,6 @@ export class UserMapper {
     return {
       id: member.organizations.id,
       name: member.organizations.name,
-      slug: member.organizations.slug,
       role: member.role
     };
   }
