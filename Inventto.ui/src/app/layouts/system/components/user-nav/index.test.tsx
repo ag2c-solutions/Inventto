@@ -82,27 +82,32 @@ describe('UserNav Component (Integration)', () => {
     };
   };
 
-  it('should render default organization name when user has no organization', async () => {
+  it('should render default organization name when user has no organization', () => {
     mocks.useUser.mockReturnValue({
       user: defaultUser,
       currentOrganization: null,
       isLoading: false
     });
 
-    const { user } = renderComponent();
+    renderComponent();
 
-    await user.click(screen.getByRole('button'));
-
-    expect(await screen.findByText('Minha Empresa')).toBeInTheDocument();
+    expect(screen.getByText('Minha Empresa')).toBeInTheDocument();
   });
 
-  it('should display user information in the dropdown header', async () => {
+  it('should display user name and active organization in the trigger', () => {
+    renderComponent();
+
+    expect(screen.getByText('Admin Teste')).toBeInTheDocument();
+    expect(screen.getByText('Empresa Teste Ltda')).toBeInTheDocument();
+  });
+
+  it('should display user name and email in the dropdown header', async () => {
     const { user } = renderComponent();
 
     await user.click(screen.getByRole('button'));
 
-    expect(await screen.findByText('Admin Teste')).toBeInTheDocument();
-    expect(await screen.findByText('Empresa Teste Ltda')).toBeInTheDocument();
+    expect(await screen.findByText('admin@teste.com')).toBeInTheDocument();
+    expect(screen.getAllByText('Admin Teste').length).toBeGreaterThan(0);
   });
 
   it('should render AvatarChange in dropdown', async () => {

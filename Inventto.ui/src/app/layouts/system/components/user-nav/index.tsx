@@ -41,22 +41,34 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border border-input">
+        <Button
+          variant="ghost"
+          className="h-auto gap-2 rounded-full p-0 lg:rounded-lg lg:border lg:bg-background lg:px-2 lg:py-1.5 lg:hover:bg-accent"
+        >
+          <Avatar className="size-9 border border-primary/20">
             <AvatarImage src={user?.avatarUrl || ''} alt={user?.fullName} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {initials}
             </AvatarFallback>
           </Avatar>
+
+          <div className="hidden min-w-0 max-w-40 flex-col text-left leading-tight lg:flex">
+            <span className="truncate text-sm font-medium">
+              {user?.fullName}
+            </span>
+            <span className="truncate text-xs text-muted-foreground">
+              {organization?.name || 'Minha Empresa'}
+            </span>
+          </div>
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col gap-1">
             <p className="text-sm font-medium leading-none">{user?.fullName}</p>
-            <p className="text-xs leading-none text-muted-foreground truncate">
-              {organization?.name || 'Minha Empresa'}
+            <p className="truncate text-xs leading-none text-muted-foreground">
+              {user?.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -76,10 +88,11 @@ export function UserNav() {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/50"
+          variant="destructive"
+          className="cursor-pointer"
           onClick={handleSignOut}
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut />
           <span>Sair do sistema</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
