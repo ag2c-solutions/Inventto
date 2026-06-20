@@ -1,4 +1,5 @@
-import { ImageIcon, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
+import { useState } from 'react';
+import { ImageIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 
 import {
@@ -6,6 +7,7 @@ import {
   FilePickerButton,
   FilePickerInput
 } from '@/shared/components/common/file-picker';
+import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import {
   Avatar,
   AvatarFallback,
@@ -18,17 +20,23 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
+import { Separator } from '@/shared/components/ui/separator';
 import { Slider } from '@/shared/components/ui/slider';
+import { cn } from '@/shared/utils';
 
 import { useAvatarChange } from './hook';
 
 export function AvatarChange() {
+  const [open, setOpen] = useState(false);
+
   const {
     files,
     userAvatar,
+    userInitials,
     crop,
     zoom,
     isSubmitting,
@@ -38,12 +46,17 @@ export function AvatarChange() {
     onCropComplete,
     handleSave,
     reset
-  } = useAvatarChange();
+  } = useAvatarChange(() => setOpen(false));
 
   const hasFile = files.length > 0;
 
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) reset();
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
           variant="ghost"
@@ -54,18 +67,22 @@ export function AvatarChange() {
           <span>Alterar avatar</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogTitle>Alterar Foto de Perfil</DialogTitle>
-        <DialogDescription>
-          Faça o upload de uma nova imagem para seu perfil.
-        </DialogDescription>
-        <div className="space-y-6 py-4">
-          {!hasFile && (
-            <div className="flex flex-col items-center justify-center gap-6 py-8">
-              <Avatar className="h-28 w-28 border-4 border-muted">
+
+      <DialogContent className={hasFile ? 'sm:max-w-lg' : 'sm:max-w-sm'}>
+        <DialogHeader>
+          <DialogTitle>Alterar Foto de Perfil</DialogTitle>
+          <DialogDescription>
+            Faça o upload de uma nova imagem para seu perfil.
+          </DialogDescription>
+        </DialogHeader>
+
+        {!hasFile && (
+          <>
+            <div className="flex flex-col items-center justify-center gap-5 py-2">
+              <Avatar className="size-24 border-2 border-primary/20">
                 <AvatarImage src={userAvatar} className="object-cover" />
-                <AvatarFallback className="text-4xl bg-muted">
-                  <ImageIcon className="h-12 w-12 opacity-50" />
+                <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">
+                  {userInitials}
                 </AvatarFallback>
               </Avatar>
 
@@ -81,15 +98,38 @@ export function AvatarChange() {
                 </label>
               </FilePicker>
 
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-center text-xs text-muted-foreground">
                 Suporta JPG, PNG e WEBP até 5MB.
               </p>
             </div>
-          )}
 
-          {hasFile && (
+            <Separator />
+
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={reset}
+                  disabled={isSubmitting}
+                >
+                  Cancelar
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </>
+        )}
+
+        {hasFile && (
+          <>
             <div className="flex flex-col gap-4">
-              <div className="relative h-[300px] w-full bg-black/5 rounded-md overflow-hidden border">
+              <div
+                className={cn(
+                  'relative h-[300px] w-full overflow-hidden rounded-md border bg-black/5',
+                  isSubmitting && 'pointer-events-none opacity-60'
+                )}
+              >
                 <Cropper
                   image={files[0].url}
                   crop={crop}
@@ -111,38 +151,39 @@ export function AvatarChange() {
                   max={3}
                   step={0.1}
                   onValueChange={(val) => setZoom(val[0])}
+                  disabled={isSubmitting}
                   className="flex-1 cursor-pointer"
                 />
                 <ZoomIn className="h-4 w-4 text-muted-foreground" />
               </div>
 
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-center text-xs text-muted-foreground">
                 Arraste e zoom para ajustar a miniatura do perfil.
               </p>
             </div>
-          )}
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={reset}
-              disabled={isSubmitting}
-            >
-              {hasFile ? 'Trocar Imagem' : 'Cancelar'}
-            </Button>
-          </DialogClose>
 
-          {hasFile && (
-            <Button onClick={handleSave} disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Salvar Avatar
-            </Button>
-          )}
-        </DialogFooter>
+            <DialogFooter className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={reset}
+                disabled={isSubmitting}
+              >
+                Trocar Imagem
+              </Button>
+
+              <SubmittingButton
+                type="button"
+                className="w-full"
+                state={isSubmitting}
+                onClick={handleSave}
+                label="Salvar Avatar"
+                loadingLabel="Salvando…"
+              />
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
