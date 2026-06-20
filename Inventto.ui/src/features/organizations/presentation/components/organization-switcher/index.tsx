@@ -74,7 +74,7 @@ export function OrganizationSwitcher() {
       <SidebarMenuItem>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <div className="px-3">
+            <div className="">
               <SidebarMenuButton
                 size="lg"
                 className="overflow-hidden border rounded-lg bg-background hover:bg-background"

@@ -33,7 +33,7 @@ export const Logo = ({
   return (
     <figure
       className={cn(
-        'relative flex py-2 gap-1 items-center overflow-hidden',
+        'relative flex py-2 gap-1 items-center overflow-hidden h-12 min-w-[32px]',
         className
       )}
     >
