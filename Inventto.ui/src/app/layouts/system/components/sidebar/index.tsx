@@ -17,12 +17,12 @@ import { NavItens } from './nav-itens';
 export const SystemLayoutSidebar = ({
   ...props
 }: React.ComponentProps<typeof Sidebar>) => {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, open } = useSidebar();
 
   return (
     <Sidebar {...props}>
       <SidebarHeader className={isMobile ? 'relative mb-4' : 'mb-10'}>
-        <Logo variant={isMobile ? 'compact' : 'default'} />
+        <Logo variant={isMobile ? 'compact' : 'default'} showText={open} />
         {isMobile && (
           <Button
             variant="outline"

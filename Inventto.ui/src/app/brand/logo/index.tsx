@@ -33,14 +33,14 @@ export const Logo = ({
   return (
     <figure
       className={cn(
-        'relative flex py-2 gap-1 items-center overflow-hidden',
+        'relative flex py-2 gap-1 items-center overflow-hidden h-12 min-w-[32px]',
         className
       )}
     >
       <img src={InventtoIcon} alt="Inventto Logo" className="absolute "></img>
 
       {showText && (
-        <figcaption className="pl-10 pt-1.5 text-green-950 text-3xl font-bold leading-none font-philosopher">
+        <figcaption className="pl-10 pt-1.5 text-green-950 dark:text-green-200 text-3xl font-bold leading-none font-philosopher">
           Inventto
         </figcaption>
       )}

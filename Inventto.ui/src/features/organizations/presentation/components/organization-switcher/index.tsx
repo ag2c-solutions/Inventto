@@ -74,7 +74,7 @@ export function OrganizationSwitcher() {
       <SidebarMenuItem>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <div className="px-3">
+            <div className="">
               <SidebarMenuButton
                 size="lg"
                 className="overflow-hidden border rounded-lg bg-background hover:bg-background"
@@ -102,15 +102,18 @@ export function OrganizationSwitcher() {
           </PopoverTrigger>
 
           <PopoverContent
-            className="p-0"
+            className="p-2"
             align="start"
-            alignOffset={12}
+            alignOffset={0}
             style={{
-              width: 'calc(272px - 1.5rem)'
+              width: 'calc(294px - 1.5rem)'
             }}
           >
             <Command>
-              <CommandInput placeholder="Buscar organização…" />
+              <CommandInput
+                className="border-border"
+                placeholder="Buscar organização…"
+              />
               <CommandList>
                 <CommandEmpty>Nenhuma organização encontrada.</CommandEmpty>
 
