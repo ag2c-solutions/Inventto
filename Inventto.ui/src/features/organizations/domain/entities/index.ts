@@ -2,10 +2,11 @@ import type { Role } from '@/features/permissions';
 
 export type MemberStatus = 'active' | 'inactive' | 'invited';
 
+export type ReplicationGroup = 'categories' | 'operational' | 'visual';
+
 export interface Organization {
   id: string;
   name: string;
-  slug: string;
 }
 
 export interface OrganizationWithDetails extends Organization {
@@ -30,8 +31,9 @@ export interface IMember {
 
 export interface CreateOrganizationInput {
   name: string;
-  slug: string;
   document?: string;
+  sourceOrgId?: string;
+  replicateGroups?: ReplicationGroup[];
 }
 
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';

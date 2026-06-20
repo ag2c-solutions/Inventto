@@ -2,9 +2,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const mockNavigate = vi.fn();
+const mockSetCurrentOrganization = vi.fn();
+
 const mockUseUser = vi.fn(() => ({
   user: { id: 'user-1' },
-  currentOrganization: { id: 'org-1' }
+  currentOrganization: { id: 'org-1' },
+  setCurrentOrganization: mockSetCurrentOrganization
+}));
+
+vi.mock('react-router', () => ({
+  useNavigate: () => mockNavigate
 }));
 
 vi.mock('../../domain/services', () => ({
@@ -43,7 +51,8 @@ describe('useCreateOrganizationMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -59,24 +68,34 @@ describe('useCreateOrganizationMutation', () => {
     const { result } = renderHook(() => useCreateOrganizationMutation(), {
       wrapper
     });
-    const payload = { name: 'Nova Empresa', slug: 'nova-empresa' };
+    const payload = { name: 'Nova Empresa' };
     await result.current.mutateAsync(payload);
     expect(OrganizationService.create).toHaveBeenCalledWith(payload);
   });
 
-  it('deve invalidar USERS_KEYS.profile(user.id) no onSuccess', async () => {
+  it('deve invalidar USERS_KEYS.profile(user.id) e ORG_KEYS.all no onSuccess', async () => {
     vi.mocked(OrganizationService.create).mockResolvedValue('new-org-id');
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHook(() => useCreateOrganizationMutation(), {
       wrapper
     });
-    await result.current.mutateAsync({
-      name: 'Nova Empresa',
-      slug: 'nova-empresa'
-    });
+    await result.current.mutateAsync({ name: 'Nova Empresa' });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ['users', 'profile', 'user-1']
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['organizations']
+    });
+  });
+
+  it('deve chamar setCurrentOrganization e navigate no onSuccess', async () => {
+    vi.mocked(OrganizationService.create).mockResolvedValue('new-org-id');
+    const { result } = renderHook(() => useCreateOrganizationMutation(), {
+      wrapper
+    });
+    await result.current.mutateAsync({ name: 'Nova Empresa' });
+    expect(mockSetCurrentOrganization).toHaveBeenCalledWith('new-org-id');
+    expect(mockNavigate).toHaveBeenCalledWith('/settings');
   });
 });
 
@@ -87,7 +106,8 @@ describe('useUpdateOrganizationMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -131,7 +151,8 @@ describe('useCreateMemberMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -184,7 +205,8 @@ describe('useReplicateMemberMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -231,7 +253,8 @@ describe('useUpdateMemberRoleMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
@@ -278,7 +301,8 @@ describe('useUpdateMemberStatusMutation', () => {
     vi.clearAllMocks();
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
-      currentOrganization: { id: 'org-1' }
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
     });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }

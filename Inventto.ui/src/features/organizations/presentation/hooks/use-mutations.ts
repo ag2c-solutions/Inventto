@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { Role } from '@/features/permissions';
@@ -10,24 +11,33 @@ import type {
   OrganizationSettings
 } from '../../domain/entities';
 import { OrganizationService } from '../../domain/services';
-import { ORG_KEYS } from '../consts';
+import { ORG_KEYS } from '../constants/org-keys';
 
 export function useCreateOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { user } = useUser();
+  const { user, setCurrentOrganization } = useUser();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (payload: CreateOrganizationInput) =>
       OrganizationService.create(payload),
-    onSuccess: () => {
+    onSuccess: async (newOrgId: string) => {
+      // Invalida o perfil do usuário para refletir a nova org na lista
       if (user?.id) {
-        queryClient.invalidateQueries({
+        await queryClient.invalidateQueries({
           queryKey: USERS_KEYS.profile(user.id)
         });
       }
+
+      // Invalida queries de organizações
+      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+
+      // Troca o contexto para a nova organização e navega para configurações
+      setCurrentOrganization(newOrgId);
+      navigate('/settings');
     },
     meta: {
-      successMessage: 'Nova organização criada com sucesso!'
+      successMessage: 'Organização criada.'
     }
   });
 }

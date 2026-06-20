@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/features/users';
 
 import { OrganizationService } from '../../domain/services';
-import { ORG_KEYS } from '../consts';
+import { ORG_KEYS } from '../constants/org-keys';
 
 export function useOrganizationQuery() {
   const { currentOrganization } = useUser();

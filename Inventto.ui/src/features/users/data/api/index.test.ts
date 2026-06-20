@@ -120,13 +120,11 @@ describe('UserAPI', () => {
         {
           id: 'organization-123',
           name: 'Inventto',
-          slug: 'inventto',
           role: 'owner'
         },
         {
           id: 'organization-456',
           name: 'Smart Tech',
-          slug: 'smart-tech',
           role: 'manager'
         }
       ]

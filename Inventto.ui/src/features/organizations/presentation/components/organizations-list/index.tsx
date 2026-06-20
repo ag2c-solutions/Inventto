@@ -62,7 +62,7 @@ export function OrganizationSwitcher() {
                 <div>
                   <Avatar className="h-8 w-8 rounded-md border">
                     <AvatarImage
-                      src={`https://avatar.vercel.sh/${organization.slug}.png`}
+                      src={`https://avatar.vercel.sh/${organization}.png`}
                       alt={organization.name}
                       className="grayscale"
                     />

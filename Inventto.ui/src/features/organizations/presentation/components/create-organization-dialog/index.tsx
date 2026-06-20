@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { PlusCircle } from 'lucide-react';
 
 import { ActionButton } from '@/features/permissions';
+import { useUser } from '@/features/users';
 
 import {
   Dialog,
@@ -16,6 +16,7 @@ import { CreateOrgForm } from '../create-organization-form';
 
 export const CreateOrganizationDialog = () => {
   const [open, setOpen] = useState(false);
+  const { availableOrganizations } = useUser();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -25,18 +26,18 @@ export const CreateOrganizationDialog = () => {
           variant="ghost"
           className="w-full justify-start font-normal"
         >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Criar Organização
+          Criar organização
         </ActionButton>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Criar Organização</DialogTitle>
+          <DialogTitle>Nova organização</DialogTitle>
           <DialogDescription>
-            Crie uma nova organização para gerenciar seus projetos.
+            Crie outra unidade sem sair do contexto atual.
           </DialogDescription>
         </DialogHeader>
         <CreateOrgForm
+          otherOrganizations={availableOrganizations}
           onSuccess={() => setOpen(false)}
           onCancel={() => setOpen(false)}
         />

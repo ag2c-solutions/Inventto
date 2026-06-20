@@ -1,3 +1,4 @@
+export type { UserOrganization } from './domain/entities';
 export { UserService } from './domain/services';
 export { getUserNameInitials } from './domain/utils/get-user-name-initials';
 export { AvatarChange } from './presentation/components/avatar-change';

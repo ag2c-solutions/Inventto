@@ -13,7 +13,6 @@ export interface OrganizationDTO {
   id: string;
   owner_id: string;
   name: string;
-  slug: string;
   document: string | null;
   settings: OrganizationSettingsDTO;
   created_at: string;
@@ -44,8 +43,9 @@ export type CreateMemberDTO = {
 
 export interface CreateOrganizationDTO {
   p_name: string;
-  p_slug: string;
   p_document?: string;
+  p_source_org_id?: string;
+  p_replicate_groups?: string[];
 }
 
 export type DayOfWeekDTO =
