@@ -114,15 +114,35 @@ describe('UserService', () => {
     it('should update password successfully', async () => {
       mockUpdatePassword.mockResolvedValue();
 
-      await UserService.updatePassword('new-password');
+      await UserService.updatePassword({
+        currentPassword: 'old-password',
+        newPassword: 'new-password'
+      });
 
-      expect(mockUpdatePassword).toHaveBeenCalledWith('new-password');
+      expect(mockUpdatePassword).toHaveBeenCalledWith({
+        currentPassword: 'old-password',
+        newPassword: 'new-password'
+      });
     });
 
-    it('should throw when password is empty', async () => {
-      await expect(UserService.updatePassword('   ')).rejects.toThrow(
-        'Senha obrigatória.'
-      );
+    it('should throw when current password is empty', async () => {
+      await expect(
+        UserService.updatePassword({
+          currentPassword: '   ',
+          newPassword: 'new-password'
+        })
+      ).rejects.toThrow('Senha atual obrigatória.');
+
+      expect(mockUpdatePassword).not.toHaveBeenCalled();
+    });
+
+    it('should throw when new password is empty', async () => {
+      await expect(
+        UserService.updatePassword({
+          currentPassword: 'old-password',
+          newPassword: '   '
+        })
+      ).rejects.toThrow('Nova senha obrigatória.');
 
       expect(mockUpdatePassword).not.toHaveBeenCalled();
     });
@@ -130,11 +150,17 @@ describe('UserService', () => {
     it('should propagate UserAPI update password errors', async () => {
       mockUpdatePassword.mockRejectedValue(new Error('Weak password'));
 
-      await expect(UserService.updatePassword('123')).rejects.toThrow(
-        'Weak password'
-      );
+      await expect(
+        UserService.updatePassword({
+          currentPassword: 'old-password',
+          newPassword: '123'
+        })
+      ).rejects.toThrow('Weak password');
 
-      expect(mockUpdatePassword).toHaveBeenCalledWith('123');
+      expect(mockUpdatePassword).toHaveBeenCalledWith({
+        currentPassword: 'old-password',
+        newPassword: '123'
+      });
     });
   });
 

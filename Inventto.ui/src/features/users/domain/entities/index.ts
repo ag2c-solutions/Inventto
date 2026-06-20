@@ -27,3 +27,8 @@ export interface UpdateAvatarVariables {
   userId: string;
   file: File;
 }
+
+export interface UpdatePasswordVariables {
+  currentPassword: string;
+  newPassword: string;
+}

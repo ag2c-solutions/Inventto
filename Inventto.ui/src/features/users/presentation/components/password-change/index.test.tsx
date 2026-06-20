@@ -53,11 +53,15 @@ describe('PasswordChange Feature', () => {
   };
 
   const getInputs = () => {
-    const inputs = screen.getAllByPlaceholderText('••••••••');
+    const defaultInputs = screen.getAllByPlaceholderText('••••••••');
+    const confirmInput = screen.getByPlaceholderText(
+      'Digite a senha novamente'
+    );
 
     return {
-      passwordInput: inputs[0],
-      confirmInput: inputs[1]
+      currentPasswordInput: defaultInputs[0],
+      passwordInput: defaultInputs[1],
+      confirmInput
     };
   };
 
@@ -68,9 +72,9 @@ describe('PasswordChange Feature', () => {
       await openDialog();
 
       expect(screen.getByText(/^Nova Senha$/i)).toBeInTheDocument();
-      expect(screen.getByText(/Confirmar Nova Senha/i)).toBeInTheDocument();
+      expect(screen.getByText(/Confirmar nova senha/i)).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /Atualizar Senha/i })
+        screen.getByRole('button', { name: /Salvar senha/i })
       ).toBeInTheDocument();
     });
 
@@ -82,7 +86,7 @@ describe('PasswordChange Feature', () => {
       const { passwordInput } = getInputs();
       const toggleBtn = screen.getAllByRole('button', {
         name: /mostrar senha/i
-      })[0];
+      })[1];
 
       expect(passwordInput).toHaveAttribute('type', 'password');
 
@@ -99,7 +103,7 @@ describe('PasswordChange Feature', () => {
       const { confirmInput } = getInputs();
       const toggleBtn = screen.getAllByRole('button', {
         name: /mostrar senha/i
-      })[1];
+      })[2];
 
       expect(confirmInput).toHaveAttribute('type', 'password');
 
@@ -117,9 +121,7 @@ describe('PasswordChange Feature', () => {
 
       await openDialog();
 
-      await user.click(
-        screen.getByRole('button', { name: /Atualizar Senha/i })
-      );
+      await user.click(screen.getByRole('button', { name: /Salvar senha/i }));
 
       await waitFor(() => {
         expect(screen.getAllByText(/caracteres/i).length).toBeGreaterThan(0);
@@ -133,13 +135,12 @@ describe('PasswordChange Feature', () => {
 
       await openDialog();
 
-      const { passwordInput, confirmInput } = getInputs();
+      const { currentPasswordInput, passwordInput, confirmInput } = getInputs();
 
+      await user.type(currentPasswordInput, 'OldPass123!');
       await user.type(passwordInput, 'Password123!');
       await user.type(confirmInput, 'Password123-Diferente');
-      await user.click(
-        screen.getByRole('button', { name: /Atualizar Senha/i })
-      );
+      await user.click(screen.getByRole('button', { name: /Salvar senha/i }));
 
       await waitFor(() => {
         expect(
@@ -155,16 +156,18 @@ describe('PasswordChange Feature', () => {
 
       await openDialog();
 
-      const { passwordInput, confirmInput } = getInputs();
+      const { currentPasswordInput, passwordInput, confirmInput } = getInputs();
 
+      await user.type(currentPasswordInput, 'OldPass123!');
       await user.type(passwordInput, 'StrongPass123!');
       await user.type(confirmInput, 'StrongPass123!');
-      await user.click(
-        screen.getByRole('button', { name: /Atualizar Senha/i })
-      );
+      await user.click(screen.getByRole('button', { name: /Salvar senha/i }));
 
       await waitFor(() => {
-        expect(mockMutate).toHaveBeenCalledWith('StrongPass123!');
+        expect(mockMutate).toHaveBeenCalledWith({
+          currentPassword: 'OldPass123!',
+          newPassword: 'StrongPass123!'
+        });
       });
     });
 
@@ -190,12 +193,16 @@ describe('PasswordChange Feature', () => {
 
       await act(async () => {
         await result.current.handleSubmit({
+          currentPassword: 'OldPass123!',
           password: 'ValidPass123!',
           confirmPassword: 'ValidPass123!'
         });
       });
 
-      expect(mockMutate).toHaveBeenCalledWith('ValidPass123!');
+      expect(mockMutate).toHaveBeenCalledWith({
+        currentPassword: 'OldPass123!',
+        newPassword: 'ValidPass123!'
+      });
     });
   });
 });
