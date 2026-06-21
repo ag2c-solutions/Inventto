@@ -100,9 +100,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setSelectedOrgId(organization.id);
         LocalStorageService.setItem(STORAGE_ORG_KEY, organization.id);
       } catch {
-        // Falha ao trocar (org inválida/fora da lista): toast de alerta.
-        // TODO SHELL-12: migrar para o helper global de toast quando implementado.
-        toast.error('Não foi possível trocar de organização. Tente de novo.');
+        toast.error('Não foi possível trocar de organização. Tente de novo.', {
+          duration: 7000
+        });
       }
     },
     [user, currentOrganization]

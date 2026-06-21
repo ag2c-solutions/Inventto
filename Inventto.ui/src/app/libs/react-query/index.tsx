@@ -15,11 +15,13 @@ export const queryClient = new QueryClient({
       const customMessage = mutation.meta?.errorMessage;
       const backendMessage = error.message ?? 'Erro desconhecido';
 
-      toast.error(customMessage || `Erro na operação: ${backendMessage}`);
+      toast.error(customMessage || `Erro na operação: ${backendMessage}`, {
+        duration: 7000
+      });
     },
     onSuccess: (_data, _variables, _context, mutation) => {
       if (mutation.meta?.successMessage) {
-        toast.success(mutation.meta.successMessage);
+        toast.success(mutation.meta.successMessage, { duration: 4000 });
       }
     }
   }),

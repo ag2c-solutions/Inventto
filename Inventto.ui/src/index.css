@@ -46,6 +46,16 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(100% 0.00011 271.152);
+
+  /* ── status tokens (design-system-v1 §1.2) ── */
+  --status-healthy: oklch(0.596 0.145 163);
+  --status-healthy-soft: oklch(0.95 0.052 163);
+  --status-warning: oklch(0.667 0.163 58);
+  --status-warning-soft: oklch(0.962 0.058 95);
+  --status-critical: oklch(0.577 0.245 27.3);
+  --status-critical-soft: oklch(0.936 0.032 18);
+  --status-zeroed: oklch(0.552 0.016 286);
+  --status-zeroed-soft: oklch(0.967 0.001 286);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
@@ -125,4 +135,166 @@
     cursor: pointer;
   }
 
+}
+
+/* ── Toasts (SHELL-12 — Sonner v2 overrides) ───────────────── */
+/*
+ * All layout rules use [data-sonner-toaster] as ancestor to reach specificity
+ * 0,3,0 and beat Sonner's runtime-injected CSS (0,2,0) regardless of order.
+ */
+
+/* Per-type color tokens — no Sonner conflict, no prefix needed */
+[data-sonner-toast][data-type='success'] {
+  --tc: var(--status-healthy);
+  --tbg: var(--status-healthy-soft);
+  --toast-duration: 4000ms;
+}
+[data-sonner-toast][data-type='info'] {
+  --tc: var(--foreground);
+  --tbg: var(--muted);
+  --toast-duration: 5000ms;
+}
+[data-sonner-toast][data-type='warning'] {
+  --tc: var(--status-warning);
+  --tbg: var(--status-warning-soft);
+  --toast-duration: 6000ms;
+}
+[data-sonner-toast][data-type='error'] {
+  --tc: var(--status-critical);
+  --tbg: var(--status-critical-soft);
+  --toast-duration: 7000ms;
+}
+
+/* Toast container */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  padding: 11px 11px 11px 12px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--foreground);
+  border-radius: 11px;
+  box-shadow: 0 8px 20px rgba(20, 18, 16, 0.16), 0 2px 5px rgba(20, 18, 16, 0.08);
+  width: 360px;
+  gap: 11px;
+  overflow: hidden;
+}
+
+/* Remove Sonner's gap-bridge pseudo-element (incompatible with overflow:hidden) */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true']::after {
+  content: none !important;
+}
+
+/* Icon container — 30×30 colored badge */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--tc, var(--foreground));
+  background: var(--tbg, var(--muted));
+  margin: 0;
+  order: 1;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] > * {
+  display: flex;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-icon] svg {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* Content */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-content] {
+  flex: 1;
+  min-width: 0;
+  order: 2;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-title] {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--foreground);
+  text-wrap: pretty;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-description] {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+/* Action button */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button] {
+  order: 3;
+  background: transparent;
+  color: var(--tc, var(--foreground));
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 9px;
+  height: auto;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button]:hover {
+  background: var(--tbg, var(--muted));
+}
+
+/* Close button — repositioned inline at the end of the flex row */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button] {
+  position: static;
+  transform: none;
+  order: 4;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  flex: 0 0 28px;
+  border-radius: 7px;
+  background: transparent;
+  border: 0;
+  color: var(--muted-foreground);
+  display: grid;
+  place-items: center;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button]:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-close-button] svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Progress bar — via [data-content]::after, positioned relative to toast li */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'][data-mounted='true'] [data-content]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2.5px;
+  width: 100%;
+  background: var(--tc, var(--foreground));
+  opacity: 0.65;
+  border-radius: 0 2px 0 0;
+  animation: toast-progress var(--toast-duration, 5000ms) linear forwards;
+}
+
+/* Pause progress bar while hovering */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true']:hover [data-content]::after {
+  animation-play-state: paused;
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to   { width: 0%;   }
 }

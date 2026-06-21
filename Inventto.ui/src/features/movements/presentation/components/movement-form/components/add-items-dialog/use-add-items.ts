@@ -57,7 +57,8 @@ export function useAddItems({
         toast.warning(
           availableStock === 0
             ? 'Todo o estoque deste item já foi adicionado ao lote.'
-            : `Apenas mais ${availableStock} unidades disponíveis.`
+            : `Apenas mais ${availableStock} unidades disponíveis.`,
+          { duration: 6000 }
         );
       }
     }
