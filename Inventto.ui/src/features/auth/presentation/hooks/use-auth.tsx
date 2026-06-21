@@ -27,7 +27,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Erro na inicialização da auth:', error);
         toast.error(
-          'Não foi possível inicializar a autenticação. Tente recarregar a página.'
+          'Não foi possível inicializar a autenticação. Tente recarregar a página.',
+          { duration: 7000 }
         );
       } finally {
         setIsLoading(false);
