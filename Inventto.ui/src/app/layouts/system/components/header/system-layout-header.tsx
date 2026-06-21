@@ -1,9 +1,8 @@
-import { BellIcon } from 'lucide-react';
-
 import { Logo } from '@/app/brand/logo';
 import { ToggleTheme } from '@/app/theme/toggle-theme';
 
-import { Button } from '@/shared/components/ui/button';
+import { NotificationBell } from '@/features/notifications';
+
 import { Separator } from '@/shared/components/ui/separator';
 import { SidebarTrigger } from '@/shared/components/ui/sidebar';
 
@@ -26,13 +25,8 @@ export const SystemLayoutHeader = () => {
         <div className="hidden lg:block">
           <ToggleTheme />
         </div>
-        <Button
-          variant={'outline'}
-          size={'icon'}
-          className="rounded-full cursor-pointer"
-        >
-          <BellIcon />
-        </Button>
+        <NotificationBell />
+
         <UserNav />
       </section>
     </header>

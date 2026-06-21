@@ -3,8 +3,8 @@ DECLARE
   -- -------------------------------------------------------------------------
   -- 1. VARIÁVEIS DE AMBIENTE
   -- -------------------------------------------------------------------------
-  v_user_id UUID:='44138642-cdc7-4f60-b137-5929b51271b7';
-  v_org_id UUID := '00000000-0000-0000-0000-000000000002';
+  v_user_id UUID:='234ec131-9e04-40f3-a696-b1a1d813bce6';
+  v_org_id UUID := 'a28808c6-ae0d-4374-9ac2-53acd3b5aec2';
   
   -- -------------------------------------------------------------------------
   -- 2. IDs ESTÁTICOS (CONSTANTES)
@@ -103,8 +103,8 @@ BEGIN
   VALUES (v_user_id, 'Admin User', 'admin@inventto.ui', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin')
   ON CONFLICT (id) DO UPDATE SET full_name = 'Admin User';
 
-  INSERT INTO public.organizations (id, owner_id, name, slug, document, settings)
-  VALUES (v_org_id, v_user_id, 'Inventto Demo Store', 'inventto-demo', '12.345.678/0001-90', '{"theme": "system"}')
+  INSERT INTO public.organizations (id, owner_id, name,  document, settings)
+  VALUES (v_org_id, v_user_id, 'Inventto Demo Store', '12.345.678/0001-90', '{"theme": "system"}')
   ON CONFLICT (id) DO UPDATE SET owner_id = v_user_id;
 
   INSERT INTO public.organization_members (organization_id, profile_id, role)
