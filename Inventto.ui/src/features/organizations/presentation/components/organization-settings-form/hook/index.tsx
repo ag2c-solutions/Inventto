@@ -18,11 +18,18 @@ import {
 interface UseOrganizationSettingsFormReturn {
   form: UseFormReturn<OrganizationSettingsFormData>;
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
+  onDiscard: () => void;
   isLoading: boolean;
   isDirty: boolean;
+  showActionBar: boolean;
+  organizationName: string;
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
+
+// RN025 — edição confirmada: a barra de ações só aparece quando há alterações
+// pendentes e nunca na aba Danger Zone (ações de ciclo de vida, não edição).
+const DANGER_TAB = 'danger';
 
 const sanitize = (val?: string) => val?.replace(/\D/g, '') || '';
 
@@ -119,11 +126,16 @@ export const useOrganizationSettingsForm =
       await updateOrganization(settingsPayload);
     };
 
+    const isDirty = form.formState.isDirty;
+
     return {
       form,
       onSubmit: form.handleSubmit(onSubmit, onError),
+      onDiscard: () => form.reset(),
       isLoading: isPending,
-      isDirty: form.formState.isDirty,
+      isDirty,
+      showActionBar: isDirty && activeTab !== DANGER_TAB,
+      organizationName: organization?.name ?? '',
       activeTab,
       setActiveTab
     };

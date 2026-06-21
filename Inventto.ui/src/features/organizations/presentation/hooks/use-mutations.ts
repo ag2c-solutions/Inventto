@@ -55,7 +55,8 @@ export function useUpdateOrganizationMutation() {
       });
     },
     meta: {
-      successMessage: 'Configurações salvas com sucesso.'
+      successMessage: 'Alterações salvas.',
+      errorMessage: 'Não foi possível salvar. Tente de novo.'
     }
   });
 }
