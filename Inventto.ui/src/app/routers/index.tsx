@@ -52,11 +52,6 @@ export const router = createBrowserRouter([
     ]
   },
   {
-    // Compat: o fluxo de recuperação migrou para OTP em /auth/forgot-password.
-    path: '/auth/reset-password',
-    element: <Navigate to="/auth/forgot-password" replace />
-  },
-  {
     path: '/auth/first-access',
     element: (
       <Suspense fallback={<PageLoader />}>
@@ -202,12 +197,12 @@ export const router = createBrowserRouter([
             }
           }
         ]
+      },
+      {
+        path: '*',
+        element: <Navigate to="/" replace />
       }
     ]
-  },
-  {
-    path: '*',
-    element: <Navigate to="/" replace />
   }
 ]);
 
