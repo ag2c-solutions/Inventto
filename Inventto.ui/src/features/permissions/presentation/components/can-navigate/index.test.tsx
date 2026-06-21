@@ -98,4 +98,45 @@ describe('CanNavigate', () => {
 
     expect(screen.getByText('Conteúdo protegido')).toBeInTheDocument();
   });
+
+  // ORG-01 — a rota /settings exige org:manage (Owner only, RN020).
+  it('deve bloquear /settings (org:manage) para quem não tem permissão', () => {
+    mockUsePermission.mockReturnValue({
+      isLoading: false,
+      can: vi.fn().mockReturnValue(false)
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/settings']}>
+        <Routes>
+          <Route element={<CanNavigate required="org:manage" />}>
+            <Route path="/settings" element={<div>Configurações</div>} />
+          </Route>
+          <Route path="/" element={<div>Página inicial</div>} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Página inicial')).toBeInTheDocument();
+    expect(screen.queryByText('Configurações')).not.toBeInTheDocument();
+  });
+
+  it('deve permitir /settings (org:manage) para o Owner', () => {
+    mockUsePermission.mockReturnValue({
+      isLoading: false,
+      can: vi.fn().mockReturnValue(true)
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/settings']}>
+        <Routes>
+          <Route element={<CanNavigate required="org:manage" />}>
+            <Route path="/settings" element={<div>Configurações</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Configurações')).toBeInTheDocument();
+  });
 });

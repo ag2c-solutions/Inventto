@@ -1,21 +1,15 @@
 import { OrganizationSettingsForm } from '../components/organization-settings-form';
+import { OrganizationSettingsFormSkeleton } from '../components/organization-settings-form/skeleton';
+import { useOrganizationQuery } from '../hooks/use-queries';
 
 export function SettingsPage() {
-  return (
-    <div className="flex flex-col gap-8 pb-10">
-      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-6">
-        <div className="flex flex-col gap-2 pb-6">
-          <h2 className="text-2xl font-semibold">
-            Configurações da organização
-          </h2>
-          <p className="text-muted-foreground">
-            Gerencie de forma centralizada as configurações da sua organização.
-          </p>
-        </div>
-        <div className="w-full">
-          <OrganizationSettingsForm />
-        </div>
-      </div>
-    </div>
-  );
+  const { isLoading } = useOrganizationQuery();
+
+  // Sempre há dados — a tela abre em skeleton enquanto a organização carrega
+  // (wireframe §02 · Estados da tela).
+  if (isLoading) {
+    return <OrganizationSettingsFormSkeleton />;
+  }
+
+  return <OrganizationSettingsForm />;
 }
