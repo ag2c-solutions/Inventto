@@ -57,6 +57,7 @@ export class OrganizationMapper {
       name: dto.name,
       document: dto.document || undefined,
       legalName: dto.legal_name || undefined,
+      status: dto.status ?? 'active',
       createdAt: new Date(dto.created_at),
       settings
     };

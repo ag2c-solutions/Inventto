@@ -61,6 +61,32 @@ export function useUpdateOrganizationMutation() {
   });
 }
 
+export function useDeactivateOrganizationMutation() {
+  const queryClient = useQueryClient();
+  const { user, currentOrganization } = useUser();
+
+  return useMutation({
+    mutationFn: () => OrganizationService.deactivate(currentOrganization),
+    onSuccess: async () => {
+      // O acesso de Manager/Sales àquela org deixa de existir; o perfil do
+      // usuário e as queries de organização precisam refletir o novo estado.
+      await queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.detail(currentOrganization?.id ?? '')
+      });
+      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+
+      if (user?.id) {
+        await queryClient.invalidateQueries({
+          queryKey: USERS_KEYS.profile(user.id)
+        });
+      }
+    },
+    meta: {
+      successMessage: 'Organização desativada.'
+    }
+  });
+}
+
 export function useCreateMemberMutation() {
   const queryClient = useQueryClient();
   const { currentOrganization } = useUser();

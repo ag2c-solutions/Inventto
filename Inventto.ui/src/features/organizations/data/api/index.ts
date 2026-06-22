@@ -24,7 +24,7 @@ export class OrganizationApi {
       const { data, error } = await supabase
         .from('organizations')
         .select(
-          'id, owner_id, name, document, legal_name, settings, created_at'
+          'id, owner_id, name, document, legal_name, status, settings, created_at'
         )
         .eq('id', orgId)
         .single()
@@ -80,6 +80,18 @@ export class OrganizationApi {
       if (error) throw error;
     } catch (error) {
       handleOrganizationError(error, 'update');
+    }
+  }
+
+  static async deactivate(orgId: string): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('deactivate_organization', {
+        p_org_id: orgId
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      handleOrganizationError(error, 'deactivate');
     }
   }
 

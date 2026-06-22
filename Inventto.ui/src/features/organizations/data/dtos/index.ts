@@ -15,6 +15,7 @@ export interface OrganizationDTO {
   name: string;
   document: string | null;
   legal_name: string | null;
+  status: 'active' | 'inactive';
   settings: OrganizationSettingsDTO;
   created_at: string;
   updated_at: string;

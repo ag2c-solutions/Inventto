@@ -678,4 +678,54 @@ BEGIN
   ON CONFLICT (organization_id, profile_id) 
   DO UPDATE SET role = p_role, status = 'active';
 END;
+$$;
+
+-- ==============================================================================
+-- 10. ORGANIZAÇÕES: DESATIVAR ORGANIZAÇÃO (RF010, RN020, RN027, RN028)
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.deactivate_organization(p_org_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- RN020: apenas Owner pode desativar.
+  IF NOT public.has_role(p_org_id, 'owner') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas o proprietário pode desativar a organização.';
+  END IF;
+
+  UPDATE public.organizations
+  SET status = 'inactive', updated_at = NOW()
+  WHERE id = p_org_id;
+
+  -- RN027: pedidos pendentes são cancelados e o estoque, liberado.
+  -- TODO(RN027): Não há trigger/função no banco atual para liberação de estoque de forma atômica.
+  -- Assim que o módulo de reservas/estoque estiver finalizado, implementar a lógica para retornar
+  -- os itens cancelados ao inventário dentro desta mesma transação (ou via trigger no update do status).
+  UPDATE public.orders
+  SET status = 'cancelled', updated_at = NOW()
+  WHERE organization_id = p_org_id
+  AND status = 'pending';
+END;
+$$;
+
+-- ==============================================================================
+-- 11. ORGANIZAÇÕES: REATIVAR ORGANIZAÇÃO (RF010)
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.reactivate_organization(p_org_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.has_role(p_org_id, 'owner') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas o proprietário pode reativar a organização.';
+  END IF;
+
+  UPDATE public.organizations
+  SET status = 'active', updated_at = NOW()
+  WHERE id = p_org_id;
+END;
 $$;

@@ -71,6 +71,12 @@ export class OrganizationService {
     });
   }
 
+  static async deactivate(organization: Organization | null): Promise<void> {
+    const orgId = getOrganizationId(organization);
+
+    return OrganizationApi.deactivate(orgId);
+  }
+
   static async createMember(
     organization: Organization | null,
     data: CreateMember

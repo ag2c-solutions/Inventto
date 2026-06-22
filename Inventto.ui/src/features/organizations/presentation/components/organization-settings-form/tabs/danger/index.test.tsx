@@ -1,28 +1,25 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
-const mockUsePermission = vi.fn();
+// As dialogs têm comportamento próprio (testado em seus arquivos). Aqui só
+// validamos a composição da aba, então usamos stubs leves dos gatilhos.
+vi.mock('../../../deactivate-organization-dialog', () => ({
+  DeactivateOrganizationDialog: () => <button>Desativar</button>
+}));
 
-vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
-  usePermission: () => mockUsePermission()
+vi.mock('../../../delete-organization-dialog', () => ({
+  DeleteOrganizationDialog: () => <button>Excluir</button>
 }));
 
 import { DangerZoneTabContent } from './index';
 
 describe('DangerZoneTabContent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockUsePermission.mockReturnValue({
-      can: vi.fn(() => true),
-      isLoading: false
-    });
-  });
-
   it('renderiza a região com o rótulo de acessibilidade e os dois blocos', () => {
     render(<DangerZoneTabContent />);
 
-    const region = screen.getByRole('region', { name: 'Zona de risco' });
-    expect(region).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Zona de risco' })
+    ).toBeInTheDocument();
 
     expect(
       screen.getByText(
@@ -39,35 +36,12 @@ describe('DangerZoneTabContent', () => {
     ).toBeInTheDocument();
   });
 
-  it('abre o modal de desativação ao clicar em "Desativar"', () => {
+  it('compõe os gatilhos de desativar e excluir', () => {
     render(<DangerZoneTabContent />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Desativar' }));
 
     expect(
-      screen.getByRole('dialog', { name: 'Desativar organização' })
+      screen.getByRole('button', { name: 'Desativar' })
     ).toBeInTheDocument();
-  });
-
-  it('abre o modal de exclusão ao clicar em "Excluir"', () => {
-    render(<DangerZoneTabContent />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Excluir' }));
-
-    expect(
-      screen.getByRole('dialog', { name: 'Excluir organização' })
-    ).toBeInTheDocument();
-  });
-
-  it('não renderiza os gatilhos quando o usuário não tem permissão (RN020)', () => {
-    mockUsePermission.mockReturnValue({
-      can: vi.fn(() => false),
-      isLoading: false
-    });
-
-    render(<DangerZoneTabContent />);
-
-    expect(screen.queryByRole('button', { name: 'Desativar' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Excluir' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Excluir' })).toBeInTheDocument();
   });
 });
