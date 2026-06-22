@@ -48,7 +48,7 @@ export const DeactivateOrganizationDialog = () => {
           Desativar
         </ActionButton>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md border-border border-1 font-medium">
         <DialogHeader className="items-center text-center">
           <span className="mb-2 flex size-14 items-center justify-center rounded-full bg-destructive/10">
             <TriangleAlert className="size-6 text-destructive" />
@@ -61,10 +61,12 @@ export const DeactivateOrganizationDialog = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="space-y-3 rounded-lg bg-muted/50 p-4 text-sm text-foreground">
+        <ul className="space-y-3 rounded-lg bg-sidebar/70 p-4 text-sm text-muted-foreground">
           {CONSEQUENCES.map((item) => (
-            <li key={item} className="flex items-start gap-3">
-              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-destructive" />
+            <li key={item} className="flex items-center gap-3">
+              <div className="flex size-3.5 items-center justify-center rounded-full bg-destructive/10">
+                <span className="size-1 shrink-0 rounded-full bg-destructive/70" />
+              </div>
               {item}
             </li>
           ))}
