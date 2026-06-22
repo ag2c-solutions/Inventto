@@ -116,7 +116,13 @@ export class OrganizationService {
     return OrganizationApi.updateMemberStatus(memberId, newStatus);
   }
 
-  static async lookupCep(cep: string): Promise<IAddress | null> {
-    return OrganizationApi.lookupCep(cep);
+  static async lookupCep(cep: string): Promise<IAddress> {
+    const address = await OrganizationApi.lookupCep(cep);
+
+    if (!address) {
+      throw new Error('CEP não encontrado');
+    }
+
+    return address;
   }
 }

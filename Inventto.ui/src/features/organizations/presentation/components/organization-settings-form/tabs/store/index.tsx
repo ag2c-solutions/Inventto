@@ -156,6 +156,7 @@ export const StoreTabContent = ({
                     <Input
                       placeholder="00000-000"
                       className="font-mono pr-8"
+                      maxLength={9}
                       {...field}
                       onBlur={(e) => {
                         field.onBlur();
