@@ -12,7 +12,7 @@ export const DangerZoneTabContent = () => {
       aria-label="Zona de risco"
       className="rounded-xl border border-destructive/50 bg-destructive/5 p-6"
     >
-      <h2 className="flex items-center gap-2 text-base font-bold text-destructive">
+      <h2 className="flex items-center gap-2 text-xl font-bold text-destructive/70">
         <TriangleAlert className="size-4" />
         Zona de risco
       </h2>
