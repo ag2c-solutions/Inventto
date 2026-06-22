@@ -26,6 +26,7 @@ const organization: OrganizationWithDetails = {
   ownerId: 'owner-1',
   document: '12345678000190',
   legalName: 'Ateliê Joana LTDA',
+  status: 'active',
   createdAt: new Date(),
   settings: {
     identity: { displayName: 'Ateliê Joana', logoUrl: '' },

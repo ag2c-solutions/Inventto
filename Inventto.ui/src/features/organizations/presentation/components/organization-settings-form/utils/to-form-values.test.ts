@@ -24,6 +24,7 @@ const baseOrganization = (): OrganizationWithDetails => ({
   ownerId: 'owner-1',
   document: '12345678000190',
   legalName: 'Ateliê LTDA',
+  status: 'active',
   createdAt: new Date(),
   settings: {
     identity: { displayName: 'Ateliê Display', logoUrl: 'http://cdn/logo.png' },

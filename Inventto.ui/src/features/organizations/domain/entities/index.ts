@@ -4,6 +4,8 @@ export type MemberStatus = 'active' | 'inactive' | 'invited';
 
 export type ReplicationGroup = 'categories' | 'operational' | 'visual';
 
+export type OrganizationStatus = 'active' | 'inactive';
+
 export interface Organization {
   id: string;
   name: string;
@@ -23,6 +25,7 @@ export interface OrganizationWithDetails extends Organization {
   ownerId: string;
   document?: string;
   legalName?: string;
+  status: OrganizationStatus;
   createdAt: Date;
   settings: OrganizationSettings;
 }

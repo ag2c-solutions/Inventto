@@ -22,7 +22,8 @@ vi.mock('../../domain/services', () => ({
     createMember: vi.fn(),
     replicateMember: vi.fn(),
     updateMemberRole: vi.fn(),
-    updateMemberStatus: vi.fn()
+    updateMemberStatus: vi.fn(),
+    deactivate: vi.fn()
   }
 }));
 
@@ -38,6 +39,7 @@ import { OrganizationService } from '../../domain/services';
 import {
   useCreateMemberMutation,
   useCreateOrganizationMutation,
+  useDeactivateOrganizationMutation,
   useReplicateMemberMutation,
   useUpdateMemberRoleMutation,
   useUpdateMemberStatusMutation,
@@ -354,6 +356,55 @@ describe('useUpdateMemberStatusMutation', () => {
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ['organizations']
+    });
+  });
+});
+
+describe('useDeactivateOrganizationMutation', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseUser.mockReturnValue({
+      user: { id: 'user-1' },
+      currentOrganization: { id: 'org-1' },
+      setCurrentOrganization: mockSetCurrentOrganization
+    });
+    queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('deve chamar OrganizationService.deactivate com currentOrganization', async () => {
+    vi.mocked(OrganizationService.deactivate).mockResolvedValue(undefined);
+    const { result } = renderHook(() => useDeactivateOrganizationMutation(), {
+      wrapper
+    });
+    await result.current.mutateAsync();
+    expect(OrganizationService.deactivate).toHaveBeenCalledWith({
+      id: 'org-1'
+    });
+  });
+
+  it('deve invalidar ORG_KEYS.detail, ORG_KEYS.all e o perfil no onSuccess', async () => {
+    vi.mocked(OrganizationService.deactivate).mockResolvedValue(undefined);
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useDeactivateOrganizationMutation(), {
+      wrapper
+    });
+    await result.current.mutateAsync();
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['organizations', 'detail', 'org-1']
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['organizations']
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['users', 'profile', 'user-1']
     });
   });
 });

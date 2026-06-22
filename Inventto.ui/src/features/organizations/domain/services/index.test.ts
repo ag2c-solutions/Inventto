@@ -16,7 +16,8 @@ vi.mock('../../data/api', () => ({
     replicateMember: vi.fn(),
     updateMemberRole: vi.fn(),
     updateMemberStatus: vi.fn(),
-    forceDeleteMember: vi.fn()
+    forceDeleteMember: vi.fn(),
+    deactivate: vi.fn()
   }
 }));
 
@@ -224,6 +225,20 @@ describe('OrganizationService', () => {
       expect(OrganizationApi.updateMemberStatus).toHaveBeenCalledWith(
         'member-1',
         'inactive'
+      );
+    });
+  });
+
+  describe('deactivate', () => {
+    it('deve resolver o orgId e delegar para OrganizationApi.deactivate', async () => {
+      vi.mocked(OrganizationApi.deactivate).mockResolvedValue(undefined);
+      await OrganizationService.deactivate(mockOrganization);
+      expect(OrganizationApi.deactivate).toHaveBeenCalledWith('org-1');
+    });
+
+    it('deve propagar o erro quando organization é null', async () => {
+      await expect(OrganizationService.deactivate(null)).rejects.toThrow(
+        'ID da organização é obrigatório.'
       );
     });
   });

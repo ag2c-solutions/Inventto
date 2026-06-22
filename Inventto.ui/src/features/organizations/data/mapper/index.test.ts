@@ -53,6 +53,7 @@ describe('OrganizationMapper', () => {
       name: 'Minha Empresa',
       document: '12.345.678/0001-90',
       legal_name: 'Empresa LTDA',
+      status: 'active',
       settings: {
         identity: { display_name: 'Empresa Display', logo_url: 'logo.png' },
         operational: {
@@ -78,6 +79,20 @@ describe('OrganizationMapper', () => {
       const dto: OrganizationDTO = { ...baseDto, settings: {} };
       const result = OrganizationMapper.toDomain(dto);
       expect(result.settings.identity.displayName).toBe('Minha Empresa');
+    });
+
+    it('deve mapear o status da organização', () => {
+      const dto: OrganizationDTO = { ...baseDto, status: 'inactive' };
+      const result = OrganizationMapper.toDomain(dto);
+      expect(result.status).toBe('inactive');
+    });
+
+    it('deve usar status active como padrão quando ausente', () => {
+      const { status: _status, ...withoutStatus } = baseDto;
+      const result = OrganizationMapper.toDomain(
+        withoutStatus as OrganizationDTO
+      );
+      expect(result.status).toBe('active');
     });
 
     it('deve usar America/Sao_Paulo como timezone padrão quando ausente', () => {
