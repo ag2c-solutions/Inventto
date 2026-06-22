@@ -117,7 +117,7 @@ export function OrganizationSettingsForm() {
 
           <TabsContent
             value="general"
-            className="space-y-6 w-full bg-background/20 py-2 rounded-2xl"
+            className="space-y-6 w-full bg-background/20 py-4 rounded-2xl"
           >
             <StoreTabContent
               form={form}
@@ -131,19 +131,22 @@ export function OrganizationSettingsForm() {
 
           <TabsContent
             value="operational"
-            className="space-y-6 w-full bg-background/20 py-2 rounded-2xl"
+            className="space-y-6 w-full bg-background/20 py-4 rounded-2xl"
           >
             <OperationalTabContent form={form} />
           </TabsContent>
 
           <TabsContent
             value="schedule"
-            className="space-y-6 w-full bg-background/20 py-2  rounded-2xl"
+            className="space-y-6 w-full bg-background/20 py-4  rounded-2xl"
           >
             <ScheduleTabContent form={form} />
           </TabsContent>
 
-          <TabsContent value="danger" className="w-full">
+          <TabsContent
+            value="danger"
+            className="space-y-6 w-full bg-background/20 py-4  rounded-2xl"
+          >
             <DangerZoneTabContent />
           </TabsContent>
         </Tabs>
