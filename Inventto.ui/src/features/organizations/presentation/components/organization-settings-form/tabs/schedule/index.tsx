@@ -1,12 +1,5 @@
 import type { UseFormReturn } from 'react-hook-form';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/shared/components/ui/card';
 import { FormControl, FormField, FormItem } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 import { Separator } from '@/shared/components/ui/separator';
@@ -22,111 +15,98 @@ export const ScheduleTabContent = ({
   form: UseFormReturn<OrganizationSettingsFormData>;
 }) => {
   return (
-    <Card className="w-full bg-transparent border-none shadow-none">
-      <CardHeader>
-        <CardTitle>Horário de Funcionamento</CardTitle>
-        <CardDescription>
-          Defina a grade de abertura para cálculo automático de prazos.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground mb-2 px-2">
-            <div className="col-span-4 md:col-span-3">Dia</div>
-            <div className="col-span-3 md:col-span-3 text-center">Status</div>
-            <div className="col-span-5 md:col-span-4 grid grid-cols-2 gap-4">
-              <span>Abertura</span>
-              <span>Fechamento</span>
-            </div>
-          </div>
+    <div className="space-y-4 text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
+        Os horários controlam o status da vitrine para os clientes.
+      </p>
 
-          <Separator className="mb-4" />
+      <div className="pt-2">
+        {WEEK_DAYS.map((day, index) => {
+          const isOpen = form.watch(`schedule.${day.key}.isOpen`);
+          // Destaca o dia quando houver erro de validação (faixa única por dia).
+          const dayError = form.formState.errors.schedule?.[day.key];
 
-          {WEEK_DAYS.map((day) => {
-            const isOpen = form.watch(`schedule.${day.key}.isOpen`);
-            // Detecta erro específico neste dia para destacar visualmente
-            const dayError = form.formState.errors.schedule?.[day.key];
+          return (
+            <div key={day.key}>
+              {index > 0 && <Separator />}
 
-            return (
               <div
-                key={day.key}
                 className={cn(
-                  'grid grid-cols-12 gap-4 items-center px-2 py-2 rounded-md transition-colors',
-                  dayError ? 'bg-red-50' : 'hover:bg-muted/50'
+                  'flex items-center gap-4 py-4 rounded-md transition-colors',
+                  dayError && 'bg-red-50'
                 )}
               >
-                <div className="col-span-4 md:col-span-3 font-medium flex items-center gap-2">
-                  {day.label}
-                  {dayError && (
-                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                <FormField
+                  control={form.control}
+                  name={`schedule.${day.key}.isOpen`}
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
                   )}
-                </div>
+                />
 
-                {/* Toggle Status */}
-                <div className="col-span-3 md:col-span-3 flex justify-center">
-                  <FormField
-                    control={form.control}
-                    name={`schedule.${day.key}.isOpen`}
-                    render={({ field }) => (
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    )}
-                  />
-                </div>
+                <span className="w-24 font-medium text-foreground">
+                  {day.label}
+                </span>
 
-                {/* Inputs de Hora */}
-                <div className="col-span-5 md:col-span-4 grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name={`schedule.${day.key}.open`}
-                    render={({ field }) => (
-                      <FormItem className="space-y-0 max-w-28">
-                        <FormControl>
-                          <Input
-                            type="time"
-                            className={cn(
-                              'h-8',
-                              dayError?.open && 'border-red-500'
-                            )}
-                            disabled={!isOpen}
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                {isOpen ? (
+                  <div className="flex items-center gap-3">
+                    <FormField
+                      control={form.control}
+                      name={`schedule.${day.key}.open`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input
+                              type="time"
+                              className={cn(
+                                'w-32',
+                                dayError?.open && 'border-red-500'
+                              )}
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name={`schedule.${day.key}.close`}
-                    render={({ field }) => (
-                      <FormItem className="space-y-0 max-w-28">
-                        <FormControl>
-                          <Input
-                            type="time"
-                            className={cn(
-                              'h-8',
-                              dayError?.close && 'border-red-500'
-                            )}
-                            disabled={!isOpen}
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                    <span className="text-sm text-muted-foreground">até</span>
+
+                    <FormField
+                      control={form.control}
+                      name={`schedule.${day.key}.close`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input
+                              type="time"
+                              className={cn(
+                                'w-32',
+                                dayError?.close && 'border-red-500'
+                              )}
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ) : (
+                  <span className="text-sm italic text-muted-foreground">
+                    Fechado
+                  </span>
+                )}
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };

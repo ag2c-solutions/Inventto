@@ -72,8 +72,6 @@ export interface OrganizationSettings {
   };
   operational: {
     timezone: string;
-    whatsappMain: string;
-    whatsappSupport?: string;
   };
   sales: {
     acceptOrdersOutsideHours: boolean;

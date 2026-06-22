@@ -42,9 +42,7 @@ export class OrganizationMapper {
         logoUrl: identity.logo_url
       },
       operational: {
-        timezone: operational.timezone || 'America/Sao_Paulo',
-        whatsappMain: operational.whatsapp_main || '',
-        whatsappSupport: operational.whatsapp_support || undefined
+        timezone: operational.timezone || 'America/Sao_Paulo'
       },
       sales: {
         acceptOrdersOutsideHours: !!sales.accept_orders_outside_hours
@@ -132,9 +130,7 @@ export class OrganizationMapper {
         : undefined,
       operational: settings.operational
         ? {
-            timezone: settings.operational.timezone,
-            whatsapp_main: settings.operational.whatsappMain,
-            whatsapp_support: settings.operational.whatsappSupport
+            timezone: settings.operational.timezone
           }
         : undefined,
       sales: settings.sales

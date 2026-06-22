@@ -1,18 +1,5 @@
-import { AlertCircle } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle
-} from '@/shared/components/ui/alert';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/shared/components/ui/card';
 import {
   FormControl,
   FormDescription,
@@ -21,7 +8,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/shared/components/ui/form';
-import { Input } from '@/shared/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -29,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/shared/components/ui/select';
+import { Separator } from '@/shared/components/ui/separator';
+import { Switch } from '@/shared/components/ui/switch';
 
 import { TIMEZONES } from '../../../../constants/times-zones';
 import type { OrganizationSettingsFormData } from '../../schema';
@@ -39,70 +27,57 @@ export const OperationalTabContent = ({
   form: UseFormReturn<OrganizationSettingsFormData>;
 }) => {
   return (
-    <Card className="w-full bg-transparent border-none shadow-none">
-      <CardHeader>
-        <CardTitle>Operacional & Contato</CardTitle>
-        <CardDescription>
-          Configurações críticas para o funcionamento do sistema e notificações.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <Alert
-          variant="default"
-          className="bg-blue-50 border-blue-200 text-blue-800"
-        >
-          <AlertCircle className="h-4 w-4 text-blue-800" />
-          <AlertTitle>Atenção ao Fuso Horário</AlertTitle>
-          <AlertDescription>
-            O sistema usa este campo para calcular automaticamente quando as
-            reservas de estoque expiram.
-          </AlertDescription>
-        </Alert>
+    <div className="space-y-6 text-muted-foreground">
+      <FormField
+        control={form.control}
+        name="operational.timezone"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-foreground">Fuso horário</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger className="w-full max-w-96">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {TIMEZONES.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormDescription>
+              Usado para calcular o status de abertura da vitrine.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="operational.timezone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fuso Horário (Timezone)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {TIMEZONES.map((tz) => (
-                      <SelectItem key={tz.value} value={tz.value}>
-                        {tz.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <Separator />
 
-          <FormField
-            control={form.control}
-            name="operational.whatsappMain"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>WhatsApp Principal</FormLabel>
-                <FormControl>
-                  <Input placeholder="(11) 99999-9999" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Número que receberá os pedidos ("Shadow Orders").
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      </CardContent>
-    </Card>
+      <FormField
+        control={form.control}
+        name="sales.acceptOrdersOutsideHours"
+        render={({ field }) => (
+          <FormItem className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <FormLabel className="text-foreground">
+                Aceitar pedidos com a loja fechada
+              </FormLabel>
+              <FormDescription>
+                Quando ativado, a vitrine aceita pedidos mesmo fora do horário
+                de funcionamento, com aviso ao cliente.
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    </div>
   );
 };

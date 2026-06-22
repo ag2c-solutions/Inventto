@@ -30,9 +30,7 @@ const organization: OrganizationWithDetails = {
   settings: {
     identity: { displayName: 'Ateliê Joana', logoUrl: '' },
     operational: {
-      timezone: 'America/Sao_Paulo',
-      whatsappMain: '11999999999',
-      whatsappSupport: ''
+      timezone: 'America/Sao_Paulo'
     },
     sales: { acceptOrdersOutsideHours: false },
     schedule: {

@@ -81,8 +81,6 @@ export interface OrganizationSettingsDTO {
   };
   operational?: {
     timezone?: string;
-    whatsapp_main?: string;
-    whatsapp_support?: string | null;
   };
   sales?: {
     accept_orders_outside_hours?: boolean;

@@ -56,8 +56,7 @@ describe('OrganizationMapper', () => {
       settings: {
         identity: { display_name: 'Empresa Display', logo_url: 'logo.png' },
         operational: {
-          timezone: 'America/Recife',
-          whatsapp_main: '81999999999'
+          timezone: 'America/Recife'
         },
         sales: { accept_orders_outside_hours: true }
       },
@@ -236,9 +235,7 @@ describe('OrganizationMapper', () => {
     const settings: OrganizationSettings = {
       identity: { displayName: 'Empresa X', logoUrl: 'logo.png' },
       operational: {
-        timezone: 'America/Recife',
-        whatsappMain: '81999999999',
-        whatsappSupport: '81888888888'
+        timezone: 'America/Recife'
       },
       sales: { acceptOrdersOutsideHours: true },
       schedule: {
@@ -257,9 +254,7 @@ describe('OrganizationMapper', () => {
       // display_name NÃO deve ser persistido — name é coluna direta
       expect(result.identity).toEqual({ logo_url: 'logo.png' });
       expect(result.operational).toEqual({
-        timezone: 'America/Recife',
-        whatsapp_main: '81999999999',
-        whatsapp_support: '81888888888'
+        timezone: 'America/Recife'
       });
       expect(result.sales).toEqual({ accept_orders_outside_hours: true });
     });
