@@ -78,6 +78,7 @@ CREATE TABLE public.organizations (
   name     text NOT NULL,
   document text,
   legal_name text,
+  status public.organization_status NOT NULL DEFAULT 'active',
   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
 
   created_at timestamp with time zone DEFAULT now(),

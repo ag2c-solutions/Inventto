@@ -128,7 +128,10 @@ USING (
 
 -- B. ORGANIZATIONS
 CREATE POLICY "Members can view organization" ON public.organizations
-FOR SELECT USING (public.is_org_member(id));
+FOR SELECT USING (
+  public.is_org_member(id) AND
+  (status = 'active' OR public.has_role(id, 'owner'))
+);
 
 CREATE POLICY "Owners can update organization" ON public.organizations
 FOR UPDATE USING (public.has_role(id, 'owner'));

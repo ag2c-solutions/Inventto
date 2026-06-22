@@ -24,3 +24,6 @@ CREATE TYPE public.member_status AS ENUM ('active', 'inactive', 'invited');
 
 -- Áreas de Negócio
 CREATE TYPE public.business_area_code AS ENUM ('clothing', 'petshop', 'other');
+
+-- Status da Organização
+CREATE TYPE public.organization_status AS ENUM ('active', 'inactive');
