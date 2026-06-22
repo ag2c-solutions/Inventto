@@ -10,7 +10,8 @@ const { mockUseOrganizationQuery, mockUseUpdateOrganizationMutation } =
   }));
 
 vi.mock('../../../hooks/use-queries', () => ({
-  useOrganizationQuery: mockUseOrganizationQuery
+  useOrganizationQuery: mockUseOrganizationQuery,
+  useLookupCepQuery: () => ({ data: undefined, isFetching: false })
 }));
 
 vi.mock('../../../hooks/use-mutations', () => ({
@@ -23,6 +24,8 @@ const organization: OrganizationWithDetails = {
   id: 'org-1',
   name: 'Ateliê Joana',
   ownerId: 'owner-1',
+  document: '12345678000190',
+  legalName: 'Ateliê Joana LTDA',
   createdAt: new Date(),
   settings: {
     identity: { displayName: 'Ateliê Joana', logoUrl: '' },
@@ -48,7 +51,7 @@ const makeDirty = (result: {
   current: ReturnType<typeof useOrganizationSettingsForm>;
 }) => {
   act(() => {
-    result.current.form.setValue('identity.displayName', 'Novo Nome', {
+    result.current.form.setValue('name', 'Novo Nome', {
       shouldDirty: true
     });
   });
@@ -113,5 +116,10 @@ describe('useOrganizationSettingsForm', () => {
     const { result } = renderHook(() => useOrganizationSettingsForm());
 
     expect(result.current.organizationName).toBe('Ateliê Joana');
+  });
+
+  it('expõe cepLoading como false por padrão', () => {
+    const { result } = renderHook(() => useOrganizationSettingsForm());
+    expect(result.current.cepLoading).toBe(false);
   });
 });

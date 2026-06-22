@@ -1,4 +1,7 @@
+import type { ViaCEPResponseDTO } from '@/infra/viacep';
+
 import type {
+  IAddress,
   IMember,
   OrganizationSettings,
   OrganizationWithDetails
@@ -19,6 +22,19 @@ export class OrganizationMapper {
     const identity = s.identity || {};
     const operational = s.operational || {};
     const sales = s.sales || {};
+    const address = s.address;
+
+    const mappedAddress: IAddress | undefined = address?.zip
+      ? {
+          zip: address.zip,
+          street: address.street || '',
+          number: address.number || '',
+          complement: address.complement || undefined,
+          district: address.district || '',
+          city: address.city || '',
+          state: address.state || ''
+        }
+      : undefined;
 
     const settings: OrganizationSettings = {
       identity: {
@@ -33,7 +49,8 @@ export class OrganizationMapper {
       sales: {
         acceptOrdersOutsideHours: !!sales.accept_orders_outside_hours
       },
-      schedule: mapSchedule(s.schedule)
+      schedule: mapSchedule(s.schedule),
+      address: mappedAddress
     };
 
     return {
@@ -41,8 +58,21 @@ export class OrganizationMapper {
       ownerId: dto.owner_id,
       name: dto.name,
       document: dto.document || undefined,
+      legalName: dto.legal_name || undefined,
       createdAt: new Date(dto.created_at),
       settings
+    };
+  }
+
+  static viaCepToAddress(dto: ViaCEPResponseDTO): IAddress {
+    return {
+      zip: dto.cep,
+      street: dto.logradouro,
+      number: '',
+      complement: dto.complemento || undefined,
+      district: dto.bairro,
+      city: dto.localidade,
+      state: dto.uf
     };
   }
 
@@ -98,10 +128,7 @@ export class OrganizationMapper {
 
     return {
       identity: settings.identity
-        ? {
-            display_name: settings.identity.displayName,
-            logo_url: settings.identity.logoUrl
-          }
+        ? { logo_url: settings.identity.logoUrl }
         : undefined,
       operational: settings.operational
         ? {
@@ -118,7 +145,18 @@ export class OrganizationMapper {
       schedule:
         Object.keys(schedule).length > 0
           ? (schedule as Record<DayOfWeekDTO, BusinessScheduleDTO>)
-          : undefined
+          : undefined,
+      address: settings.address
+        ? {
+            zip: settings.address.zip,
+            street: settings.address.street,
+            number: settings.address.number,
+            complement: settings.address.complement,
+            district: settings.address.district,
+            city: settings.address.city,
+            state: settings.address.state
+          }
+        : undefined
     };
   }
 }

@@ -10,6 +10,8 @@ vi.mock('../../data/api', () => ({
     getCandidatesMembers: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    uploadLogo: vi.fn(),
+    lookupCep: vi.fn(),
     createMember: vi.fn(),
     replicateMember: vi.fn(),
     updateMemberRole: vi.fn(),
@@ -85,19 +87,78 @@ describe('OrganizationService', () => {
   });
 
   describe('update', () => {
-    it('deve delegar para OrganizationApi.update com o orgId correto', async () => {
+    it('deve delegar para OrganizationApi.update com orgId e o input completo', async () => {
       vi.mocked(OrganizationApi.update).mockResolvedValue(undefined);
-      const settings = {} as never;
-      await OrganizationService.update(mockOrganization, settings);
-      expect(OrganizationApi.update).toHaveBeenCalledWith('org-1', {
-        settings
-      });
+      const input = {
+        name: 'Nova Empresa',
+        document: '12345678000190',
+        legalName: 'Empresa LTDA',
+        settings: {} as never
+      };
+      await OrganizationService.update(mockOrganization, input);
+      expect(OrganizationApi.update).toHaveBeenCalledWith('org-1', input);
     });
 
     it('deve propagar o erro quando organization é null', async () => {
       await expect(
         OrganizationService.update(null, {} as never)
       ).rejects.toThrow('ID da organização é obrigatório.');
+    });
+
+    it('faz upload da logo e injeta a URL em settings.identity quando há logoFile', async () => {
+      vi.mocked(OrganizationApi.uploadLogo).mockResolvedValue(
+        'http://cdn/logo.png'
+      );
+      vi.mocked(OrganizationApi.update).mockResolvedValue(undefined);
+
+      const file = new File(['x'], 'logo.png', { type: 'image/png' });
+      const input = {
+        name: 'Loja X',
+        settings: { identity: { displayName: 'Loja X' } },
+        logoFile: file
+      } as never;
+
+      await OrganizationService.update(mockOrganization, input);
+
+      expect(OrganizationApi.uploadLogo).toHaveBeenCalledWith(file);
+      expect(OrganizationApi.update).toHaveBeenCalledWith('org-1', {
+        name: 'Loja X',
+        settings: {
+          identity: { displayName: 'Loja X', logoUrl: 'http://cdn/logo.png' }
+        }
+      });
+    });
+
+    it('não chama uploadLogo quando não há logoFile', async () => {
+      vi.mocked(OrganizationApi.update).mockResolvedValue(undefined);
+      const input = {
+        name: 'Loja X',
+        settings: { identity: { displayName: 'Loja X' } }
+      } as never;
+
+      await OrganizationService.update(mockOrganization, input);
+
+      expect(OrganizationApi.uploadLogo).not.toHaveBeenCalled();
+      expect(OrganizationApi.update).toHaveBeenCalledWith('org-1', input);
+    });
+  });
+
+  describe('lookupCep', () => {
+    it('deve delegar para OrganizationApi.lookupCep', async () => {
+      const address = {
+        zip: '01310-100',
+        street: 'Av. Paulista',
+        number: '',
+        district: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP'
+      };
+      vi.mocked(OrganizationApi.lookupCep).mockResolvedValue(address);
+
+      const result = await OrganizationService.lookupCep('01310100');
+
+      expect(OrganizationApi.lookupCep).toHaveBeenCalledWith('01310100');
+      expect(result).toEqual(address);
     });
   });
 

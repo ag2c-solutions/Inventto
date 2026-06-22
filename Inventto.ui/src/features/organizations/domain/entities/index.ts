@@ -9,9 +9,20 @@ export interface Organization {
   name: string;
 }
 
+export interface IAddress {
+  zip: string;
+  street: string;
+  number: string;
+  complement?: string;
+  district: string;
+  city: string;
+  state: string;
+}
+
 export interface OrganizationWithDetails extends Organization {
   ownerId: string;
   document?: string;
+  legalName?: string;
   createdAt: Date;
   settings: OrganizationSettings;
 }
@@ -36,6 +47,16 @@ export interface CreateOrganizationInput {
   replicateGroups?: ReplicationGroup[];
 }
 
+export interface UpdateOrganizationInput {
+  name: string;
+  document?: string | null;
+  legalName?: string | null;
+  settings: OrganizationSettings;
+  // Arquivo transitório: enviado ao Cloudinary pelo service no submit
+  // e convertido em settings.identity.logoUrl antes de persistir.
+  logoFile?: File | null;
+}
+
 export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
 export interface IBusinessSchedule {
@@ -58,6 +79,7 @@ export interface OrganizationSettings {
     acceptOrdersOutsideHours: boolean;
   };
   schedule: Record<DayOfWeek, IBusinessSchedule>;
+  address?: IAddress;
 }
 
 export interface CreateMember {

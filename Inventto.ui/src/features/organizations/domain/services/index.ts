@@ -4,9 +4,10 @@ import { OrganizationApi } from '../../data/api';
 import type {
   CreateMember,
   CreateOrganizationInput,
+  IAddress,
   MemberStatus,
   Organization,
-  OrganizationSettings
+  UpdateOrganizationInput
 } from '../entities';
 import { getOrganizationId } from '../utils/get-organization-id';
 
@@ -46,11 +47,28 @@ export class OrganizationService {
 
   static async update(
     organization: Organization | null,
-    settings: OrganizationSettings
+    input: UpdateOrganizationInput
   ): Promise<void> {
     const orgId = getOrganizationId(organization);
 
-    return OrganizationApi.update(orgId, { settings });
+    if (!input.logoFile) {
+      return OrganizationApi.update(orgId, input);
+    }
+
+    const logoUrl = await OrganizationApi.uploadLogo(input.logoFile);
+
+    const { logoFile: _logoFile, ...rest } = input;
+
+    return OrganizationApi.update(orgId, {
+      ...rest,
+      settings: {
+        ...input.settings,
+        identity: {
+          ...input.settings.identity,
+          logoUrl
+        }
+      }
+    });
   }
 
   static async createMember(
@@ -96,5 +114,9 @@ export class OrganizationService {
     newStatus: MemberStatus
   ): Promise<void> {
     return OrganizationApi.updateMemberStatus(memberId, newStatus);
+  }
+
+  static async lookupCep(cep: string): Promise<IAddress | null> {
+    return OrganizationApi.lookupCep(cep);
   }
 }

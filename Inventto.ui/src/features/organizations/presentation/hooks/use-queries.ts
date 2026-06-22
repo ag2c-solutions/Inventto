@@ -42,3 +42,14 @@ export function useCandidatesQuery() {
     staleTime: 1000 * 60 * 5
   });
 }
+
+export function useLookupCepQuery(cep: string) {
+  const cleaned = cep.replace(/\D/g, '');
+
+  return useQuery({
+    queryKey: ['lookup-cep', cleaned],
+    queryFn: () => OrganizationService.lookupCep(cleaned),
+    enabled: cleaned.length === 8,
+    staleTime: 1000 * 60 * 5
+  });
+}
