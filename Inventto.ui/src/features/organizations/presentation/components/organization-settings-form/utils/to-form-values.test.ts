@@ -28,9 +28,7 @@ const baseOrganization = (): OrganizationWithDetails => ({
   settings: {
     identity: { displayName: 'Ateliê Display', logoUrl: 'http://cdn/logo.png' },
     operational: {
-      timezone: 'America/Recife',
-      whatsappMain: '81999999999',
-      whatsappSupport: '81988888888'
+      timezone: 'America/Recife'
     },
     sales: { acceptOrdersOutsideHours: true },
     schedule: fullSchedule(),

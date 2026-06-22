@@ -41,7 +41,6 @@ export const organizationSettingsSchema = z
 
     identity: z.object({
       logoUrl: z.string().url('URL inválida').optional().or(z.literal('')),
-      // Arquivo recém-selecionado (pré-upload). Sobe ao Cloudinary só no submit.
       logoFile: z.instanceof(File).optional()
     }),
 
@@ -58,11 +57,7 @@ export const organizationSettingsSchema = z
     operational: z.object({
       timezone: z
         .string({ error: 'Selecione o fuso horário da loja' })
-        .min(1, 'Obrigatório'),
-      whatsappMain: z
-        .string()
-        .min(10, 'Número inválido (mínimo DDD + 8 dígitos)'),
-      whatsappSupport: z.string().optional()
+        .min(1, 'Obrigatório')
     }),
 
     sales: z.object({
@@ -123,10 +118,7 @@ export const defaultSettingsValues: OrganizationSettingsFormData = {
     state: ''
   },
   operational: {
-    timezone:
-      Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo',
-    whatsappMain: '',
-    whatsappSupport: ''
+    timezone: 'America/Sao_Paulo'
   },
   sales: {
     acceptOrdersOutsideHours: false

@@ -19,9 +19,7 @@ const baseFormData = (): OrganizationSettingsFormData => ({
     state: ''
   },
   operational: {
-    timezone: 'America/Sao_Paulo',
-    whatsappMain: '(81) 99999-9999',
-    whatsappSupport: ''
+    timezone: 'America/Sao_Paulo'
   },
   sales: { acceptOrdersOutsideHours: false },
   schedule: {
@@ -43,11 +41,10 @@ describe('formValuesToUpdateInput', () => {
     expect(result.legalName).toBeNull();
   });
 
-  it('sanitiza o whatsapp e omite o suporte quando vazio', () => {
+  it('mantém o timezone selecionado no input', () => {
     const result = formValuesToUpdateInput(baseFormData());
 
-    expect(result.settings.operational.whatsappMain).toBe('81999999999');
-    expect(result.settings.operational.whatsappSupport).toBeUndefined();
+    expect(result.settings.operational.timezone).toBe('America/Sao_Paulo');
   });
 
   it('deixa address indefinido quando todos os campos estão vazios', () => {

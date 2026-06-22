@@ -46,9 +46,7 @@ export function organizationToFormValues(
     },
     operational: {
       timezone:
-        s.operational?.timezone || defaultSettingsValues.operational.timezone,
-      whatsappMain: s.operational?.whatsappMain || '',
-      whatsappSupport: s.operational?.whatsappSupport || ''
+        s.operational?.timezone || defaultSettingsValues.operational.timezone
     },
     sales: {
       acceptOrdersOutsideHours: s.sales?.acceptOrdersOutsideHours ?? false

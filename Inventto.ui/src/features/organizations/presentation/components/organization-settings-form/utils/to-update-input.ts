@@ -5,8 +5,6 @@ import type {
 } from '../../../../domain/entities';
 import type { OrganizationSettingsFormData } from '../schema';
 
-const sanitize = (val?: string) => val?.replace(/\D/g, '') || '';
-
 export function formValuesToUpdateInput(
   data: OrganizationSettingsFormData
 ): UpdateOrganizationInput {
@@ -35,11 +33,7 @@ export function formValuesToUpdateInput(
         logoUrl: data.identity.logoUrl || undefined
       },
       operational: {
-        timezone: data.operational.timezone,
-        whatsappMain: sanitize(data.operational.whatsappMain),
-        whatsappSupport: data.operational.whatsappSupport
-          ? sanitize(data.operational.whatsappSupport)
-          : undefined
+        timezone: data.operational.timezone
       },
       sales: data.sales,
       schedule,
