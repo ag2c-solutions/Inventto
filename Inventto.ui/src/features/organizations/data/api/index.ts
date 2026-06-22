@@ -1,10 +1,13 @@
+import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase, tempClient } from '@/infra/supabase';
+import { ViaCEPService } from '@/infra/viacep';
 
 import type {
+  IAddress,
   IMember,
   MemberStatus,
-  OrganizationSettings,
-  OrganizationWithDetails
+  OrganizationWithDetails,
+  UpdateOrganizationInput
 } from '../../domain/entities';
 import type {
   CandidateMemberDTO,
@@ -20,7 +23,9 @@ export class OrganizationApi {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .select('id, owner_id, name, document, settings, created_at')
+        .select(
+          'id, owner_id, name, document, legal_name, settings, created_at'
+        )
         .eq('id', orgId)
         .single()
         .overrideTypes<OrganizationDTO, { merge: false }>();
@@ -55,17 +60,17 @@ export class OrganizationApi {
 
   static async update(
     orgId: string,
-    params: { name?: string; settings?: OrganizationSettings }
+    params: UpdateOrganizationInput
   ): Promise<void> {
     try {
-      const settingsDTO = params.settings
-        ? OrganizationMapper.toSettingsDTO(params.settings)
-        : undefined;
+      const settingsDTO = OrganizationMapper.toSettingsDTO(params.settings);
 
       const { error } = await supabase
         .from('organizations')
         .update({
           name: params.name,
+          document: params.document,
+          legal_name: params.legalName,
           settings: settingsDTO,
           updated_at: new Date().toISOString()
         })
@@ -75,6 +80,26 @@ export class OrganizationApi {
       if (error) throw error;
     } catch (error) {
       handleOrganizationError(error, 'update');
+    }
+  }
+
+  static async uploadLogo(file: File): Promise<string> {
+    try {
+      const { url } = await CloudinaryService.uploadImage(file);
+
+      return url;
+    } catch (error) {
+      handleOrganizationError(error, 'uploadLogo');
+    }
+  }
+
+  static async lookupCep(cep: string): Promise<IAddress | null> {
+    try {
+      const data = await ViaCEPService.lookup(cep);
+
+      return data ? OrganizationMapper.viaCepToAddress(data) : null;
+    } catch (error) {
+      handleOrganizationError(error, 'lookupCep');
     }
   }
 

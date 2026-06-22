@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
-// ... (Helpers e Regex mantidos igual) ...
+import { normalizeDocument, validateDocument } from '@/shared/utils';
+
 const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
 const dayScheduleSchema = z
   .object({
     isOpen: z.boolean(),
@@ -9,7 +11,6 @@ const dayScheduleSchema = z
     close: z.string().optional()
   })
   .superRefine((data, ctx) => {
-    // ... (Lógica do superRefine mantida igual)
     if (data.isOpen) {
       if (!data.open || !timeRegex.test(data.open)) {
         ctx.addIssue({
@@ -28,53 +29,98 @@ const dayScheduleSchema = z
     }
   });
 
-export const organizationSettingsSchema = z.object({
-  identity: z.object({
-    displayName: z
+export const organizationSettingsSchema = z
+  .object({
+    name: z
       .string()
       .min(2, 'O nome da loja deve ter pelo menos 2 caracteres')
       .max(50, 'O nome deve ser curto e objetivo'),
-    logoUrl: z.string().url('URL inválida').optional().or(z.literal(''))
-  }),
 
-  operational: z.object({
-    timezone: z
-      .string({ error: 'Selecione o fuso horário da loja' })
-      .min(1, 'Obrigatório'),
+    document: z.string().optional(),
+    legalName: z.string().optional(),
 
-    // REMOVIDO: .transform()
-    whatsappMain: z
-      .string()
-      .min(10, 'Número inválido (mínimo DDD + 8 dígitos)'),
+    identity: z.object({
+      logoUrl: z.string().url('URL inválida').optional().or(z.literal('')),
+      // Arquivo recém-selecionado (pré-upload). Sobe ao Cloudinary só no submit.
+      logoFile: z.instanceof(File).optional()
+    }),
 
-    // REMOVIDO: .transform()
-    whatsappSupport: z.string().optional()
-  }),
+    address: z.object({
+      zip: z.string().optional(),
+      street: z.string().optional(),
+      number: z.string().optional(),
+      complement: z.string().optional(),
+      district: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional()
+    }),
 
-  sales: z.object({
-    // REMOVIDO: .default(false) -> Controlado pelo defaultValues do Hook
-    acceptOrdersOutsideHours: z.boolean()
-  }),
+    operational: z.object({
+      timezone: z
+        .string({ error: 'Selecione o fuso horário da loja' })
+        .min(1, 'Obrigatório'),
+      whatsappMain: z
+        .string()
+        .min(10, 'Número inválido (mínimo DDD + 8 dígitos)'),
+      whatsappSupport: z.string().optional()
+    }),
 
-  schedule: z.object({
-    mon: dayScheduleSchema,
-    tue: dayScheduleSchema,
-    wed: dayScheduleSchema,
-    thu: dayScheduleSchema,
-    fri: dayScheduleSchema,
-    sat: dayScheduleSchema,
-    sun: dayScheduleSchema
+    sales: z.object({
+      acceptOrdersOutsideHours: z.boolean()
+    }),
+
+    schedule: z.object({
+      mon: dayScheduleSchema,
+      tue: dayScheduleSchema,
+      wed: dayScheduleSchema,
+      thu: dayScheduleSchema,
+      fri: dayScheduleSchema,
+      sat: dayScheduleSchema,
+      sun: dayScheduleSchema
+    })
   })
-});
+  .superRefine((data, ctx) => {
+    const doc = data.document?.trim();
+    if (!doc) return;
+
+    if (!validateDocument(doc)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Documento inválido. Verifique os números.',
+        path: ['document']
+      });
+      return;
+    }
+
+    const isCnpj = normalizeDocument(doc).length > 11;
+    if (isCnpj && !data.legalName?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Razão social é obrigatória para CNPJ.',
+        path: ['legalName']
+      });
+    }
+  });
 
 export type OrganizationSettingsFormData = z.infer<
   typeof organizationSettingsSchema
 >;
 
 export const defaultSettingsValues: OrganizationSettingsFormData = {
+  name: '',
+  document: '',
+  legalName: '',
   identity: {
-    displayName: '',
     logoUrl: ''
+  },
+  address: {
+    zip: '',
+    street: '',
+    number: '',
+    complement: '',
+    district: '',
+    city: '',
+    state: ''
   },
   operational: {
     timezone:

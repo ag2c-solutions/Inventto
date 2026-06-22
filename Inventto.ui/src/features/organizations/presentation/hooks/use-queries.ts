@@ -42,3 +42,12 @@ export function useCandidatesQuery() {
     staleTime: 1000 * 60 * 5
   });
 }
+
+export function useLookupCepQuery(cep: string) {
+  return useQuery({
+    queryKey: ['lookup-cep', cep],
+    queryFn: () => OrganizationService.lookupCep(cep),
+    staleTime: 1000 * 60 * 5,
+    enabled: !!cep
+  });
+}

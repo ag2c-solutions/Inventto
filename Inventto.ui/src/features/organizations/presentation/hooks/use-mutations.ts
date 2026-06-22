@@ -8,7 +8,7 @@ import type {
   CreateMember,
   CreateOrganizationInput,
   MemberStatus,
-  OrganizationSettings
+  UpdateOrganizationInput
 } from '../../domain/entities';
 import { OrganizationService } from '../../domain/services';
 import { ORG_KEYS } from '../constants/org-keys';
@@ -47,8 +47,8 @@ export function useUpdateOrganizationMutation() {
   const { currentOrganization } = useUser();
 
   return useMutation({
-    mutationFn: (settings: OrganizationSettings) =>
-      OrganizationService.update(currentOrganization, settings),
+    mutationFn: (input: UpdateOrganizationInput) =>
+      OrganizationService.update(currentOrganization, input),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ORG_KEYS.detail(currentOrganization?.id ?? '')

@@ -7,5 +7,10 @@ declare module '@tanstack/react-query' {
       successMessage?: string;
       suppressErrorToast?: boolean;
     };
+    queryMeta: {
+      errorMessage?: string;
+      successMessage?: string;
+      suppressErrorToast?: boolean;
+    };
   }
 }

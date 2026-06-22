@@ -3,8 +3,20 @@ import { toast } from 'sonner';
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
-    onError: (error) => {
-      console.error('Global Query Error:', error);
+    onError: (error, query) => {
+      if (query.meta?.suppressErrorToast) return;
+
+      const customMessage = query.meta?.errorMessage;
+      const backendMessage = error.message ?? 'Erro desconhecido';
+
+      toast.error(customMessage || `Erro na operação: ${backendMessage}`, {
+        duration: 7000
+      });
+    },
+    onSuccess: (_data, query) => {
+      if (query.meta?.successMessage) {
+        toast.success(query.meta.successMessage, { duration: 4000 });
+      }
     }
   }),
 
@@ -19,6 +31,7 @@ export const queryClient = new QueryClient({
         duration: 7000
       });
     },
+
     onSuccess: (_data, _variables, _context, mutation) => {
       if (mutation.meta?.successMessage) {
         toast.success(mutation.meta.successMessage, { duration: 4000 });

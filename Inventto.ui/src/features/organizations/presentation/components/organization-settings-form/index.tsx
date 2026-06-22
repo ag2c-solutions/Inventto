@@ -50,7 +50,11 @@ export function OrganizationSettingsForm() {
     showActionBar,
     organizationName,
     activeTab,
-    setActiveTab
+    setActiveTab,
+    logoPreview,
+    handleLogoChange,
+    handleCepBlur,
+    cepLoading
   } = useOrganizationSettingsForm();
 
   return (
@@ -115,7 +119,14 @@ export function OrganizationSettingsForm() {
             value="general"
             className="space-y-6 w-full bg-background/20 py-2 rounded-2xl"
           >
-            <StoreTabContent form={form} />
+            <StoreTabContent
+              form={form}
+              isSaving={isLoading}
+              logoPreview={logoPreview}
+              handleLogoChange={handleLogoChange}
+              handleCepBlur={handleCepBlur}
+              cepLoading={cepLoading}
+            />
           </TabsContent>
 
           <TabsContent

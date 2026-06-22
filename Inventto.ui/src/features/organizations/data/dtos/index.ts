@@ -14,6 +14,7 @@ export interface OrganizationDTO {
   owner_id: string;
   name: string;
   document: string | null;
+  legal_name: string | null;
   settings: OrganizationSettingsDTO;
   created_at: string;
   updated_at: string;
@@ -63,6 +64,16 @@ export interface BusinessScheduleDTO {
   close_time?: string | null;
 }
 
+export interface OrganizationAddressDTO {
+  zip?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  district?: string;
+  city?: string;
+  state?: string;
+}
+
 export interface OrganizationSettingsDTO {
   identity?: {
     display_name?: string;
@@ -77,4 +88,5 @@ export interface OrganizationSettingsDTO {
     accept_orders_outside_hours?: boolean;
   };
   schedule?: Record<DayOfWeekDTO, BusinessScheduleDTO>;
+  address?: OrganizationAddressDTO;
 }

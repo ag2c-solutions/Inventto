@@ -118,16 +118,21 @@ describe('useUpdateOrganizationMutation', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('deve chamar OrganizationService.update com currentOrganization e settings', async () => {
+  it('deve chamar OrganizationService.update com currentOrganization e input', async () => {
     vi.mocked(OrganizationService.update).mockResolvedValue(undefined);
     const { result } = renderHook(() => useUpdateOrganizationMutation(), {
       wrapper
     });
-    const settings = {} as never;
-    await result.current.mutateAsync(settings);
+    const input = {
+      name: 'Nova Empresa',
+      document: null,
+      legalName: null,
+      settings: {} as never
+    };
+    await result.current.mutateAsync(input);
     expect(OrganizationService.update).toHaveBeenCalledWith(
       { id: 'org-1' },
-      settings
+      input
     );
   });
 
@@ -137,7 +142,12 @@ describe('useUpdateOrganizationMutation', () => {
     const { result } = renderHook(() => useUpdateOrganizationMutation(), {
       wrapper
     });
-    await result.current.mutateAsync({} as never);
+    await result.current.mutateAsync({
+      name: 'x',
+      document: null,
+      legalName: null,
+      settings: {} as never
+    });
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ['organizations', 'detail', 'org-1']
     });

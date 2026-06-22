@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { ViaCEPResponseDTO } from '@/infra/viacep';
+
 import type { OrganizationSettings } from '../../domain/entities';
 import type {
   CandidateMemberDTO,
@@ -10,12 +12,47 @@ import type {
 import { OrganizationMapper } from './index';
 
 describe('OrganizationMapper', () => {
+  describe('viaCepToAddress', () => {
+    const baseViaCep: ViaCEPResponseDTO = {
+      cep: '01310-100',
+      logradouro: 'Avenida Paulista',
+      complemento: 'de 612 a 1510 - lado par',
+      bairro: 'Bela Vista',
+      localidade: 'São Paulo',
+      uf: 'SP'
+    };
+
+    it('mapeia os campos do ViaCEP para IAddress (number sempre vazio)', () => {
+      const result = OrganizationMapper.viaCepToAddress(baseViaCep);
+
+      expect(result).toEqual({
+        zip: '01310-100',
+        street: 'Avenida Paulista',
+        number: '',
+        complement: 'de 612 a 1510 - lado par',
+        district: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP'
+      });
+    });
+
+    it('converte complemento vazio em undefined', () => {
+      const result = OrganizationMapper.viaCepToAddress({
+        ...baseViaCep,
+        complemento: ''
+      });
+
+      expect(result.complement).toBeUndefined();
+    });
+  });
+
   describe('toDomain', () => {
     const baseDto: OrganizationDTO = {
       id: 'org-1',
       owner_id: 'owner-1',
       name: 'Minha Empresa',
       document: '12.345.678/0001-90',
+      legal_name: 'Empresa LTDA',
       settings: {
         identity: { display_name: 'Empresa Display', logo_url: 'logo.png' },
         operational: {
@@ -34,6 +71,7 @@ describe('OrganizationMapper', () => {
       expect(result.ownerId).toBe('owner-1');
       expect(result.name).toBe('Minha Empresa');
       expect(result.document).toBe('12.345.678/0001-90');
+      expect(result.legalName).toBe('Empresa LTDA');
       expect(result.createdAt).toBeInstanceOf(Date);
     });
 
@@ -64,6 +102,48 @@ describe('OrganizationMapper', () => {
       const dto: OrganizationDTO = { ...baseDto, document: null };
       const result = OrganizationMapper.toDomain(dto);
       expect(result.document).toBeUndefined();
+    });
+
+    it('deve retornar legalName como undefined quando null no DTO', () => {
+      const dto: OrganizationDTO = { ...baseDto, legal_name: null };
+      const result = OrganizationMapper.toDomain(dto);
+      expect(result.legalName).toBeUndefined();
+    });
+
+    it('deve mapear address quando presente em settings', () => {
+      const dto: OrganizationDTO = {
+        ...baseDto,
+        settings: {
+          address: {
+            zip: '01310-100',
+            street: 'Av. Paulista',
+            number: '1578',
+            complement: 'Sala 04',
+            district: 'Bela Vista',
+            city: 'São Paulo',
+            state: 'SP'
+          }
+        }
+      };
+      const result = OrganizationMapper.toDomain(dto);
+      expect(result.settings.address).toEqual({
+        zip: '01310-100',
+        street: 'Av. Paulista',
+        number: '1578',
+        complement: 'Sala 04',
+        district: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP'
+      });
+    });
+
+    it('deve retornar address undefined quando zip está ausente', () => {
+      const dto: OrganizationDTO = {
+        ...baseDto,
+        settings: { address: { street: 'Av. Paulista' } }
+      };
+      const result = OrganizationMapper.toDomain(dto);
+      expect(result.settings.address).toBeUndefined();
     });
   });
 
@@ -172,12 +252,10 @@ describe('OrganizationMapper', () => {
       }
     };
 
-    it('deve converter corretamente camelCase para snake_case em todos os campos', () => {
+    it('deve converter corretamente camelCase para snake_case sem incluir display_name', () => {
       const result = OrganizationMapper.toSettingsDTO(settings);
-      expect(result.identity).toEqual({
-        display_name: 'Empresa X',
-        logo_url: 'logo.png'
-      });
+      // display_name NÃO deve ser persistido — name é coluna direta
+      expect(result.identity).toEqual({ logo_url: 'logo.png' });
       expect(result.operational).toEqual({
         timezone: 'America/Recife',
         whatsapp_main: '81999999999',
@@ -193,6 +271,36 @@ describe('OrganizationMapper', () => {
         open_time: '08:00',
         close_time: '18:00'
       });
+    });
+
+    it('deve incluir address no DTO quando presente', () => {
+      const settingsWithAddress: OrganizationSettings = {
+        ...settings,
+        address: {
+          zip: '01310-100',
+          street: 'Av. Paulista',
+          number: '1578',
+          complement: 'Sala 04',
+          district: 'Bela Vista',
+          city: 'São Paulo',
+          state: 'SP'
+        }
+      };
+      const result = OrganizationMapper.toSettingsDTO(settingsWithAddress);
+      expect(result.address).toEqual({
+        zip: '01310-100',
+        street: 'Av. Paulista',
+        number: '1578',
+        complement: 'Sala 04',
+        district: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP'
+      });
+    });
+
+    it('deve omitir address no DTO quando ausente', () => {
+      const result = OrganizationMapper.toSettingsDTO(settings);
+      expect(result.address).toBeUndefined();
     });
   });
 });
