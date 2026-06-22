@@ -38,9 +38,8 @@ export const organizationSettingsSchema = z
 
     document: z.string().optional(),
     legalName: z.string().optional(),
-
     identity: z.object({
-      logoUrl: z.string().url('URL inválida').optional().or(z.literal('')),
+      logoUrl: z.url('URL inválida').optional().or(z.literal('')),
       logoFile: z.instanceof(File).optional()
     }),
 
