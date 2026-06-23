@@ -32,7 +32,7 @@ export const ScheduleTabContent = ({
 
               <div
                 className={cn(
-                  'flex items-center gap-4 py-4 rounded-md transition-colors',
+                  'flex items-center gap-3 py-4 rounded-md transition-colors md:gap-4',
                   dayError && 'bg-red-50'
                 )}
               >
@@ -49,22 +49,22 @@ export const ScheduleTabContent = ({
                   )}
                 />
 
-                <span className="w-24 font-medium text-foreground">
+                <span className="w-20 font-medium text-foreground md:w-24">
                   {day.label}
                 </span>
 
                 {isOpen ? (
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-1 items-center gap-2 md:flex-none md:gap-3">
                     <FormField
                       control={form.control}
                       name={`schedule.${day.key}.open`}
                       render={({ field }) => (
-                        <FormItem className="space-y-0">
+                        <FormItem className="flex-1 space-y-0 md:flex-none">
                           <FormControl>
                             <Input
                               type="time"
                               className={cn(
-                                'w-32',
+                                'w-full md:w-32',
                                 dayError?.open && 'border-red-500'
                               )}
                               {...field}
@@ -81,12 +81,12 @@ export const ScheduleTabContent = ({
                       control={form.control}
                       name={`schedule.${day.key}.close`}
                       render={({ field }) => (
-                        <FormItem className="space-y-0">
+                        <FormItem className="flex-1 space-y-0 md:flex-none">
                           <FormControl>
                             <Input
                               type="time"
                               className={cn(
-                                'w-32',
+                                'w-full md:w-32',
                                 dayError?.close && 'border-red-500'
                               )}
                               {...field}

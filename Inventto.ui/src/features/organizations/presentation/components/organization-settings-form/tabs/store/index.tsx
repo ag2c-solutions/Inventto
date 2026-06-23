@@ -94,7 +94,12 @@ export const StoreTabContent = ({
         </span>
         <Card className="bg-sidebar/50 pb-10">
           <CardContent>
-            <div className={cn('grid gap-12', 'grid-cols-2')}>
+            <div
+              className={cn(
+                'grid gap-6',
+                'grid-cols-1 md:grid-cols-2 md:gap-12'
+              )}
+            >
               <FormField
                 control={form.control}
                 name="document"
@@ -149,7 +154,7 @@ export const StoreTabContent = ({
             control={form.control}
             name="address.zip"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-6 md:col-span-2">
                 <FormLabel>CEP</FormLabel>
                 <div className="relative">
                   <FormControl>
@@ -177,7 +182,7 @@ export const StoreTabContent = ({
             control={form.control}
             name="address.street"
             render={({ field }) => (
-              <FormItem className="col-span-4">
+              <FormItem className="col-span-6 md:col-span-4">
                 <FormLabel>Logradouro</FormLabel>
                 <FormControl>
                   <Input

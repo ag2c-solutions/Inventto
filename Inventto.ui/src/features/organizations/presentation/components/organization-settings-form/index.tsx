@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   CalendarClock,
   Loader2,
+  RotateCcw,
   Save,
   Settings2,
   Store,
@@ -60,13 +61,43 @@ export function OrganizationSettingsForm() {
   return (
     <Form {...form}>
       <form onSubmit={onSubmit} className="mx-auto w-full space-y-6 px-6 pb-8">
-        <header className="flex flex-col gap-1">
-          <h1 className="text-[27px] leading-tight font-bold text-foreground">
-            Configurações
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {organizationName ? `${organizationName} · ` : ''}organização ativa
-          </p>
+        <header className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-[27px] leading-tight font-bold text-foreground">
+              Configurações
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {organizationName ? `${organizationName} · ` : ''}organização
+              ativa
+            </p>
+          </div>
+
+          {showActionBar && (
+            <div className="flex items-center gap-2 lg:hidden">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={onDiscard}
+                disabled={isLoading}
+                aria-label="Descartar"
+              >
+                <RotateCcw className="size-4" />
+              </Button>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={isLoading}
+                aria-label="Salvar alterações"
+              >
+                {isLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+              </Button>
+            </div>
+          )}
         </header>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -89,7 +120,7 @@ export function OrganizationSettingsForm() {
             </TabsList>
 
             {showActionBar && (
-              <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 lg:flex">
                 <Button
                   type="button"
                   variant="ghost"
