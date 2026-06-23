@@ -22,17 +22,14 @@ export function useCreateOrganizationMutation() {
     mutationFn: (payload: CreateOrganizationInput) =>
       OrganizationService.create(payload),
     onSuccess: async (newOrgId: string) => {
-      // Invalida o perfil do usuário para refletir a nova org na lista
       if (user?.id) {
         await queryClient.invalidateQueries({
           queryKey: USERS_KEYS.profile(user.id)
         });
       }
 
-      // Invalida queries de organizações
       await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
 
-      // Troca o contexto para a nova organização e navega para configurações
       setCurrentOrganization(newOrgId);
       navigate('/settings');
     },
@@ -68,11 +65,10 @@ export function useDeactivateOrganizationMutation() {
   return useMutation({
     mutationFn: () => OrganizationService.deactivate(currentOrganization),
     onSuccess: async () => {
-      // O acesso de Manager/Sales àquela org deixa de existir; o perfil do
-      // usuário e as queries de organização precisam refletir o novo estado.
       await queryClient.invalidateQueries({
         queryKey: ORG_KEYS.detail(currentOrganization?.id ?? '')
       });
+
       await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
 
       if (user?.id) {
@@ -83,6 +79,32 @@ export function useDeactivateOrganizationMutation() {
     },
     meta: {
       successMessage: 'Organização desativada.'
+    }
+  });
+}
+
+export function useDeleteOrganizationMutation() {
+  const queryClient = useQueryClient();
+  const { user, currentOrganization, setCurrentOrganization } = useUser();
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: (purge: boolean) =>
+      OrganizationService.remove(currentOrganization, purge),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+
+      if (user?.id) {
+        await queryClient.invalidateQueries({
+          queryKey: USERS_KEYS.profile(user.id)
+        });
+      }
+
+      setCurrentOrganization(user?.availableOrganizations[0]?.id ?? '');
+      navigate('/');
+    },
+    meta: {
+      successMessage: 'Organização excluída.'
     }
   });
 }
@@ -98,10 +120,12 @@ export function useCreateMemberMutation() {
       queryClient.invalidateQueries({
         queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
       });
+
       queryClient.invalidateQueries({
         queryKey: ORG_KEYS.candidates(currentOrganization?.id ?? '')
       });
     },
+
     meta: {
       successMessage: 'Convite enviado com sucesso!'
     }

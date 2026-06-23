@@ -77,6 +77,15 @@ export class OrganizationService {
     return OrganizationApi.deactivate(orgId);
   }
 
+  static async remove(
+    organization: Organization | null,
+    purge: boolean = false
+  ): Promise<void> {
+    const orgId = getOrganizationId(organization);
+
+    return OrganizationApi.remove(orgId, purge);
+  }
+
   static async createMember(
     organization: Organization | null,
     data: CreateMember

@@ -7,6 +7,25 @@ vi.mock('@/features/permissions/presentation/hooks/use-permissions', () => ({
   usePermission: () => mockUsePermission()
 }));
 
+const mockMutate = vi.fn();
+vi.mock('@tanstack/react-query', () => ({
+  useMutation: () => ({ mutate: mockMutate, isPending: false }),
+  useQueryClient: () => ({ invalidateQueries: vi.fn() })
+}));
+
+vi.mock('react-router', () => ({
+  useNavigate: () => vi.fn()
+}));
+
+vi.mock('@/features/users', () => ({
+  useUser: () => ({
+    user: { id: '1', availableOrganizations: [] },
+    currentOrganization: { name: 'Organização Teste', id: '123' },
+    setCurrentOrganization: vi.fn()
+  }),
+  USERS_KEYS: { profile: vi.fn() }
+}));
+
 import { DeleteOrganizationDialog } from './index';
 
 describe('DeleteOrganizationDialog', () => {
@@ -24,7 +43,7 @@ describe('DeleteOrganizationDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Excluir' }));
 
     expect(
-      screen.getByRole('dialog', { name: 'Excluir organização' })
+      screen.getByRole('dialog', { name: 'Excluir Organização Teste?' })
     ).toBeInTheDocument();
   });
 

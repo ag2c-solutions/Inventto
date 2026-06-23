@@ -6,7 +6,6 @@ import {
   useMemo,
   useState
 } from 'react';
-import { toast } from 'sonner';
 
 import type { AuthContextType, Session } from '../../domain/entities';
 import { AuthService } from '../../domain/services';
@@ -26,10 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
       } catch (error) {
         console.error('Erro na inicialização da auth:', error);
-        toast.error(
-          'Não foi possível inicializar a autenticação. Tente recarregar a página.',
-          { duration: 7000 }
-        );
       } finally {
         setIsLoading(false);
       }
@@ -71,8 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
+
   return context;
 }
