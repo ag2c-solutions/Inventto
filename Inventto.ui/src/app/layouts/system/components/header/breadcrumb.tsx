@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link, useLocation } from 'react-router';
 
 import {
@@ -47,20 +48,20 @@ export const AppBreadcrumb = () => {
           const isLast = index === segments.length - 1;
 
           return (
-            <BreadcrumbItem key={segment.href}>
-              {isLast ? (
-                <BreadcrumbPage aria-current="page">
-                  {segment.label}
-                </BreadcrumbPage>
-              ) : (
-                <>
+            <Fragment key={segment.href}>
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage aria-current="page">
+                    {segment.label}
+                  </BreadcrumbPage>
+                ) : (
                   <BreadcrumbLink asChild>
                     <Link to={segment.href}>{segment.label}</Link>
                   </BreadcrumbLink>
-                  <BreadcrumbSeparator />
-                </>
-              )}
-            </BreadcrumbItem>
+                )}
+              </BreadcrumbItem>
+              {!isLast && <BreadcrumbSeparator />}
+            </Fragment>
           );
         })}
       </BreadcrumbList>
