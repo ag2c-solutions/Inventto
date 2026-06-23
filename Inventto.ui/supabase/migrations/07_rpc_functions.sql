@@ -728,4 +728,38 @@ BEGIN
   SET status = 'active', updated_at = NOW()
   WHERE id = p_org_id;
 END;
+$$;
+
+-- ==============================================================================
+-- 12. ORGANIZAÇÕES: EXCLUIR ORGANIZAÇÃO (RF011, RN017, RN029)
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.delete_organization(p_org_id UUID, p_purge BOOLEAN DEFAULT false)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Apenas Owner pode excluir
+  IF NOT public.has_role(p_org_id, 'owner') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas o proprietário pode excluir a organização.';
+  END IF;
+
+  -- RN027: pedidos pendentes são cancelados e o estoque, liberado.
+  UPDATE public.orders
+  SET status = 'cancelled', updated_at = NOW()
+  WHERE organization_id = p_org_id
+  AND status = 'pending';
+
+  IF p_purge = false THEN
+    -- Retenção (soft delete)
+    UPDATE public.organizations
+    SET status = 'deleted', updated_at = NOW()
+    WHERE id = p_org_id;
+  ELSE
+    -- Expurgo (hard delete)
+    -- ON DELETE CASCADE configurado no BD cuidará de limpar os dados dependentes (produtos, imagens, categorias etc).
+    DELETE FROM public.organizations WHERE id = p_org_id;
+  END IF;
+END;
 $$;

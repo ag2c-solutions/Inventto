@@ -52,7 +52,7 @@
   --status-healthy-soft: oklch(0.95 0.052 163);
   --status-warning: oklch(0.667 0.163 58);
   --status-warning-soft: oklch(0.962 0.058 95);
-  --status-critical: oklch(0.577 0.245 27.3);
+  --status-critical: oklch(51.743% 0.21167 28.242);
   --status-critical-soft: oklch(0.936 0.032 18);
   --status-zeroed: oklch(0.552 0.016 286);
   --status-zeroed-soft: oklch(0.967 0.001 286);
@@ -69,7 +69,7 @@
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(48.98% 0.20033 28.183);
   --border: oklch(86.795% 0.0179 72.964);
   --input: oklch(94.85% 0.00664 97.461);
   --ring: oklch(0.705 0.015 286.067);

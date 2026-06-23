@@ -95,6 +95,19 @@ export class OrganizationApi {
     }
   }
 
+  static async remove(orgId: string, purge: boolean = false): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('delete_organization', {
+        p_org_id: orgId,
+        p_purge: purge
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      handleOrganizationError(error, 'remove');
+    }
+  }
+
   static async uploadLogo(file: File): Promise<string> {
     try {
       const { url } = await CloudinaryService.uploadImage(file);
