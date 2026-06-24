@@ -2,6 +2,7 @@ import { createContext, type ReactNode, useContext, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 
+import { EMAIL_OTHER_TENANT_ERROR } from '../../../../data/handlers/error-handler';
 import type { IMember } from '../../../../domain/entities';
 import {
   useCreateMemberMutation,
@@ -50,7 +51,8 @@ export function MemberFormProvider({
       name: '',
       email: '',
       role: 'sales',
-      password: ''
+      password: '',
+      isReplication: false
     }
   });
 
@@ -59,24 +61,45 @@ export function MemberFormProvider({
 
     form.setValue('name', candidate.name);
     form.setValue('email', candidate.email);
-    form.setValue('password', '********');
+    form.setValue('password', '');
+    form.setValue('isReplication', true);
     form.clearErrors();
   };
 
   const handleClearCandidate = () => {
     setSelectedCandidateId(null);
+
+    form.setValue('name', '');
+    form.setValue('email', '');
+    form.setValue('password', '');
+    form.setValue('isReplication', false);
+    form.clearErrors();
   };
 
   const handleSubmit = async (data: MemberFormData) => {
     if (selectedCandidateId) {
       await replicateMember({ userId: selectedCandidateId, role: data.role });
     } else {
-      await createMember({
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: data.role
-      });
+      try {
+        await createMember({
+          name: data.name,
+          email: data.email,
+          password: data.password ?? '',
+          role: data.role
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '';
+
+        // RN034: e-mail de usuário de outro negócio → erro inline no campo.
+        form.setError('email', {
+          type: 'manual',
+          message:
+            message === EMAIL_OTHER_TENANT_ERROR
+              ? 'Este e-mail pertence a outro negócio.'
+              : 'Não foi possível adicionar o membro. Tente de novo.'
+        });
+        return;
+      }
     }
 
     onSuccess?.();

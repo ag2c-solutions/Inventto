@@ -8,7 +8,10 @@ import {
   vi
 } from 'vitest';
 
-import { handleOrganizationError } from './error-handler';
+import {
+  EMAIL_OTHER_TENANT_ERROR,
+  handleOrganizationError
+} from './error-handler';
 
 const makePostgrestError = (overrides: {
   code?: string;
@@ -76,6 +79,20 @@ describe('handleOrganizationError', () => {
     expect(() =>
       handleOrganizationError('string desconhecida', 'test')
     ).toThrow('Ocorreu um erro inesperado.');
+  });
+
+  it('deve mapear "user already registered" no createMember para o discriminador de outro negócio (RN034)', () => {
+    const error = new Error('User already registered');
+    expect(() => handleOrganizationError(error, 'createMember')).toThrow(
+      EMAIL_OTHER_TENANT_ERROR
+    );
+  });
+
+  it('não aplica o discriminador de outro negócio fora do createMember', () => {
+    const error = new Error('User already registered');
+    expect(() => handleOrganizationError(error, 'replicateMember')).toThrow(
+      'User already registered'
+    );
   });
 
   it('deve chamar console.error com o prefixo padronizado em todos os casos', () => {

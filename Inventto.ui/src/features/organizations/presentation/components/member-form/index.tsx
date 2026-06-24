@@ -1,23 +1,8 @@
 import { useState } from 'react';
-import {
-  Check,
-  ChevronsUpDown,
-  Eye,
-  EyeOff,
-  Link as LinkIcon,
-  Loader2,
-  UserPlus
-} from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, UserCheck, X } from 'lucide-react';
 
+import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import { Button } from '@/shared/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList
-} from '@/shared/components/ui/command';
 import {
   FormControl,
   FormField,
@@ -26,11 +11,6 @@ import {
   FormMessage
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/shared/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -44,6 +24,15 @@ import type { IMember } from '../../../domain/entities';
 
 import { useMemberForm } from './hook';
 
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
 export function MemberForm() {
   const {
     form,
@@ -55,8 +44,20 @@ export function MemberForm() {
     onSelectCandidate,
     onHandleClearCandidate
   } = useMemberForm();
-  const [openCombobox, setOpenCombobox] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isNameFocused, setIsNameFocused] = useState(false);
+
+  const nameValue = form.watch('name');
+
+  const suggestions = candidates.filter(
+    (candidate) =>
+      candidate.name &&
+      nameValue.trim().length > 0 &&
+      candidate.name.toLowerCase().includes(nameValue.trim().toLowerCase())
+  );
+
+  const showSuggestions =
+    !isExistingUser && isNameFocused && suggestions.length > 0;
 
   return (
     <form
@@ -67,78 +68,95 @@ export function MemberForm() {
       className="flex flex-col gap-4 mt-4 h-full"
     >
       <div className="space-y-4 flex-1">
-        <div className="space-y-2">
-          <FormLabel>Nome do Colaborador</FormLabel>
-          <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={openCombobox}
-                className="w-full justify-between"
-                disabled={isLoading}
-              >
-                {form.watch('name') || 'Buscar ou digitar nome...'}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[350px] p-0" align="start">
-              <Command>
-                <CommandInput
-                  onValueChange={(e) => form.setValue('name', e)}
-                  placeholder="Buscar colaborador..."
-                />
-                <CommandList>
-                  <CommandEmpty>
-                    <div className="p-2 text-sm text-muted-foreground">
-                      Nenhum usuário encontrado.
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="px-1 h-auto font-normal"
-                        onClick={() => {
-                          onHandleClearCandidate();
-                          setOpenCombobox(false);
-                        }}
-                      >
-                        Criar novo
-                      </Button>
-                    </div>
-                  </CommandEmpty>
+        {isExistingUser && (
+          <div className="flex gap-2 rounded-md bg-muted/60 p-3 text-sm text-muted-foreground">
+            <UserCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Membro existente de outra unidade. Ele entra{' '}
+              <strong className="font-semibold text-foreground">ativo</strong>,
+              sem precisar de primeiro acesso.
+            </p>
+          </div>
+        )}
 
-                  <CommandGroup heading="Sugestões (Já cadastrados)">
-                    {candidates.map((candidate) => (
-                      <CommandItem
-                        key={candidate.id}
-                        value={candidate.name}
-                        onSelect={() => {
-                          onSelectCandidate(candidate as IMember);
-                          setOpenCombobox(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            form.watch('email') === candidate.email
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <div className="flex flex-col">
-                          <span>{candidate.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {candidate.email}
-                          </span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <FormMessage>{form.formState.errors.name?.message}</FormMessage>
-        </div>
+        {/* Nome completo — com autosugestão de candidatos do tenant. */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome completo</FormLabel>
+              <div className="relative">
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Ex: Ana Carvalho"
+                    autoComplete="off"
+                    readOnly={isExistingUser}
+                    disabled={isLoading}
+                    className={cn(isExistingUser && 'pr-10')}
+                    onFocus={() => setIsNameFocused(true)}
+                    onBlur={() => {
+                      // Atraso para permitir o clique na sugestão.
+                      setTimeout(() => setIsNameFocused(false), 150);
+                    }}
+                  />
+                </FormControl>
+
+                {isExistingUser && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Limpar seleção"
+                    className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
+                    onClick={onHandleClearCandidate}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+
+                {showSuggestions && (
+                  <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border bg-popover shadow-md">
+                    <p className="px-3 pt-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Já está no seu negócio
+                    </p>
+                    <ul>
+                      {suggestions.map((candidate) => (
+                        <li key={candidate.id}>
+                          <button
+                            type="button"
+                            className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-accent"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              onSelectCandidate(candidate as IMember);
+                              setIsNameFocused(false);
+                            }}
+                          >
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="text-xs">
+                                {getInitials(candidate.name ?? '')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex min-w-0 flex-col">
+                              <span className="truncate text-sm font-medium">
+                                {candidate.name}
+                              </span>
+                              <span className="truncate text-xs text-muted-foreground">
+                                {candidate.email}
+                              </span>
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -146,21 +164,25 @@ export function MemberForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>E-mail</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  autoComplete="new-password"
-                  disabled={isLoading || isExistingUser}
-                  className={
-                    isExistingUser ? 'bg-muted text-muted-foreground' : ''
-                  }
-                />
-              </FormControl>
-              {isExistingUser && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  * Este e-mail já está cadastrado no sistema.
-                </p>
-              )}
+              <div className="relative">
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="email@exemplo.com"
+                    autoComplete="off"
+                    readOnly={isExistingUser}
+                    disabled={isLoading}
+                    className={cn(
+                      isExistingUser &&
+                        'pr-10 bg-muted/60 text-muted-foreground'
+                    )}
+                  />
+                </FormControl>
+                {isExistingUser && (
+                  <Lock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -179,7 +201,7 @@ export function MemberForm() {
               >
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione..." />
+                    <SelectValue placeholder="Selecione a função" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -187,30 +209,55 @@ export function MemberForm() {
                   <SelectItem value="sales">Vendedor</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Gerente ou Vendedor. O papel Dono não é atribuível.
+              </p>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {!isExistingUser && (
+        {/* Senha provisória — exigida só no fluxo de novo membro. */}
+        {isExistingUser ? (
+          <FormItem>
+            <FormLabel>Senha provisória</FormLabel>
+            <div className="relative">
+              <Input
+                placeholder="Não necessária"
+                disabled
+                readOnly
+                className="pr-10 bg-muted/60 text-muted-foreground"
+              />
+              <Lock className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Senha não necessária — este usuário já tem acesso ativo.
+            </p>
+          </FormItem>
+        ) : (
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Senha Provisória</FormLabel>
+                <FormLabel>Senha provisória</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="new-password"
+                      placeholder="Defina uma senha provisória"
                       {...field}
                       disabled={isLoading}
+                      className="pr-10"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
+                      aria-label={
+                        showPassword ? 'Ocultar senha' : 'Mostrar senha'
+                      }
                       className="absolute right-0 top-0 h-full px-3"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -222,6 +269,9 @@ export function MemberForm() {
                     </Button>
                   </div>
                 </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  O membro troca a senha no primeiro acesso.
+                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -230,22 +280,21 @@ export function MemberForm() {
       </div>
 
       <div className="flex justify-end gap-2 py-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onCancel}
+          disabled={isLoading}
+        >
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isExistingUser ? (
-            <>
-              <LinkIcon className="mr-2 h-4 w-4" />
-              Vincular Membro
-            </>
-          ) : (
-            <>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Criar e Adicionar
-            </>
-          )}
+          {isLoading
+            ? 'Enviando...'
+            : isExistingUser
+              ? 'Replicar membro'
+              : 'Enviar convite'}
         </Button>
       </div>
     </form>

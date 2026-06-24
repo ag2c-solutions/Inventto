@@ -33,10 +33,9 @@ export function AddMember() {
 
         <SheetContent className="w-full sm:max-w-md px-6">
           <SheetHeader className="mb-4">
-            <SheetTitle>Adicionar Membro</SheetTitle>
+            <SheetTitle>Adicionar membro</SheetTitle>
             <SheetDescription>
-              Preencha os dados para adicionar um novo membro manualmente à
-              organização.
+              Preencha os dados do novo integrante da equipe.
             </SheetDescription>
           </SheetHeader>
 

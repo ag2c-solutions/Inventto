@@ -127,7 +127,10 @@ export function useCreateMemberMutation() {
     },
 
     meta: {
-      successMessage: 'Convite enviado com sucesso!'
+      // O erro de "e-mail de outro negócio" (RN034) é tratado inline no form
+      // via discriminador EMAIL_OTHER_TENANT_ERROR — sem toast genérico.
+      successMessage: 'Membro adicionado à organização.',
+      suppressErrorToast: true
     }
   });
 }
@@ -154,7 +157,7 @@ export function useReplicateMemberMutation() {
       });
     },
     meta: {
-      successMessage: 'Membro importado com sucesso!'
+      successMessage: 'Membro adicionado à organização.'
     }
   });
 }

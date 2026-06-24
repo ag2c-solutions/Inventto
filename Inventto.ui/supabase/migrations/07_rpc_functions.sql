@@ -673,9 +673,11 @@ BEGIN
   END IF;
 
   -- 2. Inserção Atômica (Idempotente)
+  -- RF013/RN035: o membro replicado compartilha a identidade e já tem acesso,
+  -- portanto entra 'active' (sem primeiro acesso), não 'invited'.
   INSERT INTO public.organization_members (organization_id, profile_id, role, status)
-  VALUES (p_organization_id, p_user_id, p_role, 'invited')
-  ON CONFLICT (organization_id, profile_id) 
+  VALUES (p_organization_id, p_user_id, p_role, 'active')
+  ON CONFLICT (organization_id, profile_id)
   DO UPDATE SET role = p_role, status = 'active';
 END;
 $$;
