@@ -82,10 +82,10 @@ export function RoleColumn({ member }: RoleCellProps) {
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="flex items-center gap-3"
+      className="flex flex-col items-stretch gap-2 md:flex-row md:items-center md:gap-3"
     >
-      <div className="flex items-center gap-3">
-        <div className="w-24 justify-start">
+      <div className="flex flex-col items-stretch gap-2 md:flex-row md:items-center md:gap-3">
+        <div className="flex justify-start md:w-24">
           <Badge variant="outline" className={cn(config.style)}>
             <Icon className="h-3 w-3 " />
             {config.label}
@@ -101,7 +101,7 @@ export function RoleColumn({ member }: RoleCellProps) {
           }
           disabled={isPending}
         >
-          <SelectTrigger className="h-8 w-[100px] text-xs">
+          <SelectTrigger className="h-8 w-full text-xs md:w-[100px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -116,9 +116,9 @@ export function RoleColumn({ member }: RoleCellProps) {
         size="default"
         variant="ghost"
         className={cn(
-          'h-8  px-2 transition-all opacity-0 pointer-events-none',
+          'h-8 w-full px-2 transition-all border md:w-auto md:border-0 md:opacity-0 md:pointer-events-none',
           isChanged &&
-            'opacity-100 pointer-events-auto bg-primary text-primary-foreground'
+            'bg-primary text-primary-foreground md:opacity-100 md:pointer-events-auto'
         )}
         disabled={!isChanged || isPending}
       >
