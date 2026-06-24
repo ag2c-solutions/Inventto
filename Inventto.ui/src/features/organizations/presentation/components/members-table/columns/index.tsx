@@ -5,6 +5,7 @@ import {
   AvatarFallback,
   AvatarImage
 } from '@/shared/components/ui/avatar';
+import { cn } from '@/shared/utils';
 
 import type { IMember } from '../../../../domain/entities';
 
@@ -19,11 +20,15 @@ export const columns: ColumnDef<IMember>[] = [
     accessorFn: (row) => `${row.name} ${row.email}`,
     cell: ({ row }) => {
       const member = row.original;
+      const isMuted =
+        member.status === 'invited' || member.status === 'inactive';
       return (
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9">
             <AvatarImage src={member.avatarUrl || ''} alt={member.name} />
-            <AvatarFallback>
+            <AvatarFallback
+              className={cn(isMuted && 'bg-muted/60 text-muted-foreground')}
+            >
               {member.name.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>

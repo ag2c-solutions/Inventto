@@ -5,6 +5,7 @@ type DataTableContextType<TData> = {
   table: Table<TData>;
   emptyMessage?: string;
   renderSubRow?: (row: Row<TData>, index: number) => ReactNode;
+  getRowClassName?: (row: Row<TData>) => string | undefined;
 };
 
 export const DataTableContext = createContext<

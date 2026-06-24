@@ -44,18 +44,21 @@ export function StatusColumn({ member }: StatusCellProps) {
   > = {
     active: {
       label: 'Ativo',
-      style: 'text-emerald-600 border-emerald-200 bg-emerald-50',
-      dot: 'bg-emerald-500'
+      style:
+        'text-[var(--status-healthy)] border-[var(--status-healthy)]/30 bg-[var(--status-healthy-soft)]',
+      dot: 'bg-[var(--status-healthy)]'
     },
     inactive: {
       label: 'Inativo',
-      style: 'text-red-600 border-red-200 bg-red-50',
-      dot: 'bg-red-500'
+      style:
+        'text-[var(--status-zeroed)] border-[var(--status-zeroed)]/30 bg-[var(--status-zeroed-soft)]',
+      dot: 'bg-[var(--status-zeroed)]'
     },
     invited: {
-      label: 'Pendente',
-      style: 'text-amber-600 border-amber-200 bg-amber-50',
-      dot: 'bg-amber-500'
+      label: 'Convidado',
+      style:
+        'text-[var(--status-warning)] border-[var(--status-warning)]/30 bg-[var(--status-warning-soft)]',
+      dot: 'bg-[var(--status-warning)]'
     }
   };
 
@@ -80,6 +83,28 @@ export function StatusColumn({ member }: StatusCellProps) {
         <span className={cn('size-1.5 rounded-full', currentConfig.dot)} />
         {currentConfig.label}
       </Badge>
+    );
+  }
+
+  // Convidado é estado de sistema (aguardando 1º acesso): badge fixo, sem edição.
+  if (member.status === 'invited') {
+    const invitedConfig = statusConfig.invited;
+    return (
+      <div className="flex items-center gap-3">
+        <Badge
+          variant="outline"
+          className={cn(
+            'gap-2 py-1 justify-start w-[90px]',
+            invitedConfig.style
+          )}
+        >
+          <span className={cn('size-1.5 rounded-full', invitedConfig.dot)} />
+          {invitedConfig.label}
+        </Badge>
+        <span className="text-xs italic text-muted-foreground">
+          aguardando 1º acesso
+        </span>
+      </div>
     );
   }
 
