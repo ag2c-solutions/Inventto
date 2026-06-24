@@ -1,6 +1,11 @@
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+
+import { MembersCardList } from '../components/members-list';
 import { MembersListTable } from '../components/members-table';
 
 export function MembersListPage() {
+  const isMobile = useIsMobile();
+
   return (
     <div className=" flex flex-col gap-4">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-6">
@@ -10,7 +15,7 @@ export function MembersListPage() {
             Gerencie de forma centralizada os membros da sua equipe.
           </p>
         </div>
-        <MembersListTable />
+        {isMobile ? <MembersCardList /> : <MembersListTable />}
       </div>
     </div>
   );

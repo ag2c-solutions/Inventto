@@ -92,7 +92,7 @@ export function StatusColumn({ member }: StatusCellProps) {
   if (member.status === 'invited') {
     const invitedConfig = statusConfig.invited;
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
         <div className="flex items-center py-1 justify-start w-[90px]">
           <Badge variant="outline" className={cn(invitedConfig.style)}>
             <span className={cn('size-1.5 rounded-full', invitedConfig.dot)} />
@@ -109,10 +109,10 @@ export function StatusColumn({ member }: StatusCellProps) {
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
-      className="flex items-center gap-6"
+      className="flex flex-col items-stretch gap-2 md:flex-row md:items-center md:gap-6"
     >
-      <div className="flex items-center gap-4">
-        <div className="flex items-center py-1 justify-start w-[90px]">
+      <div className="flex flex-col items-stretch gap-2 md:flex-row md:items-center md:gap-4">
+        <div className="flex items-center justify-start py-1 md:w-[90px]">
           <Badge
             variant="default"
             className={cn('transition-colors', currentConfig.style)}
@@ -130,7 +130,7 @@ export function StatusColumn({ member }: StatusCellProps) {
           }
           disabled={isPending}
         >
-          <SelectTrigger className="h-6 w-[100px] text-xs">
+          <SelectTrigger className="h-6 w-full text-xs md:w-[100px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -145,9 +145,9 @@ export function StatusColumn({ member }: StatusCellProps) {
         size="default"
         variant="ghost"
         className={cn(
-          'h-8  px-2 transition-all opacity-0 pointer-events-none',
+          'h-8 w-full px-2 transition-all border md:w-auto md:border-0 md:opacity-0 md:pointer-events-none',
           isChanged &&
-            'opacity-100 pointer-events-auto bg-primary text-primary-foreground'
+            'bg-primary text-primary-foreground md:opacity-100 md:pointer-events-auto'
         )}
         disabled={!isChanged || isPending}
       >
