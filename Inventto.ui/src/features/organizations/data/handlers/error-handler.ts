@@ -1,7 +1,21 @@
 import { isPostgrestError } from '@/infra/supabase/guards/is-postgres-error';
 
+// Discriminador de controle de fluxo (RN034/RN007): o e-mail informado já
+// pertence a um usuário de OUTRO negócio (não é candidato do tenant atual,
+// senão teria entrado pelo fluxo de replicação). O form trata como erro inline
+// no campo e-mail, não como toast genérico.
+export const EMAIL_OTHER_TENANT_ERROR = 'EMAIL_OTHER_TENANT';
+
 export function handleOrganizationError(error: unknown, action: string): never {
   console.error(`Erro em Organization Service [${action}]:`, error);
+
+  if (
+    action === 'createMember' &&
+    error instanceof Error &&
+    error.message.toLowerCase().includes('user already registered')
+  ) {
+    throw new Error(EMAIL_OTHER_TENANT_ERROR);
+  }
 
   if (isPostgrestError(error)) {
     switch (error.code) {

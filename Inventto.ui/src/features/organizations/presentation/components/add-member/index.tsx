@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 import { ActionButton } from '@/features/permissions';
 
@@ -26,17 +26,16 @@ export function AddMember() {
             action="team:manage"
             className="cursor-pointer items-center"
           >
-            <Plus className="h-4 w-4" />
+            <UserPlus className="h-4 w-4" />
             Adicionar Membro
           </ActionButton>
         </SheetTrigger>
 
         <SheetContent className="w-full sm:max-w-md px-6">
           <SheetHeader className="mb-4">
-            <SheetTitle>Adicionar Membro</SheetTitle>
+            <SheetTitle>Adicionar membro</SheetTitle>
             <SheetDescription>
-              Preencha os dados para adicionar um novo membro manualmente à
-              organização.
+              Preencha os dados do novo integrante da equipe.
             </SheetDescription>
           </SheetHeader>
 
