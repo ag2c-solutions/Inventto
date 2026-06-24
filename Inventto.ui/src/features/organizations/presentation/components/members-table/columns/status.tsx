@@ -69,45 +69,36 @@ export function StatusColumn({ member }: StatusCellProps) {
       await updateStatus({ memberId: member.id, status: data.status });
       form.reset({ status: data.status });
     } catch {
-      // Erro: o toast vem do MutationCache global; aqui só revertemos o select
-      // ao valor salvo (o badge nunca chegou a mostrar o pendente).
       form.reset({
         status: member.status === 'invited' ? 'active' : member.status
       });
     }
   }
 
-  // RN037: a linha do Owner mostra só o badge "Ativo" — sem select nem botão.
   if (member.isMe || member.role === 'owner') {
     return (
-      <Badge
-        variant="outline"
-        className={cn(
-          'gap-2 py-1 justify-start w-[90px] transition-colors',
-          currentConfig.style
-        )}
-      >
-        <span className={cn('size-1.5 rounded-full', currentConfig.dot)} />
-        {currentConfig.label}
-      </Badge>
+      <div className="flex items-center py-1 justify-start w-[90px]">
+        <Badge
+          variant="outline"
+          className={cn('transition-colors', currentConfig.style)}
+        >
+          <span className={cn('size-1.5 rounded-full', currentConfig.dot)} />
+          {currentConfig.label}
+        </Badge>
+      </div>
     );
   }
 
-  // Convidado é estado de sistema (aguardando 1º acesso): badge fixo, sem edição.
   if (member.status === 'invited') {
     const invitedConfig = statusConfig.invited;
     return (
       <div className="flex items-center gap-3">
-        <Badge
-          variant="outline"
-          className={cn(
-            'gap-2 py-1 justify-start w-[90px]',
-            invitedConfig.style
-          )}
-        >
-          <span className={cn('size-1.5 rounded-full', invitedConfig.dot)} />
-          {invitedConfig.label}
-        </Badge>
+        <div className="flex items-center py-1 justify-start w-[90px]">
+          <Badge variant="outline" className={cn(invitedConfig.style)}>
+            <span className={cn('size-1.5 rounded-full', invitedConfig.dot)} />
+            {invitedConfig.label}
+          </Badge>
+        </div>
         <span className="text-xs italic text-muted-foreground">
           aguardando 1º acesso
         </span>
@@ -121,16 +112,15 @@ export function StatusColumn({ member }: StatusCellProps) {
       className="flex items-center gap-6"
     >
       <div className="flex items-center gap-4">
-        <Badge
-          variant="default"
-          className={cn(
-            'gap-2 py-1 justify-start w-[90px] transition-colors',
-            currentConfig.style
-          )}
-        >
-          <span className={cn('size-1.5 rounded-full', currentConfig.dot)} />
-          {currentConfig.label}
-        </Badge>
+        <div className="flex items-center py-1 justify-start w-[90px]">
+          <Badge
+            variant="default"
+            className={cn('transition-colors', currentConfig.style)}
+          >
+            <span className={cn('size-1.5 rounded-full', currentConfig.dot)} />
+            {currentConfig.label}
+          </Badge>
+        </div>
         <Select
           value={currentStatus}
           onValueChange={(val) =>

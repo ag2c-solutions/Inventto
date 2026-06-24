@@ -70,8 +70,6 @@ export function RoleColumn({ member }: RoleCellProps) {
     }
   }
 
-  // RN037: a linha do Owner mostra só o badge — sem select nem botão.
-  // Owner nunca é rebaixado e ninguém é promovido a Owner.
   if (member.isMe || member.role === 'owner') {
     return (
       <Badge variant="outline" className={cn('gap-1 pl-2 pr-3', config.style)}>
@@ -87,13 +85,12 @@ export function RoleColumn({ member }: RoleCellProps) {
       className="flex items-center gap-3"
     >
       <div className="flex items-center gap-3">
-        <Badge
-          variant="outline"
-          className={cn('w-24 justify-start gap-1', config.style)}
-        >
-          <Icon className="h-3 w-3 mr-1" />
-          {config.label}
-        </Badge>
+        <div className="w-24 justify-start">
+          <Badge variant="outline" className={cn(config.style)}>
+            <Icon className="h-3 w-3 " />
+            {config.label}
+          </Badge>
+        </div>
 
         <Select
           value={currentRole}
