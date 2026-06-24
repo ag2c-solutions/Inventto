@@ -70,7 +70,9 @@ export function RoleColumn({ member }: RoleCellProps) {
     }
   }
 
-  if (member.isMe) {
+  // RN037: a linha do Owner mostra só o badge — sem select nem botão.
+  // Owner nunca é rebaixado e ninguém é promovido a Owner.
+  if (member.isMe || member.role === 'owner') {
     return (
       <Badge variant="outline" className={cn('gap-1 pl-2 pr-3', config.style)}>
         <Icon className="h-3 w-3 mr-1" />

@@ -65,13 +65,20 @@ export function StatusColumn({ member }: StatusCellProps) {
   const currentConfig = statusConfig[currentStatus];
 
   async function onSubmit(data: MemberStatusFormValues) {
-    await updateStatus({
-      memberId: member.id,
-      status: data.status
-    });
+    try {
+      await updateStatus({ memberId: member.id, status: data.status });
+      form.reset({ status: data.status });
+    } catch {
+      // Erro: o toast vem do MutationCache global; aqui só revertemos o select
+      // ao valor salvo (o badge nunca chegou a mostrar o pendente).
+      form.reset({
+        status: member.status === 'invited' ? 'active' : member.status
+      });
+    }
   }
 
-  if (member.isMe) {
+  // RN037: a linha do Owner mostra só o badge "Ativo" — sem select nem botão.
+  if (member.isMe || member.role === 'owner') {
     return (
       <Badge
         variant="outline"

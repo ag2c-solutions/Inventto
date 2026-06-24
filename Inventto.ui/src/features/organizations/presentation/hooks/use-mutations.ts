@@ -161,21 +161,26 @@ export function useReplicateMemberMutation() {
 
 export function useUpdateMemberRoleMutation() {
   const queryClient = useQueryClient();
+  const { currentOrganization } = useUser();
 
   return useMutation({
     mutationFn: ({ memberId, role }: { memberId: string; role: Role }) =>
       OrganizationService.updateMemberRole(memberId, role),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
+      });
     },
     meta: {
-      successMessage: 'Cargo do membro atualizado.'
+      successMessage: 'Alterações salvas.',
+      errorMessage: 'Não foi possível salvar. Tente de novo.'
     }
   });
 }
 
 export function useUpdateMemberStatusMutation() {
   const queryClient = useQueryClient();
+  const { currentOrganization } = useUser();
 
   return useMutation({
     mutationFn: ({
@@ -186,10 +191,13 @@ export function useUpdateMemberStatusMutation() {
       status: MemberStatus;
     }) => OrganizationService.updateMemberStatus(memberId, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+      queryClient.invalidateQueries({
+        queryKey: ORG_KEYS.members(currentOrganization?.id ?? '')
+      });
     },
     meta: {
-      successMessage: 'Status do membro alterado.'
+      successMessage: 'Alterações salvas.',
+      errorMessage: 'Não foi possível salvar. Tente de novo.'
     }
   });
 }

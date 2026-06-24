@@ -291,7 +291,7 @@ describe('useUpdateMemberRoleMutation', () => {
     );
   });
 
-  it('deve invalidar ORG_KEYS.all no onSuccess', async () => {
+  it('deve invalidar ORG_KEYS.members no onSuccess', async () => {
     vi.mocked(OrganizationService.updateMemberRole).mockResolvedValue(
       undefined
     );
@@ -301,7 +301,7 @@ describe('useUpdateMemberRoleMutation', () => {
     });
     await result.current.mutateAsync({ memberId: 'member-1', role: 'sales' });
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ['organizations']
+      queryKey: ['organizations', 'members', 'org-1']
     });
   });
 });
@@ -342,7 +342,7 @@ describe('useUpdateMemberStatusMutation', () => {
     );
   });
 
-  it('deve invalidar ORG_KEYS.all no onSuccess', async () => {
+  it('deve invalidar ORG_KEYS.members no onSuccess', async () => {
     vi.mocked(OrganizationService.updateMemberStatus).mockResolvedValue(
       undefined
     );
@@ -355,7 +355,7 @@ describe('useUpdateMemberStatusMutation', () => {
       status: 'active'
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ['organizations']
+      queryKey: ['organizations', 'members', 'org-1']
     });
   });
 });
