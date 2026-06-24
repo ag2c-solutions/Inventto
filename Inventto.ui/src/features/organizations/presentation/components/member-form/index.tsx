@@ -69,7 +69,7 @@ export function MemberForm() {
     >
       <div className="space-y-4 flex-1">
         {isExistingUser && (
-          <div className="flex gap-2 rounded-md bg-muted/60 p-3 text-sm text-muted-foreground">
+          <div className="flex gap-2 rounded-md bg-sidebar p-3 text-sm text-sidebar-foreground">
             <UserCheck className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
               Membro existente de outra unidade. Ele entra{' '}
@@ -79,7 +79,6 @@ export function MemberForm() {
           </div>
         )}
 
-        {/* Nome completo — com autosugestão de candidatos do tenant. */}
         <FormField
           control={form.control}
           name="name"
@@ -91,13 +90,12 @@ export function MemberForm() {
                   <Input
                     {...field}
                     placeholder="Ex: Ana Carvalho"
-                    autoComplete="off"
+                    autoComplete="new-password"
                     readOnly={isExistingUser}
                     disabled={isLoading}
                     className={cn(isExistingUser && 'pr-10')}
                     onFocus={() => setIsNameFocused(true)}
                     onBlur={() => {
-                      // Atraso para permitir o clique na sugestão.
                       setTimeout(() => setIsNameFocused(false), 150);
                     }}
                   />
