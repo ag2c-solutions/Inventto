@@ -16,7 +16,6 @@ vi.mock('../../data/api', () => ({
     replicateMember: vi.fn(),
     updateMemberRole: vi.fn(),
     updateMemberStatus: vi.fn(),
-    forceDeleteMember: vi.fn(),
     deactivate: vi.fn()
   }
 }));

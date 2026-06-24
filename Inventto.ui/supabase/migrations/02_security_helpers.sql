@@ -101,30 +101,11 @@ FOR SELECT USING (
 CREATE POLICY "Users can update own profile" ON public.profiles
 FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Managers can update members of their org"
-ON public.organization_members
-FOR UPDATE
-USING (
-  EXISTS (
-    SELECT 1 FROM public.organization_members as requester
-    WHERE requester.organization_id = organization_members.organization_id
-    AND requester.profile_id = auth.uid()
-    AND requester.role IN ('owner', 'manager')
-    AND requester.status = 'active'
-  )
-);
-
-CREATE POLICY "Owners can delete members"
-ON public.organization_members
-FOR DELETE
-USING (
-  EXISTS (
-    SELECT 1 FROM public.organization_members as requester
-    WHERE requester.organization_id = organization_members.organization_id
-    AND requester.profile_id = auth.uid()
-    AND requester.role = 'owner'
-  )
-);
+-- organization_members NÃO tem policy de UPDATE/DELETE direto pelo client (RN036/RN037):
+-- a edição de função/status passa exclusivamente pelos RPCs Owner-only
+-- update_member_role/update_member_status (07_rpc_functions.sql), onde os
+-- invariantes do Owner (não-owner, não-self, sem 'invited') são garantidos.
+-- A exclusão definitiva de membro é proibida na v1 (apenas inativação — RN036).
 
 -- B. ORGANIZATIONS
 CREATE POLICY "Members can view organization" ON public.organizations

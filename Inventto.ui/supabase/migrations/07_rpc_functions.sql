@@ -762,4 +762,101 @@ BEGIN
     DELETE FROM public.organizations WHERE id = p_org_id;
   END IF;
 END;
-$$;
+$$;
+
+-- ==============================================================================
+-- 13. EQUIPE: ATUALIZAR FUNÇÃO DO MEMBRO (RF014, RN037)
+-- Owner-only. Invariantes do Owner não se expressam bem em RLS, por isso a
+-- edição de membro passa por RPC e a tabela não tem UPDATE direto pelo client.
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.update_member_role(
+  p_member_id UUID,
+  p_role public.app_role
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_target_role public.app_role;
+BEGIN
+  -- RN037: 'owner' nunca é atribuível.
+  IF p_role NOT IN ('manager', 'sales') THEN
+    RAISE EXCEPTION 'Função inválida: apenas Gerente ou Vendedor podem ser atribuídos.';
+  END IF;
+
+  SELECT organization_id, role INTO v_org_id, v_target_role
+  FROM public.organization_members
+  WHERE id = p_member_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'Membro não encontrado.';
+  END IF;
+
+  -- RN020: apenas o Owner da org gere membros.
+  IF NOT public.has_role(v_org_id, 'owner') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas o proprietário pode gerir membros.';
+  END IF;
+
+  -- RN037: o Owner não pode ser rebaixado.
+  IF v_target_role = 'owner' THEN
+    RAISE EXCEPTION 'O proprietário não pode ter a função alterada.';
+  END IF;
+
+  UPDATE public.organization_members
+  SET role = p_role, updated_at = NOW()
+  WHERE id = p_member_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.update_member_role(UUID, public.app_role) TO authenticated;
+
+-- ==============================================================================
+-- 14. EQUIPE: ATUALIZAR STATUS DO MEMBRO (RF014, RN036, RN037)
+-- Owner-only. 'invited' é estado de sistema (1º acesso), não selecionável.
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.update_member_status(
+  p_member_id UUID,
+  p_status public.member_status
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_target_role public.app_role;
+BEGIN
+  -- RN036: 'invited' é estado de sistema, não pode ser definido manualmente.
+  IF p_status NOT IN ('active', 'inactive') THEN
+    RAISE EXCEPTION 'Status inválido: apenas Ativo ou Inativo podem ser definidos.';
+  END IF;
+
+  SELECT organization_id, role INTO v_org_id, v_target_role
+  FROM public.organization_members
+  WHERE id = p_member_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'Membro não encontrado.';
+  END IF;
+
+  -- RN020: apenas o Owner da org gere membros.
+  IF NOT public.has_role(v_org_id, 'owner') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas o proprietário pode gerir membros.';
+  END IF;
+
+  -- RN037: o próprio Owner não se inativa.
+  IF v_target_role = 'owner' THEN
+    RAISE EXCEPTION 'O proprietário não pode ter o status alterado.';
+  END IF;
+
+  UPDATE public.organization_members
+  SET status = p_status, updated_at = NOW()
+  WHERE id = p_member_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.update_member_status(UUID, public.member_status) TO authenticated;

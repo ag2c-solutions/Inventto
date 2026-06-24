@@ -215,11 +215,10 @@ export class OrganizationApi {
     newRole: 'manager' | 'sales'
   ): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('organization_members')
-        .update({ role: newRole })
-        .eq('id', memberId)
-        .select('id');
+      const { error } = await supabase.rpc('update_member_role', {
+        p_member_id: memberId,
+        p_role: newRole
+      });
 
       if (error) throw error;
     } catch (error) {
@@ -232,28 +231,14 @@ export class OrganizationApi {
     newStatus: MemberStatus
   ): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('organization_members')
-        .update({ status: newStatus })
-        .eq('id', memberId)
-        .select('id');
+      const { error } = await supabase.rpc('update_member_status', {
+        p_member_id: memberId,
+        p_status: newStatus
+      });
 
       if (error) throw error;
     } catch (error) {
       handleOrganizationError(error, 'updateMemberStatus');
-    }
-  }
-
-  static async forceDeleteMember(memberId: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('organization_members')
-        .delete()
-        .eq('id', memberId);
-
-      if (error) throw error;
-    } catch (error) {
-      handleOrganizationError(error, 'forceDeleteMember');
     }
   }
 }
