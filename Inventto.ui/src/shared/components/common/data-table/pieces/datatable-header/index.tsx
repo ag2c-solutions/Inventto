@@ -16,6 +16,7 @@ export function DataTableHeader() {
             <TableHead
               key={header.id}
               id={header.id}
+              scope="col"
               colSpan={header.colSpan}
               style={{ width: `calc(var(--th-${header.id}-size) * 1px)` }}
               className="relative group bg-sidebar overflow-hidden "

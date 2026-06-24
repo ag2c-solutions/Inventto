@@ -53,9 +53,19 @@ export function MembersListTable() {
     return <MembersTableSkeleton />;
   }
 
+  const emptyMessage = globalFilter
+    ? `Nenhum membro encontrado para "${globalFilter}".`
+    : 'Nenhum membro encontrado.';
+
   return (
     <div className="space-y-4">
-      <DataTable tableOptions={tableOptions}>
+      <DataTable
+        tableOptions={tableOptions}
+        emptyMessage={emptyMessage}
+        getRowClassName={(row) =>
+          row.original.status === 'inactive' ? 'opacity-60' : undefined
+        }
+      >
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-1 items-center gap-2">
             <DataTableTextFilter
@@ -80,7 +90,7 @@ export function MembersListTable() {
                 { label: 'Todos os status', value: 'all' },
                 { label: 'Ativo', value: 'active' },
                 { label: 'Inativo', value: 'inactive' },
-                { label: 'Pendente', value: 'invited' }
+                { label: 'Convidado', value: 'invited' }
               ]}
             />
           </div>
