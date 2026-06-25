@@ -20,14 +20,13 @@ import {
   DataTableContent,
   DataTableSelectFilter,
   DataTableTextFilter,
-  NestedDataTable,
   PaginationControllers
 } from '@/shared/components/common/data-table';
 
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';
 import { useProductsQuery } from '../../hooks/use-queries';
-import { productVariantsTableColumns } from '../variants-table/columns';
+import { ProductVariantsSubRow } from '../variants-table/sub-row';
 
 import { columnsProductListTable } from './columns';
 import { ProductListTableLoading } from './loading';
@@ -80,14 +79,7 @@ export function ProductListTable() {
       return null;
     }
 
-    return (
-      <NestedDataTable
-        key={`table-variants-${row.original.id}`}
-        data={row.original.variants ?? []}
-        columns={productVariantsTableColumns}
-        parentData={row.original}
-      />
-    );
+    return <ProductVariantsSubRow variants={row.original.variants ?? []} />;
   }, []);
 
   const getRowClassName = useCallback(
