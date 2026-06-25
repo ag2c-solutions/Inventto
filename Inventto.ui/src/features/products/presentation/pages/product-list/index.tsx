@@ -5,9 +5,10 @@ export const ProductsListPage = () => {
     <div className=" flex flex-col gap-4">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-6">
         <div className="flex flex-col gap-2 pb-6">
-          <h2 className="text-2xl font-semibold">Gerenciar produtos</h2>
+          <h1 className="text-2xl font-semibold">Produtos</h1>
           <p className="text-muted-foreground">
-            Gerencie de forma centralizada os produtos da sua empresa.
+            Localize produtos, consulte o estado do estoque e gerencie o
+            catálogo da organização.
           </p>
         </div>
       </div>

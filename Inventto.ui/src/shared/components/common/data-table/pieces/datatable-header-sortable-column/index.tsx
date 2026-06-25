@@ -9,15 +9,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
+import { cn } from '@/shared/utils';
 
 type THeaderSortableColumn<TData> = {
   column: Column<TData, unknown>;
   title: ReactNode | string;
+  className?: string;
 };
 
 export function DataTableHeaderSortableColumn<TData>({
   column,
-  title
+  title,
+  className
 }: THeaderSortableColumn<TData>) {
   return (
     <DropdownMenu key={column.id}>
@@ -25,9 +28,9 @@ export function DataTableHeaderSortableColumn<TData>({
         <Button
           variant="ghost"
           size="sm"
-          className="text-sm font-semibold gap-1.5"
+          className={cn('text-sm font-semibold gap-1.5', className)}
         >
-          <span className="pb-0.5">{title}</span>
+          <span className="pb-0.5 text-side">{title}</span>
           <div className="from-neutral-950">
             {!column.getIsSorted() && <ChevronsUpDown />}
             {column.getIsSorted() === 'asc' && <ArrowUp className="size-3" />}

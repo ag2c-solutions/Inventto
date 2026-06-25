@@ -1,70 +1,100 @@
-import type { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef, FilterFn } from '@tanstack/react-table';
+import { ChevronRight } from 'lucide-react';
 
 import { DataTableHeaderSortableColumn } from '@/shared/components/common/data-table/pieces/datatable-header-sortable-column';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
+import { cn } from '@/shared/utils';
 
 import type { IProduct } from '../../../../domain/entities';
+import { deriveProductStatus } from '../../../utils/derive-product-status';
 
 import { ProductTableColumnActions } from './actions';
-import { ProductTableColumnImages } from './images';
+import { ProductTableColumnProduct } from './product-cell';
+import { ProductTableColumnStatus } from './status';
 import { ProductTableColumnStock } from './stock';
+
+const categoryFilterFn: FilterFn<IProduct> = (row, _columnId, value) =>
+  row.original.categories.some((category) => category.id === value);
+
+const statusFilterFn: FilterFn<IProduct> = (row, _columnId, value) =>
+  deriveProductStatus(row.original) === value;
 
 export const columnsProductListTable: ColumnDef<IProduct>[] = [
   {
-    accessorKey: 'allImages',
-    minSize: 80,
-    header: 'Imagens',
+    id: 'expander',
+    header: '',
     enableGlobalFilter: false,
     enableResizing: false,
-    cell: ({ row }) => (
-      <ProductTableColumnImages images={row.original.allImages} />
-    )
+    enableHiding: false,
+    enableSorting: false,
+    size: 48,
+    cell: ({ row }) =>
+      row.original.hasVariants && row.original.variants.length > 0 ? (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-muted-foreground"
+          aria-label={
+            row.getIsExpanded() ? 'Recolher variações' : 'Expandir variações'
+          }
+          aria-expanded={row.getIsExpanded()}
+          onClick={() => row.toggleExpanded()}
+        >
+          <ChevronRight
+            className={cn(
+              'h-4 w-4 transition-transform',
+              row.getIsExpanded() && 'rotate-90'
+            )}
+          />
+        </Button>
+      ) : null
   },
   {
-    accessorKey: 'name',
-    minSize: 250,
+    id: 'product',
+    accessorFn: (row) => `${row.name} ${row.sku}`,
+    minSize: 280,
     header: ({ column }) => (
-      <DataTableHeaderSortableColumn column={column} title="Nome" />
+      <DataTableHeaderSortableColumn
+        className="text-sidebar-foreground"
+        column={column}
+        title="Produto"
+      />
     ),
-    cell: ({ row }) => <p className="font-normal">{row.original.name}</p>,
+    cell: ({ row }) => <ProductTableColumnProduct product={row.original} />,
     meta: {
-      nameInFilters: 'Nome'
+      nameInFilters: 'Produto'
     }
   },
   {
-    accessorKey: 'sku',
-    header: 'SKU',
-    size: 200,
-    enableResizing: false,
-    cell: ({ row }) => <p className="text-green-700">{row.original.sku}</p>
-  },
-  {
-    accessorKey: 'category',
-    header: 'Categoria',
+    id: 'category',
+    accessorFn: (row) => row.categories.map((category) => category.id),
+    header: 'Categorias',
     enableGlobalFilter: false,
-    size: 150,
+    enableSorting: false,
     enableResizing: false,
+    minSize: 280,
+    filterFn: categoryFilterFn,
     cell: ({ row }) => (
-      <div>
-        {row.original.categories.map((category) => {
-          return (
-            <Badge
-              key={category.id}
-              className="bg-green-200 text-green-950 font-bold rounded-sm h-7"
-            >
-              {category.name}
-            </Badge>
-          );
-        })}
+      <div className="flex flex-wrap gap-1">
+        {row.original.categories.map((category) => (
+          <Badge
+            key={category.id}
+            variant="secondary"
+            className="rounded-md font-normal"
+          >
+            {category.name}
+          </Badge>
+        ))}
       </div>
     )
   },
   {
     accessorKey: 'stock',
     enableGlobalFilter: false,
+    enableSorting: false,
     header: 'Estoque',
-    minSize: 100,
+    minSize: 150,
     enableResizing: false,
     cell: ({ row }) => {
       const product = row.original;
@@ -86,32 +116,30 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     }
   },
   {
-    accessorKey: 'hasVariants',
+    id: 'status',
+    accessorFn: (row) => deriveProductStatus(row),
+    header: 'Status',
     enableGlobalFilter: false,
-    header: 'Variantes',
+    enableSorting: false,
     enableResizing: false,
-    enableHiding: false,
     minSize: 150,
-    cell: ({ row }) =>
-      row.original.variants &&
-      row.original.variants.length > 0 && (
-        <section className="flex w-full ">
-          <Button
-            variant={'outline'}
-            size={'icon-sm'}
-            onClick={() => row.toggleExpanded()}
-          >
-            {row.getIsExpanded() ? '-' : '+'}
-          </Button>
-        </section>
-      )
+    filterFn: statusFilterFn,
+    cell: ({ row }) => (
+      <ProductTableColumnStatus isActive={row.original.isActive} />
+    )
   },
   {
-    accessorKey: 'actions',
-    header: '',
-    minSize: 100,
+    id: 'actions',
+    header: () => (
+      <div className="text-sidebar-foreground w-full flex justify-center">
+        Ações
+      </div>
+    ),
+    minSize: 80,
+    enableGlobalFilter: false,
     enableResizing: false,
     enableHiding: false,
+    enableSorting: false,
     cell: (cell) => (
       <ProductTableColumnActions productId={cell.row.original.id || ''} />
     )

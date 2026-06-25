@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import {
   ArrowLeftRight,
-  Ellipsis,
+  EllipsisVertical,
   Eye,
   GalleryVerticalEnd,
   SquarePen
@@ -14,7 +14,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
 
@@ -30,15 +29,16 @@ export function ProductTableColumnActions({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label="Abrir menu de ações do produto"
+            className="text-sidebar-foreground"
           >
-            <Ellipsis className="h-4 w-4" />
+            <EllipsisVertical className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="center">
           <DropdownMenuItem asChild>
             <ActionButton
               asChild
@@ -67,8 +67,6 @@ export function ProductTableColumnActions({
             </ActionButton>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem asChild>
             <ActionButton
               asChild
@@ -78,7 +76,7 @@ export function ProductTableColumnActions({
             >
               <Link to={`/movements?productId=${productId}`}>
                 <GalleryVerticalEnd className="h-4 w-4" />
-                Ver histórico
+                Histórico de movimentação
               </Link>
             </ActionButton>
           </DropdownMenuItem>

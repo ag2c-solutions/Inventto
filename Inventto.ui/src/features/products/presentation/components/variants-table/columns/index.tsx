@@ -1,108 +1,88 @@
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 
-import { Badge } from '@/shared/components/ui/badge';
-
 import type { IProduct, IProductVariant } from '../../../../domain/entities';
 import { getVariantImages } from '../../../utils/get-variant-images';
 import { ProductTableColumnImages } from '../../product-table/columns/images';
 import { ProductTableColumnStock } from '../../product-table/columns/stock';
 import { VariantOptionBadge } from '../../variants-options-badge';
 
+/**
+ * Colunas da sub-row de variantes. Os `id`s espelham os da tabela-mãe
+ * (`columnsProductListTable`) porque o `NestedDataTable` só renderiza as
+ * células cujo `column.id` está visível na tabela-mãe.
+ */
 export const productVariantsTableColumns: ColumnDef<IProductVariant>[] = [
   {
-    id: 'allImages',
-    accessorKey: 'images',
-    minSize: 80,
-    header: 'Imagens',
-    cell: (cell) => {
+    id: 'expander',
+    header: '',
+    enableResizing: false,
+    cell: () => null
+  },
+  {
+    id: 'product',
+    header: 'Variante',
+    cell: (cellContext: CellContext<IProductVariant, unknown>) => {
+      const parent = cellContext.table.options.meta?.parentData as IProduct;
+
       const variantImagesId = new Set(
-        cell.row.original.images.map((img) => img.id)
+        cellContext.row.original.images.map((img) => img.id)
       );
-      const primaryImageVariantId = cell.row.original.images.find(
+      const primaryImageVariantId = cellContext.row.original.images.find(
         (image) => image.isPrimary === true
       )?.id;
 
-      const allImages = (cell.table?.options?.meta?.parentData as IProduct)
-        .allImages;
-
       const variantImages = getVariantImages({
-        allImages,
+        allImages: parent?.allImages ?? [],
         variantImagesId,
         primaryImageVariantId
       });
 
-      return <ProductTableColumnImages images={variantImages} />;
-    }
-  },
-  {
-    accessorKey: 'name',
-    header: 'Nome',
-    size: 250,
-    cell: (cellContext: CellContext<IProductVariant, unknown>) => {
-      const parent = cellContext.table.options.meta?.parentData as IProduct;
-      return <p className="font-normal"> {parent.name}</p>;
-    }
-  },
-  {
-    accessorKey: 'sku',
-    header: 'SKU',
-    size: 200,
-    cell: ({ row }) => <p className="text-green-700">{row.original.sku}</p>
-  },
-  {
-    accessorKey: 'category',
-    size: 150,
-    header: 'Categoria',
-    cell: (cellContext: CellContext<IProductVariant, unknown>) => {
-      const parent = cellContext.table.options.meta?.parentData as
-        | IProduct
-        | undefined;
-
-      return parent?.categories.map((category) => {
-        return (
-          <Badge
-            key={parent.id + cellContext.row.original.id + category.id}
-            className="bg-green-200 text-green-950 font-bold rounded-sm h-7"
-          >
-            {category.name}
-          </Badge>
-        );
-      });
-    }
-  },
-  {
-    accessorKey: 'stock',
-    header: 'Estoque',
-    size: 100,
-    enableResizing: false,
-    cell: ({ cell }) => {
       return (
-        cell.row.original.stock !== undefined && (
-          <ProductTableColumnStock
-            totalStock={cell.row.original.stock}
-            minimumStock={cell.row.original.minimumStock}
-          />
-        )
+        <div className="flex items-center gap-3 pl-2">
+          <ProductTableColumnImages images={variantImages} />
+          <span className="text-xs text-green-700">
+            {cellContext.row.original.sku}
+          </span>
+        </div>
       );
     }
   },
   {
-    id: 'hasVariants',
-    accessorKey: 'variation',
-    header: 'Variantes',
-    cell: (cell) =>
-      cell.row.original.options.map((option, index) => (
-        <VariantOptionBadge
-          key={`${cell.row.original.id}-${option.name}-${index}`}
-          option={option}
-        />
-      ))
+    id: 'category',
+    header: 'Atributos',
+    cell: (cell) => (
+      <div className="flex flex-wrap gap-1">
+        {cell.row.original.options.map((option, index) => (
+          <VariantOptionBadge
+            key={`${cell.row.original.id}-${option.name}-${index}`}
+            option={option}
+          />
+        ))}
+      </div>
+    )
   },
   {
-    accessorKey: 'actions',
-    header: 'Actions',
+    id: 'stock',
+    accessorKey: 'stock',
+    header: 'Estoque',
     enableResizing: false,
-    size: 250,
-    enableHiding: false
+    cell: ({ cell }) =>
+      cell.row.original.stock !== undefined && (
+        <ProductTableColumnStock
+          totalStock={cell.row.original.stock}
+          minimumStock={cell.row.original.minimumStock}
+        />
+      )
+  },
+  {
+    id: 'status',
+    header: '',
+    cell: () => null
+  },
+  {
+    id: 'actions',
+    header: '',
+    enableResizing: false,
+    cell: () => null
   }
 ];
