@@ -115,11 +115,13 @@ export function ProductTableColumnStock({
         </Button>
       </TooltipTrigger>
 
-      <TooltipContent className="min-w-[200px]">
+      <TooltipContent className="bg-sidebar/70 border border-border rounded-md min-w-[200px]">
         <div className="flex flex-col gap-2 p-1">
           <div className="flex items-center gap-2 border-b pb-2">
             {mainConfig.iconSmall}
-            <span className="font-semibold">Resumo da grade</span>
+            <span className="font-semibold text-sidebar-foreground">
+              Resumo da grade
+            </span>
           </div>
 
           <div className="space-y-1.5">
@@ -152,7 +154,7 @@ export function ProductTableColumnStock({
           </div>
 
           <div className="border-t pt-2 mt-1">
-            <p className="text-[10px] text-muted-foreground text-center">
+            <p className="text-[10px] text-sidebar-foreground font-semibold text-center">
               Total físico: {totalStock} un.
             </p>
           </div>

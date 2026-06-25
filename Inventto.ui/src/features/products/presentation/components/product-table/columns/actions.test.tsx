@@ -81,7 +81,7 @@ describe('ProductTableColumnActions', () => {
     expect(menuItems).toHaveLength(4);
     expect(screen.getByText('Detalhes')).toBeInTheDocument();
     expect(screen.getByText('Editar')).toBeInTheDocument();
-    expect(screen.getByText('Ver histórico')).toBeInTheDocument();
+    expect(screen.getByText('Histórico de movimentação')).toBeInTheDocument();
     expect(screen.getByText('Registrar movimentação')).toBeInTheDocument();
   });
 

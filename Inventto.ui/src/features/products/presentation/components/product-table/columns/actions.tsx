@@ -1,20 +1,19 @@
 import { Link } from 'react-router';
 import {
   ArrowLeftRight,
-  Ellipsis,
+  EllipsisVertical,
   Eye,
   GalleryVerticalEnd,
   SquarePen
 } from 'lucide-react';
 
-import { ActionButton, usePermission } from '@/features/permissions';
+import { ActionButton } from '@/features/permissions';
 
 import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
 
@@ -25,27 +24,21 @@ type ProductTableColumnActionsProps = {
 export function ProductTableColumnActions({
   productId
 }: ProductTableColumnActionsProps) {
-  const { can } = usePermission();
-
-  // Recorte por papel (RF015): Vendedor não vê o menu de ações.
-  if (!can('product:edit')) {
-    return null;
-  }
-
   return (
     <div className="w-full flex justify-center pr-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label="Abrir menu de ações do produto"
+            className="text-sidebar-foreground"
           >
-            <Ellipsis className="h-4 w-4" />
+            <EllipsisVertical className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="center">
           <DropdownMenuItem asChild>
             <ActionButton
               asChild
@@ -74,8 +67,6 @@ export function ProductTableColumnActions({
             </ActionButton>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem asChild>
             <ActionButton
               asChild
@@ -85,7 +76,7 @@ export function ProductTableColumnActions({
             >
               <Link to={`/movements?productId=${productId}`}>
                 <GalleryVerticalEnd className="h-4 w-4" />
-                Ver histórico
+                Histórico de movimentação
               </Link>
             </ActionButton>
           </DropdownMenuItem>

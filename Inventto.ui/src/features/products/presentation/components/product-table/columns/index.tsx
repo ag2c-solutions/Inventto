@@ -34,6 +34,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
         <Button
           variant="ghost"
           size="icon-sm"
+          className="text-muted-foreground"
           aria-label={
             row.getIsExpanded() ? 'Recolher variações' : 'Expandir variações'
           }
@@ -54,7 +55,11 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     accessorFn: (row) => `${row.name} ${row.sku}`,
     minSize: 280,
     header: ({ column }) => (
-      <DataTableHeaderSortableColumn column={column} title="Produto" />
+      <DataTableHeaderSortableColumn
+        className="text-sidebar-foreground"
+        column={column}
+        title="Produto"
+      />
     ),
     cell: ({ row }) => <ProductTableColumnProduct product={row.original} />,
     meta: {
@@ -68,7 +73,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableGlobalFilter: false,
     enableSorting: false,
     enableResizing: false,
-    minSize: 160,
+    minSize: 280,
     filterFn: categoryFilterFn,
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-1">
@@ -89,7 +94,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableGlobalFilter: false,
     enableSorting: false,
     header: 'Estoque',
-    minSize: 100,
+    minSize: 150,
     enableResizing: false,
     cell: ({ row }) => {
       const product = row.original;
@@ -117,7 +122,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableGlobalFilter: false,
     enableSorting: false,
     enableResizing: false,
-    minSize: 120,
+    minSize: 150,
     filterFn: statusFilterFn,
     cell: ({ row }) => (
       <ProductTableColumnStatus isActive={row.original.isActive} />
@@ -125,7 +130,11 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
   },
   {
     id: 'actions',
-    header: '',
+    header: () => (
+      <div className="text-sidebar-foreground w-full flex justify-center">
+        Ações
+      </div>
+    ),
     minSize: 80,
     enableGlobalFilter: false,
     enableResizing: false,

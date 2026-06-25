@@ -19,7 +19,7 @@ export function DataTableHeader() {
               scope="col"
               colSpan={header.colSpan}
               style={{ width: `calc(var(--th-${header.id}-size) * 1px)` }}
-              className="relative group bg-sidebar overflow-hidden "
+              className="text-sidebar-foreground relative group bg-sidebar overflow-hidden "
             >
               {!header.isPlaceholder &&
                 flexRender(header.column.columnDef.header, header.getContext())}
