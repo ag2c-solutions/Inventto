@@ -20,7 +20,12 @@ export function VariantOptionBadge({
       variant="secondary"
       className={cn('flex items-center gap-2 pl-1 pr-1.5 py-1', className)}
     >
-      <span className="text-xs">{`${option.name} ${option.value}`}</span>
+      <p className="flex gap-1">
+        <span className="text-xs text-muted-foreground">
+          {`${option.name}:  `}
+        </span>
+        <span className="text-xs text-foreground">{option.value}</span>
+      </p>
     </Badge>
   );
 }

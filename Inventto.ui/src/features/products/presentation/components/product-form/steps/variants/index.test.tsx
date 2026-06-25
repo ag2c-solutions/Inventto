@@ -99,9 +99,9 @@ describe('ProductVariants', () => {
     const rows = screen.getAllByRole('row');
 
     expect(rows).toHaveLength(3);
-    expect(screen.getAllByText('Cor Azul')).toHaveLength(2);
-    expect(screen.getByText('Tamanho P')).toBeInTheDocument();
-    expect(screen.getByText('Tamanho M')).toBeInTheDocument();
+    expect(screen.getAllByText('Azul')).toHaveLength(2);
+    expect(screen.getByText('P')).toBeInTheDocument();
+    expect(screen.getByText('M')).toBeInTheDocument();
     expect(screen.getByTestId('variant-images-0')).toBeInTheDocument();
     expect(screen.getByTestId('variant-images-1')).toBeInTheDocument();
   });

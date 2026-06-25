@@ -12,22 +12,12 @@ import {
 } from '@/shared/components/ui/tooltip';
 import { cn } from '@/shared/utils';
 
-import type {
-  IProductVariant,
-  ProductStockStatus
-} from '../../../../domain/entities';
+import type { IProductVariant } from '../../../../domain/entities';
 import { getGradeStockConsolidation } from '../../../../domain/utils/get-grade-stock-consolidation';
 import { getStockStatus } from '../../../../domain/utils/get-stock-status';
 import { getStockSummaryStatus } from '../../../../domain/utils/get-stock-summary-status';
+import { LEGEND_ORDER } from '../../../constants/legend-order';
 import { STOCK_STATUS_CONFIG } from '../../../constants/status-config';
-
-/** Ordem de exibição do resumo da grade (saudável → zerado). */
-const GRADE_SUMMARY_ORDER: ProductStockStatus[] = [
-  'healthy',
-  'warning',
-  'critical',
-  'zeroed'
-];
 
 type ProductTableColumnStockProps = {
   totalStock: number;
@@ -104,7 +94,7 @@ export function ProductTableColumnStock({
           <p className="text-sm font-semibold">Resumo da grade</p>
 
           <div className="flex flex-col gap-1.5">
-            {GRADE_SUMMARY_ORDER.filter((status) => summary[status] > 0).map(
+            {LEGEND_ORDER.filter((status) => summary[status] > 0).map(
               (status) => {
                 const config = STOCK_STATUS_CONFIG[status];
 

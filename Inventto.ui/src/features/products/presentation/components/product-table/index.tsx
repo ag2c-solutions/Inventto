@@ -26,7 +26,7 @@ import {
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';
 import { useProductsQuery } from '../../hooks/use-queries';
-import { ProductVariantsSubRow } from '../variants-table/sub-row';
+import { ProductVariantsCard } from '../variants-card';
 
 import { columnsProductListTable } from './columns';
 import { ProductListTableLoading } from './loading';
@@ -79,7 +79,12 @@ export function ProductListTable() {
       return null;
     }
 
-    return <ProductVariantsSubRow variants={row.original.variants ?? []} />;
+    return (
+      <ProductVariantsCard
+        variants={row.original.variants ?? []}
+        productImages={row.original.allImages}
+      />
+    );
   }, []);
 
   const getRowClassName = useCallback(
