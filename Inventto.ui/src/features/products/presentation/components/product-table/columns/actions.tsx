@@ -7,7 +7,7 @@ import {
   SquarePen
 } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
+import { ActionButton, usePermission } from '@/features/permissions';
 
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -25,6 +25,13 @@ type ProductTableColumnActionsProps = {
 export function ProductTableColumnActions({
   productId
 }: ProductTableColumnActionsProps) {
+  const { can } = usePermission();
+
+  // Recorte por papel (RF015): Vendedor não vê o menu de ações.
+  if (!can('product:edit')) {
+    return null;
+  }
+
   return (
     <div className="w-full flex justify-center pr-4">
       <DropdownMenu>

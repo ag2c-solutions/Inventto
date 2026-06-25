@@ -104,7 +104,7 @@ describe('ProductListTable (Integration)', () => {
     expect(screen.getByText('Calçados')).toBeInTheDocument();
   });
 
-  it('should display "Nenhum produto foi encontrado." message when the list is empty', () => {
+  it('should display the onboarding empty-state when there are no products', () => {
     vi.mocked(useProductsQuery).mockReturnValue({
       data: [],
       isLoading: false,
@@ -115,7 +115,10 @@ describe('ProductListTable (Integration)', () => {
     renderWithProviders(<ProductListTable />);
 
     expect(
-      screen.getByText('Nenhum produto foi encontrado.')
+      screen.getByText('Comece cadastrando seu primeiro produto.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /Cadastrar produto/i })
     ).toBeInTheDocument();
   });
 
@@ -142,15 +145,19 @@ describe('ProductListTable (Integration)', () => {
     renderWithProviders(<ProductListTable />);
 
     expect(
-      screen.getByRole('columnheader', { name: /Nome/i })
+      screen.getByRole('columnheader', { name: /Produto/i })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole('columnheader', { name: /Categoria/i })
+      screen.getByRole('columnheader', { name: /Categorias/i })
     ).toBeInTheDocument();
 
     expect(
       screen.getByRole('columnheader', { name: /Estoque/i })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('columnheader', { name: /Status/i })
     ).toBeInTheDocument();
   });
 
@@ -168,11 +175,47 @@ describe('ProductListTable (Integration)', () => {
 
     const row = screen.getByRole('row', { name: /Tênis Esportivo/i });
 
-    const expandButton = within(row).getByRole('button', { name: '+' });
+    const expandButton = within(row).getByRole('button', {
+      name: /Expandir variações/i
+    });
 
     await user.click(expandButton);
 
     expect(screen.getByText('SNEAKER-X-40')).toBeInTheDocument();
     expect(screen.getByText('SNEAKER-X-41')).toBeInTheDocument();
+  });
+
+  it('should show the "Nada encontrado" message when the search has no match', async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(useProductsQuery).mockReturnValue({
+      data: mockProducts,
+      isLoading: false,
+      isError: false,
+      error: null
+    } as never);
+
+    renderWithProviders(<ProductListTable />);
+
+    const search = screen.getByPlaceholderText('Buscar por nome ou SKU');
+
+    await user.type(search, 'guarda-chuva');
+
+    expect(
+      await screen.findByText("Nada encontrado para 'guarda-chuva'.")
+    ).toBeInTheDocument();
+  });
+
+  it('should render an inactive product with the "Inativo" badge', () => {
+    vi.mocked(useProductsQuery).mockReturnValue({
+      data: [{ ...mockProducts[0], isActive: false }],
+      isLoading: false,
+      isError: false,
+      error: null
+    } as never);
+
+    renderWithProviders(<ProductListTable />);
+
+    expect(screen.getByText('Inativo')).toBeInTheDocument();
   });
 });
