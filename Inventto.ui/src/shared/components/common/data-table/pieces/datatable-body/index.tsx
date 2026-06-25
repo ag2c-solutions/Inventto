@@ -22,13 +22,10 @@ export function DataTableBody() {
               ))}
             </TableRow>
             {renderSubRow && row.getIsExpanded() && (
-              <TableRow
-                key={row.id}
-                className="bg-[#f0f8f0] p-0  hover:bg-[#f0f8f0]"
-              >
+              <TableRow key={row.id} className="bg-sidebar">
                 <TableCell
                   colSpan={row.getVisibleCells().length}
-                  className="px-0"
+                  className="px-0 bg-sidebar"
                 >
                   {renderSubRow(row, index)}
                 </TableCell>

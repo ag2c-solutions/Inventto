@@ -22,8 +22,10 @@ export const ProductTableColumnImages = memo(
     if (!images.length) {
       return (
         <div className="w-32">
-          <Avatar>
-            <AvatarFallback>IMG</AvatarFallback>
+          <Avatar className="h-11 w-11 rounded-md bg-sidebar">
+            <AvatarFallback className="bg-sidebar text-foreground">
+              IMG
+            </AvatarFallback>
           </Avatar>
         </div>
       );
@@ -32,7 +34,10 @@ export const ProductTableColumnImages = memo(
     return (
       <div className="*:data-[slot=avatar]:ring-background w-32 flex -space-x-2 *:data-[slot=avatar]:ring-2">
         {visibleImages.map((image) => (
-          <Avatar key={image.id}>
+          <Avatar
+            key={image.id}
+            className="h-11 w-11 rounded-md bg-sidebar border border-border"
+          >
             <AvatarImage
               src={getImageSrc(image, 150)}
               alt={image.name}

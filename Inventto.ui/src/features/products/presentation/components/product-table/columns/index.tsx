@@ -98,17 +98,10 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableResizing: false,
     cell: ({ row }) => {
       const product = row.original;
-      const calculatedTotalStock =
-        product.hasVariants && product.variants
-          ? product.variants.reduce(
-              (acc, variant) => acc + (variant.stock || 0),
-              0
-            )
-          : (product.stock ?? 0);
 
       return (
         <ProductTableColumnStock
-          totalStock={calculatedTotalStock}
+          totalStock={product.stock ?? 0}
           minimumStock={product.minimumStock}
           variants={product.variants}
         />

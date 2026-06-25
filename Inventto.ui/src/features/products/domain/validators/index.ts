@@ -5,6 +5,7 @@ const requiredString = (message: string) => z.string().trim().min(1, message);
 const optionalString = z.string().trim().optional().nullable();
 
 export const productStockStatusSchema = z.enum([
+  'zeroed',
   'critical',
   'warning',
   'healthy'

@@ -20,14 +20,13 @@ import {
   DataTableContent,
   DataTableSelectFilter,
   DataTableTextFilter,
-  NestedDataTable,
   PaginationControllers
 } from '@/shared/components/common/data-table';
 
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';
 import { useProductsQuery } from '../../hooks/use-queries';
-import { productVariantsTableColumns } from '../variants-table/columns';
+import { ProductVariantsCard } from '../variants-card';
 
 import { columnsProductListTable } from './columns';
 import { ProductListTableLoading } from './loading';
@@ -81,11 +80,9 @@ export function ProductListTable() {
     }
 
     return (
-      <NestedDataTable
-        key={`table-variants-${row.original.id}`}
-        data={row.original.variants ?? []}
-        columns={productVariantsTableColumns}
-        parentData={row.original}
+      <ProductVariantsCard
+        variants={row.original.variants ?? []}
+        productImages={row.original.allImages}
       />
     );
   }, []);
