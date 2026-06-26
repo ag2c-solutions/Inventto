@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
+
 import type { IProductImage } from '../../../../../../domain/entities';
 import type { ProductFormProviderProps } from '../../../hook';
 import { useProductForm } from '../../../hook';
@@ -11,23 +12,39 @@ import { mockFormData, renderWithProductProvider } from '../../../mocks';
 
 import { ProductFormFieldImages } from '.';
 
+type MockContextReturn = [
+  { files: FileWithPreview[]; errors: string[] },
+  {
+    addFiles: ReturnType<typeof vi.fn>;
+    removeFile: ReturnType<typeof vi.fn>;
+    setPrimaryFile: ReturnType<typeof vi.fn>;
+    clearFiles: ReturnType<typeof vi.fn>;
+    clearErrors: ReturnType<typeof vi.fn>;
+    handleFileChange: ReturnType<typeof vi.fn>;
+    openFileDialog: ReturnType<typeof vi.fn>;
+    getInputProps: ReturnType<typeof vi.fn>;
+  }
+];
+
+const makeContextMock = (files: FileWithPreview[] = []): MockContextReturn => [
+  { files, errors: [] },
+  {
+    addFiles: vi.fn(),
+    removeFile: vi.fn(),
+    setPrimaryFile: vi.fn(),
+    clearFiles: vi.fn(),
+    clearErrors: vi.fn(),
+    handleFileChange: vi.fn(),
+    openFileDialog: vi.fn(),
+    getInputProps: vi.fn(() => ({ type: 'file', ref: null }))
+  }
+];
+
 const mocks = vi.hoisted(() => ({
   FilePicker: vi.fn((props) => (
     <div data-testid="mock-file-picker">{props.children}</div>
   )),
-  useFilePickerContext: vi.fn(() => [
-    { files: [], errors: [] },
-    {
-      addFiles: vi.fn(),
-      removeFile: vi.fn(),
-      setPrimaryFile: vi.fn(),
-      clearFiles: vi.fn(),
-      clearErrors: vi.fn(),
-      handleFileChange: vi.fn(),
-      openFileDialog: vi.fn(),
-      getInputProps: vi.fn(() => ({ type: 'file', ref: null }))
-    }
-  ]),
+  useFilePickerContext: vi.fn(),
   useDropzone: vi.fn(() => ({
     isDragging: false,
     dropzoneProps: {
@@ -38,6 +55,7 @@ const mocks = vi.hoisted(() => ({
     }
   }))
 }));
+
 
 vi.mock('@/shared/components/common/file-picker', () => ({
   FilePicker: mocks.FilePicker,
@@ -78,20 +96,7 @@ const mockImages: FileWithPreview[] = [
 describe('ProductFormFieldImages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default: no files
-    mocks.useFilePickerContext.mockReturnValue([
-      { files: [], errors: [] },
-      {
-        addFiles: vi.fn(),
-        removeFile: vi.fn(),
-        setPrimaryFile: vi.fn(),
-        clearFiles: vi.fn(),
-        clearErrors: vi.fn(),
-        handleFileChange: vi.fn(),
-        openFileDialog: vi.fn(),
-        getInputProps: vi.fn(() => ({ type: 'file', ref: null }))
-      }
-    ]);
+    mocks.useFilePickerContext.mockReturnValue(makeContextMock());
   });
 
   it('should render the FilePicker with the correct props', () => {
@@ -127,19 +132,7 @@ describe('ProductFormFieldImages', () => {
   });
 
   it('should render image cards when there are images (without variants)', () => {
-    mocks.useFilePickerContext.mockReturnValue([
-      { files: mockImages, errors: [] },
-      {
-        addFiles: vi.fn(),
-        removeFile: vi.fn(),
-        setPrimaryFile: vi.fn(),
-        clearFiles: vi.fn(),
-        clearErrors: vi.fn(),
-        handleFileChange: vi.fn(),
-        openFileDialog: vi.fn(),
-        getInputProps: vi.fn()
-      }
-    ]);
+    mocks.useFilePickerContext.mockReturnValue(makeContextMock(mockImages));
 
     renderWithProductProvider(<ProductFormFieldImages />, {
       providerProps: {
@@ -163,19 +156,7 @@ describe('ProductFormFieldImages', () => {
   });
 
   it('should render simple cards without action buttons when product has variants', () => {
-    mocks.useFilePickerContext.mockReturnValue([
-      { files: mockImages, errors: [] },
-      {
-        addFiles: vi.fn(),
-        removeFile: vi.fn(),
-        setPrimaryFile: vi.fn(),
-        clearFiles: vi.fn(),
-        clearErrors: vi.fn(),
-        handleFileChange: vi.fn(),
-        openFileDialog: vi.fn(),
-        getInputProps: vi.fn()
-      }
-    ]);
+    mocks.useFilePickerContext.mockReturnValue(makeContextMock(mockImages));
 
     renderWithProductProvider(<ProductFormFieldImages />, {
       providerProps: {
@@ -203,19 +184,9 @@ describe('ProductFormFieldImages', () => {
     const mockSetPrimary = vi.fn();
     const user = userEvent.setup();
 
-    mocks.useFilePickerContext.mockReturnValue([
-      { files: mockImages, errors: [] },
-      {
-        addFiles: vi.fn(),
-        removeFile: vi.fn(),
-        setPrimaryFile: mockSetPrimary,
-        clearFiles: vi.fn(),
-        clearErrors: vi.fn(),
-        handleFileChange: vi.fn(),
-        openFileDialog: vi.fn(),
-        getInputProps: vi.fn()
-      }
-    ]);
+    const ctx = makeContextMock(mockImages);
+    ctx[1].setPrimaryFile = mockSetPrimary;
+    mocks.useFilePickerContext.mockReturnValue(ctx);
 
     renderWithProductProvider(<ProductFormFieldImages />, {
       providerProps: {
@@ -231,19 +202,9 @@ describe('ProductFormFieldImages', () => {
     const mockRemove = vi.fn();
     const user = userEvent.setup();
 
-    mocks.useFilePickerContext.mockReturnValue([
-      { files: mockImages, errors: [] },
-      {
-        addFiles: vi.fn(),
-        removeFile: mockRemove,
-        setPrimaryFile: vi.fn(),
-        clearFiles: vi.fn(),
-        clearErrors: vi.fn(),
-        handleFileChange: vi.fn(),
-        openFileDialog: vi.fn(),
-        getInputProps: vi.fn()
-      }
-    ]);
+    const ctx = makeContextMock(mockImages);
+    ctx[1].removeFile = mockRemove;
+    mocks.useFilePickerContext.mockReturnValue(ctx);
 
     renderWithProductProvider(<ProductFormFieldImages />, {
       providerProps: {
