@@ -65,6 +65,28 @@ export class ProductService {
     return ProductAPI.update(validProduct);
   }
 
+  static async checkHasMovements(productId?: string): Promise<boolean> {
+    if (!productId?.trim()) {
+      return false;
+    }
+
+    return ProductAPI.checkHasMovements(productId);
+  }
+
+  static async changeStatus(
+    productId: string,
+    isActive: boolean,
+    organization: Organization | null
+  ): Promise<void> {
+    if (!productId?.trim()) {
+      throw new Error('Produto não informado.');
+    }
+
+    const organizationId = getOrganizationId(organization);
+
+    return ProductAPI.setProductActive(productId, organizationId, isActive);
+  }
+
   private static validateCreateProduct(product: CreateProduct): CreateProduct {
     const result = createProductSchema.safeParse(product);
 

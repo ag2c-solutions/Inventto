@@ -63,3 +63,12 @@ export function useGlobalAttributesQuery() {
     refetchOnMount: false
   });
 }
+
+export function useProductMovementsQuery(productId?: string) {
+  return useQuery({
+    queryKey: PRODUCTS_KEYS.detail(productId).concat(['movements']),
+    queryFn: () => ProductService.checkHasMovements(productId),
+    enabled: !!productId,
+    staleTime: 1000 * 60 * 5
+  });
+}

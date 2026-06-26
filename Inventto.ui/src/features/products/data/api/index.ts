@@ -142,4 +142,39 @@ export class ProductAPI {
       handleProductError(error, 'update');
     }
   }
+
+  static async checkHasMovements(productId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.rpc(
+        'check_product_has_movements',
+        {
+          p_product_id: productId
+        }
+      );
+
+      if (error) throw error;
+
+      return Boolean(data);
+    } catch (error) {
+      handleProductError(error, 'checkHasMovements');
+    }
+  }
+
+  static async setProductActive(
+    productId: string,
+    organizationId: string,
+    isActive: boolean
+  ): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('set_product_active', {
+        p_product_id: productId,
+        p_organization_id: organizationId,
+        p_is_active: isActive
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      handleProductError(error, 'setProductActive');
+    }
+  }
 }

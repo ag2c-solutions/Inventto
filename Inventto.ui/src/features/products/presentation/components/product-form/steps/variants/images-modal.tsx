@@ -181,7 +181,6 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
       </DialogHeader>
 
       <div className="space-y-4">
-        {/* Image pool grid */}
         <div className="grid max-h-96 grid-cols-3 gap-3 overflow-y-auto rounded-xl border p-4 md:grid-cols-5">
           {availableImages.map((image) => {
             const isSelected = selectedImages.some(
@@ -222,7 +221,6 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
           )}
         </div>
 
-        {/* Replication section */}
         <div className="rounded-xl border p-4 space-y-4">
           <div className="flex items-center gap-3">
             <Checkbox
@@ -260,7 +258,9 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
                     htmlFor={option.id}
                     className="flex items-center gap-2 cursor-pointer text-sm"
                   >
-                    <span className="text-muted-foreground">{option.label}</span>
+                    <span className="text-muted-foreground">
+                      {option.label}
+                    </span>
                     <VariantOptionBadge option={option.values} />
                   </Label>
                 </div>

@@ -14,7 +14,7 @@ import { useProductForm } from '../../hook';
 import { ProductFormFieldVariantImages } from './field-variant-images';
 
 export function ProductVariants() {
-  const { form, mode } = useProductForm();
+  const { form, mode, hasMovements } = useProductForm();
 
   const { fields } = useFieldArray({
     control: form.control,
@@ -73,7 +73,7 @@ export function ProductVariants() {
                       <Input
                         className="font-mono"
                         placeholder="SKU da variação"
-                        disabled={mode !== 'Create'}
+                        disabled={mode === 'Edit' && hasMovements}
                         {...field}
                       />
                     </FormControl>

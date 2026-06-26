@@ -53,3 +53,26 @@ export function useUpdateProductMutation() {
     }
   });
 }
+
+export function useChangeProductStatusMutation() {
+  const queryClient = useQueryClient();
+  const { currentOrganization } = useUser();
+
+  return useMutation<void, Error, { productId: string; isActive: boolean }>({
+    mutationKey: ['products', 'change-status'],
+    meta: {
+      successMessage: 'Status do produto atualizado com sucesso!'
+    },
+    mutationFn: ({ productId, isActive }) =>
+      ProductService.changeStatus(productId, isActive, currentOrganization),
+    onSuccess: (_, { productId }) => {
+      queryClient.invalidateQueries({
+        queryKey: PRODUCTS_KEYS.all
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: PRODUCTS_KEYS.detail(productId)
+      });
+    }
+  });
+}

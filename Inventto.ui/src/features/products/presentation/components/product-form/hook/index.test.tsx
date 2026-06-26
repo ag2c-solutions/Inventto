@@ -46,6 +46,9 @@ vi.mock('../../../hooks/use-queries', () => ({
     data: undefined,
     isFetching: false,
     isError: false
+  }),
+  useProductMovementsQuery: () => ({
+    data: false
   })
 }));
 

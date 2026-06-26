@@ -193,9 +193,7 @@ describe('ImagesModal', () => {
 
     await user.click(checkbox);
 
-    const radioOption = screen.getByLabelText(
-      /Todas as variações:.*Azul/i
-    );
+    const radioOption = screen.getByLabelText(/Todas as variações:.*Azul/i);
 
     await user.click(radioOption);
     await user.click(
