@@ -147,21 +147,31 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
   const confirmDisabled =
     selectedImages.length === 0 || (enableReplication && !replicationOption);
 
+  const selectionCount = selectedImages.length;
+  const selectionLabel =
+    selectionCount === 1
+      ? `${selectionCount} imagem`
+      : `${selectionCount} imagens`;
+
   return (
     <DialogContent className="max-w-3xl">
       <DialogHeader>
         <DialogTitle>Associar imagens à variação</DialogTitle>
 
-        <DialogDescription>
-          Selecione uma ou mais imagens da galeria de {productName || 'produto'}
-          .
+        <DialogDescription asChild>
+          <span>
+            Selecione uma ou mais imagens da galeria de{' '}
+            <strong className="text-foreground font-semibold">
+              {productName || 'produto'}
+            </strong>
+            .
+          </span>
         </DialogDescription>
 
         {currentVariant?.options?.length ? (
-          <div className="flex gap-2 pt-2 flex-wrap">
+          <div className="flex gap-2 pt-1 flex-wrap">
             {currentVariant.options.map((option) => (
               <VariantOptionBadge
-                className="bg-primary/20"
                 key={`${option.name}-${option.value}`}
                 option={option}
               />
@@ -170,8 +180,9 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
         ) : null}
       </DialogHeader>
 
-      <div className="space-y-6">
-        <div className="grid max-h-96 grid-cols-3 gap-4 overflow-y-auto rounded-md border p-4 md:grid-cols-5">
+      <div className="space-y-4">
+        {/* Image pool grid */}
+        <div className="grid max-h-96 grid-cols-3 gap-3 overflow-y-auto rounded-xl border p-4 md:grid-cols-5">
           {availableImages.map((image) => {
             const isSelected = selectedImages.some(
               (selectedImage) => selectedImage.id === image.id
@@ -183,8 +194,10 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
                 type="button"
                 onClick={() => handleToggleImage(image)}
                 className={cn(
-                  'relative aspect-square cursor-pointer overflow-hidden rounded-md border-2',
-                  isSelected ? 'border-primary' : 'border-transparent'
+                  'relative aspect-square cursor-pointer overflow-hidden rounded-xl border-2 transition-colors',
+                  isSelected
+                    ? 'border-foreground'
+                    : 'border-transparent hover:border-muted-foreground/30'
                 )}
                 aria-pressed={isSelected}
                 aria-label={`Selecionar imagem ${image.name}`}
@@ -192,8 +205,10 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
                 <ImageCard src={getImageSrc(image, 150)} alt={image.name} />
 
                 {isSelected && (
-                  <div className="absolute inset-0 bg-black/50 p-1.5 text-white">
-                    <Check className="absolute left-1.5 top-1.5 h-5 w-5 rounded-full bg-primary p-0.5" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-foreground text-background shadow-md">
+                      <Check className="size-4" strokeWidth={3} />
+                    </div>
                   </div>
                 )}
               </button>
@@ -201,38 +216,34 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
           })}
 
           {availableImages.length === 0 && (
-            <p className="col-span-full text-center text-muted-foreground">
+            <p className="col-span-full py-4 text-center text-sm text-muted-foreground">
               Todas as imagens já foram associadas a esta variante.
             </p>
           )}
         </div>
 
-        <div className="space-y-4 rounded-md border p-4">
-          <div className="flex items-center space-x-2">
+        {/* Replication section */}
+        <div className="rounded-xl border p-4 space-y-4">
+          <div className="flex items-center gap-3">
             <Checkbox
               id="replicate-check"
               checked={enableReplication}
               onCheckedChange={(checked) => {
                 const enabled = Boolean(checked);
-
                 setEnableReplication(enabled);
-
-                if (!enabled) {
-                  setReplicationOption('');
-                }
+                if (!enabled) setReplicationOption('');
               }}
               disabled={selectedImages.length === 0}
             />
-
             <Label
               htmlFor="replicate-check"
               className={cn(
-                'font-medium',
-                selectedImages.length === 0 && 'text-muted-foreground'
+                'text-sm cursor-pointer',
+                selectedImages.length === 0 &&
+                  'text-muted-foreground cursor-not-allowed'
               )}
             >
-              Replicar esta seleção ({selectedImages.length}{' '}
-              {selectedImages.length === 1 ? 'imagem' : 'imagens'}) para:
+              Replicar esta seleção ({selectionLabel}) para:
             </Label>
           </div>
 
@@ -240,17 +251,16 @@ export function ImagesModal({ variantIndex }: ImagesModalProps) {
             <RadioGroup
               value={replicationOption}
               onValueChange={setReplicationOption}
-              className="pl-6"
+              className="pl-7 space-y-3"
             >
               {replicationOptions.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2">
+                <div key={option.id} className="flex items-center gap-3">
                   <RadioGroupItem value={option.id} id={option.id} />
-
                   <Label
                     htmlFor={option.id}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 cursor-pointer text-sm"
                   >
-                    {option.label}
+                    <span className="text-muted-foreground">{option.label}</span>
                     <VariantOptionBadge option={option.values} />
                   </Label>
                 </div>

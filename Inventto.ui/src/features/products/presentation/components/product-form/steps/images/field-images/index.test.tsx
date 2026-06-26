@@ -56,7 +56,6 @@ const mocks = vi.hoisted(() => ({
   }))
 }));
 
-
 vi.mock('@/shared/components/common/file-picker', () => ({
   FilePicker: mocks.FilePicker,
   FilePickerInput: () => <input data-testid="fp-input" type="file" />
