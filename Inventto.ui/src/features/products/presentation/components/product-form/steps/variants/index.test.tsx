@@ -20,6 +20,14 @@ vi.mock('./field-variant-images', () => ({
   )
 }));
 
+vi.mock('../../../../hooks/use-queries', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useProductMovementsQuery: vi.fn(() => ({ data: true }))
+  };
+});
+
 const mockVariants: IProductVariant[] = [
   {
     id: '1',
@@ -122,7 +130,7 @@ describe('ProductVariants', () => {
     expect(stockInputs[0]).toHaveValue(99);
   });
 
-  it('must disable SKU editing in "Edit" mode.', () => {
+  it('must disable SKU editing in "Edit" mode if hasMovements.', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       mode: 'Edit' as const,
       // @ts-expect-error product is incomplete

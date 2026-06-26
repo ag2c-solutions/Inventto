@@ -13,7 +13,10 @@ import {
   useCreateProductMutation,
   useUpdateProductMutation
 } from '../../../hooks/use-mutations';
-import { useSkuAvailabilityQuery } from '../../../hooks/use-queries';
+import {
+  useProductMovementsQuery,
+  useSkuAvailabilityQuery
+} from '../../../hooks/use-queries';
 import { toCreateProductInput } from '../adapters/to-create-product-input';
 import { toUpdateProductInput } from '../adapters/to-update-product-input';
 import { type ProductFormData, productSchema } from '../schema';
@@ -43,6 +46,7 @@ type TProductFormContext = {
   handleNameChange: (name: string) => void;
   handleVariantSwitch: (checked: boolean) => void;
   handleNextStep: (step: WizardStep) => Promise<boolean>;
+  hasMovements: boolean;
 };
 
 const ProductFormContext = createContext<TProductFormContext | null>(null);
@@ -96,6 +100,10 @@ export function ProductFormProvider({
     excludeProductId: product?.id,
     enabled: skuCheckEnabled
   });
+
+  const { data: hasMovements = false } = useProductMovementsQuery(
+    mode === 'Edit' ? product?.id : undefined
+  );
 
   const skuAvailabilityStatus: SkuAvailabilityStatus = useMemo(() => {
     if (!skuCheckEnabled) return 'idle';
@@ -213,6 +221,7 @@ export function ProductFormProvider({
     handleNameChange,
     handleNextStep,
     skuAvailabilityStatus,
+    hasMovements,
     mode,
     product
   };

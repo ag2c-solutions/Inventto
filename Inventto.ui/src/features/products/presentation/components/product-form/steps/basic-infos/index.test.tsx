@@ -13,6 +13,14 @@ vi.mock('./field-category', () => ({
   )
 }));
 
+vi.mock('../../../../hooks/use-queries', async (importOriginal) => {
+  const actual = await importOriginal<any>();
+  return {
+    ...actual,
+    useProductMovementsQuery: vi.fn(() => ({ data: true }))
+  };
+});
+
 describe('ProductBasicInfo', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -56,7 +64,7 @@ describe('ProductBasicInfo', () => {
     expect(descInput).toHaveValue('Uma descrição legal');
   });
 
-  it('must disable Name and SKU in "Edit" mode.', () => {
+  it('must disable Name and SKU (if hasMovements) in "Edit" mode.', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       mode: 'Edit' as const,
       product: {

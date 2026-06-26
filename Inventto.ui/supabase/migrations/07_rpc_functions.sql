@@ -297,12 +297,23 @@ DECLARE
 
   v_attr_label text;
   v_attr_slug text;
+
+  v_old_sku text;
+  v_has_movements BOOLEAN;
 BEGIN
   v_product_id := (product_data->>'id')::UUID;
   v_org_id := (product_data->>'organization_id')::UUID;
 
   IF NOT public.has_role(v_org_id, 'manager') THEN
     RAISE EXCEPTION 'Acesso negado: Permissão insuficiente.';
+  END IF;
+
+  SELECT sku INTO v_old_sku FROM public.products WHERE id = v_product_id AND organization_id = v_org_id;
+  IF v_old_sku IS DISTINCT FROM (product_data->>'sku') THEN
+    v_has_movements := public.check_product_has_movements(v_product_id);
+    IF v_has_movements THEN
+      RAISE EXCEPTION 'SKU não pode ser alterado pois há movimentações registradas para este item.';
+    END IF;
   END IF;
 
   -- Update Produto
@@ -380,6 +391,14 @@ BEGIN
       v_variant_id := (v_variant_data->>'id')::UUID;
       
       IF v_variant_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.product_variants WHERE id = v_variant_id) THEN
+        SELECT sku INTO v_old_sku FROM public.product_variants WHERE id = v_variant_id;
+        IF v_old_sku IS DISTINCT FROM (v_variant_data->>'sku') THEN
+          v_has_movements := public.check_product_has_movements(v_product_id);
+          IF v_has_movements THEN
+            RAISE EXCEPTION 'SKU não pode ser alterado pois há movimentações registradas para este item.';
+          END IF;
+        END IF;
+
         UPDATE public.product_variants
         SET
           sku = v_variant_data->>'sku',
@@ -453,6 +472,49 @@ BEGIN
       AND lower(sku) = lower(btrim(p_sku))
       AND (p_exclude_product_id IS NULL OR id <> p_exclude_product_id)
   );
+END;
+$$;
+
+
+-- ==============================================================================
+-- 4.2. PRODUTOS: CHECK MOVEMENTS (RN044)
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.check_product_has_movements(p_product_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.movement_items WHERE product_id = p_product_id
+  );
+END;
+$$;
+
+-- ==============================================================================
+-- 4.3. PRODUTOS: SET ACTIVE (RN045)
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.set_product_active(
+  p_product_id UUID,
+  p_organization_id UUID,
+  p_is_active BOOLEAN
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.has_role(p_organization_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: Permissão insuficiente.';
+  END IF;
+
+  UPDATE public.products SET is_active = p_is_active, updated_at = NOW()
+  WHERE id = p_product_id AND organization_id = p_organization_id;
+
+  UPDATE public.product_variants SET is_active = p_is_active
+  WHERE product_id = p_product_id AND organization_id = p_organization_id;
 END;
 $$;
 

@@ -9,11 +9,13 @@ import {
 } from '@/features/categories';
 
 import {
+  useChangeProductStatusMutation,
   useCreateProductMutation,
   useUpdateProductMutation
 } from '../../hooks/use-mutations';
 import {
   useProductByIDQuery,
+  useProductMovementsQuery,
   useSkuAvailabilityQuery
 } from '../../hooks/use-queries';
 
@@ -96,6 +98,11 @@ describe('EditProductPage (Integration)', () => {
       error: null
     } as never);
 
+    vi.mocked(useProductMovementsQuery).mockReturnValue({
+      data: false,
+      isLoading: false
+    } as never);
+
     vi.mocked(useCategoriesQuery).mockReturnValue({
       data: [{ id: 'cat1', name: 'Escritório' }],
       isLoading: false,
@@ -108,6 +115,11 @@ describe('EditProductPage (Integration)', () => {
 
     vi.mocked(useCreateProductMutation).mockReturnValue({
       mutateAsync: vi.fn()
+    } as never);
+
+    vi.mocked(useChangeProductStatusMutation).mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false
     } as never);
 
     vi.mocked(useCreateCategoryMutation).mockReturnValue({
@@ -135,10 +147,11 @@ describe('EditProductPage (Integration)', () => {
     renderComponent();
 
     expect(
-      screen.getByRole('heading', { name: /Caneta Luxo/i })
+      screen.getByRole('heading', { name: /Editar produto/i })
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Edite os dados do produto.')).toBeInTheDocument();
+    expect(screen.getByText('Caneta Luxo')).toBeInTheDocument();
+    expect(screen.getByText('SKU: PEN-LUX-01')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('Caneta Luxo')).toBeInTheDocument();

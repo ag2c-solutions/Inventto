@@ -23,7 +23,8 @@ export function ProductBasicInfo() {
     mode,
     handleNameChange,
     handleVariantSwitch,
-    skuAvailabilityStatus
+    skuAvailabilityStatus,
+    hasMovements
   } = useProductForm();
 
   const hasVariants = form.watch('hasVariants');
@@ -72,7 +73,7 @@ export function ProductBasicInfo() {
                     skuAvailabilityStatus === 'duplicate' &&
                       'border-destructive focus-visible:ring-destructive'
                   )}
-                  disabled={mode !== 'Create'}
+                  disabled={mode === 'Edit' && hasMovements}
                   {...field}
                 />
               </FormControl>
@@ -93,6 +94,11 @@ export function ProductBasicInfo() {
               <p className="text-sm font-medium text-destructive">
                 Já existe um produto com este SKU.
               </p>
+            ) : mode === 'Edit' && hasMovements ? (
+              <FormDescription>
+                SKU não pode ser alterado pois há movimentações registradas para
+                este item.
+              </FormDescription>
             ) : (
               <FormDescription>
                 Identificador único por organização. Validado em tempo real.
