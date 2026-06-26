@@ -7,16 +7,8 @@ import {
   FormMessage
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/shared/components/ui/table';
+import { cn } from '@/shared/utils';
 
-import { VariantOptionBadge } from '../../../variants-options-badge';
 import { useProductForm } from '../../hook';
 
 import { ProductFormFieldVariantImages } from './field-variant-images';
@@ -39,94 +31,92 @@ export function ProductVariants() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium">Detalhes das Variantes</h3>
+    <div className="overflow-hidden rounded-xl border">
+      <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-3">
+        <span className="text-sm font-bold">Grade de variantes</span>
 
-        <p className="text-sm text-muted-foreground">
-          Preencha as informações para cada variação gerada.
-        </p>
+        <span className="font-mono text-xs text-muted-foreground">
+          {fields.length}{' '}
+          {fields.length === 1 ? 'variante gerada' : 'variantes geradas'}
+        </span>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Imagens</TableHead>
-              <TableHead>Atributos</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Estoque mínimo</TableHead>
-            </TableRow>
-          </TableHeader>
+      <div className="flex items-center gap-3 border-b px-4 py-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <span className="w-[200px] shrink-0">Variante</span>
+        <span className="w-[150px] shrink-0">SKU</span>
+        <span className="w-20 shrink-0">Estoque mín.</span>
+        <span className="ml-auto">Imagem</span>
+      </div>
 
-          <TableBody>
-            {fields.map((field, index) => (
-              <TableRow key={field.id}>
-                <TableCell className="flex gap-1">
-                  <ProductFormFieldVariantImages variantIndex={index} />
-                </TableCell>
+      {fields.map((field, index) => {
+        const label = field.options?.map((option) => option.value).join(' · ');
 
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {field.options?.map((option) => (
-                      <VariantOptionBadge
-                        key={`${option.name}-${option.value}`}
-                        option={option}
+        return (
+          <div
+            key={field.id}
+            className={cn(
+              'flex items-center gap-3 px-4 py-3',
+              index < fields.length - 1 && 'border-b'
+            )}
+          >
+            <span className="w-[200px] shrink-0 text-sm font-semibold">
+              {label}
+            </span>
+
+            <div className="w-[150px] shrink-0">
+              <FormField
+                control={form.control}
+                name={`variants.${index}.sku`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        className="font-mono"
+                        placeholder="SKU da variação"
+                        disabled={mode !== 'Create'}
+                        {...field}
                       />
-                    ))}
-                  </div>
-                </TableCell>
+                    </FormControl>
 
-                <TableCell>
-                  <FormField
-                    control={form.control}
-                    name={`variants.${index}.sku`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            placeholder="SKU da variação"
-                            disabled={mode !== 'Create'}
-                            {...field}
-                          />
-                        </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TableCell>
+            <div className="w-20 shrink-0">
+              <FormField
+                control={form.control}
+                name={`variants.${index}.minimumStock`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="1"
+                        className="font-mono"
+                        placeholder="0"
+                        {...field}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          field.onChange(value === '' ? 0 : Number(value));
+                        }}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
 
-                <TableCell>
-                  <FormField
-                    control={form.control}
-                    name={`variants.${index}.minimumStock`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="1"
-                            placeholder="0"
-                            {...field}
-                            onChange={(event) => {
-                              const value = event.target.value;
-                              field.onChange(value === '' ? 0 : Number(value));
-                            }}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+              <ProductFormFieldVariantImages variantIndex={index} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

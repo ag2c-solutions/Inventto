@@ -3,7 +3,6 @@ import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
 import { Button } from '@/shared/components/ui/button';
-import { Card, CardContent } from '@/shared/components/ui/card';
 import {
   Command,
   CommandEmpty,
@@ -126,25 +125,14 @@ export function NewAttributeCard({
   };
 
   return (
-    <Card className="relative overflow-hidden aspect-square w-full flex flex-col bg-muted/20">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="absolute right-2 top-2 h-6 w-6 text-muted-foreground hover:text-destructive z-10"
-        onClick={() => onRemove(index)}
-        aria-label="Remover atributo"
-      >
-        <X className="h-4 w-4" />
-      </Button>
-
-      <CardContent className="h-full flex flex-col gap-4 p-6">
+    <div className="rounded-xl border bg-muted/20 p-4">
+      <div className="flex items-end gap-2.5">
         <FormField
           control={form.control}
           name={`attributes.${index}.name`}
           render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Nome</FormLabel>
+            <FormItem className="flex-1">
+              <FormLabel>Nome do atributo</FormLabel>
 
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
@@ -230,7 +218,7 @@ export function NewAttributeCard({
           control={form.control}
           name={`attributes.${index}.type`}
           render={({ field }) => (
-            <FormItem className="w-full">
+            <FormItem className="w-[150px] shrink-0">
               <FormLabel>Tipo</FormLabel>
 
               <FormControl>
@@ -263,13 +251,24 @@ export function NewAttributeCard({
           )}
         />
 
-        <div className="flex-1 overflow-y-auto">
-          <ProductsFormFieldAttributeValues
-            nameValues={`attributes.${index}.values`}
-            type={attributeType ?? 'text'}
-          />
-        </div>
-      </CardContent>
-    </Card>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+          onClick={() => onRemove(index)}
+          aria-label="Remover atributo"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="mt-3">
+        <ProductsFormFieldAttributeValues
+          nameValues={`attributes.${index}.values`}
+          type={attributeType ?? 'text'}
+        />
+      </div>
+    </div>
   );
 }

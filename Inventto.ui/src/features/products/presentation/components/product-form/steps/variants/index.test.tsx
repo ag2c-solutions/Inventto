@@ -69,10 +69,10 @@ describe('ProductVariants', () => {
       screen.getByText('Volte ao Passo 2 para adicionar atributos.')
     ).toBeInTheDocument();
 
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.queryByText('Grade de variantes')).not.toBeInTheDocument();
   });
 
-  it('The table should be rendered with the variants correctly', () => {
+  it('The grid should be rendered with the variants correctly', () => {
     const providerProps: Partial<ProductFormProviderProps> = {
       // @ts-expect-error - product is incomplete
       product: {
@@ -83,25 +83,11 @@ describe('ProductVariants', () => {
 
     renderWithProductProvider(<ProductVariants />, { providerProps });
 
-    expect(screen.getByText('Detalhes das Variantes')).toBeInTheDocument();
-    expect(
-      screen.getByRole('columnheader', { name: 'Imagens' })
-    ).toBeInTheDocument();
+    expect(screen.getByText('Grade de variantes')).toBeInTheDocument();
+    expect(screen.getByText('2 variantes geradas')).toBeInTheDocument();
 
-    expect(
-      screen.getByRole('columnheader', { name: 'Atributos' })
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByRole('columnheader', { name: 'SKU' })
-    ).toBeInTheDocument();
-
-    const rows = screen.getAllByRole('row');
-
-    expect(rows).toHaveLength(3);
-    expect(screen.getAllByText('Azul')).toHaveLength(2);
-    expect(screen.getByText('P')).toBeInTheDocument();
-    expect(screen.getByText('M')).toBeInTheDocument();
+    expect(screen.getByText('Azul · P')).toBeInTheDocument();
+    expect(screen.getByText('Azul · M')).toBeInTheDocument();
     expect(screen.getByTestId('variant-images-0')).toBeInTheDocument();
     expect(screen.getByTestId('variant-images-1')).toBeInTheDocument();
   });
