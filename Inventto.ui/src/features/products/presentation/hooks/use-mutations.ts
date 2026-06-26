@@ -20,7 +20,7 @@ export function useCreateProductMutation() {
   return useMutation<IProduct, Error, CreateProductMutationInput>({
     mutationKey: ['products', 'create'],
     meta: {
-      successMessage: 'Produto criado com sucesso!'
+      successMessage: 'Produto criado.'
     },
     mutationFn: (product) => ProductService.add(product, currentOrganization),
     onSuccess: () => {

@@ -22,19 +22,21 @@ CREATE TABLE public.products (
   organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
   description text,
-  sku text NOT NULL UNIQUE,
+  sku text NOT NULL,
   is_active boolean DEFAULT true,
   has_variants boolean DEFAULT false,
   stock integer DEFAULT 0,
-  minimum_stock integer DEFAULT 5,
+  minimum_stock integer DEFAULT 0,
   cost_price numeric(10, 2) DEFAULT 0,
-  
+
   deleted_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  
+
   CONSTRAINT products_pkey PRIMARY KEY (id)
 );
+-- SKU único por organização (RN038), ignorando soft-deletes — espelha as variantes.
+CREATE UNIQUE INDEX idx_products_sku_active ON public.products (organization_id, sku) WHERE deleted_at IS NULL;
 -- Trigger para atualizar updated_at automaticamente
 CREATE TRIGGER handle_updated_at_products BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
@@ -73,10 +75,10 @@ CREATE TABLE public.product_variants (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
-  sku text NOT NULL UNIQUE,
+  sku text NOT NULL,
   options jsonb NOT NULL, -- Ex: [{"name": "Cor", "value": "Azul"}, {"name": "Tamanho", "value": "G"}]
   stock integer DEFAULT 0,
-  minimum_stock integer DEFAULT 5,
+  minimum_stock integer DEFAULT 0,
   cost_price numeric(10, 2) DEFAULT 0,
   is_active boolean DEFAULT true,
 
@@ -159,7 +161,9 @@ FOR SELECT USING (
 );
 
 -- --- Policies de Escrita (Managers) ---
-CREATE POLICY "Managers can manage categories" ON public.categories FOR ALL USING (public.has_role(organization_id, 'manager'));
+-- Categorias na v1 são create-only/rename — exclusão é proibida (RN046).
+CREATE POLICY "Managers can create categories" ON public.categories FOR INSERT WITH CHECK (public.has_role(organization_id, 'manager'));
+CREATE POLICY "Managers can update categories" ON public.categories FOR UPDATE USING (public.has_role(organization_id, 'manager'));
 CREATE POLICY "Managers can manage products" ON public.products FOR ALL USING (public.has_role(organization_id, 'manager'));
 CREATE POLICY "Managers can manage product attributes" ON public.product_attributes FOR ALL USING (public.has_role(organization_id, 'manager'));
 CREATE POLICY "Managers can manage variants" ON public.product_variants FOR ALL USING (public.has_role(organization_id, 'manager'));

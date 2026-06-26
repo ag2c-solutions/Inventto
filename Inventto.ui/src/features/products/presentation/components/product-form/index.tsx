@@ -18,9 +18,17 @@ export function ProductForm() {
         onCancel={onCancel}
         onFinish={onSubmit}
       >
-        <WizardHeader className="px-1" />
-        <WizardContent />
-        <WizardControl />
+        <WizardHeader className="px-0!" />
+        <WizardContent className="border-0 shadow-none px-0!" />
+        <WizardControl
+          labels={{
+            next: 'Continuar',
+            back: 'Voltar',
+            finish: 'Salvar produto',
+            cancel: 'Cancelar'
+          }}
+          className="flex - justify-between flex-row"
+        />
       </Wizard>
     </form>
   );

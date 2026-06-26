@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 export type ProductFormStep = {
-  id: 'BasicInfo' | 'Attributes' | 'Variants' | 'Summary';
-  label: 'Informações Básicas' | 'Atributos' | 'Variantes' | 'Resumo';
+  id: 'BasicInfo' | 'Images' | 'Variations' | 'Summary';
+  label: 'Informações' | 'Imagens' | 'Variações' | 'Resumo';
   component: ReactNode;
 };
 

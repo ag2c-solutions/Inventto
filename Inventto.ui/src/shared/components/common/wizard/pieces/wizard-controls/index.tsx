@@ -28,10 +28,34 @@ export function WizardControl({
 
   return (
     <div className={cn('flex flex-col gap-1 mt-6', className)} {...props}>
+      {state.isFirstStep && (
+        <Button
+          type="button"
+          variant={'outline'}
+          size={'lg'}
+          onClick={actions.handleCancel}
+          disabled={state.isLoading}
+        >
+          {labels?.cancel || 'Cancelar'}
+        </Button>
+      )}
+
+      {!state.isFirstStep && (
+        <Button
+          type="button"
+          size={'lg'}
+          variant="ghost"
+          onClick={actions.prevStep}
+          disabled={state.isLoading}
+        >
+          {labels?.back || 'Voltar'}
+        </Button>
+      )}
+
       {state.isLastStep ? (
         <Button
           type="button"
-          className="w-full h-10 text-base font-semibold rounded-xl"
+          size={'lg'}
           onClick={actions.handleFinish}
           disabled={state.isLoading}
         >
@@ -41,7 +65,7 @@ export function WizardControl({
       ) : (
         <Button
           type="button"
-          className="w-full h-10 text-base font-semibold rounded-xl"
+          size={'lg'}
           onClick={actions.nextStep}
           disabled={state.isLoading}
         >
@@ -53,31 +77,6 @@ export function WizardControl({
       {state.currentStep.nextHint && (
         <p className="text-center text-xs text-muted-foreground py-1">
           {state.currentStep.nextHint}
-        </p>
-      )}
-
-      {!state.isFirstStep && (
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-full text-muted-foreground mt-2"
-          onClick={actions.prevStep}
-          disabled={state.isLoading}
-        >
-          {labels?.back || 'Voltar'}
-        </Button>
-      )}
-
-      {state.isFirstStep && (
-        <p className="text-center text-[15px] text-muted-foreground mt-4">
-          <button
-            type="button"
-            className="text-foreground underline underline-offset-4 font-medium hover:text-primary transition-colors disabled:opacity-50"
-            onClick={actions.handleCancel}
-            disabled={state.isLoading}
-          >
-            {labels?.cancel || 'Cancelar'}
-          </button>
         </p>
       )}
     </div>

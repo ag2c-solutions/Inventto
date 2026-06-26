@@ -13,12 +13,6 @@ vi.mock('./field-category', () => ({
   )
 }));
 
-vi.mock('./field-product-images', () => ({
-  ProductFormFieldImages: () => (
-    <div data-testid="mock-images-field">Mock Images</div>
-  )
-}));
-
 describe('ProductBasicInfo', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -28,15 +22,16 @@ describe('ProductBasicInfo', () => {
   it('must render all fields and child components in "Create" mode.', () => {
     renderWithProductProvider(<ProductBasicInfo />);
 
-    expect(screen.getByLabelText('Nome do Produto')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nome')).toBeInTheDocument();
     expect(screen.getByLabelText('SKU')).toBeInTheDocument();
-    expect(screen.getByLabelText('Est. Mínimo')).toBeInTheDocument();
+    expect(screen.getByLabelText('Estoque mínimo')).toBeInTheDocument();
     expect(screen.getByLabelText('Descrição')).toBeInTheDocument();
-    expect(screen.getByLabelText('Variações')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Este produto tem variações')
+    ).toBeInTheDocument();
 
     expect(screen.getByTestId('mock-category-field')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-images-field')).toBeInTheDocument();
-    expect(screen.getByLabelText('Nome do Produto')).toBeEnabled();
+    expect(screen.getByLabelText('Nome')).toBeEnabled();
     expect(screen.getByLabelText('SKU')).toBeEnabled();
   });
 
@@ -44,9 +39,9 @@ describe('ProductBasicInfo', () => {
     const user = userEvent.setup();
     renderWithProductProvider(<ProductBasicInfo />);
 
-    const nameInput = screen.getByLabelText('Nome do Produto');
+    const nameInput = screen.getByLabelText('Nome');
     const skuInput = screen.getByLabelText('SKU');
-    const stockInput = screen.getByLabelText('Est. Mínimo');
+    const stockInput = screen.getByLabelText('Estoque mínimo');
     const descInput = screen.getByLabelText('Descrição');
 
     await user.type(nameInput, 'Camiseta');
@@ -74,7 +69,7 @@ describe('ProductBasicInfo', () => {
 
     renderWithProductProvider(<ProductBasicInfo />, { providerProps });
 
-    const nameInput = screen.getByLabelText('Nome do Produto');
+    const nameInput = screen.getByLabelText('Nome');
     const skuInput = screen.getByLabelText('SKU');
 
     expect(nameInput).toHaveValue('Produto Existente');
@@ -87,7 +82,7 @@ describe('ProductBasicInfo', () => {
     const user = userEvent.setup();
     renderWithProductProvider(<ProductBasicInfo />);
 
-    const stockInput = screen.getByLabelText('Est. Mínimo');
+    const stockInput = screen.getByLabelText('Estoque mínimo');
 
     await user.type(stockInput, '10');
     expect(stockInput).toHaveValue(10);
@@ -99,7 +94,7 @@ describe('ProductBasicInfo', () => {
   describe('Logic of the "HasVariants" Switch', () => {
     it('must be enabled in "Create" mode', () => {
       renderWithProductProvider(<ProductBasicInfo />);
-      const switchElement = screen.getByLabelText('Variações');
+      const switchElement = screen.getByLabelText('Este produto tem variações');
       expect(switchElement).toBeEnabled();
     });
 
@@ -124,7 +119,7 @@ describe('ProductBasicInfo', () => {
 
       renderWithProductProvider(<ProductBasicInfo />, { providerProps });
 
-      const switchElement = screen.getByLabelText('Variações');
+      const switchElement = screen.getByLabelText('Este produto tem variações');
 
       expect(switchElement).toBeDisabled();
       expect(switchElement).toBeChecked();
@@ -151,7 +146,7 @@ describe('ProductBasicInfo', () => {
 
       renderWithProductProvider(<ProductBasicInfo />, { providerProps });
 
-      const switchElement = screen.getByLabelText('Variações');
+      const switchElement = screen.getByLabelText('Este produto tem variações');
 
       expect(switchElement).toBeEnabled();
       expect(switchElement).not.toBeChecked();

@@ -12,7 +12,10 @@ import {
   useCreateProductMutation,
   useUpdateProductMutation
 } from '../../hooks/use-mutations';
-import { useProductByIDQuery } from '../../hooks/use-queries';
+import {
+  useProductByIDQuery,
+  useSkuAvailabilityQuery
+} from '../../hooks/use-queries';
 
 import { EditProductPage } from './index';
 
@@ -79,6 +82,12 @@ describe('EditProductPage (Integration)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    vi.mocked(useSkuAvailabilityQuery).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+      isError: false
+    } as never);
 
     vi.mocked(useProductByIDQuery).mockReturnValue({
       data: undefined,

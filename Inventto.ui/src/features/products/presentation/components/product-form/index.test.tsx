@@ -83,10 +83,10 @@ describe('ProductForm UI Integration', () => {
   it('should render the form with initial state', () => {
     renderComponent('Create');
 
-    expect(screen.getByText('Informações Básicas')).toBeInTheDocument();
+    expect(screen.getByText('Informações básicas')).toBeInTheDocument();
 
     expect(
-      screen.getByRole('button', { name: /Avançar/i })
+      screen.getByRole('button', { name: /Continuar/i })
     ).toBeInTheDocument();
 
     expect(
@@ -94,20 +94,17 @@ describe('ProductForm UI Integration', () => {
     ).toBeInTheDocument();
   });
 
-  it('should navigate to "Atributos" step when "Has Variants" is toggled and valid data is filled', async () => {
+  it('should reach the "Variações" step when "Has Variants" is toggled and valid data is filled', async () => {
     const user = userEvent.setup();
 
     renderComponent('Create');
 
     const variantSwitch = screen.getByRole('switch', {
-      name: /Variações/i
+      name: /variações/i
     });
 
     await user.click(variantSwitch);
-    await user.type(
-      screen.getByLabelText(/Nome do Produto/i),
-      'Produto Com Variantes'
-    );
+    await user.type(screen.getByLabelText(/^Nome$/i), 'Produto Com Variantes');
 
     const categoryTrigger = screen.getByRole('combobox', {
       name: /Categoria/i
@@ -119,17 +116,25 @@ describe('ProductForm UI Integration', () => {
 
     await user.click(categoryOption);
 
-    const nextButton = screen.getByRole('button', { name: /Avançar/i });
+    // BasicInfo -> Imagens
+    await user.click(screen.getByRole('button', { name: /Continuar/i }));
 
-    await user.click(nextButton);
+    expect(
+      await screen.findByRole('heading', { name: 'Imagens' })
+    ).toBeInTheDocument();
 
-    expect(await screen.findByText('Atributos')).toBeInTheDocument();
+    // Imagens -> Variações
+    await user.click(screen.getByRole('button', { name: /Continuar/i }));
+
+    expect(
+      await screen.findByText('Atributos e variações')
+    ).toBeInTheDocument();
   });
 
   it('should render correctly in Edit mode', () => {
     renderComponent('Edit');
 
-    expect(screen.getByText('Informações Básicas')).toBeInTheDocument();
+    expect(screen.getByText('Informações básicas')).toBeInTheDocument();
   });
 
   it('should show validation errors when attempting to proceed with empty required fields', async () => {
@@ -137,7 +142,7 @@ describe('ProductForm UI Integration', () => {
 
     renderComponent('Create');
 
-    const nextButton = screen.getByRole('button', { name: /Avançar/i });
+    const nextButton = screen.getByRole('button', { name: /Continuar/i });
 
     await user.click(nextButton);
 

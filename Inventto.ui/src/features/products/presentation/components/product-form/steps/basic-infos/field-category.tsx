@@ -102,7 +102,7 @@ export function ProductFormFieldCategory() {
               </PopoverTrigger>
 
               <PopoverContent className="w-[var(--radix-popper-anchor-width)] p-0">
-                <Command className="w-full">
+                <Command className="w-full" shouldFilter={false}>
                   <CommandInput
                     placeholder="Pesquisar categoria..."
                     value={searchQuery}
