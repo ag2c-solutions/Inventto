@@ -64,6 +64,40 @@ export function useGlobalAttributesQuery() {
   });
 }
 
+export function useImportCandidatesQuery(sourceOrganizationId?: string) {
+  const { currentOrganization } = useUser();
+
+  return useQuery({
+    queryKey: PRODUCTS_KEYS.importCandidates(
+      currentOrganization?.id,
+      sourceOrganizationId
+    ),
+    queryFn: () =>
+      ProductService.getImportCandidates(
+        sourceOrganizationId,
+        currentOrganization
+      ),
+    enabled: !!currentOrganization?.id && !!sourceOrganizationId,
+    staleTime: 1000 * 60
+  });
+}
+
+export function useSourceProductVariantsQuery(params: {
+  sourceOrganizationId?: string;
+  productId: string;
+  enabled?: boolean;
+}) {
+  const { sourceOrganizationId, productId, enabled = true } = params;
+
+  return useQuery({
+    queryKey: PRODUCTS_KEYS.sourceVariants(sourceOrganizationId, productId),
+    queryFn: () =>
+      ProductService.getSourceProductVariants(sourceOrganizationId, productId),
+    enabled: enabled && !!sourceOrganizationId && !!productId,
+    staleTime: 1000 * 60
+  });
+}
+
 export function useProductMovementsQuery(productId?: string) {
   return useQuery({
     queryKey: PRODUCTS_KEYS.detail(productId).concat(['movements']),

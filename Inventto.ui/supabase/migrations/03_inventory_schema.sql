@@ -29,6 +29,10 @@ CREATE TABLE public.products (
   minimum_stock integer DEFAULT 0,
   cost_price numeric(10, 2) DEFAULT 0,
 
+  -- Rastreio de importação entre unidades (RF021/RN048). Aponta para o produto
+  -- de origem que deu base a esta cópia; NULL para produtos criados manualmente.
+  source_product_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
+
   deleted_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
@@ -37,6 +41,9 @@ CREATE TABLE public.products (
 );
 -- SKU único por organização (RN038), ignorando soft-deletes — espelha as variantes.
 CREATE UNIQUE INDEX idx_products_sku_active ON public.products (organization_id, sku) WHERE deleted_at IS NULL;
+-- Prevenção de duplicidade na importação (RN048): um mesmo produto de origem só
+-- pode ser importado uma vez por organização destino (ignorando soft-deletes).
+CREATE UNIQUE INDEX idx_products_import_source ON public.products (organization_id, source_product_id) WHERE source_product_id IS NOT NULL AND deleted_at IS NULL;
 -- Trigger para atualizar updated_at automaticamente
 CREATE TRIGGER handle_updated_at_products BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 

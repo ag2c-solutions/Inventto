@@ -32,9 +32,20 @@ export const queryClient = new QueryClient({
       });
     },
 
-    onSuccess: (_data, _variables, _context, mutation) => {
-      if (mutation.meta?.successMessage) {
-        toast.success(mutation.meta.successMessage, { duration: 4000 });
+    onSuccess: (data, _variables, _context, mutation) => {
+      const successMessage = mutation.meta?.successMessage;
+
+      if (!successMessage) return;
+
+      // successMessage pode ser estático ou uma função do dado retornado,
+      // permitindo mensagens dinâmicas (ex.: "N produto(s) importado(s).").
+      const message =
+        typeof successMessage === 'function'
+          ? successMessage(data)
+          : successMessage;
+
+      if (message) {
+        toast.success(message, { duration: 4000 });
       }
     }
   }),

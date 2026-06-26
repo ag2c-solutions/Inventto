@@ -2,12 +2,19 @@ import { supabase } from '@/infra/supabase';
 
 import type {
   CreateProduct,
+  ImportCandidate,
+  ImportCandidateVariant,
   IProduct,
   UpdateProduct
 } from '../../domain/entities';
 import { SELECT_QUERY_INTERNALS } from '../constants/select-query-internals';
 import { SELECT_QUERY_SALES } from '../constants/select-query-sales';
-import type { ProductAttributeDTO, ProductDTO } from '../dtos';
+import type {
+  ImportCandidateDTO,
+  ProductAttributeDTO,
+  ProductDTO,
+  SourceVariantDTO
+} from '../dtos';
 import { handleProductError } from '../handlers/error-handler';
 import { ProductMapper } from '../mapper';
 
@@ -157,6 +164,85 @@ export class ProductAPI {
       return Boolean(data);
     } catch (error) {
       handleProductError(error, 'checkHasMovements');
+    }
+  }
+
+  static async getImportCandidates(
+    sourceOrganizationId: string,
+    targetOrganizationId: string
+  ): Promise<ImportCandidate[]> {
+    try {
+      const { data, error } = await supabase.rpc('get_import_candidates', {
+        p_source_org_id: sourceOrganizationId,
+        p_target_org_id: targetOrganizationId
+      });
+
+      if (error) throw error;
+
+      const candidates = (data ?? []) as ImportCandidateDTO[];
+
+      return candidates.map((candidate) => ({
+        id: candidate.id,
+        name: candidate.name,
+        sku: candidate.sku,
+        alreadyImported: candidate.already_imported,
+        imageUrl: candidate.image_url ?? undefined,
+        imagePublicId: candidate.image_public_id ?? undefined,
+        variantCount: candidate.variant_count ?? 0
+      }));
+    } catch (error) {
+      handleProductError(error, 'getImportCandidates');
+    }
+  }
+
+  static async getSourceProductVariants(
+    sourceOrganizationId: string,
+    productId: string
+  ): Promise<ImportCandidateVariant[]> {
+    try {
+      const { data, error } = await supabase.rpc(
+        'get_source_product_variants',
+        {
+          p_source_org_id: sourceOrganizationId,
+          p_product_id: productId
+        }
+      );
+
+      if (error) throw error;
+
+      const variants = (data ?? []) as SourceVariantDTO[];
+
+      return variants.map((variant) => ({
+        id: variant.id,
+        sku: variant.sku,
+        options: variant.options ?? [],
+        imageUrl: variant.image_url ?? undefined,
+        imagePublicId: variant.image_public_id ?? undefined
+      }));
+    } catch (error) {
+      handleProductError(error, 'getSourceProductVariants');
+    }
+  }
+
+  static async importProducts(params: {
+    sourceOrganizationId: string;
+    targetOrganizationId: string;
+    productIds: string[];
+  }): Promise<number> {
+    const { sourceOrganizationId, targetOrganizationId, productIds } = params;
+
+    try {
+      const { data, error } = await supabase.rpc('import_products', {
+        p_source_org_id: sourceOrganizationId,
+        p_target_org_id: targetOrganizationId,
+        p_product_ids: productIds
+      });
+
+      if (error) throw error;
+
+      return Number(data ?? 0);
+    } catch (error) {
+      handleProductError(error, 'importProducts');
     }
   }
 

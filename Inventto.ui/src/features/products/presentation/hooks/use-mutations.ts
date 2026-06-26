@@ -54,6 +54,33 @@ export function useUpdateProductMutation() {
   });
 }
 
+type ImportProductsMutationInput = {
+  sourceOrganizationId: string;
+  productIds: string[];
+};
+
+export function useImportProductsMutation() {
+  const queryClient = useQueryClient();
+  const { currentOrganization } = useUser();
+
+  return useMutation<number, Error, ImportProductsMutationInput>({
+    mutationKey: ['products', 'import'],
+    meta: {
+      successMessage: (data: unknown) =>
+        `${Number(data ?? 0)} produto(s) importado(s).`
+    },
+    mutationFn: ({ sourceOrganizationId, productIds }) =>
+      ProductService.import(
+        sourceOrganizationId,
+        productIds,
+        currentOrganization
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_KEYS.all });
+    }
+  });
+}
+
 export function useChangeProductStatusMutation() {
   const queryClient = useQueryClient();
   const { currentOrganization } = useUser();

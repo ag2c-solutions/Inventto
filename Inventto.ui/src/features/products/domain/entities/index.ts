@@ -30,3 +30,26 @@ export type IProductVariant = z.infer<typeof productVariantSchema>;
 export type CreateProduct = z.infer<typeof createProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
 export type IProduct = z.infer<typeof productSchema>;
+
+export interface ImportCandidate {
+  id: string;
+  name: string;
+  sku: string;
+  alreadyImported: boolean;
+  imageUrl?: string;
+  imagePublicId?: string;
+  variantCount: number;
+}
+
+export interface ImportProductsInput {
+  sourceOrganizationId: string;
+  productIds: string[];
+}
+
+export interface ImportCandidateVariant {
+  id: string;
+  sku: string;
+  options: VariantOption[];
+  imageUrl?: string;
+  imagePublicId?: string;
+}

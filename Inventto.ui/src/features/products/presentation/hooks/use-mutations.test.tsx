@@ -13,7 +13,8 @@ vi.mock('@/features/users', () => ({
 vi.mock('../../domain/services', () => ({
   ProductService: {
     add: vi.fn(),
-    update: vi.fn()
+    update: vi.fn(),
+    import: vi.fn()
   }
 }));
 
@@ -27,6 +28,7 @@ import { ProductService } from '../../domain/services';
 
 import {
   useCreateProductMutation,
+  useImportProductsMutation,
   useUpdateProductMutation
 } from './use-mutations';
 
@@ -117,5 +119,55 @@ describe('useUpdateProductMutation', () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ['products', 'detail', 'p-1']
     });
+  });
+});
+
+describe('useImportProductsMutation', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
+    queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('deve chamar ProductService.import com origem, ids e currentOrganization', async () => {
+    vi.mocked(ProductService.import).mockResolvedValue(2);
+
+    const { result } = renderHook(() => useImportProductsMutation(), {
+      wrapper
+    });
+
+    await result.current.mutateAsync({
+      sourceOrganizationId: 'org-2',
+      productIds: ['p-1', 'p-2']
+    });
+
+    expect(ProductService.import).toHaveBeenCalledWith(
+      'org-2',
+      ['p-1', 'p-2'],
+      {
+        id: 'org-1'
+      }
+    );
+  });
+
+  it('deve invalidar PRODUCTS_KEYS.all no onSuccess', async () => {
+    vi.mocked(ProductService.import).mockResolvedValue(1);
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useImportProductsMutation(), {
+      wrapper
+    });
+    await result.current.mutateAsync({
+      sourceOrganizationId: 'org-2',
+      productIds: ['p-1']
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['products'] });
   });
 });

@@ -5,6 +5,24 @@ export interface CategoryDTO {
   };
 }
 
+export interface ImportCandidateDTO {
+  id: string;
+  name: string;
+  sku: string;
+  already_imported: boolean;
+  image_url: string | null;
+  image_public_id: string | null;
+  variant_count: number;
+}
+
+export interface SourceVariantDTO {
+  id: string;
+  sku: string;
+  options: ProductVariantOptionDTO[];
+  image_url: string | null;
+  image_public_id: string | null;
+}
+
 export interface ProductAttributeDTO {
   id: string;
   values: string[];

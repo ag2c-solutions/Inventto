@@ -6,6 +6,8 @@ import type { Role } from '@/features/permissions';
 import { ProductAPI } from '../../data/api';
 import {
   type CreateProduct,
+  type ImportCandidate,
+  type ImportCandidateVariant,
   type IProduct,
   type UpdateProduct
 } from '../entities';
@@ -85,6 +87,71 @@ export class ProductService {
     const organizationId = getOrganizationId(organization);
 
     return ProductAPI.setProductActive(productId, organizationId, isActive);
+  }
+
+  static async getImportCandidates(
+    sourceOrganizationId: string | undefined,
+    targetOrganization: Organization | null
+  ): Promise<ImportCandidate[]> {
+    const targetOrganizationId = getOrganizationId(targetOrganization);
+
+    if (!sourceOrganizationId?.trim()) {
+      throw new Error('Organização de origem não informada.');
+    }
+
+    if (sourceOrganizationId === targetOrganizationId) {
+      throw new Error(
+        'A organização de origem deve ser diferente da organização ativa.'
+      );
+    }
+
+    return ProductAPI.getImportCandidates(
+      sourceOrganizationId,
+      targetOrganizationId
+    );
+  }
+
+  static async getSourceProductVariants(
+    sourceOrganizationId: string | undefined,
+    productId: string | undefined
+  ): Promise<ImportCandidateVariant[]> {
+    if (!sourceOrganizationId?.trim()) {
+      throw new Error('Organização de origem não informada.');
+    }
+
+    if (!productId?.trim()) {
+      throw new Error('Produto não informado.');
+    }
+
+    return ProductAPI.getSourceProductVariants(sourceOrganizationId, productId);
+  }
+
+  static async import(
+    sourceOrganizationId: string,
+    productIds: string[],
+    targetOrganization: Organization | null
+  ): Promise<number> {
+    const targetOrganizationId = getOrganizationId(targetOrganization);
+
+    if (!sourceOrganizationId?.trim()) {
+      throw new Error('Organização de origem não informada.');
+    }
+
+    if (sourceOrganizationId === targetOrganizationId) {
+      throw new Error(
+        'A organização de origem deve ser diferente da organização ativa.'
+      );
+    }
+
+    if (!productIds.length) {
+      throw new Error('Selecione ao menos um produto para importar.');
+    }
+
+    return ProductAPI.importProducts({
+      sourceOrganizationId,
+      targetOrganizationId,
+      productIds
+    });
   }
 
   private static validateCreateProduct(product: CreateProduct): CreateProduct {
