@@ -3,6 +3,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
 import type { IProductImage } from '../../../../../../domain/entities';
 import type { ProductFormProviderProps } from '../../../hook';
 import { useProductForm } from '../../../hook';
@@ -57,7 +58,7 @@ vi.mock('@/infra/cloudinary', () => ({
   }
 }));
 
-const mockImages: IProductImage[] = [
+const mockImages: FileWithPreview[] = [
   {
     id: 'img1',
     name: 'capa.png',
@@ -72,7 +73,7 @@ const mockImages: IProductImage[] = [
     type: 'image/png',
     isPrimary: false
   }
-];
+] satisfies IProductImage[];
 
 describe('ProductFormFieldImages', () => {
   beforeEach(() => {
