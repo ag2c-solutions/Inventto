@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import { useFieldArray } from 'react-hook-form';
 
 import { Button } from '@/shared/components/ui/button';
@@ -47,45 +48,35 @@ export function ProductAttributes() {
   });
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium">Atributos</h3>
+    <div className="space-y-3">
+      {fields.map((field, index) => {
+        const isNewAttribute = mode === 'Create' || field.isNew === true;
 
-        <p className="text-sm text-muted-foreground">
-          Atributos são características do seu produto, como tamanho ou cor.
-          Você pode adicionar vários atributos ao seu produto.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-8">
-        {fields.map((field, index) => {
-          const isNewAttribute = mode === 'Create' || field.isNew === true;
-
-          if (isNewAttribute) {
-            return (
-              <NewAttributeCard
-                key={field.id}
-                form={form}
-                index={index}
-                onRemove={remove}
-                systemAttributes={systemAttributes}
-              />
-            );
-          }
-
+        if (isNewAttribute) {
           return (
-            <ExistingAttributeCard key={field.id} form={form} index={index} />
+            <NewAttributeCard
+              key={field.id}
+              form={form}
+              index={index}
+              onRemove={remove}
+              systemAttributes={systemAttributes}
+            />
           );
-        })}
-      </div>
+        }
+
+        return (
+          <ExistingAttributeCard key={field.id} form={form} index={index} />
+        );
+      })}
 
       <Button
         type="button"
         variant="outline"
         onClick={() => append(createEmptyAttribute())}
-        className="w-full md:w-auto"
+        className="w-full border-dashed md:w-auto"
       >
-        + Adicionar atributo
+        <Plus className="size-4" />
+        Adicionar atributo
       </Button>
     </div>
   );

@@ -1,6 +1,5 @@
 import type { UseFormReturn } from 'react-hook-form';
 
-import { Card, CardContent } from '@/shared/components/ui/card';
 import {
   FormControl,
   FormField,
@@ -32,14 +31,14 @@ export function ExistingAttributeCard({
   const attributeType = form.watch(`attributes.${index}.type`);
 
   return (
-    <Card className="relative overflow-hidden aspect-square w-full flex flex-col bg-muted/20">
-      <CardContent className="h-full flex flex-col gap-4 p-6">
+    <div className="rounded-xl border bg-muted/20 p-4">
+      <div className="flex items-end gap-2.5">
         <FormField
           control={form.control}
           name={`attributes.${index}.name`}
           render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel>Nome</FormLabel>
+            <FormItem className="flex-1">
+              <FormLabel>Nome do atributo</FormLabel>
               <FormControl>
                 <Input disabled placeholder="ex: Tamanho" {...field} />
               </FormControl>
@@ -52,7 +51,7 @@ export function ExistingAttributeCard({
           control={form.control}
           name={`attributes.${index}.type`}
           render={({ field }) => (
-            <FormItem className="w-full">
+            <FormItem className="w-[150px] shrink-0">
               <FormLabel>Tipo</FormLabel>
               <FormControl>
                 <Select
@@ -75,14 +74,14 @@ export function ExistingAttributeCard({
             </FormItem>
           )}
         />
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <ProductsFormFieldAttributeValues
-            nameValues={`attributes.${index}.values`}
-            type={attributeType ?? 'text'}
-          />
-        </div>
-      </CardContent>
-    </Card>
+      <div className="mt-3">
+        <ProductsFormFieldAttributeValues
+          nameValues={`attributes.${index}.values`}
+          type={attributeType ?? 'text'}
+        />
+      </div>
+    </div>
   );
 }

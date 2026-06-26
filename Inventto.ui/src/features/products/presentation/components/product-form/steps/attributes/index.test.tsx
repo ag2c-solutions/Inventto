@@ -58,12 +58,11 @@ describe('ProductAttributes', () => {
   it('should render the initial empty state (without attributes).', () => {
     renderWithProductProvider(<ProductAttributes />);
 
-    expect(screen.getByText('Atributos')).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: '+ Adicionar atributo' })
+      screen.getByRole('button', { name: 'Adicionar atributo' })
     ).toBeInTheDocument();
 
-    expect(screen.queryByLabelText('Nome')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Nome do atributo')).not.toBeInTheDocument();
   });
 
   it('must add and remove an attribute in "Create" mode.', async () => {
@@ -72,12 +71,12 @@ describe('ProductAttributes', () => {
     renderWithProductProvider(<ProductAttributes />);
 
     const addButton = screen.getByRole('button', {
-      name: '+ Adicionar atributo'
+      name: 'Adicionar atributo'
     });
 
     await user.click(addButton);
 
-    const nomeInput = await screen.findByLabelText('Nome');
+    const nomeInput = await screen.findByLabelText('Nome do atributo');
     const removeButton = screen.getByLabelText('Remover atributo');
 
     expect(nomeInput).toBeInTheDocument();
@@ -86,13 +85,13 @@ describe('ProductAttributes', () => {
 
     await user.click(addButton);
 
-    expect(screen.getAllByLabelText('Nome')).toHaveLength(2);
+    expect(screen.getAllByLabelText('Nome do atributo')).toHaveLength(2);
 
     const allRemoveButtons = screen.getAllByLabelText('Remover atributo');
 
     await user.click(allRemoveButtons[0]);
 
-    expect(screen.getAllByLabelText('Nome')).toHaveLength(1);
+    expect(screen.getAllByLabelText('Nome do atributo')).toHaveLength(1);
   });
 
   it('The attributes should be displayed in "Edit" mode, and the fields should be disabled.', async () => {
@@ -119,7 +118,7 @@ describe('ProductAttributes', () => {
 
     renderWithProductProvider(<ProductAttributes />, { providerProps });
 
-    const nomeInputs = await screen.findAllByLabelText('Nome');
+    const nomeInputs = await screen.findAllByLabelText('Nome do atributo');
 
     expect(nomeInputs).toHaveLength(2);
     expect(screen.getByDisplayValue('Cor')).toBeInTheDocument();

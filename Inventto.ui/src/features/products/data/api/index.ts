@@ -73,7 +73,7 @@ export class ProductAPI {
   static async getGlobalAttributes(): Promise<ProductAttributeDTO[]> {
     try {
       const { data, error } = await supabase
-        .from('attributes')
+        .from('organization_attributes')
         .select('id, label, slug, type, values')
         .order('label', { ascending: true })
         .overrideTypes<ProductAttributeDTO[], { merge: false }>();
