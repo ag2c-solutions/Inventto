@@ -4,26 +4,29 @@ import type { CategoryDTO } from '../dtos';
 
 import { CategoryApi } from './index';
 
-const { mockSupabase, mockSelect, mockOrder, mockOverrideTypes } = vi.hoisted(
-  () => {
+const { mockSupabase, mockSelect, mockOrder, mockOverrideTypes, mockEq } =
+  vi.hoisted(() => {
     const mockSelect = vi.fn();
     const mockOrder = vi.fn();
     const mockInsert = vi.fn();
     const mockSingle = vi.fn();
     const mockOverrideTypes = vi.fn();
+    const mockEq = vi.fn();
 
     const queryBuilder = {
       select: mockSelect,
       order: mockOrder,
       insert: mockInsert,
       single: mockSingle,
-      overrideTypes: mockOverrideTypes
+      overrideTypes: mockOverrideTypes,
+      eq: mockEq
     };
 
     mockSelect.mockReturnValue(queryBuilder);
     mockOrder.mockReturnValue(queryBuilder);
     mockInsert.mockReturnValue(queryBuilder);
     mockSingle.mockReturnValue(queryBuilder);
+    mockEq.mockReturnValue(queryBuilder);
 
     return {
       mockSupabase: {
@@ -33,10 +36,10 @@ const { mockSupabase, mockSelect, mockOrder, mockOverrideTypes } = vi.hoisted(
       mockOrder,
       mockInsert,
       mockSingle,
-      mockOverrideTypes
+      mockOverrideTypes,
+      mockEq
     };
-  }
-);
+  });
 
 vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
@@ -58,10 +61,11 @@ describe('CategoryApi', () => {
         error: null
       });
 
-      const result = await CategoryApi.getAll();
+      const result = await CategoryApi.getAll('org-1');
 
       expect(mockSupabase.from).toHaveBeenCalledWith('categories');
       expect(mockSelect).toHaveBeenCalledWith('id, name');
+      expect(mockEq).toHaveBeenCalledWith('organization_id', 'org-1');
       expect(mockOrder).toHaveBeenCalledWith('name', { ascending: true });
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ id: 'c1', name: 'Roupas' });
@@ -70,7 +74,7 @@ describe('CategoryApi', () => {
     it('should return an empty array when data is null', async () => {
       mockOverrideTypes.mockResolvedValue({ data: null, error: null });
 
-      const result = await CategoryApi.getAll();
+      const result = await CategoryApi.getAll('org-1');
 
       expect(result).toEqual([]);
     });
@@ -81,7 +85,7 @@ describe('CategoryApi', () => {
         error: { message: 'Network request failed', code: '', details: null }
       });
 
-      await expect(CategoryApi.getAll()).rejects.toThrow(
+      await expect(CategoryApi.getAll('org-1')).rejects.toThrow(
         'Erro de conexão. Verifique sua internet.'
       );
     });
@@ -92,7 +96,7 @@ describe('CategoryApi', () => {
         error: { message: 'Unknown Error', code: '500' }
       });
 
-      await expect(CategoryApi.getAll()).rejects.toThrow(
+      await expect(CategoryApi.getAll('org-1')).rejects.toThrow(
         'Não foi possível realizar a operação. Tente novamente.'
       );
     });

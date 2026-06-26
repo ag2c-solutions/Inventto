@@ -2,49 +2,18 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useWizard } from '@/shared/components/common/wizard';
+
 import type { IProduct } from '../../../../../domain/entities';
 import { renderWithProductProvider } from '../../mocks';
 
 import { ProductSummary } from '.';
 
-const mocks = vi.hoisted(() => ({
-  BasicInfosCard: vi.fn(),
-  InventoryCard: vi.fn(),
-  ImageCarousel: vi.fn(),
-  OptionsSelect: vi.fn(({ onSelectOption, attributes }) => (
-    <div data-testid="options-select-mock">
-      {attributes.map((attr: { name: string; values: string[] }) => (
-        <div key={attr.name}>
-          {attr.values.map((val: string) => (
-            <button
-              key={val.trim()}
-              onClick={() => onSelectOption(attr.name, val.trim())}
-              aria-label={`Select ${val.trim()}`}
-            >
-              {val.trim()}
-            </button>
-          ))}
-        </div>
-      ))}
-    </div>
-  ))
+vi.mock('@/shared/components/common/wizard', () => ({
+  useWizard: vi.fn()
 }));
 
-vi.mock('../../../basic-infos-card', () => ({
-  ProductBasicInfosCard: mocks.BasicInfosCard
-}));
-
-vi.mock('../../../inventory-card', () => ({
-  ProductInventoryCard: mocks.InventoryCard
-}));
-
-vi.mock('../../../image-carousel', () => ({
-  ProductImageCarousel: mocks.ImageCarousel
-}));
-
-vi.mock('../../../options-select', () => ({
-  ProductOptionsSelect: mocks.OptionsSelect
-}));
+const mockGoToStep = vi.fn();
 
 const mockSimpleProduct = {
   name: 'Produto Simples',
@@ -87,171 +56,122 @@ const mockVariableProduct: IProduct = {
       isActive: true,
       options: [{ name: 'Cor', value: 'Azul' }],
       images: [{ id: 'img-azul', isPrimary: true }]
-    },
-    {
-      id: 'var2',
-      sku: 'SKU-VERMELHO',
-      stock: 8,
-      minimumStock: 3,
-      isActive: true,
-      options: [{ name: 'Cor', value: 'Vermelho' }],
-      images: []
     }
   ],
-  allImages: [
-    {
-      id: 'img-azul',
-      url: 'url-azul',
-      isPrimary: false,
-      type: 'image',
-      name: 'image-azul'
-    },
-    {
-      id: 'img-extra',
-      url: 'url-extra',
-      isPrimary: false,
-      type: 'image',
-      name: 'image-extra'
-    }
-  ]
+  allImages: []
 } as unknown as IProduct;
 
 describe('ProductSummary Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    vi.mocked(useWizard).mockReturnValue({
+      state: {
+        steps: [{ id: 'BasicInfo' }, { id: 'Images' }, { id: 'Variations' }]
+      },
+      actions: {
+        goToStep: mockGoToStep
+      }
+    } as any);
   });
 
-  it('should pass correct global data to child components for a Simple Product', () => {
+  it('should render correct basic infos for a simple product', () => {
     renderWithProductProvider(<ProductSummary />, {
       providerProps: { product: mockSimpleProduct, mode: 'Edit' }
     });
 
-    expect(mocks.BasicInfosCard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: mockSimpleProduct.name,
-        sku: mockSimpleProduct.sku
-      }),
-      undefined
-    );
+    expect(screen.getByText('Resumo e confirmação')).toBeInTheDocument();
+    expect(screen.getByText('Produto Simples')).toBeInTheDocument();
+    expect(screen.getByText('SKU-SIMPLES')).toBeInTheDocument();
+    expect(screen.getByText('Geral')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
 
-    expect(mocks.InventoryCard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        stock: mockSimpleProduct.stock,
-        minimumStock: mockSimpleProduct.minimumStock
-      }),
-      undefined
-    );
-
-    expect(mocks.ImageCarousel).toHaveBeenCalledWith(
-      expect.objectContaining({
-        images: mockSimpleProduct.allImages
-      }),
-      undefined
-    );
-
-    expect(screen.queryByTestId('options-select-mock')).not.toBeInTheDocument();
+    // Should not render variations card
+    expect(screen.queryByText('Variações')).not.toBeInTheDocument();
   });
 
-  it('should handle product without images gracefully', () => {
-    const productNoImages = { ...mockSimpleProduct, allImages: [] };
+  it('should render correct basic infos for a variable product', () => {
+    renderWithProductProvider(<ProductSummary />, {
+      providerProps: { product: mockVariableProduct, mode: 'Edit' }
+    });
+
+    expect(screen.getByText('Produto Variável')).toBeInTheDocument();
+    expect(screen.getByText('SKU-GLOBAL')).toBeInTheDocument();
+    expect(screen.getByText('Por variante')).toBeInTheDocument();
+
+    // Should render variations card
+    expect(screen.getByText('Variações')).toBeInTheDocument();
+    expect(screen.getByText('Cor')).toBeInTheDocument();
+    expect(screen.getByText('Azul, Vermelho')).toBeInTheDocument();
+    expect(screen.getByText('1 variante')).toBeInTheDocument();
+  });
+
+  it('should render images correctly, sorting primary first', () => {
+    const productWithImages = {
+      ...mockSimpleProduct,
+      allImages: [
+        {
+          id: 'img2',
+          url: 'url2',
+          isPrimary: false,
+          type: 'image',
+          name: 'img2'
+        },
+        {
+          id: 'img1',
+          url: 'url1',
+          isPrimary: true,
+          type: 'image',
+          name: 'img1'
+        }
+      ]
+    } as unknown as IProduct;
+
+    renderWithProductProvider(<ProductSummary />, {
+      providerProps: { product: productWithImages, mode: 'Edit' }
+    });
+
+    const images = screen.getAllByRole('img');
+    expect(images).toHaveLength(2);
+    // Primary image name is 'img1', should be first
+    expect(images[0]).toHaveAttribute('alt', 'img1');
+    expect(images[1]).toHaveAttribute('alt', 'img2');
+
+    expect(screen.getByText('Destaque')).toBeInTheDocument();
+  });
+
+  it('should show "Sem imagens" when product has no images', () => {
+    const productNoImages = {
+      ...mockSimpleProduct,
+      allImages: []
+    } as unknown as IProduct;
 
     renderWithProductProvider(<ProductSummary />, {
       providerProps: { product: productNoImages, mode: 'Edit' }
     });
 
-    expect(mocks.ImageCarousel).not.toHaveBeenCalled();
     expect(screen.getByText('Sem imagens')).toBeInTheDocument();
   });
 
-  it('should initialize with the first variant selected for a Variable Product', () => {
-    renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: mockVariableProduct, mode: 'Edit' }
-    });
-
-    const expectedVariant = mockVariableProduct.variants![0];
-
-    expect(mocks.BasicInfosCard).toHaveBeenCalledWith(
-      expect.objectContaining({ sku: expectedVariant.sku }),
-      undefined
-    );
-
-    expect(mocks.InventoryCard).toHaveBeenCalledWith(
-      expect.objectContaining({ stock: expectedVariant.stock }),
-      undefined
-    );
-
-    expect(mocks.ImageCarousel).toHaveBeenCalledWith(
-      expect.objectContaining({
-        images: expect.arrayContaining([
-          expect.objectContaining({ id: 'img-azul' })
-        ])
-      }),
-      undefined
-    );
-  });
-
-  it('should sort variant images putting primary first', () => {
-    const mockUnsortedImagesProduct: IProduct = {
-      ...mockVariableProduct,
-      variants: [
-        {
-          id: 'v1',
-          sku: 'SKU-SORT',
-          stock: 10,
-          minimumStock: 1,
-          isActive: true,
-          options: [{ name: 'Cor', value: 'Azul' }],
-          images: [
-            { id: 'img-3', isPrimary: false },
-            { id: 'img-2', isPrimary: true },
-            { id: 'img-1', isPrimary: false }
-          ]
-        }
-      ],
-      allImages: [
-        { id: 'img-1', url: 'u1', type: 'image', name: 'n1', isPrimary: false },
-        { id: 'img-2', url: 'u2', type: 'image', name: 'n2', isPrimary: true },
-        { id: 'img-3', url: 'u3', type: 'image', name: 'n3', isPrimary: false }
-      ]
-    };
-
-    renderWithProductProvider(<ProductSummary />, {
-      providerProps: { product: mockUnsortedImagesProduct, mode: 'Edit' }
-    });
-
-    const calledImages = mocks.ImageCarousel.mock.calls[0][0].images;
-
-    expect(calledImages[0].id).toBe('img-2');
-    expect(calledImages.length).toBe(3);
-  });
-
-  it('should update displayed data when user selects a different variant', async () => {
+  it('should navigate to the correct step when clicking "Editar"', async () => {
     const user = userEvent.setup();
     renderWithProductProvider(<ProductSummary />, {
       providerProps: { product: mockVariableProduct, mode: 'Edit' }
     });
 
-    mocks.BasicInfosCard.mockClear();
-    mocks.InventoryCard.mockClear();
-    mocks.ImageCarousel.mockClear();
+    const editButtons = screen.getAllByRole('button', { name: /Editar/i });
+    expect(editButtons).toHaveLength(3); // Basic info, Images, Variations
 
-    const redButton = screen.getByRole('button', { name: /Vermelho/i });
+    // Click edit basic info
+    await user.click(editButtons[0]);
+    expect(mockGoToStep).toHaveBeenCalledWith(0); // BasicInfo index
 
-    await user.click(redButton);
+    // Click edit images
+    await user.click(editButtons[1]);
+    expect(mockGoToStep).toHaveBeenCalledWith(1); // Images index
 
-    const redVariant = mockVariableProduct.variants![1];
-
-    expect(mocks.BasicInfosCard).toHaveBeenCalledWith(
-      expect.objectContaining({ sku: redVariant.sku }),
-      undefined
-    );
-
-    expect(mocks.InventoryCard).toHaveBeenCalledWith(
-      expect.objectContaining({ stock: redVariant.stock }),
-      undefined
-    );
-
-    expect(mocks.ImageCarousel).not.toHaveBeenCalled();
-    expect(screen.getByText('Sem imagens')).toBeInTheDocument();
+    // Click edit variations
+    await user.click(editButtons[2]);
+    expect(mockGoToStep).toHaveBeenCalledWith(2); // Variations index
   });
 });

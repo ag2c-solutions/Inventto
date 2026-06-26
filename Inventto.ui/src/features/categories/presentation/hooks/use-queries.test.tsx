@@ -13,6 +13,12 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
+vi.mock('@/features/users', () => ({
+  useUser: vi.fn(() => ({
+    currentOrganization: { id: 'org-1' }
+  }))
+}));
+
 describe('useCategoriesQuery', () => {
   let queryClient: QueryClient;
 
@@ -27,7 +33,7 @@ describe('useCategoriesQuery', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('should fetch categories using CategoryApi.getAll', async () => {
+  it('should fetch categories using CategoryApi.getAll with organizationId', async () => {
     const mockCategories: Category[] = [
       { id: '1', name: 'Roupas' },
       { id: '2', name: 'Eletrônicos' }
@@ -39,7 +45,7 @@ describe('useCategoriesQuery', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(CategoryApi.getAll).toHaveBeenCalled();
+    expect(CategoryApi.getAll).toHaveBeenCalledWith('org-1');
     expect(result.current.data).toEqual(mockCategories);
   });
 

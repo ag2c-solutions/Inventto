@@ -6,11 +6,12 @@ import { handleCategoryError } from '../handlers/error-handler';
 import { CategoryMapper } from '../mappers';
 
 export class CategoryApi {
-  static async getAll(): Promise<Category[]> {
+  static async getAll(organizationId: string): Promise<Category[]> {
     try {
       const { data, error } = await supabase
         .from('categories')
         .select('id, name')
+        .eq('organization_id', organizationId)
         .order('name', { ascending: true })
         .overrideTypes<Array<CategoryDTO>, { merge: false }>();
 

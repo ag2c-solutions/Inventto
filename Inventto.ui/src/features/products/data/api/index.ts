@@ -86,6 +86,31 @@ export class ProductAPI {
     }
   }
 
+  static async checkSkuAvailability(params: {
+    organizationId: string;
+    sku: string;
+    excludeProductId?: string;
+  }): Promise<boolean> {
+    const { organizationId, sku, excludeProductId } = params;
+
+    try {
+      const { data, error } = await supabase.rpc(
+        'check_product_sku_available',
+        {
+          p_organization_id: organizationId,
+          p_sku: sku,
+          p_exclude_product_id: excludeProductId ?? null
+        }
+      );
+
+      if (error) throw error;
+
+      return Boolean(data);
+    } catch (error) {
+      handleProductError(error, 'checkSkuAvailability');
+    }
+  }
+
   static async add(product: CreateProduct): Promise<IProduct> {
     const productData = ProductMapper.toPersistence(product);
 

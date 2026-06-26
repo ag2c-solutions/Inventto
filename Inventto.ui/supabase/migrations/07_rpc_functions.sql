@@ -178,7 +178,7 @@ BEGIN
     product_data->>'description',
     (product_data->>'hasVariants')::BOOLEAN,
     COALESCE((product_data->>'stock')::INT, 0),
-    COALESCE((product_data->>'minimumStock')::INT, 5),
+    COALESCE((product_data->>'minimumStock')::INT, 0),
     COALESCE((product_data->>'isActive')::BOOLEAN, true)
   )
   RETURNING id INTO v_product_id;
@@ -249,7 +249,7 @@ BEGIN
         v_variant_data->>'sku', 
         (v_variant_data->'options')::JSONB,
         COALESCE((v_variant_data->>'stock')::INT, 0), 
-        COALESCE((v_variant_data->>'minimumStock')::INT, 5),
+        COALESCE((v_variant_data->>'minimumStock')::INT, 0),
         COALESCE((v_variant_data->>'isActive')::BOOLEAN, true)
       )
       RETURNING id INTO v_variant_id;
@@ -313,7 +313,7 @@ BEGIN
     description = product_data->>'description',
     has_variants = (product_data->>'hasVariants')::BOOLEAN,
     stock = COALESCE((product_data->>'stock')::INT, 0),
-    minimum_stock = COALESCE((product_data->>'minimumStock')::INT, 5),
+    minimum_stock = COALESCE((product_data->>'minimumStock')::INT, 0),
     is_active = COALESCE((product_data->>'isActive')::BOOLEAN, true),
     updated_at = NOW()
   WHERE id = v_product_id AND organization_id = v_org_id;
@@ -385,7 +385,7 @@ BEGIN
           sku = v_variant_data->>'sku',
           options = (v_variant_data->'options')::JSONB,
           stock = COALESCE((v_variant_data->>'stock')::INT, 0),
-          minimum_stock = COALESCE((v_variant_data->>'minimumStock')::INT, 5),
+          minimum_stock = COALESCE((v_variant_data->>'minimumStock')::INT, 0),
           is_active = COALESCE((v_variant_data->>'isActive')::BOOLEAN, true),
           deleted_at = NULL 
         WHERE id = v_variant_id;
@@ -399,7 +399,7 @@ BEGIN
           v_variant_data->>'sku', 
           (v_variant_data->'options')::JSONB,
           COALESCE((v_variant_data->>'stock')::INT, 0), 
-          COALESCE((v_variant_data->>'minimumStock')::INT, 5),
+          COALESCE((v_variant_data->>'minimumStock')::INT, 0),
           COALESCE((v_variant_data->>'isActive')::BOOLEAN, true)
         )
         RETURNING id INTO v_variant_id;
@@ -417,6 +417,42 @@ BEGIN
   END IF;
 
   RETURN v_product_id;
+END;
+$$;
+
+
+-- ==============================================================================
+-- 4.1. PRODUTOS: DISPONIBILIDADE DE SKU (RN038 — validação em tempo real)
+-- Retorna TRUE se o SKU está livre na organização (ignora soft-deletes e,
+-- opcionalmente, o próprio produto em edição).
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.check_product_sku_available(
+  p_organization_id UUID,
+  p_sku TEXT,
+  p_exclude_product_id UUID DEFAULT NULL
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_org_member(p_organization_id) THEN
+    RAISE EXCEPTION 'Acesso negado: Permissão insuficiente.';
+  END IF;
+
+  IF p_sku IS NULL OR btrim(p_sku) = '' THEN
+    RETURN FALSE;
+  END IF;
+
+  RETURN NOT EXISTS (
+    SELECT 1
+    FROM public.products
+    WHERE organization_id = p_organization_id
+      AND deleted_at IS NULL
+      AND lower(sku) = lower(btrim(p_sku))
+      AND (p_exclude_product_id IS NULL OR id <> p_exclude_product_id)
+  );
 END;
 $$;
 

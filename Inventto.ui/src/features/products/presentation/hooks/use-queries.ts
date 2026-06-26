@@ -25,6 +25,34 @@ export function useProductByIDQuery(productId?: string) {
   });
 }
 
+export function useSkuAvailabilityQuery(params: {
+  sku: string;
+  excludeProductId?: string;
+  enabled?: boolean;
+}) {
+  const { sku, excludeProductId, enabled = true } = params;
+  const { currentOrganization } = useUser();
+
+  const normalizedSku = sku.trim();
+
+  return useQuery({
+    queryKey: PRODUCTS_KEYS.skuAvailability(
+      currentOrganization?.id,
+      normalizedSku,
+      excludeProductId
+    ),
+    queryFn: () =>
+      ProductAPI.checkSkuAvailability({
+        organizationId: currentOrganization!.id,
+        sku: normalizedSku,
+        excludeProductId
+      }),
+    enabled: enabled && !!currentOrganization?.id && normalizedSku.length > 0,
+    staleTime: 1000 * 30,
+    retry: false
+  });
+}
+
 export function useGlobalAttributesQuery() {
   return useQuery({
     queryKey: PRODUCTS_KEYS.globalAttributes,

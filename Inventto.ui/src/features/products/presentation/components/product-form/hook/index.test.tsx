@@ -41,6 +41,14 @@ vi.mock('../../../hooks/use-mutations', () => ({
   useUpdateProductMutation: () => ({ mutateAsync: mocks.updateMutate })
 }));
 
+vi.mock('../../../hooks/use-queries', () => ({
+  useSkuAvailabilityQuery: () => ({
+    data: undefined,
+    isFetching: false,
+    isError: false
+  })
+}));
+
 vi.mock('../utils/generate-variants', () => ({
   generateVariants: mocks.generateVariants
 }));
@@ -201,7 +209,7 @@ describe('ProductFormProvider Hook', () => {
       expect(isValidFilled).toBe(true);
     });
 
-    it('should generate variants and validate Attributes step', async () => {
+    it('should generate variants and validate Variations step', async () => {
       const { result } = renderHook(() => useProductForm(), { wrapper });
 
       act(() => {
@@ -215,7 +223,7 @@ describe('ProductFormProvider Hook', () => {
 
       await act(async () => {
         isValid = await result.current.handleNextStep({
-          id: 'Attributes'
+          id: 'Variations'
         } as never);
       });
 
@@ -223,7 +231,8 @@ describe('ProductFormProvider Hook', () => {
       expect(isValid).toBe(true);
       expect(mocks.generateVariants).toHaveBeenCalled();
     });
-    it('should fail validation on Attributes step if empty', async () => {
+
+    it('should fail validation on Variations step if attributes empty', async () => {
       const { result } = renderHook(() => useProductForm(), { wrapper });
 
       act(() => {
@@ -232,24 +241,10 @@ describe('ProductFormProvider Hook', () => {
       });
 
       const isValid = await result.current.handleNextStep({
-        id: 'Attributes'
+        id: 'Variations'
       } as never);
 
       expect(isValid).toBe(false);
-    });
-
-    it('should validate Variants step', async () => {
-      const { result } = renderHook(() => useProductForm(), { wrapper });
-
-      act(() => {
-        result.current.handleVariantSwitch(true);
-      });
-
-      const isValid = await result.current.handleNextStep({
-        id: 'Variants'
-      } as never);
-
-      expect(isValid).toBeDefined();
     });
 
     it('should return true for unknown steps', async () => {
