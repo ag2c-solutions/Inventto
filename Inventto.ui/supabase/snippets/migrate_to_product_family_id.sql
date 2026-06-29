@@ -42,8 +42,6 @@ UPDATE public.products
 SET product_family_id = id
 WHERE product_family_id IS NULL;
 
-RAISE NOTICE '✅ Backfill de product_family_id concluído. Verificando...';
-
 -- Verificação: mostra contagem por tipo de família
 DO $$
 DECLARE
@@ -52,8 +50,7 @@ DECLARE
 BEGIN
   SELECT count(*) INTO v_roots FROM public.products WHERE product_family_id = id AND deleted_at IS NULL;
   SELECT count(*) INTO v_copies FROM public.products WHERE product_family_id <> id AND deleted_at IS NULL;
-  RAISE NOTICE '   • Produtos raiz (family_id = id): %', v_roots;
-  RAISE NOTICE '   • Produtos importados (family_id ≠ id): %', v_copies;
+  RAISE NOTICE '✅ Backfill concluído. Raiz: %, Importados: %', v_roots, v_copies;
 END $$;
 
 -- ============================================================
@@ -381,6 +378,8 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.import_products(UUID, UUID, UUID[]) TO authenticated;
 
-RAISE NOTICE '✅ Migração PROD-08 v2 concluída com sucesso!';
+DO $$ BEGIN
+  RAISE NOTICE '✅ Migração PROD-08 v2 concluída com sucesso!';
+END $$;
 
 COMMIT;
