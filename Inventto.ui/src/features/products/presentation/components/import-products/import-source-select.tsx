@@ -27,7 +27,7 @@ export function ImportSourceSelect({
     <div className="flex flex-col gap-2">
       <Label htmlFor="import-source-org">Organização de origem</Label>
       <Select value={value ?? ''} onValueChange={onChange}>
-        <SelectTrigger id="import-source-org" className="w-full max-w-md">
+        <SelectTrigger id="import-source-org" className="w-[220px] shrink-0">
           <SelectValue placeholder="Selecione a unidade de origem" />
         </SelectTrigger>
         <SelectContent>
