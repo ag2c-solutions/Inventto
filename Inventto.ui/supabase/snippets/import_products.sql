@@ -1,15 +1,69 @@
 -- Snippet PROD-08 — Importar produtos entre unidades do tenant (RF021).
 -- Execute este snippet para atualizar seu banco de desenvolvimento local.
+-- v2: substituição de source_product_id por product_family_id (rastreio de linhagem multi-nível).
 
--- 1. Rastreio de importação + prevenção de duplicidade (RN048)
+-- ============================================================
+-- 1. LIMPEZA DO SCHEMA ANTERIOR
+-- ============================================================
+
+-- Remove o índice antigo baseado em source_product_id
+DROP INDEX IF EXISTS public.idx_products_import_source;
+
+-- Remove a coluna source_product_id (substituída por product_family_id)
 ALTER TABLE public.products
-  ADD COLUMN IF NOT EXISTS source_product_id uuid REFERENCES public.products(id) ON DELETE SET NULL;
+  DROP COLUMN IF EXISTS source_product_id;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_products_import_source
-  ON public.products (organization_id, source_product_id)
-  WHERE source_product_id IS NOT NULL AND deleted_at IS NULL;
+-- ============================================================
+-- 2. NOVA COLUNA: product_family_id
+-- Identifica a "família" de um produto através das orgs.
+--   • Original (criado do zero): product_family_id = próprio id (setado pelo trigger).
+--   • Importado: herda o product_family_id do produto de origem.
+-- ============================================================
+ALTER TABLE public.products
+  ADD COLUMN IF NOT EXISTS product_family_id uuid REFERENCES public.products(id) ON DELETE SET NULL;
 
--- 2. Candidatos à importação (lista + flag "Já importado" + imagem + variantes)
+-- Índice único: uma mesma família só pode existir uma vez por organização.
+-- Substitui idx_products_import_source.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_products_family_per_org
+  ON public.products (organization_id, product_family_id)
+  WHERE product_family_id IS NOT NULL AND deleted_at IS NULL;
+
+-- ============================================================
+-- 3. TRIGGER: auto-popula product_family_id em inserts
+-- Para produtos originais (sem family_id passado), usa o próprio id.
+-- Para importados, o caller passa o product_family_id da origem.
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.set_product_family_id()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.product_family_id IS NULL THEN
+    NEW.product_family_id := NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_set_product_family_id ON public.products;
+CREATE TRIGGER trg_set_product_family_id
+  BEFORE INSERT ON public.products
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_product_family_id();
+
+-- ============================================================
+-- 4. BACKFILL: marca produtos existentes como raiz de si mesmos.
+-- Em dev (ambiente fresh), não há cópias pré-existentes.
+-- Em produção, aplicar backfill recursivo ANTES do DROP COLUMN.
+-- ============================================================
+UPDATE public.products
+SET product_family_id = id
+WHERE product_family_id IS NULL;
+
+-- ============================================================
+-- 5. CANDIDATOS À IMPORTAÇÃO
+-- already_imported verificado por família (não por pai direto).
+-- ============================================================
 DROP FUNCTION IF EXISTS public.get_import_candidates(UUID, UUID);
 CREATE OR REPLACE FUNCTION public.get_import_candidates(
   p_source_org_id UUID,
@@ -42,11 +96,13 @@ BEGIN
     p.id,
     p.name,
     p.sku,
+    -- Dedupe por família: já importado se existir na org destino
+    -- qualquer produto com o mesmo product_family_id.
     EXISTS (
       SELECT 1
       FROM public.products t
       WHERE t.organization_id = p_target_org_id
-        AND t.source_product_id = p.id
+        AND t.product_family_id = p.product_family_id
         AND t.deleted_at IS NULL
     ) AS already_imported,
     img.url AS image_url,
@@ -72,7 +128,9 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_import_candidates(UUID, UUID) TO authenticated;
 
--- 2.1. Variantes de um produto de origem (preview expansível, sem estoque)
+-- ============================================================
+-- 5.1. Variantes de um produto de origem (preview expansível, sem estoque)
+-- ============================================================
 DROP FUNCTION IF EXISTS public.get_source_product_variants(UUID, UUID);
 CREATE OR REPLACE FUNCTION public.get_source_product_variants(
   p_source_org_id UUID,
@@ -119,7 +177,10 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_source_product_variants(UUID, UUID) TO authenticated;
 
--- 3. Importação (cópia de dados mestres, estoque zero — RN039/RN047/RN048)
+-- ============================================================
+-- 6. IMPORTAÇÃO (cópia de dados mestres, estoque zero — RN039/RN047/RN048)
+-- Propaga product_family_id da origem → resolve linhagem multi-nível.
+-- ============================================================
 CREATE OR REPLACE FUNCTION public.import_products(
   p_source_org_id UUID,
   p_target_org_id UUID,
@@ -165,10 +226,11 @@ BEGIN
       AND organization_id = p_source_org_id
       AND deleted_at IS NULL
   LOOP
+    -- Dedupe por família: bloqueia se a org destino já tem produto da mesma família.
     IF EXISTS (
       SELECT 1 FROM public.products
       WHERE organization_id = p_target_org_id
-        AND source_product_id = v_source_product.id
+        AND product_family_id = v_source_product.product_family_id
         AND deleted_at IS NULL
     ) THEN
       CONTINUE;
@@ -188,7 +250,10 @@ BEGIN
 
     INSERT INTO public.products (
       organization_id, name, sku, description, has_variants,
-      stock, minimum_stock, cost_price, is_active, source_product_id
+      stock, minimum_stock, cost_price, is_active,
+      -- Propaga a família: P3 (importado de P2) aponta para o mesmo
+      -- product_family_id de P1 — resolve o bug de linhagem.
+      product_family_id
     )
     VALUES (
       p_target_org_id,
@@ -197,7 +262,7 @@ BEGIN
       v_source_product.description,
       v_source_product.has_variants,
       0, 0, 0, true,
-      v_source_product.id
+      v_source_product.product_family_id
     )
     RETURNING id INTO v_new_product_id;
 
@@ -293,3 +358,4 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.import_products(UUID, UUID, UUID[]) TO authenticated;
+
