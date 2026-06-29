@@ -16,23 +16,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
+import { cn } from '@/shared/utils';
 
 type ProductTableColumnActionsProps = {
   productId: string;
+  /** Classe do contêiner (sobrescreve o alinhamento padrão da célula). */
+  className?: string;
+  /** Classe do botão acionador (ex.: overlay sobre a imagem no card mobile). */
+  triggerClassName?: string;
 };
 
 export function ProductTableColumnActions({
-  productId
+  productId,
+  className,
+  triggerClassName
 }: ProductTableColumnActionsProps) {
   return (
-    <div className="w-full flex justify-center pr-4">
+    <div className={cn('w-full flex justify-center pr-4', className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="icon-sm"
             aria-label="Abrir menu de ações do produto"
-            className="text-sidebar-foreground"
+            className={cn('text-sidebar-foreground', triggerClassName)}
           >
             <EllipsisVertical className="h-5 w-5" />
           </Button>

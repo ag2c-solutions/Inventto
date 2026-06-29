@@ -2,6 +2,8 @@ import { type ComponentProps, Fragment } from 'react';
 import { Check } from 'lucide-react';
 
 import { Badge } from '@/shared/components/ui/badge';
+import { Progress } from '@/shared/components/ui/progress';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 import { cn } from '@/shared/utils';
 
 import { useWizard } from '../../hooks';
@@ -9,6 +11,25 @@ import type { WizardStep } from '../../types';
 
 export function WizardHeader({ className, ...props }: ComponentProps<'div'>) {
   const { state } = useWizard();
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    const current = state.currentStepIndex + 1;
+
+    return (
+      <div className={cn('flex flex-col gap-2 w-full', className)} {...props}>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-foreground">
+            {state.currentStep?.label}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Passo {current} de {state.totalSteps}
+          </span>
+        </div>
+        <Progress value={(current / state.totalSteps) * 100} />
+      </div>
+    );
+  }
 
   return (
     <div
