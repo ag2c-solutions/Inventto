@@ -109,6 +109,21 @@ export const router = createBrowserRouter([
             ]
           },
           {
+            path: 'import',
+            element: <CanNavigate required="product:create" />,
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { ImportProductsPage } = await import(
+                    '@/features/products'
+                  );
+                  return { Component: ImportProductsPage };
+                }
+              }
+            ]
+          },
+          {
             path: ':productId',
             element: <CanNavigate required="product:view" />,
             children: [

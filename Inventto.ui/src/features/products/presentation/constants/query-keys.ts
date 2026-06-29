@@ -16,5 +16,25 @@ export const PRODUCTS_KEYS = {
       sku,
       excludeProductId ?? null
     ] as const,
-  globalAttributes: ['products', 'global-attributes'] as const
+  globalAttributes: ['products', 'global-attributes'] as const,
+  importCandidates: (
+    targetOrganizationId?: string | null,
+    sourceOrganizationId?: string | null
+  ) =>
+    [
+      ...PRODUCTS_KEYS.all,
+      'import-candidates',
+      targetOrganizationId,
+      sourceOrganizationId
+    ] as const,
+  sourceVariants: (
+    sourceOrganizationId?: string | null,
+    productId?: string | null
+  ) =>
+    [
+      ...PRODUCTS_KEYS.all,
+      'source-variants',
+      sourceOrganizationId,
+      productId
+    ] as const
 };

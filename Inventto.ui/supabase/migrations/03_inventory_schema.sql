@@ -29,6 +29,11 @@ CREATE TABLE public.products (
   minimum_stock integer DEFAULT 0,
   cost_price numeric(10, 2) DEFAULT 0,
 
+  -- Rastreio de linhagem entre unidades (RF021/RN048). Identifica a "família" do produto
+  -- (raiz original compartilhada entre todas as cópias importadas). Setado pelo trigger
+  -- trg_set_product_family_id: originais recebem o próprio id; importados herdam da origem.
+  product_family_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
+
   deleted_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
@@ -37,8 +42,24 @@ CREATE TABLE public.products (
 );
 -- SKU único por organização (RN038), ignorando soft-deletes — espelha as variantes.
 CREATE UNIQUE INDEX idx_products_sku_active ON public.products (organization_id, sku) WHERE deleted_at IS NULL;
+-- Prevenção de duplicidade na importação (RN048): uma mesma família de produto só pode
+-- existir uma vez por organização destino. Cobre linhagem multi-nível.
+CREATE UNIQUE INDEX idx_products_family_per_org ON public.products (organization_id, product_family_id) WHERE product_family_id IS NOT NULL AND deleted_at IS NULL;
 -- Trigger para atualizar updated_at automaticamente
 CREATE TRIGGER handle_updated_at_products BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+-- Trigger para auto-popular product_family_id: originais recebem o próprio id.
+CREATE OR REPLACE FUNCTION public.set_product_family_id()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.product_family_id IS NULL THEN
+    NEW.product_family_id := NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+CREATE TRIGGER trg_set_product_family_id
+  BEFORE INSERT ON public.products
+  FOR EACH ROW EXECUTE FUNCTION public.set_product_family_id();
 
 -- 3. Categorias do Produto (Pivô)
 CREATE TABLE public.product_categories (
