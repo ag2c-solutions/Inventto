@@ -32,12 +32,12 @@ export function ExistingAttributeCard({
 
   return (
     <div className="rounded-xl border bg-muted/20 p-4">
-      <div className="flex items-end gap-2.5">
+      <div className="flex flex-wrap items-end gap-2.5">
         <FormField
           control={form.control}
           name={`attributes.${index}.name`}
           render={({ field }) => (
-            <FormItem className="flex-1">
+            <FormItem className="min-w-0 flex-1">
               <FormLabel>Nome do atributo</FormLabel>
               <FormControl>
                 <Input disabled placeholder="ex: Tamanho" {...field} />
@@ -51,7 +51,7 @@ export function ExistingAttributeCard({
           control={form.control}
           name={`attributes.${index}.type`}
           render={({ field }) => (
-            <FormItem className="w-[150px] shrink-0">
+            <FormItem className="w-full sm:w-[150px] sm:shrink-0">
               <FormLabel>Tipo</FormLabel>
               <FormControl>
                 <Select
