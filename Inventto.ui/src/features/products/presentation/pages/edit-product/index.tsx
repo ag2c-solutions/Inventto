@@ -43,17 +43,19 @@ export function EditProductPage() {
 
   return (
     <section>
-      <div className="flex items-start justify-between py-4 px-6 md:pb-0">
+      <div className="flex items-start justify-between py-4 px-1 md:px-6 md:pb-0">
         <div className="flex flex-col gap-2 pb-6">
           <div className="flex gap-1 items-center">
             <NavLink to={`/products`} className="flex items-center">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-accent/50 group-hover:bg-accent transition-all mr-2">
-                <ArrowUpLeftIcon className="size-4 text-primary" />
+              <div className="flex items-center justify-center size-4 md:size-8 rounded-lg bg-accent/50 group-hover:bg-accent transition-all">
+                <ArrowUpLeftIcon className="text-primary" />
               </div>
             </NavLink>
-            <h2 className="text-2xl font-semibold">Editar produto</h2>
+            <h2 className="text-lg md:text-2xl font-semibold">
+              Editar produto
+            </h2>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground ml-10">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground md:ml-10">
             <span className="font-semibold text-foreground">
               {product.name}
             </span>
@@ -68,8 +70,8 @@ export function EditProductPage() {
             className="text-muted-foreground"
             onClick={() => setOpenModal(true)}
           >
-            <EyeOff className="mr-2 size-4" />
-            Inativar produto
+            <EyeOff className="size-2.5 md:size-4" />
+            <span className="hidden md:block">Inativar produto</span>
           </Button>
         ) : (
           <Button
@@ -78,13 +80,13 @@ export function EditProductPage() {
             onClick={handleActivate}
             disabled={isChangingStatus}
           >
-            <Eye className="mr-2 size-4" />
-            Reativar produto
+            <Eye className="size-2.5 md:size-4" />
+            <span className="hidden md:block">Reativar produto</span>
           </Button>
         )}
       </div>
 
-      <section className="px-6">
+      <section className="px-1 md:px-6">
         <ProductFormProvider product={product} mode="Edit">
           <ProductForm />
         </ProductFormProvider>

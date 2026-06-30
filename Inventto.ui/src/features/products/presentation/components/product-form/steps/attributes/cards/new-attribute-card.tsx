@@ -126,12 +126,12 @@ export function NewAttributeCard({
 
   return (
     <div className="rounded-xl border bg-muted/20 p-4">
-      <div className="flex items-end gap-2.5">
+      <div className="flex flex-wrap items-end gap-2.5">
         <FormField
           control={form.control}
           name={`attributes.${index}.name`}
           render={({ field }) => (
-            <FormItem className="flex-1">
+            <FormItem className="min-w-0 flex-1">
               <FormLabel>Nome do atributo</FormLabel>
 
               <Popover open={open} onOpenChange={setOpen}>
@@ -218,7 +218,7 @@ export function NewAttributeCard({
           control={form.control}
           name={`attributes.${index}.type`}
           render={({ field }) => (
-            <FormItem className="w-[150px] shrink-0">
+            <FormItem className="w-full sm:w-[150px] sm:shrink-0">
               <FormLabel>Tipo</FormLabel>
 
               <FormControl>
@@ -255,7 +255,7 @@ export function NewAttributeCard({
           type="button"
           variant="outline"
           size="icon"
-          className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+          className="size-9 shrink-0 self-end text-muted-foreground hover:text-destructive"
           onClick={() => onRemove(index)}
           aria-label="Remover atributo"
         >

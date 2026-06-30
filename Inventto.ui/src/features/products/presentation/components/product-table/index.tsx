@@ -22,6 +22,7 @@ import {
   DataTableTextFilter,
   PaginationControllers
 } from '@/shared/components/common/data-table';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';
@@ -31,8 +32,10 @@ import { ProductVariantsCard } from '../variants-card';
 import { columnsProductListTable } from './columns';
 import { ProductListTableLoading } from './loading';
 import { ProductListOnboardingEmpty } from './onboarding-empty';
+import { ProductCardList } from './product-card-list';
 
 export function ProductListTable() {
+  const isMobile = useIsMobile();
   const { data: products, isLoading } = useProductsQuery();
   const [isExpanded, setIsExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState('');
@@ -98,6 +101,12 @@ export function ProductListTable() {
 
   if (!products || products.length === 0) {
     return <ProductListOnboardingEmpty />;
+  }
+
+  if (isMobile) {
+    return (
+      <ProductCardList products={products} categoryOptions={categoryOptions} />
+    );
   }
 
   const searchTerm = globalFilter.trim();
