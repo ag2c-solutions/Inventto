@@ -84,7 +84,12 @@ export function useDeactivateOrganizationMutation() {
 
 export function useDeleteOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { currentOrganization, setCurrentOrganization, refetch } = useUser();
+  const {
+    currentOrganization,
+    availableOrganizations,
+    setCurrentOrganization,
+    refetch
+  } = useUser();
   const navigate = useNavigate();
 
   return useMutation({
@@ -93,17 +98,28 @@ export function useDeleteOrganizationMutation() {
     onSuccess: async () => {
       const deletedOrgId = currentOrganization?.id;
 
-      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+      // 1) Troca para uma org remanescente e sai da tela da org excluída ANTES
+      //    de mexer no cache. A org alvo já existe na lista atual (a exclusão
+      //    só removeu `deletedOrgId`), então a troca é segura sem refetch. Isso
+      //    faz a query de detalhe (useOrganizationQuery) parar de observar a
+      //    org excluída — sem isso, o invalidate abaixo refazia o `getById` de
+      //    um registro inexistente (406 / PGRST116).
+      const nextOrg = availableOrganizations.find(
+        (org) => org.id !== deletedOrgId
+      );
 
-      // Rebusca o perfil (já sem a org excluída) e troca para a primeira org
-      // restante; se não sobrar nenhuma, limpa a seleção. Usa os dados frescos
-      // em vez do snapshot velho — que ainda listava a org excluída.
-      const { data: freshUser } = await refetch();
-      const remaining = freshUser?.availableOrganizations ?? [];
-      const nextOrg = remaining.find((org) => org.id !== deletedOrgId);
-
-      setCurrentOrganization(nextOrg?.id ?? '', remaining);
+      setCurrentOrganization(nextOrg?.id ?? '');
       navigate('/');
+
+      // 2) Após o React reapontar/desmontar a tela de detalhe (o await dá esse
+      //    tempo), rebusca o perfil já sem a org excluída, descarta o cache
+      //    dela e revalida o restante das listas.
+      await refetch();
+
+      queryClient.removeQueries({
+        queryKey: ORG_KEYS.detail(deletedOrgId ?? '')
+      });
+      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
     },
     meta: {
       successMessage: 'Organização excluída.'

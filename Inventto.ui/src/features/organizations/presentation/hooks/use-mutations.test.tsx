@@ -14,6 +14,9 @@ const mockRefetch = vi.fn(async () => ({
 const mockUseUser = vi.fn(() => ({
   user: { id: 'user-1' },
   currentOrganization: { id: 'org-1' },
+  availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }] as {
+    id: string;
+  }[],
   setCurrentOrganization: mockSetCurrentOrganization,
   refetch: mockRefetch
 }));
@@ -63,6 +66,7 @@ describe('useCreateOrganizationMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -120,6 +124,7 @@ describe('useDeleteOrganizationMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -144,32 +149,49 @@ describe('useDeleteOrganizationMutation', () => {
     );
   });
 
-  it('deve trocar para a primeira org restante (sem a excluída) no onSuccess', async () => {
+  it('deve trocar para a primeira org restante (sem a excluída) e navegar', async () => {
     vi.mocked(OrganizationService.remove).mockResolvedValue(undefined);
-    // Perfil rebuscado já sem a org excluída (org-1).
-    mockRefetch.mockResolvedValueOnce({
-      data: { id: 'user-1', availableOrganizations: [{ id: 'org-2' }] }
-    });
     const { result } = renderHook(() => useDeleteOrganizationMutation(), {
       wrapper
     });
     await result.current.mutateAsync(false);
-    expect(mockSetCurrentOrganization).toHaveBeenCalledWith('org-2', [
-      { id: 'org-2' }
-    ]);
+    // A org alvo vem da lista atual, excluindo a org excluída (org-1).
+    expect(mockSetCurrentOrganization).toHaveBeenCalledWith('org-2');
     expect(mockNavigate).toHaveBeenCalledWith('/');
+  });
+
+  it('deve descartar o cache da org excluída e revalidar no onSuccess', async () => {
+    vi.mocked(OrganizationService.remove).mockResolvedValue(undefined);
+    const removeSpy = vi.spyOn(queryClient, 'removeQueries');
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useDeleteOrganizationMutation(), {
+      wrapper
+    });
+    await result.current.mutateAsync(false);
+    expect(removeSpy).toHaveBeenCalledWith({
+      queryKey: ['organizations', 'detail', 'org-1']
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: ['organizations']
+    });
+    expect(mockRefetch).toHaveBeenCalled();
   });
 
   it('deve limpar a seleção quando não sobrar nenhuma org', async () => {
     vi.mocked(OrganizationService.remove).mockResolvedValue(undefined);
-    mockRefetch.mockResolvedValueOnce({
-      data: { id: 'user-1', availableOrganizations: [] }
+    // Só resta a própria org excluída na lista atual.
+    mockUseUser.mockReturnValue({
+      user: { id: 'user-1' },
+      currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }],
+      setCurrentOrganization: mockSetCurrentOrganization,
+      refetch: mockRefetch
     });
     const { result } = renderHook(() => useDeleteOrganizationMutation(), {
       wrapper
     });
     await result.current.mutateAsync(false);
-    expect(mockSetCurrentOrganization).toHaveBeenCalledWith('', []);
+    expect(mockSetCurrentOrganization).toHaveBeenCalledWith('');
   });
 });
 
@@ -181,6 +203,7 @@ describe('useUpdateOrganizationMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -237,6 +260,7 @@ describe('useCreateMemberMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -292,6 +316,7 @@ describe('useReplicateMemberMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -341,6 +366,7 @@ describe('useUpdateMemberRoleMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -390,6 +416,7 @@ describe('useUpdateMemberStatusMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
@@ -445,6 +472,7 @@ describe('useDeactivateOrganizationMutation', () => {
     mockUseUser.mockReturnValue({
       user: { id: 'user-1' },
       currentOrganization: { id: 'org-1' },
+      availableOrganizations: [{ id: 'org-1' }, { id: 'org-2' }],
       setCurrentOrganization: mockSetCurrentOrganization,
       refetch: mockRefetch
     });
