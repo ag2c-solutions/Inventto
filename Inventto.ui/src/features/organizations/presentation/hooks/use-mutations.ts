@@ -15,22 +15,21 @@ import { ORG_KEYS } from '../constants/org-keys';
 
 export function useCreateOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { user, setCurrentOrganization } = useUser();
+  const { setCurrentOrganization, refetch } = useUser();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (payload: CreateOrganizationInput) =>
       OrganizationService.create(payload),
     onSuccess: async (newOrgId: string) => {
-      if (user?.id) {
-        await queryClient.invalidateQueries({
-          queryKey: USERS_KEYS.profile(user.id)
-        });
-      }
-
       await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
 
-      setCurrentOrganization(newOrgId);
+      // Rebusca o perfil para obter a lista já contendo a nova organização e
+      // troca o contexto para ela validando contra esses dados frescos — sem
+      // depender do snapshot velho do `user` no closure.
+      const { data: freshUser } = await refetch();
+
+      setCurrentOrganization(newOrgId, freshUser?.availableOrganizations);
       navigate('/settings');
     },
     meta: {
@@ -85,23 +84,42 @@ export function useDeactivateOrganizationMutation() {
 
 export function useDeleteOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { user, currentOrganization, setCurrentOrganization } = useUser();
+  const {
+    currentOrganization,
+    availableOrganizations,
+    setCurrentOrganization,
+    refetch
+  } = useUser();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (purge: boolean) =>
       OrganizationService.remove(currentOrganization, purge),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
+      const deletedOrgId = currentOrganization?.id;
 
-      if (user?.id) {
-        await queryClient.invalidateQueries({
-          queryKey: USERS_KEYS.profile(user.id)
-        });
-      }
+      // 1) Troca para uma org remanescente e sai da tela da org excluída ANTES
+      //    de mexer no cache. A org alvo já existe na lista atual (a exclusão
+      //    só removeu `deletedOrgId`), então a troca é segura sem refetch. Isso
+      //    faz a query de detalhe (useOrganizationQuery) parar de observar a
+      //    org excluída — sem isso, o invalidate abaixo refazia o `getById` de
+      //    um registro inexistente (406 / PGRST116).
+      const nextOrg = availableOrganizations.find(
+        (org) => org.id !== deletedOrgId
+      );
 
-      setCurrentOrganization(user?.availableOrganizations[0]?.id ?? '');
+      setCurrentOrganization(nextOrg?.id ?? '');
       navigate('/');
+
+      // 2) Após o React reapontar/desmontar a tela de detalhe (o await dá esse
+      //    tempo), rebusca o perfil já sem a org excluída, descarta o cache
+      //    dela e revalida o restante das listas.
+      await refetch();
+
+      queryClient.removeQueries({
+        queryKey: ORG_KEYS.detail(deletedOrgId ?? '')
+      });
+      await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
     },
     meta: {
       successMessage: 'Organização excluída.'
