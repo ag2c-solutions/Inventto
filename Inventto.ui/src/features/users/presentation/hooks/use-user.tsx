@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import type {
@@ -38,7 +39,10 @@ interface UserContextType {
   refetch: (
     options?: RefetchOptions
   ) => Promise<QueryObserverResult<User | null, Error>>;
-  setCurrentOrganization: (orgId: string) => void;
+  setCurrentOrganization: (
+    orgId: string,
+    availableOverride?: UserOrganization[]
+  ) => void;
 }
 
 export const UserContext = createContext<UserContextType | null>(null);
@@ -64,9 +68,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
     refetch
   } = useUserProfileQuery(userId);
 
+  // Refs sincronizadas a cada render: garantem que `handleSetOrganization`
+  // valide contra os dados mais recentes, e não contra o snapshot capturado
+  // no closure (que ficava velho após mutações como criar/excluir org).
+  const userRef = useRef(user);
+  userRef.current = user;
+
   const currentOrganization = useMemo(() => {
     return UserService.getOrganizationById(user, selectedOrgId);
   }, [user, selectedOrgId]);
+
+  const currentOrganizationRef = useRef(currentOrganization);
+  currentOrganizationRef.current = currentOrganization;
 
   // Quando currentOrganization se resolve para o novo org, a troca terminou.
   useEffect(() => {
@@ -89,12 +102,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [user, selectedOrgId]);
 
   const handleSetOrganization = useCallback(
-    (orgId: string) => {
+    (orgId: string, availableOverride?: UserOrganization[]) => {
+      // Limpa a seleção (ex.: org atual excluída e sem outra disponível).
+      if (!orgId) {
+        setSelectedOrgId(null);
+        LocalStorageService.removeItem(STORAGE_ORG_KEY);
+        return;
+      }
+
       // RN010: ignorar seleção da org já ativa — fecha sem ação
-      if (currentOrganization?.id === orgId) return;
+      if (currentOrganizationRef.current?.id === orgId) return;
+
+      // `availableOverride` permite validar contra a lista recém-buscada por
+      // uma mutação (criar/excluir), pois `userRef.current` pode ainda não
+      // refletir a mudança no instante da chamada.
+      const baseUser = userRef.current;
+      const source =
+        availableOverride && baseUser
+          ? { ...baseUser, availableOrganizations: availableOverride }
+          : baseUser;
 
       try {
-        const organization = UserService.selectOrganization(user, orgId);
+        const organization = UserService.selectOrganization(source, orgId);
 
         setIsSwitching(true);
         setSelectedOrgId(organization.id);
@@ -105,7 +134,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         });
       }
     },
-    [user, currentOrganization]
+    []
   );
 
   const value = useMemo<UserContextType>(

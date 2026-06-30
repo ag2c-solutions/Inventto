@@ -20,7 +20,8 @@ vi.mock('@/features/auth', () => ({
 vi.mock('@/infra/local-storage', () => ({
   LocalStorageService: {
     getItem: vi.fn(),
-    setItem: vi.fn()
+    setItem: vi.fn(),
+    removeItem: vi.fn()
   }
 }));
 
@@ -39,6 +40,7 @@ const mockUseAuth = vi.mocked(useAuth);
 const mockUseUserProfileQuery = vi.mocked(useUserProfileQuery);
 const mockGetItem = vi.mocked(LocalStorageService.getItem);
 const mockSetItem = vi.mocked(LocalStorageService.setItem);
+const mockRemoveItem = vi.mocked(LocalStorageService.removeItem);
 const mockGetOrganizationById = vi.mocked(UserService.getOrganizationById);
 const mockSelectOrganization = vi.mocked(UserService.selectOrganization);
 
@@ -224,6 +226,44 @@ describe('useUser', () => {
     );
 
     consoleWarnSpy.mockRestore();
+  });
+
+  it('should clear the selection and storage when given an empty org id', () => {
+    const { result } = renderHook(() => useUser(), {
+      wrapper: createWrapper()
+    });
+
+    act(() => {
+      result.current.setCurrentOrganization('');
+    });
+
+    expect(mockSelectOrganization).not.toHaveBeenCalled();
+    expect(mockRemoveItem).toHaveBeenCalledWith(STORAGE_ORG_KEY);
+  });
+
+  it('should validate against the override list when provided', () => {
+    const freshOrgs: UserOrganization[] = [
+      { id: 'organization-789', name: 'Fresh Org', role: 'owner' }
+    ];
+    mockSelectOrganization.mockReturnValue(freshOrgs[0]);
+
+    const { result } = renderHook(() => useUser(), {
+      wrapper: createWrapper()
+    });
+
+    act(() => {
+      result.current.setCurrentOrganization('organization-789', freshOrgs);
+    });
+
+    // A validação usa o usuário com a lista fresca, não o snapshot do contexto.
+    expect(mockSelectOrganization).toHaveBeenCalledWith(
+      expect.objectContaining({ availableOrganizations: freshOrgs }),
+      'organization-789'
+    );
+    expect(mockSetItem).toHaveBeenCalledWith(
+      STORAGE_ORG_KEY,
+      'organization-789'
+    );
   });
 
   it('should expose unauthenticated state when there is no session user', () => {

@@ -15,22 +15,21 @@ import { ORG_KEYS } from '../constants/org-keys';
 
 export function useCreateOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { user, setCurrentOrganization } = useUser();
+  const { setCurrentOrganization, refetch } = useUser();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (payload: CreateOrganizationInput) =>
       OrganizationService.create(payload),
     onSuccess: async (newOrgId: string) => {
-      if (user?.id) {
-        await queryClient.invalidateQueries({
-          queryKey: USERS_KEYS.profile(user.id)
-        });
-      }
-
       await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
 
-      setCurrentOrganization(newOrgId);
+      // Rebusca o perfil para obter a lista já contendo a nova organização e
+      // troca o contexto para ela validando contra esses dados frescos — sem
+      // depender do snapshot velho do `user` no closure.
+      const { data: freshUser } = await refetch();
+
+      setCurrentOrganization(newOrgId, freshUser?.availableOrganizations);
       navigate('/settings');
     },
     meta: {
@@ -85,22 +84,25 @@ export function useDeactivateOrganizationMutation() {
 
 export function useDeleteOrganizationMutation() {
   const queryClient = useQueryClient();
-  const { user, currentOrganization, setCurrentOrganization } = useUser();
+  const { currentOrganization, setCurrentOrganization, refetch } = useUser();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (purge: boolean) =>
       OrganizationService.remove(currentOrganization, purge),
     onSuccess: async () => {
+      const deletedOrgId = currentOrganization?.id;
+
       await queryClient.invalidateQueries({ queryKey: ORG_KEYS.all });
 
-      if (user?.id) {
-        await queryClient.invalidateQueries({
-          queryKey: USERS_KEYS.profile(user.id)
-        });
-      }
+      // Rebusca o perfil (já sem a org excluída) e troca para a primeira org
+      // restante; se não sobrar nenhuma, limpa a seleção. Usa os dados frescos
+      // em vez do snapshot velho — que ainda listava a org excluída.
+      const { data: freshUser } = await refetch();
+      const remaining = freshUser?.availableOrganizations ?? [];
+      const nextOrg = remaining.find((org) => org.id !== deletedOrgId);
 
-      setCurrentOrganization(user?.availableOrganizations[0]?.id ?? '');
+      setCurrentOrganization(nextOrg?.id ?? '', remaining);
       navigate('/');
     },
     meta: {
