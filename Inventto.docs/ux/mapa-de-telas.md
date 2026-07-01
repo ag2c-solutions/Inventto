@@ -69,7 +69,8 @@ A experiência autenticada da equipe, dentro do shell, por módulo.
 |---|---|---|---|---|
 | Lista / busca de produtos | `/produtos` | Owner, Manager (Sales: leitura) | RF017 · RN057 | Custos ocultos do Sales; vazio conduz |
 | Cadastro de produto (wizard) | `/produtos/novo` | Owner, Manager | RF016 · RN038, RN039, RN041 | Multi-step; SKU único; estoque inicial zero |
-| Edição de produto | `/produtos/:id` | Owner, Manager | RF018 · RN044 | SKU imutável quando há histórico |
+| Detalhe de produto (leitura) | `/produtos/:id` | Owner, Manager, Sales | RF017 · RN017 | Ficha somente-leitura; única tela de produto acessível ao Sales; ponte para registrar movimentação |
+| Edição de produto | `/produtos/:id/editar` | Owner, Manager | RF018 · RN044 | SKU imutável quando há histórico |
 | — modal: inativar produto | (modal) | Owner, Manager | RF019 · RN045 | Não é tela; soft delete |
 | Categorias | `/produtos/categorias` | Owner, Manager | RF020 · RN046 | Inline; retenção de estrutura |
 | Importar produtos (entre orgs) | `/produtos/importar` | Owner, Manager | RF021 · RN047, RN048 | Isolamento comercial; sem duplicar |

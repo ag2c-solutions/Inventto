@@ -572,7 +572,15 @@ Autenticação (first-access, política de senha, e-mail único); Organizações
 
 **RN043 — Consolidação de saldo para itens em grade.** Ao apresentar a visão sumarizada (nível de produto) de um item que possui variações estruturadas, o sistema deve calcular e exibir em tempo real o estoque total, correspondente à soma exata dos saldos individuais de todas as suas variantes ativas.
 
-### 4.4. RF018 — Edição de produto
+### 4.4. RF039 — Visualização de detalhe do produto
+
+**Como** Sales, Manager ou Owner, **eu quero** visualizar a ficha completa de um produto **para** consultar suas informações — identificação, estoque e variantes — sem precisar de permissão de edição.
+
+**Comportamento esperado:** O sistema deve fornecer uma tela de leitura, separada da edição (RF018), que apresente a identificação do produto (nome, SKU, categorias, descrição, imagens), seu status de ativação e o status de estoque derivado do saldo e do mínimo (RN050) — no nível do produto e, para itens com variações, no nível de cada variante, com seletor de variante e leitura da grade consolidada (RN043). Esta é a única superfície do módulo de Produtos acessível ao papel Sales, que não acessa o cadastro (RF016) nem a edição (RF018).
+
+**Regras aplicáveis:** RN017 (isolamento), RN043 (consolidação de saldo em grade), RN050 (status de estoque).
+
+### 4.5. RF018 — Edição de produto
 
 **Como** Manager ou Owner, **eu quero** alterar as informações de um produto existente **para** manter o catálogo e os parâmetros de inventário atualizados em relação à realidade comercial.
 
@@ -584,7 +592,7 @@ Autenticação (first-access, política de senha, e-mail único); Organizações
 
 **RN044 — Imutabilidade de SKU atrelado a histórico.** O sistema deve bloquear qualquer tentativa de alteração do identificador único (SKU) de um produto ou variante que já possua registros prévios no módulo de Movimentações de Estoque. Esta restrição é absoluta e visa preservar a integridade referencial da auditoria e do cálculo de custo médio.
 
-### 4.5. RF019 — Inativação de produto
+### 4.6. RF019 — Inativação de produto
 
 **Como** Manager ou Owner, **eu quero** descontinuar um produto do inventário **para** impedir sua comercialização futura sem corromper os registros operacionais passados.
 
@@ -596,7 +604,7 @@ Autenticação (first-access, política de senha, e-mail único); Organizações
 
 **RN045 — Soft delete de produto.** O sistema é impedido de expurgar o registro de qualquer produto que possua vínculo com movimentações de estoque ou histórico de pedidos. A descontinuação garante a imutabilidade do livro razão, preservando a rastreabilidade exata de toda a operação já realizada com o item.
 
-### 4.6. RF020 — Gestão de categorias
+### 4.7. RF020 — Gestão de categorias
 
 **Como** Manager ou Owner, **eu quero** organizar produtos em categorias estruturadas **para** facilitar a localização no inventário e orientar a navegação nos catálogos de venda.
 
@@ -608,7 +616,7 @@ Autenticação (first-access, política de senha, e-mail único); Organizações
 
 **RN046 — Retenção de Estrutura Categórica.** O sistema não deve permitir a exclusão definitiva de categorias previamente criadas. Esta restrição é imutável e visa garantir a consistência de relatórios de desempenho e a integridade da taxonomia de produtos já cadastrados ao longo do tempo.
 
-### 4.7. RF021 — Importação de produtos entre organizações do tenant
+### 4.8. RF021 — Importação de produtos entre organizações do tenant
 
 **Como** Owner ou Manager com múltiplas organizações, **eu quero** importar a base de um produto de outra organização do meu domínio **para** agilizar a composição do inventário de uma unidade similar sem esforço de recadastramento.
 
@@ -622,13 +630,13 @@ Autenticação (first-access, política de senha, e-mail único); Organizações
 
 **RN048 — Prevenção de Duplicidade de Importação** O sistema deve bloquear a reimportação de um mesmo produto de origem para uma mesma organização de destino, impedindo a poluição do inventário com clones desnecessários.
 
-### 4.8. Limites do módulo na v1
+### 4.9. Limites do módulo na v1
 
 Por decisão estratégica, a v1 **não inclui**: importação massiva de dados de inventário estruturado (via arquivos); controle de rastreabilidade avançada (validade, lote ou número de série - conforme RN047); expurgo definitivo de produtos ou categorias com histórico; hierarquia complexa de taxonomia (subcategorias); estruturação de produtos compostos ou kits; e suporte nativo à automação por leitura de códigos de barras.
 
 **RN049 — Fungibilidade e Rastreabilidade Base.** A v1 não provê suporte lógico para o rastreamento individualizado de validade, lote ou número de série. O produto e suas variantes são tratados estritamente como itens fungíveis, possuindo um saldo único consolidado. A rastreabilidade avançada compõe a evolução estrutural do motor de estoque.
 
-### 4.9. Dependências
+### 4.10. Dependências
 
 Módulo de Movimentações (motor de entrada de estoque, cálculo de custo médio ponderado e validação de integridade referencial do SKU em relação ao histórico); Módulo de Catálogos (motor de precificação e curadoria de seleção para visibilidade comercial); Módulo de Organizações (estruturas de isolamento de tenant e repositório global de categorias e atributos para replicação); e Serviços de Infraestrutura (integração com serviço externo para armazenamento e otimização de imagens de produtos).
 
@@ -1021,4 +1029,4 @@ Pedidos Online (pendentes e últimos pedidos); Produtos e Movimentações (estoq
 
 ---
 
-*Fim do documento. Especificação v1.0 — dez módulos, RF001–RF038, RN001–RN092.*
+*Fim do documento. Especificação v1.0 — dez módulos, RF001–RF038 + RF039, RN001–RN092.*

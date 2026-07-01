@@ -845,9 +845,9 @@ No `lg`+: coluna centralizada `max-w-2xl`.
 
 **Superfície e contexto.** App interno — dentro do App Shell. Tela inicial pós-login enquanto o Dashboard não está implementado (RN091).
 
-**Propósito.** Localizar produtos rapidamente, consultar estado do estoque e, para Manager/Owner, acessar ações de gestão (RF017).
+**Propósito.** Localizar produtos rapidamente, consultar estado do estoque, abrir a ficha de um produto (2.3.3) e, para Manager/Owner, acessar ações de gestão (RF017).
 
-**Acesso.** Owner e Manager (leitura + ações). Sales (leitura — sem custo, sem ações).
+**Acesso.** Owner e Manager (leitura + ações). Sales (leitura — sem custo, sem ações; pode abrir a ficha de detalhe).
 
 ---
 
@@ -860,7 +860,7 @@ No `lg`+: coluna centralizada `max-w-2xl`.
 - `Select` **"Todas as categorias"**.
 - `Select` **"Todos os status"** — Todos · Saudável · Atenção · Crítico · Zerado · Inativo.
 
-*Lista de cards:* cada produto como `Card` com `rounded-xl overflow-hidden`.
+*Lista de cards:* cada produto como `Card` com `rounded-xl overflow-hidden`. Tocar no card (fora do `MoreVertical` e do `ChevronDown`/`Up`) navega para o Detalhe (2.3.3) — disponível a **todos os papéis, inclusive Sales**.
 
 **Card — produto simples:**
 - Imagem de destaque (largura total, proporção `4:3`).
@@ -888,7 +888,7 @@ No `lg`+: coluna centralizada `max-w-2xl`.
 
 | Coluna | Conteúdo |
 |---|---|
-| **Produto** | Thumbnail (~40px) + nome `font-medium` + SKU `text-xs` + indicador "N variações" se aplicável + `ChevronDown`/`Up` para sub-row. |
+| **Produto** | Thumbnail (~40px) + nome `font-medium` + SKU `text-xs` + indicador "N variações" se aplicável + `ChevronDown`/`Up` para sub-row. Clicar na célula (fora do `ChevronDown`/`Up`) navega para o Detalhe (2.3.3) — todos os papéis, inclusive Sales. |
 | **Categorias** | N× `Badge` neutro com `flex-wrap`. |
 | **Estoque** | Ícone de status interativo com `Tooltip`/`Popover` ao hover. |
 | **Status** | `Badge` semântico. |
@@ -913,30 +913,29 @@ No `lg`+: coluna centralizada `max-w-2xl`.
 | Crítico | `CircleX` | `text-critical` |
 | Zerado | `CircleX` | `text-zeroed` |
 
-**Ações por produto — DropdownMenu (Manager e Owner).**
+**Ações por produto — DropdownMenu (Manager e Owner).** *(Ver detalhes não está no menu — abre pelo clique no card/linha, disponível a todos os papéis.)*
 
 | Ação | Ícone | Comportamento |
 |---|---|---|
-| **Editar** | `Pencil` | Navega para `/produtos/:id` |
-| **Ver detalhes** | `Eye` | Navega para `/produtos/:id` em modo leitura |
+| **Editar** | `Pencil` | Navega para `/produtos/:id/editar` |
 | **Histórico de movimentações** | `History` | Navega para `/movimentacoes?produto=:id` |
 | **Registrar movimentação** | `ArrowLeftRight` | Abre Sheet de movimentação (2.4.2) pré-preenchido |
 | `Separator` | — | — |
-| **Inativar** | `EyeOff` | Abre Modal de inativação (2.3.4) |
+| **Inativar** | `EyeOff` | Abre Modal de inativação (2.3.5) |
 
-**Inventário de UI.** `h1` + `Button` (icon-only mobile / com label desktop) · mobile: 3× filtros empilhados · desktop: filtros em linha + `Table` com sub-row + `Tooltip`/`Popover` · `Badge` neutro (categorias) + `Badge` semântico (status) · `DropdownMenu` · paginação. Ícones: `Plus`, `Search`, `MoreVertical`, `ChevronDown`, `ChevronUp`, `CircleCheck`, `TriangleAlert`, `CircleX`, `Pencil`, `Eye`, `History`, `ArrowLeftRight`, `EyeOff`.
+**Inventário de UI.** `h1` + `Button` (icon-only mobile / com label desktop) · mobile: 3× filtros empilhados · desktop: filtros em linha + `Table` com sub-row + `Tooltip`/`Popover` · `Badge` neutro (categorias) + `Badge` semântico (status) · `DropdownMenu` · paginação. Ícones: `Plus`, `Search`, `MoreVertical`, `ChevronDown`, `ChevronUp`, `CircleCheck`, `TriangleAlert`, `CircleX`, `Pencil`, `History`, `ArrowLeftRight`, `EyeOff`.
 
 **Conteúdo e textos.** Vazio: **"Comece cadastrando seu primeiro produto."** + CTA (§4) · Filtro sem resultado: **"Nada encontrado para '{termo}'."** (§4) · Badges: **Saudável · Atenção · Crítico · Zerado · Inativo** (§8).
 
 **Estados (Matriz).** Carregando: skeleton · Vazio: ilustração + microcopy + CTA · Filtro sem resultado: mensagem inline · Sub-lista/sub-row expandida: variantes visíveis · Tooltip aberto: fecha ao mover cursor/tap fora.
 
-**Recorte por papel.** Sales: sem botão `+`, sem `MoreVertical`, sem ações. Manager/Owner: acesso pleno.
+**Recorte por papel.** Sales: sem botão `+`, sem `MoreVertical`, sem ações de gestão — mas pode tocar/clicar em qualquer produto para abrir o Detalhe (2.3.3). Manager/Owner: acesso pleno.
 
 **Acessibilidade & responsividade.** `aria-label="Cadastrar produto"` no botão icon-only · `ChevronDown`/`Up` com `aria-expanded` + `aria-controls` · badges com texto · thumbnail com `alt` · swatch com `aria-label="Cor: {valor}"` · tooltip acessível por foco.
 
 **Fora do escopo.** Edição em massa (pós-v1) · custo médio na listagem · CSV (pós-v1).
 
-**Refs.** **RF017**, **RF019**, **RN041**, **RN046**, **RN057**, **RN091**. Microcopy: §4, §8. DS: `Card`, `Table`, `Badge`, `Input`, `Select`, `Button`, `DropdownMenu`, `Tooltip`, `Popover`; tokens semânticos.
+**Refs.** **RF017**, **RF019**, RF039 (acesso ao Detalhe), **RN041**, **RN046**, **RN057**, **RN091**. Microcopy: §4, §8. DS: `Card`, `Table`, `Badge`, `Input`, `Select`, `Button`, `DropdownMenu`, `Tooltip`, `Popover`; tokens semânticos.
 
 ---
 
@@ -1000,7 +999,53 @@ Botão "Associar imagens". Após os cards, sempre como último elemento da célu
 
 ---
 
-### 2.3.3. Edição de produto · `/produtos/:id`
+### 2.3.3. Detalhe de produto (leitura) · `/produtos/:id`
+
+**Superfície e contexto.** App interno — App Shell. Acessada a partir da Lista (2.3.1), pelo na opção 'ver detalhes' no menu de ações.
+
+**Propósito.** Consultar a ficha completa de um produto — identificação, imagens, estoque e variantes — sem exigir permissão de edição. É a única tela de produto que o Sales acessa além da Lista; Manager e Owner a usam como ponto de partida para editar, inativar ou registrar movimentação (RF039).
+
+**Acesso.** Owner, Manager e Sales — leitura. Ações de gestão (Editar, Inativar, Registrar movimentação) restritas a Manager e Owner.
+
+---
+
+**Versão mobile (< lg).**
+
+*Cabeçalho:* `← Produtos` (volta para a Lista).
+
+*Galeria:* carrossel de imagens, largura total. Em produto com variações, reflete as imagens da variante selecionada (fallback para as do produto).
+
+*Identificação:* nome `text-2xl font-bold` + `Badge` de status (Ativo/Inativo, §8) + N× `Badge` neutro de categorias + SKU `font-mono text-sm` (da variante selecionada, se houver) + descrição, quando houver.
+
+*Seletor de variante* (produto com variações): chips/`Select` por atributo (cor, tamanho etc.), mesmo padrão do Passo 3 do cadastro. A variante selecionada define SKU, imagens e o bloco de estoque exibidos. Primeira variante ativa pré-selecionada por default.
+
+`Card` **"Estoque"**: ícone de status de estoque (RN050, mesma tabela de ícones de 2.3.1) + saldo atual `font-bold text-lg` + estoque mínimo `text-sm text-muted-foreground`. Para Manager/Owner: linha adicional de **custo médio ponderado** (RN057) — ausente para o Sales.
+
+Produto com variações: bloco **"Resumo da grade"** abaixo do card de estoque, reaproveitando o conteúdo do Popover de 2.3.1 — contagem por estado (badge + número, estados com 0 omitidos) + total físico.
+
+*Barra de ações (Manager/Owner apenas):* `Button` outline **"Editar produto"** → `/produtos/:id/editar` (2.3.4) · `Button` ghost **"Registrar movimentação"** → Sheet de movimentação (2.4.2) pré-preenchido · `Button` ghost destructive **"Inativar"** (se ativo) → Modal (2.3.5).
+
+---
+
+**Versão desktop (lg+).** Mesmo conteúdo em duas colunas: galeria à esquerda (`max-w-md`), identificação + seletor de variante + card de estoque + resumo da grade à direita. Barra de ações fixa no topo da coluna direita, ao lado do nome (Manager/Owner).
+
+**Inventário de UI.** `Carousel`/galeria · `Badge` (status + categorias) · `Select`/chips (seletor de variante) · `Card` (estoque) · bloco "Resumo da grade" (reaproveitado de 2.3.1) · `Button` (ações, condicionais por papel). Ícones: os de status de estoque (2.3.1) + `Pencil`, `ArrowLeftRight`, `EyeOff`.
+
+**Conteúdo e textos.** Sem descrição: seção omitida, sem placeholder vazio. Badges de status: §8.
+
+**Estados (Matriz).** Carregando: skeleton (galeria + blocos de texto) · Produto não encontrado: 404 amigável com retorno para `/produtos` · Variante sem seleção (grade nova): primeira variante ativa pré-selecionada.
+
+**Recorte por papel.** Sales: sem barra de ações (nenhum botão de Editar, Registrar movimentação ou Inativar) e sem a linha de custo médio. Manager/Owner: ficha completa + ações.
+
+**Acessibilidade & responsividade.** Seletor de variante com `aria-label` por atributo · imagens da galeria com `alt` descritivo · ícone de status com texto acessível (não depende só de cor).
+
+**Fora do escopo.** Edição inline dos dados (fica em 2.3.4) · histórico de movimentações do item (fica em 2.4.1, acessível pela ação "Histórico de movimentações" do menu da Lista).
+
+**Refs.** **RF039**, RF018 (edição), RN017, RN043, RN050, RN057. Microcopy: §8. DS: `Card`, `Badge`, `Button`, `Select`; tokens semânticos de estoque.
+
+---
+
+### 2.3.4. Edição de produto · `/produtos/:id/editar`
 
 **Superfície e contexto.** App interno — App Shell.
 
@@ -1012,7 +1057,7 @@ Botão "Associar imagens". Após os cards, sempre como último elemento da célu
 - Cabeçalho: `h1` **"Editar produto"** + nome do produto em `text-sm text-muted-foreground`.
 - SKU com histórico de movimentações: campo readonly + helper *"SKU não pode ser alterado pois há movimentações registradas para este item."*
 - Botão final: **"Salvar alterações"**.
-- Botão **"Inativar produto"** no cabeçalho ou rodapé → abre Modal (2.3.4).
+- Botão **"Inativar produto"** no cabeçalho ou rodapé → abre Modal (2.3.5).
 
 **Conteúdo e textos.** Salvo: toast **"Alterações salvas."** (§5).
 
@@ -1022,13 +1067,13 @@ Botão "Associar imagens". Após os cards, sempre como último elemento da célu
 
 ---
 
-### 2.3.4. Modal: Inativar produto *(sobre `/produtos` ou `/produtos/:id`)*
+### 2.3.5. Modal: Inativar produto *(sobre `/produtos`, `/produtos/:id` ou `/produtos/:id/editar`)*
 
 **Propósito.** Confirmar a inativação (soft delete) de um produto (RF019, RN046).
 
 **Anatomia.** `Dialog` `max-w-sm`. `EyeOff` `text-muted-foreground`. Título: **"Inativar {nome}?"** Corpo: **"Ele sai das listagens e dos catálogos, mas o histórico é mantido."** (§3). Rodapé: `Button` outline **"Cancelar"** + `Button` destructive **"Inativar"**.
 
-**Interações.** "Inativar": soft delete → toast **"Produto inativado."** → se aberto de `/produtos/:id`, redireciona para `/produtos`. "Cancelar": fecha.
+**Interações.** "Inativar": soft delete → toast **"Produto inativado."** → se aberto de `/produtos/:id` ou `/produtos/:id/editar`, redireciona para `/produtos`. "Cancelar": fecha.
 
 **Estados.** Executando: `Loader2` · Erro: toast + Dialog aberto.
 
@@ -1036,7 +1081,7 @@ Botão "Associar imagens". Após os cards, sempre como último elemento da célu
 
 ---
 
-### 2.3.5. Categorias · `/produtos/categorias`
+### 2.3.6. Categorias · `/produtos/categorias`
 
 **Superfície e contexto.** App interno — App Shell.
 
@@ -1054,7 +1099,7 @@ Botão "Associar imagens". Após os cards, sempre como último elemento da célu
 
 ---
 
-### 2.3.6. Importar produtos · `/produtos/importar`
+### 2.3.7. Importar produtos · `/produtos/importar`
 
 **Superfície e contexto.** App interno — App Shell.
 
