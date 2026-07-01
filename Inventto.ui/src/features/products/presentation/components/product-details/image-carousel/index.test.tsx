@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { IProductImage } from '../../../domain/entities';
+import type { IProductImage } from '../../../../domain/entities';
 
 import { ProductImageCarousel } from '.';
 
@@ -102,7 +102,8 @@ describe('ProductImageCarousel', () => {
       name: /Ir para imagem/i
     });
 
-    expect(thumbnails).toHaveLength(mockImages.length);
+    // We now render both dots and thumbnail buttons (2 for each image)
+    expect(thumbnails).toHaveLength(mockImages.length * 2);
     expect(mockCloudinary).toHaveBeenCalledTimes(12);
     expect(mockCloudinary).toHaveBeenCalledWith('pub1', expect.anything());
     expect(mockCloudinary).toHaveBeenCalledWith('pub3', expect.anything());
@@ -116,17 +117,7 @@ describe('ProductImageCarousel', () => {
     });
   });
 
-  it('must initialize the counter and configure the API listener', () => {
-    setupCarousel();
-
-    expect(screen.getByText('1 / 3')).toBeInTheDocument();
-    expect(mockCarouselApi.on).toHaveBeenCalledWith(
-      'select',
-      expect.any(Function)
-    );
-  });
-
-  it('should update the state and counter upon receiving the "select" event from the API', async () => {
+  it('should update the active thumbnail upon receiving the "select" event from the API', async () => {
     setupCarousel();
 
     const selectListener = mockCarouselApi.on.mock.calls[0][1];
@@ -137,7 +128,12 @@ describe('ProductImageCarousel', () => {
       selectListener();
     });
 
-    expect(screen.getByText('3 / 3')).toBeInTheDocument();
+    // Verifica se os botões refletem o índice 3 (2 na base 0)
+    const activeButtons = screen.getAllByRole('button', {
+      name: /Ir para imagem 3/i
+    });
+
+    expect(activeButtons[0]).toHaveClass('bg-foreground');
   });
 
   it('should call api.scrollTo when clicking on the thumbnail', async () => {
@@ -147,6 +143,7 @@ describe('ProductImageCarousel', () => {
       name: /Ir para imagem/i
     });
 
+    // Pick the second dot or thumbnail
     fireEvent.click(thumbnailButtons[1]);
 
     expect(mockCarouselApi.scrollTo).toHaveBeenCalledWith(1);

@@ -16,8 +16,8 @@ import type { IProductVariant } from '../../../../domain/entities';
 import { getGradeStockConsolidation } from '../../../../domain/utils/get-grade-stock-consolidation';
 import { getStockStatus } from '../../../../domain/utils/get-stock-status';
 import { getStockSummaryStatus } from '../../../../domain/utils/get-stock-summary-status';
-import { LEGEND_ORDER } from '../../../constants/legend-order';
 import { STOCK_STATUS_CONFIG } from '../../../constants/status-config';
+import { ProductGradeSummary } from '../../grade-summary';
 
 type ProductTableColumnStockProps = {
   totalStock: number;
@@ -72,7 +72,7 @@ export function ProductTableColumnStock({
     );
   }
 
-  const { total, summary } = getGradeStockConsolidation(variants);
+  const { summary } = getGradeStockConsolidation(variants);
   const mainStatus = getStockSummaryStatus(summary);
   const mainConfig = STOCK_STATUS_CONFIG[mainStatus];
 
@@ -90,44 +90,7 @@ export function ProductTableColumnStock({
       </PopoverTrigger>
 
       <PopoverContent className="w-56 p-3">
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-semibold">Resumo da grade</p>
-
-          <div className="flex flex-col gap-1.5">
-            {LEGEND_ORDER.filter((status) => summary[status] > 0).map(
-              (status) => {
-                const config = STOCK_STATUS_CONFIG[status];
-
-                return (
-                  <div
-                    key={status}
-                    className="flex items-center justify-between text-xs"
-                  >
-                    <span
-                      className={cn(
-                        'flex items-center gap-1.5 font-medium',
-                        config.textClassName
-                      )}
-                    >
-                      {config.iconSmall}
-                      {config.label}
-                    </span>
-
-                    <span className="font-semibold tabular-nums text-foreground">
-                      {summary[status]}
-                    </span>
-                  </div>
-                );
-              }
-            )}
-          </div>
-
-          <div className="border-t pt-2">
-            <p className="text-xs font-semibold text-center text-muted-foreground">
-              Total físico: {total} un.
-            </p>
-          </div>
-        </div>
+        <ProductGradeSummary variants={variants} />
       </PopoverContent>
     </Popover>
   );

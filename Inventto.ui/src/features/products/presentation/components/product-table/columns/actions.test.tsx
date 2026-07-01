@@ -1,6 +1,7 @@
 import { MemoryRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductTableColumnActions } from './actions';
@@ -11,6 +12,14 @@ vi.mock('@/features/users', () => ({
     role: 'manager'
   })
 }));
+
+vi.mock('@/features/permissions', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    VisibleTo: ({ children }: { children: ReactNode }) => <>{children}</>
+  };
+});
 
 vi.mock('react-router', async (importOriginal) => {
   const mod = await importOriginal<Record<string, unknown>>();

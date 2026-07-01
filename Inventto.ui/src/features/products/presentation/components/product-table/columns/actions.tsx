@@ -1,13 +1,4 @@
-import { Link } from 'react-router';
-import {
-  ArrowLeftRight,
-  EllipsisVertical,
-  Eye,
-  GalleryVerticalEnd,
-  SquarePen
-} from 'lucide-react';
-
-import { ActionButton } from '@/features/permissions';
+import { EllipsisVertical } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -17,6 +8,11 @@ import {
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
 import { cn } from '@/shared/utils';
+
+import { EditProductAction } from '../../actions/edit';
+import { RegisterProductMovementAction } from '../../actions/register-movement';
+import { SeeProductDetailsAction } from '../../actions/see-details';
+import { SeeProductMovementsAction } from '../../actions/see-movements';
 
 type ProductTableColumnActionsProps = {
   productId: string;
@@ -47,59 +43,19 @@ export function ProductTableColumnActions({
 
         <DropdownMenuContent align="center">
           <DropdownMenuItem asChild>
-            <ActionButton
-              asChild
-              action="product:detail"
-              variant="ghost"
-              className="w-full justify-start gap-2 font-normal"
-            >
-              <Link to={`/products/${productId}`}>
-                <Eye className="h-4 w-4" />
-                Detalhes
-              </Link>
-            </ActionButton>
+            <SeeProductDetailsAction productId={productId} />
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <ActionButton
-              asChild
-              action="product:edit"
-              variant="ghost"
-              className="w-full justify-start gap-2 font-normal"
-            >
-              <Link to={`/products/${productId}/edit`}>
-                <SquarePen className="h-4 w-4" />
-                Editar
-              </Link>
-            </ActionButton>
+            <EditProductAction productId={productId} />
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <ActionButton
-              asChild
-              action="movement:view"
-              variant="ghost"
-              className="w-full justify-start gap-2 font-normal"
-            >
-              <Link to={`/movements?productId=${productId}`}>
-                <GalleryVerticalEnd className="h-4 w-4" />
-                Histórico de movimentação
-              </Link>
-            </ActionButton>
+            <SeeProductMovementsAction productId={productId} />
           </DropdownMenuItem>
 
           <DropdownMenuItem asChild>
-            <ActionButton
-              asChild
-              action="movement:create"
-              variant="ghost"
-              className="w-full justify-start gap-2 font-normal"
-            >
-              <Link to={`/movements/new?preselect=${productId}`}>
-                <ArrowLeftRight className="h-4 w-4" />
-                Registrar movimentação
-              </Link>
-            </ActionButton>
+            <RegisterProductMovementAction productId={productId} />
           </DropdownMenuItem>
           {/* TODO: product:delete — adicionar ação de inativar/excluir com ActionButton action="product:delete" */}
         </DropdownMenuContent>
