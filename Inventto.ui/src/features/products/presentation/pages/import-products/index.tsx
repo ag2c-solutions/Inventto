@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 
+import { BackToProductsLink } from '../../components/actions/back-to-products';
 import { ImportCandidateRow } from '../../components/import-products/import-candidate-row';
 import { ImportEmptyState } from '../../components/import-products/import-empty-state';
 import { ImportSourceSelect } from '../../components/import-products/import-source-select';
@@ -91,6 +92,7 @@ export const ImportProductsPage = () => {
 
   const header = (
     <div className="flex flex-col gap-2">
+      <BackToProductsLink />
       <h1 className="text-2xl font-semibold">Importar produtos</h1>
       <p className="text-muted-foreground">
         Copie produtos de outra unidade do seu negócio.

@@ -14,6 +14,7 @@ export type PermissionAction =
   | 'movement:adjust'
   | 'movement:view_costs'
   | 'movement:details'
+  | 'stock:view_costs'
   | 'team:manage'
   | 'customer:view'
   | 'customer:manage'

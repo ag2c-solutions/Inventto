@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -71,7 +72,11 @@ function setup(candidates: ImportCandidate[] = CANDIDATES, orgs = TWO_ORGS) {
     isLoading: false
   } as never);
 
-  return render(<ImportProductsPage />);
+  return render(
+    <MemoryRouter>
+      <ImportProductsPage />
+    </MemoryRouter>
+  );
 }
 
 async function selectSource() {

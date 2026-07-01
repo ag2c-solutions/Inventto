@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useUser } from '@/features/users';
+
 import { useProductByIDQuery } from '../../hooks/use-queries';
 
 import { ProductDetailsPage } from './index';
@@ -18,12 +20,27 @@ vi.mock('react-router', async (importOriginal) => {
 
 vi.mock('../../hooks/use-queries');
 
+vi.mock('../../hooks/use-mutations', () => ({
+  useChangeProductStatusMutation: vi.fn().mockReturnValue({
+    mutateAsync: vi.fn(),
+    isPending: false
+  })
+}));
+
+vi.mock('@/features/users', () => ({
+  useUser: vi.fn().mockReturnValue({ role: 'owner' })
+}));
+
 class ResizeObserverMock {
   observe() {}
   unobserve() {}
   disconnect() {}
 }
 globalThis.ResizeObserver = ResizeObserverMock;
+window.PointerEvent = MouseEvent as typeof PointerEvent;
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+window.HTMLElement.prototype.hasPointerCapture = vi.fn();
+window.HTMLElement.prototype.releasePointerCapture = vi.fn();
 
 vi.mock('@/shared/components/ui/carousel', () => ({
   Carousel: ({ children }: { children: React.ReactNode }) => (
@@ -111,10 +128,23 @@ describe('ProductDetailsPage (Integration)', () => {
     vi.mocked(useParams).mockReturnValue({ productId: 'p1' });
   });
 
-  it('should render loading or error state', () => {
+  it('should render a loading skeleton while fetching, not the 404 state', () => {
     vi.mocked(useProductByIDQuery).mockReturnValue({
       data: undefined,
       isLoading: true
+    } as never);
+
+    renderComponent();
+
+    expect(
+      screen.queryByText('Produto não encontrado')
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render a friendly 404 when the product is not found', () => {
+    vi.mocked(useProductByIDQuery).mockReturnValue({
+      data: undefined,
+      isLoading: false
     } as never);
 
     renderComponent();
@@ -126,7 +156,7 @@ describe('ProductDetailsPage (Integration)', () => {
     vi.mocked(useParams).mockReturnValue({ productId: undefined });
     vi.mocked(useProductByIDQuery).mockReturnValue({
       data: undefined,
-      isLoading: true
+      isLoading: false
     } as never);
 
     renderComponent();
@@ -306,6 +336,71 @@ describe('ProductDetailsPage (Integration)', () => {
 
     expect(screen.getByText(/RUN-MULTI/)).toBeInTheDocument();
     expect(screen.getByTestId('real-carousel')).toBeInTheDocument();
+  });
+
+  it('should show the management actions menu and status badge for owner/manager', async () => {
+    vi.mocked(useProductByIDQuery).mockReturnValue({
+      data: { ...mockProductVariant, isActive: true },
+      isLoading: false
+    } as never);
+
+    const user = userEvent.setup();
+
+    renderComponent();
+
+    expect(screen.getByText('Ativo')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ações do produto' }));
+
+    expect(
+      screen.getByRole('menuitem', { name: /Editar/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /Registrar movimentação/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Inativar/i })
+    ).toBeInTheDocument();
+  });
+
+  it('should hide the "Inativar" action for an already inactive product', async () => {
+    vi.mocked(useProductByIDQuery).mockReturnValue({
+      data: { ...mockProductVariant, isActive: false },
+      isLoading: false
+    } as never);
+
+    const user = userEvent.setup();
+
+    renderComponent();
+
+    expect(screen.getByText('Inativo')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ações do produto' }));
+
+    expect(
+      screen.queryByRole('menuitem', { name: /Inativar/ })
+    ).not.toBeInTheDocument();
+  });
+
+  it('should hide edit/inactivate actions for sales (no product:edit or product:delete permission)', async () => {
+    vi.mocked(useUser).mockReturnValue({ role: 'sales' } as never);
+    vi.mocked(useProductByIDQuery).mockReturnValue({
+      data: { ...mockProductVariant, isActive: true },
+      isLoading: false
+    } as never);
+
+    const user = userEvent.setup();
+
+    renderComponent();
+
+    await user.click(screen.getByRole('button', { name: 'Ações do produto' }));
+
+    expect(
+      screen.queryByRole('menuitem', { name: /Editar/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Inativar/i })
+    ).not.toBeInTheDocument();
   });
 
   it('should handle variant with empty images array gracefully', () => {

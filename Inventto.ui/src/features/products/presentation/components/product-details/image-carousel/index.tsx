@@ -8,9 +8,10 @@ import {
   CarouselNext,
   CarouselPrevious
 } from '@/shared/components/ui/carousel';
+import { cn } from '@/shared/utils';
 
-import type { IProductImage } from '../../../domain/entities';
-import { getImageSrc } from '../../utils/get-img-src';
+import type { IProductImage } from '../../../../domain/entities';
+import { getImageSrc } from '../../../utils/get-img-src';
 
 type ProductImageCarouselProps = {
   images?: IProductImage[];
@@ -51,8 +52,9 @@ export function ProductImageCarousel({ images }: ProductImageCarouselProps) {
   }
 
   return (
-    <div className="w-full h-full max-w-4xl mx-auto space-y-4">
-      <div className="relative h-10/12 rounded-lg overflow-hidden">
+    <div className="w-full flex flex-col gap-3">
+      {/* Main image */}
+      <div className="relative rounded-xl overflow-hidden bg-muted aspect-square">
         <Carousel setApi={setApi} className="h-full w-full">
           <CarouselContent className="h-full">
             {images.map((image) => {
@@ -60,7 +62,7 @@ export function ProductImageCarousel({ images }: ProductImageCarouselProps) {
 
               return (
                 <CarouselItem className="h-full" key={image.id}>
-                  <div className="h-full bg-muted rounded-lg overflow-hidden">
+                  <div className="h-full bg-muted overflow-hidden">
                     <img
                       src={imageSrc}
                       alt={image.name}
@@ -74,21 +76,38 @@ export function ProductImageCarousel({ images }: ProductImageCarouselProps) {
 
           <CarouselPrevious
             type="button"
-            className="left-4 bg-primary/80 hover:bg-primary text-primary-foreground"
+            className="left-3 size-8 bg-background/80 hover:bg-background border-border/50 shadow-sm"
           />
 
           <CarouselNext
             type="button"
-            className="right-4 bg-primary/80 hover:bg-primary text-primary-foreground"
+            className="right-3 size-8 bg-background/80 hover:bg-background border-border/50 shadow-sm"
           />
         </Carousel>
-
-        <div className="absolute top-4 right-4 z-10 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium">
-          {current} / {count}
-        </div>
       </div>
 
-      <div className="flex justify-center gap-3 flex-wrap px-4">
+      {/* Dot indicators */}
+      {count > 1 && (
+        <div className="flex justify-center gap-1.5">
+          {Array.from({ length: count }).map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={(e) => handleThumbnailClick(e, index)}
+              aria-label={`Ir para imagem ${index + 1}`}
+              className={cn(
+                'rounded-full transition-all duration-200',
+                index === current - 1
+                  ? 'bg-foreground w-4 h-2'
+                  : 'bg-muted-foreground/40 w-2 h-2'
+              )}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Thumbnails */}
+      <div className="flex gap-2">
         {images.map((image, index) => {
           const isActive = index === current - 1;
           const imageSrc = getImageSrc(image, 150);
@@ -98,11 +117,12 @@ export function ProductImageCarousel({ images }: ProductImageCarouselProps) {
               key={image.id}
               type="button"
               onClick={(event) => handleThumbnailClick(event, index)}
-              className={`relative w-16 h-12 rounded-md overflow-hidden transition-all duration-300 flex-shrink-0 border-2 ${
+              className={cn(
+                'relative aspect-square w-16 rounded-lg overflow-hidden transition-all duration-200 flex-shrink-0 border-2',
                 isActive
-                  ? 'border-primary shadow-lg scale-105'
-                  : 'border-transparent hover:border-muted-foreground'
-              }`}
+                  ? 'border-foreground'
+                  : 'border-transparent hover:border-muted-foreground/40'
+              )}
               aria-label={`Ir para imagem ${index + 1}`}
               aria-current={isActive}
             >
@@ -113,7 +133,7 @@ export function ProductImageCarousel({ images }: ProductImageCarouselProps) {
               />
 
               {!isActive && (
-                <div className="absolute inset-0 bg-black/30 hover:bg-black/10 transition-colors duration-200" />
+                <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition-colors duration-200" />
               )}
             </button>
           );
