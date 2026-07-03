@@ -16,7 +16,10 @@ export const SeeProductDetailsAction = forwardRef<
     className="w-full justify-start gap-2 font-normal"
     {...props}
   >
-    <Link to={`/products/${productId}`}>
+    <Link
+      className="w-full flex justify-start gap-2 font-normal"
+      to={`/products/${productId}`}
+    >
       <Eye className="h-4 w-4" />
       Detalhes
     </Link>

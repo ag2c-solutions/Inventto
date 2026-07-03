@@ -1,23 +1,10 @@
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/shared/components/ui/popover';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '@/shared/components/ui/tooltip';
 import { cn } from '@/shared/utils';
 
 import type { IProductVariant } from '../../../../domain/entities';
 import { getGradeStockConsolidation } from '../../../../domain/utils/get-grade-stock-consolidation';
 import { getStockStatus } from '../../../../domain/utils/get-stock-status';
-import { getStockSummaryStatus } from '../../../../domain/utils/get-stock-summary-status';
+import { LEGEND_ORDER } from '../../../constants/legend-order';
 import { STOCK_STATUS_CONFIG } from '../../../constants/status-config';
-import { ProductGradeSummary } from '../../grade-summary';
 
 type ProductTableColumnStockProps = {
   totalStock: number;
@@ -35,63 +22,39 @@ export function ProductTableColumnStock({
     const config = STOCK_STATUS_CONFIG[status];
 
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-10 w-10 p-0 hover:bg-transparent"
-            aria-label={`Status do estoque: ${config.label}`}
-          >
-            {config.icon}
-          </Button>
-        </TooltipTrigger>
-
-        <TooltipContent>
-          <div className="flex flex-col gap-1.5">
-            <Badge
-              variant="outline"
-              className={cn('w-fit gap-1', config.badgeClassName)}
-            >
-              {config.iconSmall}
-              {config.label}
-            </Badge>
-
-            <p className="text-xs text-muted-foreground">
-              Estoque atual: {totalStock}
-            </p>
-
-            {minimumStock !== undefined && (
-              <p className="text-xs text-muted-foreground">
-                Estoque mínimo: {minimumStock}
-              </p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
+      <div className="flex items-center gap-1.5">
+        <span
+          className={cn(
+            'flex items-center gap-1 bg-transparent!',
+            config.badgeClassName
+          )}
+        >
+          {config.iconSmall}1
+        </span>
+      </div>
     );
   }
 
   const { summary } = getGradeStockConsolidation(variants);
-  const mainStatus = getStockSummaryStatus(summary);
-  const mainConfig = STOCK_STATUS_CONFIG[mainStatus];
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-10 w-10 p-0 hover:bg-transparent"
-          aria-label={`Status do estoque: ${mainConfig.label}`}
-        >
-          {mainConfig.icon}
-        </Button>
-      </PopoverTrigger>
+    <div className="flex items-center gap-1.5">
+      {LEGEND_ORDER.filter((status) => summary[status] > 0).map((status) => {
+        const config = STOCK_STATUS_CONFIG[status];
 
-      <PopoverContent className="w-56 p-3">
-        <ProductGradeSummary variants={variants} />
-      </PopoverContent>
-    </Popover>
+        return (
+          <span
+            key={status}
+            className={cn(
+              'flex items-center gap-1 bg-transparent!',
+              config.badgeClassName
+            )}
+          >
+            {config.iconSmall}
+            {summary[status]}
+          </span>
+        );
+      })}
+    </div>
   );
 }

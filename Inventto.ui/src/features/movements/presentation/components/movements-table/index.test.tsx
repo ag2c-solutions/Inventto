@@ -55,16 +55,19 @@ vi.mock('@/shared/components/common/data-table', () => ({
 vi.mock('@/features/permissions', () => ({
   ActionButton: ({ children }: { children?: React.ReactNode }) => (
     <>{children}</>
-  )
+  ),
+  VisibleTo: ({ children }: { children?: React.ReactNode }) => <>{children}</>
 }));
 
 vi.mock('./columns', () => ({
   columnsMovementsListTable: []
 }));
 
-vi.mock('../movements-items-table', () => ({
-  MovementsItemsTable: ({ data }: { data: unknown[] }) => (
-    <div data-testid="mock-items-table">Items Count: {data.length}</div>
+vi.mock('../details', () => ({
+  MovementDetails: ({ movement }: { movement: Movement }) => (
+    <div data-testid="mock-items-table">
+      Items Count: {movement.items?.length || 0}
+    </div>
   )
 }));
 
@@ -73,7 +76,7 @@ const mockMovements: Movement[] = [
     id: '1',
     organizationId: 'org-1',
     type: 'entry',
-    reason: 'Compra Inicial',
+    reason: 'purchase',
     createdAt: new Date('2023-10-01T10:00:00Z'),
     totalQuantity: 100,
     totalValue: 500,
@@ -97,7 +100,7 @@ const mockMovements: Movement[] = [
     id: '2',
     organizationId: 'org-1',
     type: 'withdrawal',
-    reason: 'Venda',
+    reason: 'sale',
     createdAt: new Date('2023-10-02T14:30:00Z'),
     totalQuantity: 5,
     totalValue: 100,

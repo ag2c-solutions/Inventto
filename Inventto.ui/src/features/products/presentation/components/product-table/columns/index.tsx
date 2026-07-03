@@ -28,7 +28,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableResizing: false,
     enableHiding: false,
     enableSorting: false,
-    size: 48,
+    size: 40,
     cell: ({ row }) =>
       row.original.hasVariants && row.original.variants.length > 0 ? (
         <Button
@@ -53,7 +53,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
   {
     id: 'product',
     accessorFn: (row) => `${row.name} ${row.sku}`,
-    minSize: 280,
+    minSize: 300,
     header: ({ column }) => (
       <DataTableHeaderSortableColumn
         className="text-sidebar-foreground"
@@ -73,7 +73,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableGlobalFilter: false,
     enableSorting: false,
     enableResizing: false,
-    minSize: 280,
+    minSize: 200,
     filterFn: categoryFilterFn,
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-1">
@@ -93,8 +93,8 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     accessorKey: 'stock',
     enableGlobalFilter: false,
     enableSorting: false,
-    header: 'Estoque',
-    minSize: 150,
+    header: 'Resumo Estoque',
+    size: 200,
     enableResizing: false,
     cell: ({ row }) => {
       const product = row.original;
@@ -115,7 +115,7 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
     enableGlobalFilter: false,
     enableSorting: false,
     enableResizing: false,
-    minSize: 150,
+    size: 100,
     filterFn: statusFilterFn,
     cell: ({ row }) => (
       <ProductTableColumnStatus isActive={row.original.isActive} />
@@ -123,8 +123,9 @@ export const columnsProductListTable: ColumnDef<IProduct>[] = [
   },
   {
     id: 'actions',
+    size: 50,
     header: () => (
-      <div className="text-sidebar-foreground w-full flex justify-center">
+      <div className="text-sidebar-foreground w-full flex justify-end pr-4">
         Ações
       </div>
     ),

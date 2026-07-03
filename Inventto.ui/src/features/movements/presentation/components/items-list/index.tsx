@@ -23,7 +23,7 @@ function ItemsListComponent({ data, parentData }: ItemsListProps) {
   const GRID = cn('grid items-center gap-8', gridTemplate);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col rounded-md border bg-background">
       <div
         className={cn(
           GRID,
