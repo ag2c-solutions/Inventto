@@ -13,6 +13,7 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 import { cn } from '@/shared/utils';
 
 import { ItemAttributeBadge } from '../../../item-attribute-badge';
@@ -139,6 +140,7 @@ function ItemRow({
 }
 
 export function AddItemsDialog() {
+  const isMobile = useIsMobile();
   const {
     isDialogOpen,
     form,
@@ -201,7 +203,19 @@ export function AddItemsDialog() {
       open={isDialogOpen}
       onOpenChange={(open) => actions.toggleDialog(open)}
     >
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
+      <DialogContent
+        className={cn(
+          'flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0',
+          isMobile
+            ? 'top-auto bottom-0 left-0 right-0 w-full max-w-full translate-x-0 translate-y-0 rounded-t-2xl rounded-b-none data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom'
+            : 'sm:max-w-md'
+        )}
+      >
+        {isMobile && (
+          <div className="flex justify-center pt-2.5 pb-1">
+            <span className="h-1.5 w-10 rounded-full bg-muted-foreground/30" />
+          </div>
+        )}
         <DialogHeader className="flex-row items-start gap-3 space-y-0 border-b px-5 py-4 text-left">
           <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md border bg-muted">
             <ImageCard
