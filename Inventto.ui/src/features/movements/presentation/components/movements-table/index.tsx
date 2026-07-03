@@ -21,6 +21,7 @@ import {
   PaginationControllers
 } from '@/shared/components/common/data-table';
 import { DataTableTabFilter } from '@/shared/components/common/data-table/pieces/data-table-tabs-filter';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 
 import type { Movement } from '../../../domain/entities';
 import { AddNewMovements } from '../add-moviment';
@@ -33,6 +34,7 @@ import {
 } from './utils/matches-product-search';
 import { columnsMovementsListTable } from './columns';
 import { MovementsListTableLoading } from './loading';
+import { MovementCardList } from './movement-card-list';
 import { MovementsOnboardingEmpty } from './onboarding-empty';
 
 interface MovementsListTableProps {
@@ -49,6 +51,7 @@ export function MovementsListTable({
   isLoading,
   productId
 }: MovementsListTableProps) {
+  const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -100,6 +103,16 @@ export function MovementsListTable({
     }
 
     return <MovementsOnboardingEmpty />;
+  }
+
+  if (isMobile) {
+    return (
+      <MovementCardList
+        movements={data}
+        productId={productId}
+        productName={productName}
+      />
+    );
   }
 
   const searchTerm = globalFilter.trim();
