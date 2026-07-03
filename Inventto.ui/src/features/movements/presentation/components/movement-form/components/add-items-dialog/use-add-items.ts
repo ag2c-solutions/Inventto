@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 
 import { formatVariantOptions, type IProduct } from '@/features/products';
 
 import type { MovementFormData } from '../../schema';
 import { getMovementItemImage } from '../../utils';
+
+import { parseMoneyInput } from './format-money';
 
 type FormItem = MovementFormData['items'][number];
 
@@ -48,21 +49,8 @@ export function useAddItems({
       return;
     }
 
-    if (product.hasVariants && product.variants) {
-      const defaults: Record<string, number> = {};
-
-      for (const variant of product.variants) {
-        if (!isWithdrawal) {
-          defaults[variant.id] = variant.costPrice ?? 0;
-        }
-      }
-
-      setValues(defaults);
-    } else if (!isWithdrawal) {
-      setValues({ [product.id]: product.costPrice ?? 0 });
-    }
-
     setQuantities({});
+    setValues({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, product, editingItem]);
 
@@ -75,42 +63,52 @@ export function useAddItems({
       .reduce((acc, item) => acc + item.quantity, 0);
   };
 
-  const handleQuantityChange = (
-    variantId: string,
-    value: string,
-    realStock: number
-  ) => {
+  const getAvailableStock = (variantId: string | null, stock: number) =>
+    Math.max(0, stock - getExistingQty(variantId));
+
+  const rows = useMemo(() => {
+    if (!product) return [];
+
+    if (product.hasVariants && product.variants) {
+      return product.variants.map((variant) => ({
+        key: variant.id,
+        variantId: variant.id as string | null,
+        stock: variant.stock ?? 0
+      }));
+    }
+
+    return [{ key: product.id, variantId: null, stock: product.stock ?? 0 }];
+  }, [product]);
+
+  const invalidKeys = useMemo(() => {
+    const keys = new Set<string>();
+    if (!isWithdrawal) return keys;
+
+    for (const row of rows) {
+      const qty = quantities[row.key] || 0;
+      if (qty <= 0) continue;
+
+      const availableStock = getAvailableStock(row.variantId, row.stock);
+      if (qty > availableStock) keys.add(row.key);
+    }
+
+    return keys;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWithdrawal, rows, quantities, existingItems]);
+
+  const handleQuantityChange = (key: string, value: string) => {
     let qty = Number.parseInt(value);
     if (isNaN(qty) || qty < 0) qty = 0;
 
-    if (isWithdrawal) {
-      const qtyInBatch = getExistingQty(
-        variantId === product?.id ? null : variantId
-      );
-      const availableStock = Math.max(0, realStock - qtyInBatch);
-
-      if (qty > availableStock) {
-        qty = availableStock;
-        toast.warning(
-          availableStock === 0
-            ? 'Todo o estoque deste item já foi adicionado ao lote.'
-            : `Apenas mais ${availableStock} unidades disponíveis.`,
-          { duration: 6000 }
-        );
-      }
-    }
-
-    setQuantities((prev) => ({ ...prev, [variantId]: qty }));
+    setQuantities((prev) => ({ ...prev, [key]: qty }));
   };
 
-  const handleValueChange = (key: string, value: string) => {
-    const parsed = Number.parseFloat(value.replace(',', '.'));
-
-    setValues((prev) => ({ ...prev, [key]: isNaN(parsed) ? 0 : parsed }));
+  const handleValueChange = (key: string, rawValue: string) => {
+    setValues((prev) => ({ ...prev, [key]: parseMoneyInput(rawValue) }));
   };
 
   const handleAdd = () => {
-    if (!product) return;
+    if (!product || invalidKeys.size > 0) return;
 
     let itemsToAdd: FormItem[] = [];
 
@@ -160,16 +158,14 @@ export function useAddItems({
     onConfirm(itemsToAdd);
   };
 
-  const totalQuantity = useMemo(
-    () => Object.values(quantities).reduce((a, b) => a + b, 0),
-    [quantities]
-  );
+  const filledCount = Object.values(quantities).filter((qty) => qty > 0).length;
 
   return {
     quantities,
     values,
-    totalQuantity,
-    getExistingQty,
+    filledCount,
+    invalidKeys,
+    getAvailableStock,
     handleQuantityChange,
     handleValueChange,
     handleAdd
