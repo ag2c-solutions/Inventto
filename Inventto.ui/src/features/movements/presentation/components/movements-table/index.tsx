@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link } from 'react-router';
 import {
+  type ColumnFiltersState,
   type ExpandedState,
+  type FilterFn,
   getCoreRowModel,
   getExpandedRowModel,
   getFilteredRowModel,
@@ -10,99 +11,130 @@ import {
   type Row,
   type TableOptions
 } from '@tanstack/react-table';
-import { XCircle } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 
 import {
   DataTable,
   DataTableContent,
   DataTableDateRangeFilter,
-  DataTableSelectFilter,
   DataTableTextFilter,
   PaginationControllers
 } from '@/shared/components/common/data-table';
-import { Button } from '@/shared/components/ui/button';
+import { DataTableTabFilter } from '@/shared/components/common/data-table/pieces/data-table-tabs-filter';
 
 import type { Movement } from '../../../domain/entities';
+import { AddNewMovements } from '../add-moviment';
 import { MovementDetails } from '../details';
+import { ProductFilterChip } from '../filter-chip';
 
+import {
+  matchesProductSearch,
+  resolveProductNameById
+} from './utils/matches-product-search';
 import { columnsMovementsListTable } from './columns';
+import { MovementsListTableLoading } from './loading';
+import { MovementsOnboardingEmpty } from './onboarding-empty';
 
 interface MovementsListTableProps {
   data: Movement[];
+  isLoading: boolean;
   productId?: string;
 }
 
+const globalFilterFn: FilterFn<Movement> = (row, _columnId, filterValue) =>
+  matchesProductSearch(row.original, String(filterValue ?? ''));
+
 export function MovementsListTable({
   data,
+  isLoading,
   productId
 }: MovementsListTableProps) {
   const [isExpanded, setIsExpanded] = useState<ExpandedState>({});
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const productName = useMemo(
+    () => resolveProductNameById(data, productId),
+    [data, productId]
+  );
 
   const tableOptions: TableOptions<Movement> = useMemo(() => {
     return {
       columns: columnsMovementsListTable,
       data: data || [],
       state: {
-        expanded: isExpanded
+        expanded: isExpanded,
+        globalFilter,
+        columnFilters
       },
       onExpandedChange: setIsExpanded,
+      onGlobalFilterChange: setGlobalFilter,
+      onColumnFiltersChange: setColumnFilters,
+      globalFilterFn,
       getCoreRowModel: getCoreRowModel(),
       getExpandedRowModel: getExpandedRowModel(),
       getFilteredRowModel: getFilteredRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      globalFilterFn: 'includesString'
+      getSortedRowModel: getSortedRowModel()
     };
-  }, [isExpanded, data]);
+  }, [isExpanded, data, globalFilter, columnFilters]);
 
   const renderMovementsItems = useCallback((row: Row<Movement>) => {
     return <MovementDetails movement={row.original} />;
   }, []);
 
-  return (
-    <DataTable tableOptions={tableOptions} renderSubRow={renderMovementsItems}>
-      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-        <div className="flex flex-1 flex-col sm:flex-row gap-4 w-full lg:w-auto">
-          <DataTableTextFilter
-            placeholder="Buscar por motivo, doc ou responsável..."
-            className="max-w-[300px]"
-          />
-          <DataTableSelectFilter
-            column="type"
-            placeholder="Tipo"
-            options={[
-              {
-                value: 'all',
-                label: 'Todos os tipos'
-              },
-              {
-                value: 'entry',
-                label: 'Entrada'
-              },
-              {
-                value: 'withdrawal',
-                label: 'Saída'
-              },
-              {
-                value: 'adjustment',
-                label: 'Ajuste'
-              }
-            ]}
-          />
-          <DataTableDateRangeFilter column="createdAt" />
+  if (isLoading) {
+    return <MovementsListTableLoading />;
+  }
+
+  if (!data || data.length === 0) {
+    if (productId) {
+      return (
+        <div className="flex flex-col gap-4">
+          <ProductFilterChip productName={productName} />
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            Nenhuma movimentação encontrada para este produto.
+          </p>
         </div>
-        <div className="w-full md:w-[unset] flex gap-3">
-          {productId && (
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                to="/movements"
-                className="flex items-center gap-2 text-destructive hover:text-destructive"
-              >
-                <XCircle className="h-4 w-4" />
-                Limpar filtro de produto
-              </Link>
-            </Button>
-          )}
+      );
+    }
+
+    return <MovementsOnboardingEmpty />;
+  }
+
+  const searchTerm = globalFilter.trim();
+  const emptyMessage = searchTerm
+    ? `Nada encontrado para '${searchTerm}'.`
+    : 'Nada encontrado. Tente ajustar os filtros de tipo e período.';
+
+  return (
+    <DataTable
+      tableOptions={tableOptions}
+      renderSubRow={renderMovementsItems}
+      emptyMessage={emptyMessage}
+    >
+      <div className="flex flex-col gap-4">
+        {productId && <ProductFilterChip productName={productName} />}
+
+        <div className="flex w-full lg:items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center w-full gap-3">
+            <DataTableTextFilter
+              placeholder="Buscar por produto ou SKU"
+              className="lg:max-w-[360px]"
+            />
+            <DataTableTabFilter
+              column="type"
+              initialValue={'all'}
+              options={[
+                { Icon: ArrowUpDown, value: 'all', label: 'Todos' },
+                { Icon: ArrowUp, value: 'entry', label: 'Entradas' },
+                { Icon: ArrowDown, value: 'withdrawal', label: 'Saídas' }
+              ]}
+            />
+            <DataTableDateRangeFilter column="createdAt" />
+          </div>
+
+          <AddNewMovements />
         </div>
       </div>
 
@@ -110,7 +142,17 @@ export function MovementsListTable({
         <DataTableContent />
       </section>
 
-      <section className="w-full">
+      <section className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <span className="text-sm text-muted-foreground">
+          <b className="text-foreground">{data.length}</b>{' '}
+          {productId
+            ? data.length === 1
+              ? 'movimentação deste produto'
+              : 'movimentações deste produto'
+            : data.length === 1
+              ? 'movimentação'
+              : 'movimentações'}
+        </span>
         <PaginationControllers />
       </section>
     </DataTable>

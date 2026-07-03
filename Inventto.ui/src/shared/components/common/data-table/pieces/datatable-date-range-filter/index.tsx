@@ -1,7 +1,7 @@
-import * as React from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
 import { type DateRange } from 'react-day-picker';
 
 import { Button } from '@/shared/components/ui/button';
@@ -14,11 +14,14 @@ import {
 import { cn } from '@/shared/utils';
 
 import { useDataTable } from '../../hook/use-data-table';
+import { DATE_RANGE_PRESETS, resolveDateRangePreset } from '../../utils';
 
 interface DataTableDateRangeFilterProps {
   column: string;
   title?: string;
 }
+
+type SelectedPreset = (typeof DATE_RANGE_PRESETS)[number]['id'] | 'custom';
 
 export function DataTableDateRangeFilter({
   column,
@@ -26,67 +29,106 @@ export function DataTableDateRangeFilter({
 }: DataTableDateRangeFilterProps) {
   const { table } = useDataTable();
   const tableColumn = table.getColumn(column);
+  const appliedDate = tableColumn?.getFilterValue() as DateRange | undefined;
 
-  const date = tableColumn?.getFilterValue() as DateRange | undefined;
+  const [open, setOpen] = useState(false);
+  const [pendingDate, setPendingDate] = useState<DateRange | undefined>(
+    appliedDate
+  );
+  const [selectedPreset, setSelectedPreset] = useState<
+    SelectedPreset | undefined
+  >(undefined);
 
-  const setDate = (newDate: DateRange | undefined) => {
-    tableColumn?.setFilterValue(newDate);
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+
+    if (nextOpen) {
+      setPendingDate(appliedDate);
+      setSelectedPreset(undefined);
+    }
   };
 
-  const clearFilter = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    tableColumn?.setFilterValue(undefined);
+  const handlePresetClick = (preset: (typeof DATE_RANGE_PRESETS)[number]) => {
+    setSelectedPreset(preset.id);
+    setPendingDate(resolveDateRangePreset(preset.daysAgo));
+  };
+
+  const handleCalendarSelect = (range: DateRange | undefined) => {
+    setSelectedPreset('custom');
+    setPendingDate(range);
+  };
+
+  const handleApply = () => {
+    tableColumn?.setFilterValue(pendingDate);
+    setOpen(false);
   };
 
   return (
-    <div className="grid gap-2">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={'outline'}
-            className={cn(
-              'w-full md:w-[260px] justify-start text-left font-normal relative',
-              !date && 'text-muted-foreground'
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, 'dd/MM/y', { locale: ptBR })} -{' '}
-                  {format(date.to, 'dd/MM/y', { locale: ptBR })}
-                </>
-              ) : (
-                format(date.from, 'dd/MM/y', { locale: ptBR })
-              )
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            'w-full md:w-[240px] justify-start rounded-md text-left font-normal',
+            !appliedDate?.from && 'text-muted-foreground'
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+          {appliedDate?.from ? (
+            appliedDate.to ? (
+              <>
+                {format(appliedDate.from, 'dd/MM/y', { locale: ptBR })} –{' '}
+                {format(appliedDate.to, 'dd/MM/y', { locale: ptBR })}
+              </>
             ) : (
-              <span>{title}</span>
-            )}
-
-            {date?.from && (
-              <div
-                role="button"
-                onClick={clearFilter}
-                className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-slate-100 rounded-full p-1"
+              format(appliedDate.from, 'dd/MM/y', { locale: ptBR })
+            )
+          ) : (
+            <span>{title}</span>
+          )}
+          <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="end">
+        <div className="flex">
+          <div className="flex w-[190px] flex-col gap-1 border-r p-3">
+            {DATE_RANGE_PRESETS.map((preset) => (
+              <Button
+                key={preset.id}
+                type="button"
+                variant={selectedPreset === preset.id ? 'secondary' : 'ghost'}
+                className="justify-start font-normal"
+                onClick={() => handlePresetClick(preset)}
               >
-                <X className="h-4 w-4 text-slate-500" />
-              </div>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+                {preset.label}
+              </Button>
+            ))}
+            <Button
+              type="button"
+              variant={selectedPreset === 'custom' ? 'secondary' : 'ghost'}
+              className="justify-start font-normal"
+              onClick={() => setSelectedPreset('custom')}
+            >
+              Personalizado
+            </Button>
+            <Button
+              type="button"
+              className="mt-2 bg-green-950 hover:bg-green-900"
+              onClick={handleApply}
+            >
+              Aplicar
+            </Button>
+          </div>
           <Calendar
-            initialFocus
             mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
+            defaultMonth={pendingDate?.from}
+            selected={pendingDate}
+            onSelect={handleCalendarSelect}
             numberOfMonths={2}
             locale={ptBR}
           />
-        </PopoverContent>
-      </Popover>
-    </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
