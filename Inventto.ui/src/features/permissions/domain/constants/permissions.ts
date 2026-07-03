@@ -21,6 +21,7 @@ const MANAGER_PERMISSIONS: PermissionAction[] = [
   'movement:adjust',
   'movement:details',
   'movement:withdrawal',
+  'movement:view_costs',
   'order:view_all',
   'order:manage',
   'catalog:manage',
@@ -35,8 +36,7 @@ const OWNER_PERMISSIONS: PermissionAction[] = [
   'org:create',
   'org:update',
   'org:manage',
-  'financial:view',
-  'movement:view_costs'
+  'financial:view'
 ];
 
 export const ROLE_PERMISSIONS: Record<Role, PermissionAction[]> = {

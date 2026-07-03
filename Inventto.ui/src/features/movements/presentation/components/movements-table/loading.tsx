@@ -12,7 +12,7 @@ export function MovementsListTableLoading() {
       </div>
 
       <div className="border rounded-lg overflow-hidden divide-y">
-        {Array.from({ length: 6 }).map((_, index) => (
+        {Array.from({ length: 10 }).map((_, index) => (
           <div key={index} className="flex items-center gap-4 px-4 py-3.5">
             <Skeleton className="h-4 w-4 rounded" />
             <div className="flex flex-col gap-1.5 w-16">

@@ -55,16 +55,27 @@ vi.mock('./type-tabs', () => ({
   MovementsTypeTabs: () => <div data-testid="mock-type-tabs" />
 }));
 
+vi.mock(
+  '@/shared/components/common/data-table/pieces/data-table-tabs-filter',
+  () => ({
+    DataTableTabFilter: () => <div data-testid="mock-tabs-filter" />
+  })
+);
+
 vi.mock('./loading', () => ({
   MovementsListTableLoading: () => <div data-testid="mock-loading" />
 }));
 
 vi.mock('./onboarding-empty', () => ({
-  MovementsOnboardingEmpty: ({ canRegister }: { canRegister: boolean }) => (
-    <div data-testid="mock-onboarding-empty">
-      canRegister: {String(canRegister)}
-    </div>
-  )
+  MovementsOnboardingEmpty: () => <div data-testid="mock-onboarding-empty" />
+}));
+
+vi.mock('../add-moviment', () => ({
+  AddNewMovements: () => {
+    const { role } = mockUseUser();
+    if (role === 'sales') return null;
+    return <a href="/movements/new">Registrar</a>;
+  }
 }));
 
 vi.mock('../details', () => ({
@@ -132,17 +143,7 @@ describe('MovementsListTable', () => {
     render(<MovementsListTable data={[]} isLoading={false} />, { wrapper });
 
     const onboarding = screen.getByTestId('mock-onboarding-empty');
-    expect(onboarding).toHaveTextContent('canRegister: true');
-  });
-
-  it('should hide the CTA in the onboarding empty state for sales role', () => {
-    mockUseUser.mockReturnValue({ role: 'sales' });
-
-    render(<MovementsListTable data={[]} isLoading={false} />, { wrapper });
-
-    expect(screen.getByTestId('mock-onboarding-empty')).toHaveTextContent(
-      'canRegister: false'
-    );
+    expect(onboarding).toBeInTheDocument();
   });
 
   it('should render an inline empty message when pre-filtered by product with no results', () => {
@@ -182,7 +183,7 @@ describe('MovementsListTable', () => {
       wrapper
     });
 
-    expect(screen.getByTestId('mock-type-tabs')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-tabs-filter')).toBeInTheDocument();
     expect(screen.getByTestId('mock-text-filter')).toHaveTextContent(
       'Buscar por produto ou SKU'
     );

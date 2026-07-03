@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link, NavLink } from 'react-router';
 import {
   type ColumnFiltersState,
   type ExpandedState,
@@ -12,9 +11,7 @@ import {
   type Row,
   type TableOptions
 } from '@tanstack/react-table';
-import { ArrowRightLeft, X } from 'lucide-react';
-
-import { useUser } from '@/features/users';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 
 import {
   DataTable,
@@ -23,11 +20,12 @@ import {
   DataTableTextFilter,
   PaginationControllers
 } from '@/shared/components/common/data-table';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
+import { DataTableTabFilter } from '@/shared/components/common/data-table/pieces/data-table-tabs-filter';
 
 import type { Movement } from '../../../domain/entities';
+import { AddNewMovements } from '../add-moviment';
 import { MovementDetails } from '../details';
+import { ProductFilterChip } from '../filter-chip';
 
 import {
   matchesProductSearch,
@@ -36,7 +34,6 @@ import {
 import { columnsMovementsListTable } from './columns';
 import { MovementsListTableLoading } from './loading';
 import { MovementsOnboardingEmpty } from './onboarding-empty';
-import { MovementsTypeTabs } from './type-tabs';
 
 interface MovementsListTableProps {
   data: Movement[];
@@ -52,9 +49,6 @@ export function MovementsListTable({
   isLoading,
   productId
 }: MovementsListTableProps) {
-  const { role } = useUser();
-  const canManage = role !== 'sales';
-
   const [isExpanded, setIsExpanded] = useState<ExpandedState>({});
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -105,7 +99,7 @@ export function MovementsListTable({
       );
     }
 
-    return <MovementsOnboardingEmpty canRegister={canManage} />;
+    return <MovementsOnboardingEmpty />;
   }
 
   const searchTerm = globalFilter.trim();
@@ -120,28 +114,28 @@ export function MovementsListTable({
       emptyMessage={emptyMessage}
     >
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col lg:flex-row gap-3 lg:items-center">
-          <DataTableTextFilter
-            placeholder="Buscar por produto ou SKU"
-            className="lg:max-w-[300px]"
-          />
-          <MovementsTypeTabs />
-          <DataTableDateRangeFilter column="createdAt" />
-
-          {canManage && (
-            <Button size="sm" className="lg:ml-auto bg-green-950" asChild>
-              <NavLink
-                className="flex gap-2 justify-center items-center"
-                to="/movements/new"
-              >
-                <ArrowRightLeft className="h-4 w-4" />
-                Registrar
-              </NavLink>
-            </Button>
-          )}
-        </div>
-
         {productId && <ProductFilterChip productName={productName} />}
+
+        <div className="flex w-full lg:items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center w-full gap-3">
+            <DataTableTextFilter
+              placeholder="Buscar por produto ou SKU"
+              className="lg:max-w-[360px]"
+            />
+            <DataTableTabFilter
+              column="type"
+              initialValue={'all'}
+              options={[
+                { Icon: ArrowUpDown, value: 'all', label: 'Todos' },
+                { Icon: ArrowUp, value: 'entry', label: 'Entradas' },
+                { Icon: ArrowDown, value: 'withdrawal', label: 'Saídas' }
+              ]}
+            />
+            <DataTableDateRangeFilter column="createdAt" />
+          </div>
+
+          <AddNewMovements />
+        </div>
       </div>
 
       <section className="my-2.5 border rounded-lg overflow-hidden">
@@ -162,30 +156,5 @@ export function MovementsListTable({
         <PaginationControllers />
       </section>
     </DataTable>
-  );
-}
-
-interface ProductFilterChipProps {
-  productName?: string;
-}
-
-function ProductFilterChip({ productName }: ProductFilterChipProps) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">
-        Filtrando por produto:
-      </span>
-      <Badge variant="secondary" className="gap-1.5 py-1 pl-2.5 pr-1.5">
-        <span className="font-medium">Produto:</span>
-        {productName || 'Produto selecionado'}
-        <Link
-          to="/movements"
-          className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
-          aria-label="Limpar filtro de produto"
-        >
-          <X className="h-3 w-3" />
-        </Link>
-      </Badge>
-    </div>
   );
 }

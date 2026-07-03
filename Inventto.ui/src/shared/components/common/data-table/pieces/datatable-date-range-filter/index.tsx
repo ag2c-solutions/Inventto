@@ -69,7 +69,7 @@ export function DataTableDateRangeFilter({
         <Button
           variant="outline"
           className={cn(
-            'w-full md:w-[260px] justify-start rounded-full text-left font-normal',
+            'w-full md:w-[240px] justify-start rounded-md text-left font-normal',
             !appliedDate?.from && 'text-muted-foreground'
           )}
         >
@@ -89,7 +89,7 @@ export function DataTableDateRangeFilter({
           <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0" align="end">
         <div className="flex">
           <div className="flex w-[190px] flex-col gap-1 border-r p-3">
             {DATE_RANGE_PRESETS.map((preset) => (
