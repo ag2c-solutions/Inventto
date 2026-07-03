@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react';
 
 import { Input } from '@/shared/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
@@ -54,8 +54,11 @@ export function MovementCardList({
           value={type}
           onValueChange={(value) => setType(value as TypeFilter)}
         >
-          <TabsList className="w-full grid grid-cols-3 h-9">
-            <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsList className="w-full grid grid-cols-3 h-9 bg-sidebar">
+            <TabsTrigger value="all">
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              Todos
+            </TabsTrigger>
             <TabsTrigger value="entry" className="gap-1.5">
               <ArrowUp className="h-3.5 w-3.5" />
               Entradas

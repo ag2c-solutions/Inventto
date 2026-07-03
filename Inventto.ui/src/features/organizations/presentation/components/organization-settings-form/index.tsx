@@ -60,10 +60,13 @@ export function OrganizationSettingsForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="mx-auto w-full space-y-6 px-6 pb-8">
+      <form
+        onSubmit={onSubmit}
+        className="mx-auto w-full space-y-6 py-6 px-1 md:px-6 pb-8"
+      >
         <header className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h1 className="text-[27px] leading-tight font-bold text-foreground">
+            <h1 className="text-2xl leading-tight font-semibold text-foreground">
               Configurações
             </h1>
             <p className="text-sm text-muted-foreground">
