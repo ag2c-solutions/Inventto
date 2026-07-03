@@ -14,13 +14,18 @@ describe('formatVariantOptions', () => {
   });
 
   it('deve formatar um único par chave-valor', () => {
-    expect(formatVariantOptions({ Chave: 'Valor' })).toBe('Chave: Valor');
+    expect(formatVariantOptions([{ name: 'Chave', value: 'Valor' }])).toBe(
+      'Chave: Valor'
+    );
   });
 
   it('deve formatar múltiplos pares separados por vírgula e espaço', () => {
-    expect(formatVariantOptions({ Color: 'Blue', Size: 'M' })).toBe(
-      'Color: Blue, Size: M'
-    );
+    expect(
+      formatVariantOptions([
+        { name: 'Color', value: 'Blue' },
+        { name: 'Size', value: 'M' }
+      ])
+    ).toBe('Color: Blue · Size: M');
   });
 });
 
