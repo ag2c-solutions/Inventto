@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { AlertTriangle, Pencil, X } from 'lucide-react';
 
-import { ColorBadge } from '@/shared/components/common/color-badge';
 import { ImageCard } from '@/shared/components/common/image-card';
-import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
   Table,
@@ -15,26 +13,13 @@ import {
 } from '@/shared/components/ui/table';
 import { cn } from '@/shared/utils';
 
+import { ItemAttributeBadge } from '../../../item-attribute-badge';
 import { useMovementForm } from '../../hooks';
 
 const currency = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL'
 });
-
-function ItemAttributeBadge({
-  option
-}: {
-  option: { name: string; value: string };
-}) {
-  return option.value.includes('#') ? (
-    <ColorBadge color={option.value} />
-  ) : (
-    <Badge variant="secondary" className="text-xs font-normal">
-      {option.value}
-    </Badge>
-  );
-}
 
 export function MovementBatchList() {
   const { form, actions } = useMovementForm();

@@ -1,4 +1,5 @@
-export type { IProduct } from './domain/entities';
+export type { IProduct, VariantOption } from './domain/entities';
+export { getGradeStockConsolidation } from './domain/utils/get-grade-stock-consolidation';
 export { VariantOptionBadge } from './presentation/components/variants-options-badge';
 export { useProductsQuery } from './presentation/hooks/use-queries';
 export { CreateProductPage } from './presentation/pages/create-product';

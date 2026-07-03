@@ -17,12 +17,16 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/shared/components/ui/popover';
+import { cn } from '@/shared/utils';
 
 import { useMovementForm } from '../../hooks';
+import { getProductAvailableStock } from '../../utils';
 
 export function ProductSearch() {
-  const { products, actions, isLoadingProducts } = useMovementForm();
+  const { form, products, actions, isLoadingProducts } = useMovementForm();
   const [open, setOpen] = useState(false);
+
+  const isWithdrawal = form.watch('type') === 'withdrawal';
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -42,7 +46,7 @@ export function ProductSearch() {
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-80 p-0"
+        className="w-80 h-60 p-0"
         align="end"
         side="bottom"
         avoidCollisions={false}
@@ -52,37 +56,52 @@ export function ProductSearch() {
           <CommandList>
             <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
             <CommandGroup>
-              {products.map((product) => (
-                <CommandItem
-                  key={product.id}
-                  value={`${product.name} ${product.sku || ''}`}
-                  onSelect={() => {
-                    actions.selectProduct(product);
-                    setOpen(false);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="h-8 w-8 rounded overflow-hidden bg-muted border shrink-0">
-                      <img
-                        src={product.allImages?.[0]?.url || '/placeholder.svg'}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="font-medium truncate">
-                        {product.name}
-                      </span>
-                      {product.sku && (
-                        <span className="text-xs text-muted-foreground">
-                          SKU: {product.sku}
+              {products.map((product) => {
+                const outOfStock =
+                  isWithdrawal && getProductAvailableStock(product) <= 0;
+
+                return (
+                  <CommandItem
+                    key={product.id}
+                    value={`${product.name} ${product.sku || ''}`}
+                    disabled={outOfStock}
+                    onSelect={() => {
+                      if (outOfStock) return;
+
+                      actions.selectProduct(product);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      'cursor-pointer',
+                      outOfStock && 'cursor-not-allowed'
+                    )}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="h-8 w-8 rounded overflow-hidden bg-muted border shrink-0">
+                        <img
+                          src={
+                            product.allImages?.[0]?.url || '/placeholder.svg'
+                          }
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-medium truncate">
+                          {product.name}
                         </span>
-                      )}
+                        {product.sku && (
+                          <span className="text-xs text-muted-foreground">
+                            {outOfStock
+                              ? 'Sem estoque disponível'
+                              : `SKU: ${product.sku}`}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CommandItem>
-              ))}
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>

@@ -1,4 +1,12 @@
-import type { IProduct } from '@/features/products';
+import { getGradeStockConsolidation, type IProduct } from '@/features/products';
+
+export const getProductAvailableStock = (product: IProduct): number => {
+  if (product.hasVariants && product.variants) {
+    return getGradeStockConsolidation(product.variants).total;
+  }
+
+  return product.stock ?? 0;
+};
 
 export const getMovementItemImage = (
   product: IProduct | null | undefined,

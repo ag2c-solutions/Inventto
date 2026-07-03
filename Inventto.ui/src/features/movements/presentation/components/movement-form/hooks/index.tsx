@@ -147,12 +147,34 @@ export function MovementFormProvider({
       unitPrice: item.unitPrice ?? 0
     }));
 
-    const updatedItems =
-      editingIndex !== null
-        ? currentItems.map((item, index) =>
-            index === editingIndex ? (safeNewItems[0] ?? item) : item
-          )
-        : [...currentItems, ...safeNewItems];
+    let updatedItems: FormItem[];
+
+    if (editingIndex !== null) {
+      updatedItems = currentItems.map((item, index) =>
+        index === editingIndex ? (safeNewItems[0] ?? item) : item
+      );
+    } else {
+      updatedItems = [...currentItems];
+
+      for (const newItem of safeNewItems) {
+        const existingIndex = updatedItems.findIndex(
+          (item) =>
+            item.productId === newItem.productId &&
+            item.variantId === newItem.variantId
+        );
+
+        if (existingIndex >= 0) {
+          updatedItems[existingIndex] = {
+            ...updatedItems[existingIndex],
+            quantity: updatedItems[existingIndex].quantity + newItem.quantity,
+            unitCost: newItem.unitCost,
+            unitPrice: newItem.unitPrice
+          };
+        } else {
+          updatedItems.push(newItem);
+        }
+      }
+    }
 
     const totalQuantity = updatedItems.reduce(
       (acc, item) => acc + item.quantity,
