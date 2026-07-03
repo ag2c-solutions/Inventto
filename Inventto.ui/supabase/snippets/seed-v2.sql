@@ -3,16 +3,17 @@ DECLARE
   -- -------------------------------------------------------------------------
   -- 1. VARIÁVEIS DE AMBIENTE
   -- -------------------------------------------------------------------------
-  v_user_id UUID:='daa66311-3527-4d28-8425-aef0ac0509b7';
+  v_user_id UUID:='9fe990c2-39e1-4ca1-84eb-c3a7911e80c0';
 
   -- Org A (loja principal — é a referenciada pelo app/login)
   v_org_id   UUID := 'a28808c6-ae0d-4374-9ac2-53acd3b5aec2';
+  v_org_id_b UUID := 'a2a80ef3-7db7-4ccd-a670-5ccb7c4813a1';
 
   -- Multi-org: arrays paralelos para gerar as duas unidades no mesmo loop.
-  v_org_ids      UUID[];
+  v_org_ids      UUID[] := ARRAY[v_org_id, v_org_id_b];
   v_org_names    TEXT[] := ARRAY['Inventto Demo Store'];
   v_org_docs     TEXT[] := ARRAY['12.345.678/0001-90'];
-  v_org_prefixes TEXT[] := ARRAY['INV',];
+  v_org_prefixes TEXT[] := ARRAY['INV'];
   v_org_counts   INT[]  := ARRAY[15, 8];
 
   v_org_idx INT;
@@ -218,66 +219,129 @@ BEGIN
     END LOOP;
 
     -- 9. SIMULAÇÃO DE ESTOQUE (MOVIMENTAÇÕES) — apenas desta organização
-    FOR r_prod IN SELECT * FROM public.products WHERE organization_id = v_current_org
-    LOOP
-      v_initial_cost := (random() * 50 + 20)::NUMERIC(10,2);
-      v_sale_price   := v_initial_cost * 2.5;
+    
+    -- 9.1 Entradas Iniciais (purchase - Compra)
+    -- Vamos criar 4 notas fiscais de entrada contendo múltiplos itens
+    FOR i IN 1..4 LOOP
+      v_doc_number := 'NF-' || floor(random() * 90000 + 10000)::text;
+      
+      INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
+      VALUES (v_current_org, v_user_id, 'entry', 'purchase', v_doc_number, NOW() - (random() * 30 + 30) * INTERVAL '1 day')
+      RETURNING id INTO v_movement_id;
 
-      IF r_prod.has_variants THEN
-        FOR r_variant IN SELECT * FROM public.product_variants WHERE product_id = r_prod.id LOOP
-            -- Entrada
-            v_qty_entry := floor(random() * 50 + 20)::int;
-            v_doc_number := 'NF-' || floor(random() * 90000 + 10000)::text;
+      -- Adiciona de 3 a 8 itens variados por nota
+      FOR r_variant IN 
+        SELECT p.id as p_id, v.id as v_id, p.has_variants 
+        FROM public.products p 
+        LEFT JOIN public.product_variants v ON v.product_id = p.id
+        WHERE p.organization_id = v_current_org
+        ORDER BY random() LIMIT (floor(random() * 6 + 3)::int)
+      LOOP
+        v_initial_cost := (random() * 50 + 20)::NUMERIC(10,2);
+        v_qty_entry := floor(random() * 30 + 10)::int;
+        
+        INSERT INTO public.movement_items (movement_id, product_id, variant_id, quantity, unit_cost)
+        VALUES (v_movement_id, r_variant.p_id, r_variant.v_id, v_qty_entry, v_initial_cost);
+        
+        IF r_variant.has_variants THEN
+          UPDATE public.product_variants SET stock = stock + v_qty_entry, cost_price = v_initial_cost WHERE id = r_variant.v_id;
+        ELSE
+          UPDATE public.products SET stock = stock + v_qty_entry, cost_price = v_initial_cost WHERE id = r_variant.p_id;
+        END IF;
+      END LOOP;
+    END LOOP;
 
-            INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
-            VALUES (v_current_org, v_user_id, 'entry', 'Seed Entry', v_doc_number, NOW() - INTERVAL '30 days')
-            RETURNING id INTO v_movement_id;
+    -- 9.2 Vendas (sale)
+    -- Vamos criar 12 vendas com múltiplos itens
+    FOR i IN 1..12 LOOP
+      v_doc_number := 'PDV-' || floor(random() * 90000 + 10000)::text;
+      
+      INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
+      VALUES (v_current_org, v_user_id, 'withdrawal', 'sale', v_doc_number, NOW() - (random() * 20 + 5) * INTERVAL '1 day')
+      RETURNING id INTO v_movement_id;
 
-            INSERT INTO public.movement_items (movement_id, product_id, variant_id, quantity, unit_cost)
-            VALUES (v_movement_id, r_prod.id, r_variant.id, v_qty_entry, v_initial_cost);
+      -- Adiciona de 1 a 4 itens por venda
+      FOR r_variant IN 
+        SELECT p.id as p_id, v.id as v_id, p.has_variants, 
+               COALESCE(v.cost_price, p.cost_price) as c_price, 
+               COALESCE(v.stock, p.stock) as curr_stock
+        FROM public.products p 
+        LEFT JOIN public.product_variants v ON v.product_id = p.id
+        WHERE p.organization_id = v_current_org AND COALESCE(v.stock, p.stock) > 0
+        ORDER BY random() LIMIT (floor(random() * 4 + 1)::int)
+      LOOP
+        v_sale_price := r_variant.c_price * 2.5;
+        v_qty_withdrawal := floor(random() * 3 + 1)::int;
+        
+        IF v_qty_withdrawal > r_variant.curr_stock THEN
+           v_qty_withdrawal := r_variant.curr_stock;
+        END IF;
+        
+        IF v_qty_withdrawal > 0 THEN
+          INSERT INTO public.movement_items (movement_id, product_id, variant_id, quantity, unit_cost, unit_price)
+          VALUES (v_movement_id, r_variant.p_id, r_variant.v_id, v_qty_withdrawal, r_variant.c_price, v_sale_price);
+          
+          IF r_variant.has_variants THEN
+            UPDATE public.product_variants SET stock = stock - v_qty_withdrawal WHERE id = r_variant.v_id;
+          ELSE
+            UPDATE public.products SET stock = stock - v_qty_withdrawal WHERE id = r_variant.p_id;
+          END IF;
+        END IF;
+      END LOOP;
+    END LOOP;
 
-            UPDATE public.product_variants SET stock = stock + v_qty_entry, cost_price = v_initial_cost WHERE id = r_variant.id;
-
-            -- Saída
-            v_qty_withdrawal := floor(random() * (v_qty_entry - 5) + 1)::int;
-            v_doc_number := 'PDV-' || floor(random() * 90000 + 10000)::text;
-
-            INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
-            VALUES (v_current_org, v_user_id, 'withdrawal', 'Seed Sale', v_doc_number, NOW() - INTERVAL '10 days')
-            RETURNING id INTO v_movement_id;
-
-            INSERT INTO public.movement_items (movement_id, product_id, variant_id, quantity, unit_cost, unit_price)
-            VALUES (v_movement_id, r_prod.id, r_variant.id, v_qty_withdrawal, v_initial_cost, v_sale_price);
-
-            UPDATE public.product_variants SET stock = stock - v_qty_withdrawal WHERE id = r_variant.id;
-        END LOOP;
+    -- 9.3 Outros (Devolução, Perda, Consumo, Inventário)
+    FOR i IN 1..4 LOOP
+      -- Alterna entre motivos diferentes
+      IF i = 1 THEN
+        -- return_in (Devolução de Cliente)
+        INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
+        VALUES (v_current_org, v_user_id, 'entry', 'return_in', 'DEV-' || floor(random() * 900 + 100)::text, NOW() - (random() * 5 + 1) * INTERVAL '1 day')
+        RETURNING id INTO v_movement_id;
+      ELSIF i = 2 THEN
+        -- loss (Perda/Avaria)
+        INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
+        VALUES (v_current_org, v_user_id, 'withdrawal', 'loss', NULL, NOW() - (random() * 5 + 1) * INTERVAL '1 day')
+        RETURNING id INTO v_movement_id;
+      ELSIF i = 3 THEN
+        -- consumption (Consumo interno)
+        INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
+        VALUES (v_current_org, v_user_id, 'withdrawal', 'consumption', NULL, NOW() - (random() * 5 + 1) * INTERVAL '1 day')
+        RETURNING id INTO v_movement_id;
       ELSE
-            -- Produto Simples
-            v_qty_entry := floor(random() * 80 + 20)::int;
-            v_doc_number := 'NF-' || floor(random() * 90000 + 10000)::text;
-
-            INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
-            VALUES (v_current_org, v_user_id, 'entry', 'Seed Entry', v_doc_number, NOW() - INTERVAL '60 days')
-            RETURNING id INTO v_movement_id;
-
-            INSERT INTO public.movement_items (movement_id, product_id, quantity, unit_cost)
-            VALUES (v_movement_id, r_prod.id, v_qty_entry, v_initial_cost);
-
-            UPDATE public.products SET stock = stock + v_qty_entry, cost_price = v_initial_cost WHERE id = r_prod.id;
-
-            -- Saída
-            v_qty_withdrawal := floor(random() * (v_qty_entry - 10) + 1)::int;
-            v_doc_number := 'PDV-' || floor(random() * 90000 + 10000)::text;
-
-            INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
-            VALUES (v_current_org, v_user_id, 'withdrawal', 'Seed Sale', v_doc_number, NOW() - INTERVAL '5 days')
-            RETURNING id INTO v_movement_id;
-
-            INSERT INTO public.movement_items (movement_id, product_id, quantity, unit_cost, unit_price)
-            VALUES (v_movement_id, r_prod.id, v_qty_withdrawal, v_initial_cost, v_sale_price);
-
-            UPDATE public.products SET stock = stock - v_qty_withdrawal WHERE id = r_prod.id;
+        -- inventory (Ajuste de balanço - entrada)
+        INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
+        VALUES (v_current_org, v_user_id, 'entry', 'inventory', 'BAL-2026', NOW() - (random() * 5 + 1) * INTERVAL '1 day')
+        RETURNING id INTO v_movement_id;
       END IF;
+
+      -- Adiciona de 1 a 2 itens nestas movimentações avulsas
+      FOR r_variant IN 
+        SELECT p.id as p_id, v.id as v_id, p.has_variants, COALESCE(v.cost_price, p.cost_price, 25.0) as c_price
+        FROM public.products p 
+        LEFT JOIN public.product_variants v ON v.product_id = p.id
+        WHERE p.organization_id = v_current_org
+        ORDER BY random() LIMIT (floor(random() * 2 + 1)::int)
+      LOOP
+        v_qty_withdrawal := floor(random() * 2 + 1)::int;
+        
+        INSERT INTO public.movement_items (movement_id, product_id, variant_id, quantity, unit_cost)
+        VALUES (v_movement_id, r_variant.p_id, r_variant.v_id, v_qty_withdrawal, r_variant.c_price);
+        
+        IF r_variant.has_variants THEN
+          IF i = 1 OR i = 4 THEN
+            UPDATE public.product_variants SET stock = stock + v_qty_withdrawal WHERE id = r_variant.v_id;
+          ELSE
+            UPDATE public.product_variants SET stock = stock - v_qty_withdrawal WHERE id = r_variant.v_id;
+          END IF;
+        ELSE
+          IF i = 1 OR i = 4 THEN
+            UPDATE public.products SET stock = stock + v_qty_withdrawal WHERE id = r_variant.p_id;
+          ELSE
+            UPDATE public.products SET stock = stock - v_qty_withdrawal WHERE id = r_variant.p_id;
+          END IF;
+        END IF;
+      END LOOP;
     END LOOP;
   END LOOP;
 

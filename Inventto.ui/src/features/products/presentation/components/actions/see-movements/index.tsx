@@ -16,7 +16,10 @@ export const SeeProductMovementsAction = forwardRef<
     className="w-full justify-start gap-2 font-normal"
     {...props}
   >
-    <Link to={`/movements?productId=${productId}`}>
+    <Link
+      className="w-full flex justify-start gap-2 font-normal"
+      to={`/movements?productId=${productId}`}
+    >
       <GalleryVerticalEnd className="h-4 w-4" />
       Histórico de movimentação
     </Link>

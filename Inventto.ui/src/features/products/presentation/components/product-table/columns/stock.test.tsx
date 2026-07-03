@@ -1,17 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import type { IProductVariant } from '../../../../domain/entities';
 
 import { ProductTableColumnStock } from './stock';
-
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-globalThis.ResizeObserver = ResizeObserverMock;
 
 const makeVariant = (
   overrides: Partial<IProductVariant> & { stock: number; minimumStock: number }
@@ -25,44 +17,40 @@ const makeVariant = (
 });
 
 describe('ProductTableColumnStock', () => {
-  it('produto simples: expõe o status do estoque saudável no ícone', () => {
-    render(
+  it('produto simples: exibe badge de saudável com quantidade 1', () => {
+    const { container } = render(
       <ProductTableColumnStock totalStock={42} minimumStock={5} variants={[]} />
     );
 
-    expect(
-      screen.getByRole('button', { name: 'Status do estoque: Saudável' })
-    ).toBeInTheDocument();
+    expect(container.querySelector('.lucide-square-check')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
-  it('produto simples: saldo 0 deriva o estado Zerado (RN050)', () => {
-    render(<ProductTableColumnStock totalStock={0} minimumStock={5} />);
+  it('produto simples: saldo 0 deriva o estado Zerado e exibe badge correspondente', () => {
+    const { container } = render(
+      <ProductTableColumnStock totalStock={0} minimumStock={5} variants={[]} />
+    );
 
-    expect(
-      screen.getByRole('button', { name: 'Status do estoque: Zerado' })
-    ).toBeInTheDocument();
+    expect(container.querySelector('.lucide-ban')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
-  it('grade: ícone reflete o pior caso e o popover mostra o resumo e o total físico das ativas', async () => {
-    const user = userEvent.setup();
-
-    render(
+  it('grade: exibe badges sumarizando as quantidades de variantes por status', () => {
+    const { container } = render(
       <ProductTableColumnStock
-        totalStock={0}
+        totalStock={30}
         variants={[
           makeVariant({ stock: 30, minimumStock: 5 }), // healthy
-          makeVariant({ stock: 0, minimumStock: 6 }) // zeroed → pior caso
+          makeVariant({ stock: 0, minimumStock: 6 }), // zeroed
+          makeVariant({ stock: 0, minimumStock: 6 }) // another zeroed
         ]}
       />
     );
 
-    const trigger = screen.getByRole('button', {
-      name: 'Status do estoque: Zerado'
-    });
+    expect(container.querySelector('.lucide-square-check')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument(); // 1 variante saudavel
 
-    await user.click(trigger);
-
-    expect(screen.getByText('Resumo da grade')).toBeInTheDocument();
-    expect(screen.getByText('Total físico: 30 un.')).toBeInTheDocument();
+    expect(container.querySelector('.lucide-ban')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument(); // 2 variantes zeradas
   });
 });

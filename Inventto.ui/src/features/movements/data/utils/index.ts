@@ -1,13 +1,24 @@
 import type { ProductSummaryDTO, VariantSummaryDTO } from '../dtos';
 
 export function formatVariantOptions(
-  options?: Record<string, string> | null
+  options?: { name: string; value: string }[] | null
 ): string | undefined {
   if (!options) return undefined;
 
-  return Object.entries(options)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ');
+  if (Array.isArray(options)) {
+    return options
+      .filter((opt) => opt && opt.name && opt.value)
+      .map((opt) => `${opt.name}: ${opt.value.split('|#')?.[0]}`)
+      .join(' · ');
+  }
+
+  if (typeof options === 'object') {
+    return Object.entries(options)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(' · ');
+  }
+
+  return String(options);
 }
 
 export function getProductImage(

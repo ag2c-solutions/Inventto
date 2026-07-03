@@ -1,17 +1,33 @@
-import type { MovementType } from '../../../../domain/entities';
+import type {
+  MovementReason as DomainMovementReason,
+  MovementType
+} from '../../../../domain/entities';
 
-export const ENTRY_REASONS = ['Compra', 'Devolução'] as const;
-export const WITHDRAWAL_REASONS = ['Venda', 'Troca', 'Uso Interno'] as const;
+export const ENTRY_REASONS = [
+  'Compra',
+  'Devolução(entrada)',
+  'Transferência(entrada)',
+  'Outro'
+] as const;
+export const WITHDRAWAL_REASONS = [
+  'Venda',
+  'Devolução(saída)',
+  'Transferência(saída)',
+  'Consumo',
+  'Outro'
+] as const;
 export const ADJUSTMENT_REASONS = [
-  'Perda / Avaria',
-  'Ajuste de Inventário'
+  'Inventário',
+  'Perda',
+  'Correção',
+  'Outro'
 ] as const;
 
 export type EntryReason = (typeof ENTRY_REASONS)[number];
 export type WithdrawalReason = (typeof WITHDRAWAL_REASONS)[number];
 export type AdjustmentReason = (typeof ADJUSTMENT_REASONS)[number];
 
-export type MovementReason = EntryReason | WithdrawalReason | AdjustmentReason;
+export type MovementReason = DomainMovementReason;
 
 export const ReasonOptions: Record<MovementType, readonly string[]> = {
   entry: ENTRY_REASONS,

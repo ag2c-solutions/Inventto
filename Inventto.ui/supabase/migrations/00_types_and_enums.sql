@@ -17,7 +17,10 @@ CREATE TYPE public.sale_channel AS ENUM ('pos', 'whatsapp_direct', 'catalog_stor
 CREATE TYPE public.attribute_type AS ENUM ('text', 'color', 'select', 'number');
 
 -- Tipos de Movimentação de Estoque
-CREATE TYPE public.movement_type AS ENUM ('entry', 'withdrawal', 'adjustment');
+CREATE TYPE public.movement_type AS ENUM ('entry', 'withdrawal');
+
+-- Motivos de Movimentação de Estoque
+CREATE TYPE public.movement_reason AS ENUM ('purchase', 'return_in', 'transfer_in', 'sale', 'return_out', 'transfer_out', 'loss','consumption','inventory','correction', 'other');
 
 -- Status do Membro
 CREATE TYPE public.member_status AS ENUM ('active', 'inactive', 'invited');

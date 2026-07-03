@@ -150,7 +150,7 @@ export function MovementFormProvider({ children }: { children: ReactNode }) {
   const handleSubmit = async (formData: MovementFormData) => {
     const inputPayload: CreateMovementInput = {
       type: formData.type,
-      reason: formData.reason,
+      reason: formData.reason as MovementReason,
       documentNumber: formData.documentNumber || undefined,
       items: formData.items.map((item) => ({
         productId: item.productId,

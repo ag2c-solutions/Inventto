@@ -16,7 +16,10 @@ export const EditProductAction = forwardRef<
     className="w-full justify-start gap-2 font-normal"
     {...props}
   >
-    <Link to={`/products/${productId}/edit`}>
+    <Link
+      className="w-full flex justify-start gap-2 font-normal"
+      to={`/products/${productId}/edit`}
+    >
       <SquarePen className="h-4 w-4" />
       Editar
     </Link>

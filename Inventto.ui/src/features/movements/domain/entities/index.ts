@@ -1,6 +1,18 @@
 import type { Organization } from '@/features/organizations';
 
 export type MovementType = 'entry' | 'withdrawal' | 'adjustment';
+export type MovementReason =
+  | 'Compra'
+  | 'Devolução(entrada)'
+  | 'Transferência(entrada)'
+  | 'Venda'
+  | 'Devolução(saída)'
+  | 'Transferência(saída)'
+  | 'Perda'
+  | 'Consumo'
+  | 'Inventário'
+  | 'Correção'
+  | 'Outro';
 
 interface MovementUser {
   fullName: string;
@@ -22,6 +34,9 @@ export interface MovementItem {
   quantity: number;
   unitCost: number;
   unitPrice: number;
+  originalValue?: number;
+  discount?: number;
+  netValue?: number;
   product: MovementProductInfo;
 }
 
@@ -29,10 +44,12 @@ export interface Movement {
   id: string;
   organizationId: string;
   type: MovementType;
-  reason: string;
+  reason: MovementReason;
   documentNumber?: string;
   orderId?: string;
+  description?: string;
   createdAt: Date;
+  executedAt?: Date;
   totalQuantity: number;
   totalValue: number;
   user?: MovementUser;
@@ -49,7 +66,7 @@ export interface CreateMovementItemInput {
 
 export interface CreateMovementInput {
   type: MovementType;
-  reason: string;
+  reason: MovementReason;
   documentNumber?: string;
   items: CreateMovementItemInput[];
 }

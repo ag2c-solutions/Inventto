@@ -28,12 +28,12 @@ describe('MovementService', () => {
       vi.mocked(MovementApi.create).mockResolvedValue('new-movement-id');
 
       const result = await MovementService.create({
-        input: { type: 'entry', reason: 'Restock', items: [] },
+        input: { type: 'entry', reason: 'Compra', items: [] },
         organization: mockOrganization
       });
 
       expect(MovementApi.create).toHaveBeenCalledWith({
-        input: { type: 'entry', reason: 'Restock', items: [] },
+        input: { type: 'entry', reason: 'Compra', items: [] },
         organizationId: 'org-1'
       });
       expect(result).toBe('new-movement-id');
@@ -42,7 +42,7 @@ describe('MovementService', () => {
     it('should throw when organization is null', async () => {
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Sale', items: [] },
+          input: { type: 'withdrawal', reason: 'Venda', items: [] },
           organization: null
         })
       ).rejects.toThrow('Nenhuma organização selecionada.');
@@ -57,7 +57,7 @@ describe('MovementService', () => {
 
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Sale', items: [] },
+          input: { type: 'withdrawal', reason: 'Venda', items: [] },
           organization: mockOrganization
         })
       ).rejects.toThrow(

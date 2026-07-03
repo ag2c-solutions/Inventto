@@ -11,7 +11,7 @@ describe('MovementMapper', () => {
       organization_id: 'org-1',
       user_id: 'user-1',
       type: 'entry',
-      reason: 'Restock',
+      reason: 'purchase',
       document_number: 'DOC-001',
       order_id: null,
       created_at: '2023-10-01T10:00:00Z',
@@ -25,7 +25,7 @@ describe('MovementMapper', () => {
       expect(result.id).toBe('mov-1');
       expect(result.organizationId).toBe('org-1');
       expect(result.type).toBe('entry');
-      expect(result.reason).toBe('Restock');
+      expect(result.reason).toBe('Compra');
       expect(result.documentNumber).toBe('DOC-001');
       expect(result.createdAt).toBeInstanceOf(Date);
       expect(result.user?.fullName).toBe('John Doe');
@@ -80,7 +80,7 @@ describe('MovementMapper', () => {
             products: { name: 'T-Shirt', product_images: [] },
             product_variants: {
               sku: 'SKU-001',
-              options: { Color: 'Blue' },
+              options: [{ name: 'Color', value: 'Blue' }],
               product_variant_images: [
                 {
                   is_primary: true,
@@ -148,7 +148,7 @@ describe('MovementMapper', () => {
       const result = MovementMapper.toPersistence(
         {
           type: 'adjustment',
-          reason: 'Inventory Check',
+          reason: 'Inventário',
           documentNumber: 'DOC-123',
           items: [
             {
@@ -165,7 +165,7 @@ describe('MovementMapper', () => {
 
       expect(result.organization_id).toBe('org-1');
       expect(result.type).toBe('adjustment');
-      expect(result.reason).toBe('Inventory Check');
+      expect(result.reason).toBe('inventory');
       expect(result.document_number).toBe('DOC-123');
       expect(result.items[0].product_id).toBe('prod-1');
       expect(result.items[0].variant_id).toBe('var-1');
@@ -174,7 +174,7 @@ describe('MovementMapper', () => {
 
     it('should set document_number to null when not provided', () => {
       const result = MovementMapper.toPersistence(
-        { type: 'entry', reason: 'Test', items: [] },
+        { type: 'entry', reason: 'Outro', items: [] },
         'org-1'
       );
 

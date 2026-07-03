@@ -40,7 +40,7 @@ describe('useMovementsQuery', () => {
         id: 'mov-1',
         organizationId: 'org-1',
         type: 'entry',
-        reason: 'Restock',
+        reason: 'Compra',
         createdAt: new Date(),
         totalQuantity: 10,
         totalValue: 100,

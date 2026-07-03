@@ -41,11 +41,6 @@ export interface ImportCandidate {
   variantCount: number;
 }
 
-export interface ImportProductsInput {
-  sourceOrganizationId: string;
-  productIds: string[];
-}
-
 export interface ImportCandidateVariant {
   id: string;
   sku: string;

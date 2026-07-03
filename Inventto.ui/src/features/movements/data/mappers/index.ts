@@ -4,6 +4,10 @@ import type {
   Movement,
   MovementItem
 } from '../../domain/entities';
+import {
+  MOVEMENT_REASONS,
+  MOVEMENT_REASONS_DTO
+} from '../constants/movement-reasons';
 import type {
   CreateMovementItemRPCDTO,
   CreateStockMovementRPCDTO,
@@ -24,8 +28,10 @@ const toDomainItem = (dto: MovementItemDTO): MovementItem => {
     product: {
       name: dto.products?.name ?? 'Produto Desconhecido',
       imageUrl: getProductImage(dto.products, dto.product_variants),
-      sku: dto.product_variants?.sku ?? undefined,
-      variantOptions: formatVariantOptions(dto.product_variants?.options)
+      sku: dto.product_variants?.sku || dto.products?.sku || undefined,
+      variantOptions: formatVariantOptions(
+        dto.product_variants?.options || undefined
+      )
     }
   };
 };
@@ -58,7 +64,7 @@ export class MovementMapper {
       id: dto.id,
       organizationId: dto.organization_id,
       type: dto.type,
-      reason: dto.reason ?? '',
+      reason: MOVEMENT_REASONS[dto.reason],
       documentNumber: dto.document_number ?? undefined,
       orderId: dto.order_id ?? undefined,
       createdAt: new Date(dto.created_at),
@@ -81,7 +87,7 @@ export class MovementMapper {
     return {
       organization_id: organizationId,
       type: domain.type,
-      reason: domain.reason,
+      reason: MOVEMENT_REASONS_DTO[domain.reason],
       document_number: domain.documentNumber ?? null,
       order_id: null,
       items: domain.items.map(toPersistenceItem)

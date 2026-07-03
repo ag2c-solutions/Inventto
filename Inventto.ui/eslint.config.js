@@ -10,7 +10,59 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 const PUBLIC_FEATURE_API_MESSAGE =
-  '❌ Deep import entre features é proibido. Use apenas a API pública da feature: "@/features/nome-da-feature". Dentro da própria feature, use imports relativos.';
+  '❌ Deep import entre features é proibido. Use apenas a API pública da feature: "@/features/nome-da-feature". Dentro da própria feature, use imports relativos ou "@/features/sua-feature/...".';
+
+function checkDeepFeatureImport(context, importPath, reportNode) {
+  // Só nos importa caminhos que entram em sub-pastas de uma feature
+  const importFeatureMatch = importPath.match(/^@\/features\/([^/]+)\/.+/);
+  if (!importFeatureMatch) return;
+
+  const importedFeature = importFeatureMatch[1];
+
+  // Descobre a feature do arquivo sendo analisado
+  const filename = context.filename ?? context.getFilename?.();
+  const currentFeatureMatch = filename.match(
+    /[/\\]features[/\\]([^/\\]+)[/\\]/
+  );
+
+  // Se o arquivo atual não pertence a nenhuma feature OU pertence a uma
+  // feature diferente da importada → deep import cross-feature → erro
+  if (!currentFeatureMatch || currentFeatureMatch[1] !== importedFeature) {
+    context.report({
+      node: reportNode,
+      message: PUBLIC_FEATURE_API_MESSAGE
+    });
+  }
+  // Mesma feature → import absoluto intra-feature → permitido (sem report)
+}
+
+const featureDeepImportRule = {
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Proíbe deep imports cross-feature via alias absoluto, mas permite intra-feature.'
+    },
+    schema: []
+  },
+  create(context) {
+    return {
+      // import estático: import { X } from '@/features/...'
+      ImportDeclaration(node) {
+        checkDeepFeatureImport(context, node.source.value, node);
+      },
+      // dynamic import: import('@/features/...')  ← o caso que quebrava
+      ImportExpression(node) {
+        if (
+          node.source.type === 'Literal' &&
+          typeof node.source.value === 'string'
+        ) {
+          checkDeepFeatureImport(context, node.source.value, node);
+        }
+      }
+    };
+  }
+};
 
 export default defineConfig([
   globalIgnores([
@@ -40,7 +92,13 @@ export default defineConfig([
 
     plugins: {
       boundaries,
-      'simple-import-sort': simpleImportSort
+      'simple-import-sort': simpleImportSort,
+      // Plugin inline com a regra customizada
+      'local-rules': {
+        rules: {
+          'feature-deep-import': featureDeepImportRule
+        }
+      }
     },
     settings: {
       'boundaries/include': ['src/**/*'],
@@ -140,6 +198,7 @@ export default defineConfig([
           ]
         }
       ],
+      'local-rules/feature-deep-import': 'error',
       'boundaries/dependencies': [
         'error',
         {
@@ -278,17 +337,6 @@ export default defineConfig([
 
                 'shared'
               ]
-            }
-          ]
-        }
-      ],
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['@/features/*/*'],
-              message: PUBLIC_FEATURE_API_MESSAGE
             }
           ]
         }

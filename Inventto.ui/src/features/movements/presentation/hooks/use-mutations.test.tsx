@@ -44,7 +44,7 @@ describe('useMovementCreateMutation', () => {
 
     const input = {
       type: 'entry' as const,
-      reason: 'Restock',
+      reason: 'Compra' as const,
       items: []
     };
 
@@ -73,13 +73,13 @@ describe('useMovementCreateMutation', () => {
     await expect(
       result.current.mutateAsync({
         type: 'entry',
-        reason: 'Test',
+        reason: 'Outro',
         items: []
       })
     ).rejects.toThrow('Nenhuma organização selecionada.');
 
     expect(MovementService.create).toHaveBeenCalledWith({
-      input: { type: 'entry', reason: 'Test', items: [] },
+      input: { type: 'entry', reason: 'Outro', items: [] },
       organization: null
     });
   });

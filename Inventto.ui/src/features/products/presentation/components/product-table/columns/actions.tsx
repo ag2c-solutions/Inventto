@@ -28,7 +28,7 @@ export function ProductTableColumnActions({
   triggerClassName
 }: ProductTableColumnActionsProps) {
   return (
-    <div className={cn('w-full flex justify-center pr-4', className)}>
+    <div className={cn('w-full flex justify-end pr-4', className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -41,7 +41,7 @@ export function ProductTableColumnActions({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="center">
+        <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <SeeProductDetailsAction productId={productId} />
           </DropdownMenuItem>

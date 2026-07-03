@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link, NavLink } from 'react-router';
+import { Link } from 'react-router';
 import {
   type ExpandedState,
   getCoreRowModel,
@@ -10,9 +10,7 @@ import {
   type Row,
   type TableOptions
 } from '@tanstack/react-table';
-import { ArrowRightLeft, XCircle } from 'lucide-react';
-
-import { ActionButton } from '@/features/permissions';
+import { XCircle } from 'lucide-react';
 
 import {
   DataTable,
@@ -25,7 +23,7 @@ import {
 import { Button } from '@/shared/components/ui/button';
 
 import type { Movement } from '../../../domain/entities';
-import { MovementsItemsTable } from '../movements-items-table';
+import { MovementDetails } from '../details';
 
 import { columnsMovementsListTable } from './columns';
 
@@ -58,16 +56,7 @@ export function MovementsListTable({
   }, [isExpanded, data]);
 
   const renderMovementsItems = useCallback((row: Row<Movement>) => {
-    return (
-      <div className="p-4 bg-muted/30">
-        <div className="rounded-md border bg-background overflow-hidden">
-          <MovementsItemsTable
-            data={row.original.items}
-            parentData={row.original}
-          />
-        </div>
-      </div>
-    );
+    return <MovementDetails movement={row.original} />;
   }, []);
 
   return (
@@ -103,16 +92,6 @@ export function MovementsListTable({
           <DataTableDateRangeFilter column="createdAt" />
         </div>
         <div className="w-full md:w-[unset] flex gap-3">
-          <ActionButton action="movement:create" size={'sm'} className="w-full">
-            <NavLink
-              className="flex gap-2 justify-center items-center"
-              to={'new'}
-            >
-              <ArrowRightLeft className="h-4 w-4" />
-              Nova Movimentação
-            </NavLink>
-          </ActionButton>
-
           {productId && (
             <Button variant="outline" size="sm" asChild>
               <Link

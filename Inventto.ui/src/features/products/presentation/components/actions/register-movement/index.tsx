@@ -16,7 +16,10 @@ export const RegisterProductMovementAction = forwardRef<
     className="w-full justify-start gap-2 font-normal"
     {...props}
   >
-    <Link to={`/movements/new?preselect=${productId}`}>
+    <Link
+      className="w-full flex justify-start gap-2 font-normal"
+      to={`/movements/new?preselect=${productId}`}
+    >
       <ArrowLeftRight className="h-4 w-4" />
       Registrar movimentação
     </Link>
