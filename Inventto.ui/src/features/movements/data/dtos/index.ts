@@ -1,4 +1,16 @@
 type MovementTypeDTO = 'entry' | 'withdrawal' | 'adjustment';
+export type MovementReasonDTO =
+  | 'purchase'
+  | 'return_in'
+  | 'transfer_in'
+  | 'sale'
+  | 'return_out'
+  | 'transfer_out'
+  | 'loss'
+  | 'consumption'
+  | 'inventory'
+  | 'correction'
+  | 'other';
 
 export interface ProfileDTO {
   full_name: string | null;
@@ -12,6 +24,7 @@ export interface ProductImageDTO {
 
 export interface ProductSummaryDTO {
   name: string;
+  sku?: string | null;
   product_images: ProductImageDTO[];
 }
 
@@ -24,7 +37,12 @@ interface VariantImageJoinDTO {
 
 export interface VariantSummaryDTO {
   sku: string | null;
-  options: Record<string, string> | null;
+  options:
+    | {
+        name: string;
+        value: string;
+      }[]
+    | null;
   product_variant_images: VariantImageJoinDTO[];
 }
 
@@ -45,7 +63,7 @@ export interface MovementDTO {
   organization_id: string;
   user_id: string | null;
   type: MovementTypeDTO;
-  reason: string | null;
+  reason: MovementReasonDTO;
   document_number: string | null;
   order_id: string | null;
   created_at: string;
@@ -64,7 +82,7 @@ export interface CreateMovementItemRPCDTO {
 export interface CreateStockMovementRPCDTO {
   organization_id: string;
   type: MovementTypeDTO;
-  reason: string | null;
+  reason: MovementReasonDTO | null;
   document_number?: string | null;
   order_id?: string | null;
   items: CreateMovementItemRPCDTO[];

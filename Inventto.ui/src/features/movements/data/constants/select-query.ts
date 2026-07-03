@@ -17,6 +17,7 @@ export const SELECT_QUERY = `
     variant_id,
     products (
       name,
+      sku,
       product_images ( url, is_primary )
     ),
     product_variants (
