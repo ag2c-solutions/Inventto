@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -17,7 +17,6 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/shared/components/ui/popover';
-import { cn } from '@/shared/utils';
 
 import { useMovementForm } from '../../hooks';
 
@@ -29,27 +28,24 @@ export function ProductSearch() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
+          size="sm"
           role="combobox"
           aria-expanded={open}
           disabled={isLoadingProducts}
-          className={cn(
-            'w-full justify-between border-0 py-6 bg-muted px-4 font-normal text-muted-foreground hover:bg-muted',
-            'text-left'
-          )}
+          className="gap-1.5"
         >
-          <span className="text-lg">
-            {isLoadingProducts
-              ? 'Carregando catálogo...'
-              : 'Buscar produto para adicionar...'}
-          </span>
-          <Search className="ml-2 h-4 w-4 opacity-50 shrink-0" />
+          <Plus className="h-3.5 w-3.5" />
+          {isLoadingProducts ? 'Carregando…' : 'Adicionar produto'}
         </Button>
       </PopoverTrigger>
 
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] p-0"
-        align="start"
+        className="w-80 p-0"
+        align="end"
+        side="bottom"
+        avoidCollisions={false}
       >
         <Command>
           <CommandInput placeholder="Buscar por nome ou SKU..." />

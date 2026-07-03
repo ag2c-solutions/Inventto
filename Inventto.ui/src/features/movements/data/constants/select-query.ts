@@ -4,9 +4,11 @@ export const SELECT_QUERY = `
   user_id,
   type,
   reason,
+  description,
   document_number,
   order_id,
   created_at,
+  executed_at,
   profiles ( full_name, avatar_url ),
   movement_items!inner (
     id,

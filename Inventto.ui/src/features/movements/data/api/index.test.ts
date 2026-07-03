@@ -46,9 +46,11 @@ const mockMovementDTO: MovementDTO = {
   user_id: 'user-1',
   type: 'entry',
   reason: 'purchase',
+  description: null,
   document_number: null,
   order_id: null,
   created_at: '2023-01-01T00:00:00Z',
+  executed_at: '2023-01-01T00:00:00Z',
   profiles: { full_name: 'John Doe', avatar_url: null },
   movement_items: []
 };
@@ -137,6 +139,7 @@ describe('MovementApi', () => {
         input: {
           type: 'entry',
           reason: 'Compra',
+          executedAt: new Date('2023-01-01T00:00:00Z'),
           items: [
             {
               productId: 'prod-1',
@@ -175,7 +178,12 @@ describe('MovementApi', () => {
       await expect(
         MovementApi.create({
           organizationId: 'org-1',
-          input: { type: 'withdrawal', reason: 'Venda', items: [] }
+          input: {
+            type: 'withdrawal',
+            reason: 'Venda',
+            executedAt: new Date('2023-01-01T00:00:00Z'),
+            items: []
+          }
         })
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'
@@ -192,7 +200,12 @@ describe('MovementApi', () => {
       await expect(
         MovementApi.create({
           organizationId: 'org-1',
-          input: { type: 'entry', reason: 'Outro', items: [] }
+          input: {
+            type: 'entry',
+            reason: 'Outro',
+            executedAt: new Date('2023-01-01T00:00:00Z'),
+            items: []
+          }
         })
       ).rejects.toThrow(
         'Você não tem permissão para realizar movimentações de estoque.'

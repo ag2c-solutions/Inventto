@@ -1,6 +1,15 @@
-type MovementTypeDTO = 'entry' | 'withdrawal' | 'adjustment';
+type MovementTypeDTO = 'entry' | 'withdrawal';
 export type MovementReasonDTO =
+  // RN053 — motivos vigentes (Sheet · MOV-03)
   | 'purchase'
+  | 'customer_return'
+  | 'adjustment_in'
+  | 'loss_damage'
+  | 'supplier_return'
+  | 'internal_use'
+  | 'adjustment_out'
+  | 'other'
+  // motivos legados — mantidos apenas para exibir movimentações já registradas
   | 'return_in'
   | 'transfer_in'
   | 'sale'
@@ -9,8 +18,7 @@ export type MovementReasonDTO =
   | 'loss'
   | 'consumption'
   | 'inventory'
-  | 'correction'
-  | 'other';
+  | 'correction';
 
 export interface ProfileDTO {
   full_name: string | null;
@@ -64,9 +72,11 @@ export interface MovementDTO {
   user_id: string | null;
   type: MovementTypeDTO;
   reason: MovementReasonDTO;
+  description: string | null;
   document_number: string | null;
   order_id: string | null;
   created_at: string;
+  executed_at: string;
   profiles?: ProfileDTO | null;
   movement_items?: MovementItemDTO[];
 }
@@ -83,7 +93,9 @@ export interface CreateStockMovementRPCDTO {
   organization_id: string;
   type: MovementTypeDTO;
   reason: MovementReasonDTO | null;
+  description?: string | null;
   document_number?: string | null;
   order_id?: string | null;
+  executed_at: string;
   items: CreateMovementItemRPCDTO[];
 }

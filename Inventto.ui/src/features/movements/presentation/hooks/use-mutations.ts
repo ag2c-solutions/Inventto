@@ -19,7 +19,7 @@ export function useMovementCreateMutation() {
       });
     },
     meta: {
-      successMessage: 'Movimentação registrada com sucesso!'
+      successMessage: 'Movimentação registrada.'
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MOVEMENT_KEYS.all });

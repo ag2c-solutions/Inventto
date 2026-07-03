@@ -12,9 +12,11 @@ describe('MovementMapper', () => {
       user_id: 'user-1',
       type: 'entry',
       reason: 'purchase',
+      description: null,
       document_number: 'DOC-001',
       order_id: null,
       created_at: '2023-10-01T10:00:00Z',
+      executed_at: '2023-10-02T08:00:00Z',
       profiles: { full_name: 'John Doe', avatar_url: 'avatar.jpg' },
       movement_items: []
     };
@@ -28,6 +30,7 @@ describe('MovementMapper', () => {
       expect(result.reason).toBe('Compra');
       expect(result.documentNumber).toBe('DOC-001');
       expect(result.createdAt).toBeInstanceOf(Date);
+      expect(result.executedAt).toEqual(new Date('2023-10-02T08:00:00Z'));
       expect(result.user?.fullName).toBe('John Doe');
       expect(result.user?.avatarUrl).toBe('avatar.jpg');
     });
@@ -145,11 +148,13 @@ describe('MovementMapper', () => {
 
   describe('toPersistence', () => {
     it('should map CreateMovementInput to CreateStockMovementRPCDTO correctly', () => {
+      const executedAt = new Date('2023-10-02T08:00:00Z');
       const result = MovementMapper.toPersistence(
         {
-          type: 'adjustment',
-          reason: 'Inventário',
+          type: 'entry',
+          reason: 'Ajuste de inventário (+)',
           documentNumber: 'DOC-123',
+          executedAt,
           items: [
             {
               productId: 'prod-1',
@@ -164,9 +169,10 @@ describe('MovementMapper', () => {
       );
 
       expect(result.organization_id).toBe('org-1');
-      expect(result.type).toBe('adjustment');
-      expect(result.reason).toBe('inventory');
+      expect(result.type).toBe('entry');
+      expect(result.reason).toBe('adjustment_in');
       expect(result.document_number).toBe('DOC-123');
+      expect(result.executed_at).toBe(executedAt.toISOString());
       expect(result.items[0].product_id).toBe('prod-1');
       expect(result.items[0].variant_id).toBe('var-1');
       expect(result.items[0].quantity).toBe(5);
@@ -174,7 +180,12 @@ describe('MovementMapper', () => {
 
     it('should set document_number to null when not provided', () => {
       const result = MovementMapper.toPersistence(
-        { type: 'entry', reason: 'Outro', items: [] },
+        {
+          type: 'entry',
+          reason: 'Outro',
+          executedAt: new Date('2023-10-02T08:00:00Z'),
+          items: []
+        },
         'org-1'
       );
 

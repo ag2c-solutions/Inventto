@@ -74,7 +74,7 @@ vi.mock('../add-moviment', () => ({
   AddNewMovements: () => {
     const { role } = mockUseUser();
     if (role === 'sales') return null;
-    return <a href="/movements/new">Registrar</a>;
+    return <button type="button">Registrar</button>;
   }
 }));
 
@@ -93,6 +93,7 @@ const mockMovements: Movement[] = [
     type: 'entry',
     reason: 'Compra',
     createdAt: new Date('2023-10-01T10:00:00Z'),
+    executedAt: new Date('2023-10-01T10:00:00Z'),
     totalQuantity: 100,
     totalValue: 500,
     items: [
@@ -118,6 +119,7 @@ const mockMovements: Movement[] = [
     type: 'withdrawal',
     reason: 'Venda',
     createdAt: new Date('2023-10-02T14:30:00Z'),
+    executedAt: new Date('2023-10-02T14:30:00Z'),
     totalQuantity: 5,
     totalValue: 100,
     items: []
@@ -189,7 +191,7 @@ describe('MovementsListTable', () => {
     );
     expect(screen.getByTestId('mock-date-filter')).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: /registrar/i })
+      screen.getByRole('button', { name: /registrar/i })
     ).toBeInTheDocument();
   });
 
@@ -201,7 +203,7 @@ describe('MovementsListTable', () => {
     });
 
     expect(
-      screen.queryByRole('link', { name: /registrar/i })
+      screen.queryByRole('button', { name: /registrar/i })
     ).not.toBeInTheDocument();
   });
 

@@ -24,16 +24,18 @@ describe('MovementService', () => {
       role: 'owner' as const
     };
 
+    const executedAt = new Date('2023-10-02T08:00:00Z');
+
     it('should delegate to MovementApi.create with orgId extracted from organization', async () => {
       vi.mocked(MovementApi.create).mockResolvedValue('new-movement-id');
 
       const result = await MovementService.create({
-        input: { type: 'entry', reason: 'Compra', items: [] },
+        input: { type: 'entry', reason: 'Compra', executedAt, items: [] },
         organization: mockOrganization
       });
 
       expect(MovementApi.create).toHaveBeenCalledWith({
-        input: { type: 'entry', reason: 'Compra', items: [] },
+        input: { type: 'entry', reason: 'Compra', executedAt, items: [] },
         organizationId: 'org-1'
       });
       expect(result).toBe('new-movement-id');
@@ -42,7 +44,7 @@ describe('MovementService', () => {
     it('should throw when organization is null', async () => {
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Venda', items: [] },
+          input: { type: 'withdrawal', reason: 'Venda', executedAt, items: [] },
           organization: null
         })
       ).rejects.toThrow('Nenhuma organização selecionada.');
@@ -57,7 +59,7 @@ describe('MovementService', () => {
 
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Venda', items: [] },
+          input: { type: 'withdrawal', reason: 'Venda', executedAt, items: [] },
           organization: mockOrganization
         })
       ).rejects.toThrow(

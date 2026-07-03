@@ -13,6 +13,7 @@ const buildMovement = (overrides: Partial<Movement> = {}): Movement => ({
   type: 'entry',
   reason: 'Compra',
   createdAt: new Date('2023-10-01T10:00:00Z'),
+  executedAt: new Date('2023-10-01T10:00:00Z'),
   totalQuantity: 5,
   totalValue: 50,
   items: [

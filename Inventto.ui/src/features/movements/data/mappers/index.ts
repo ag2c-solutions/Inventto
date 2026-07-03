@@ -67,7 +67,9 @@ export class MovementMapper {
       reason: MOVEMENT_REASONS[dto.reason],
       documentNumber: dto.document_number ?? undefined,
       orderId: dto.order_id ?? undefined,
+      description: dto.description ?? undefined,
       createdAt: new Date(dto.created_at),
+      executedAt: new Date(dto.executed_at ?? dto.created_at),
       totalQuantity,
       totalValue,
       user: dto.profiles
@@ -88,8 +90,10 @@ export class MovementMapper {
       organization_id: organizationId,
       type: domain.type,
       reason: MOVEMENT_REASONS_DTO[domain.reason],
+      description: domain.description ?? null,
       document_number: domain.documentNumber ?? null,
       order_id: null,
+      executed_at: domain.executedAt.toISOString(),
       items: domain.items.map(toPersistenceItem)
     };
   }

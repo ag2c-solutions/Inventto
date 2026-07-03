@@ -1,5 +1,7 @@
 import { Outlet } from 'react-router';
 
+import { MovementSheet } from '@/features/movements';
+
 import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
 
 import { SystemErrorBoundary } from './components/error-boundary';
@@ -26,6 +28,8 @@ export const SystemLayout = () => {
           </SystemErrorBoundary>
         </div>
       </SidebarInset>
+
+      <MovementSheet />
     </SidebarProvider>
   );
 };
