@@ -18,7 +18,7 @@ export function MovementSheet() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
-      <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-md overflow-hidden">
+      <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-[480px] overflow-hidden">
         <SheetHeader className="border-b">
           <SheetTitle>Registrar movimentação</SheetTitle>
           <SheetDescription>
