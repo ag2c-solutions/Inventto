@@ -1,10 +1,16 @@
 import { BrowserRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Movement } from '../../../domain/entities';
 
 import { MovementsListTable } from './index';
+
+const mockUseUser = vi.fn();
+
+vi.mock('@/features/users', () => ({
+  useUser: () => mockUseUser()
+}));
 
 vi.mock('@/shared/components/common/data-table', () => ({
   DataTable: ({
@@ -36,31 +42,29 @@ vi.mock('@/shared/components/common/data-table', () => ({
   DataTableTextFilter: ({ placeholder }: { placeholder?: string }) => (
     <div data-testid="mock-text-filter">{placeholder}</div>
   ),
-  DataTableSelectFilter: ({
-    options,
-    placeholder
-  }: {
-    options: unknown[];
-    placeholder?: string;
-  }) => (
-    <div data-testid="mock-select-filter">
-      {placeholder}: {options.length} options
-    </div>
-  ),
   DataTableDateRangeFilter: () => <div data-testid="mock-date-filter" />,
   DataTableContent: () => <div data-testid="mock-table-content" />,
   PaginationControllers: () => <div data-testid="mock-pagination" />
 }));
 
-vi.mock('@/features/permissions', () => ({
-  ActionButton: ({ children }: { children?: React.ReactNode }) => (
-    <>{children}</>
-  ),
-  VisibleTo: ({ children }: { children?: React.ReactNode }) => <>{children}</>
-}));
-
 vi.mock('./columns', () => ({
   columnsMovementsListTable: []
+}));
+
+vi.mock('./type-tabs', () => ({
+  MovementsTypeTabs: () => <div data-testid="mock-type-tabs" />
+}));
+
+vi.mock('./loading', () => ({
+  MovementsListTableLoading: () => <div data-testid="mock-loading" />
+}));
+
+vi.mock('./onboarding-empty', () => ({
+  MovementsOnboardingEmpty: ({ canRegister }: { canRegister: boolean }) => (
+    <div data-testid="mock-onboarding-empty">
+      canRegister: {String(canRegister)}
+    </div>
+  )
 }));
 
 vi.mock('../details', () => ({
@@ -90,6 +94,7 @@ const mockMovements: Movement[] = [
         unitPrice: 20,
         product: {
           name: 'Produto 1',
+          sku: 'SKU-1',
           imageUrl: undefined,
           variantOptions: undefined
         }
@@ -113,49 +118,116 @@ describe('MovementsListTable', () => {
     <BrowserRouter>{children}</BrowserRouter>
   );
 
+  beforeEach(() => {
+    mockUseUser.mockReturnValue({ role: 'owner' });
+  });
+
+  it('should render the loading skeleton when isLoading is true', () => {
+    render(<MovementsListTable data={[]} isLoading />, { wrapper });
+
+    expect(screen.getByTestId('mock-loading')).toBeInTheDocument();
+  });
+
+  it('should render the firstrun onboarding empty state when there is no data', () => {
+    render(<MovementsListTable data={[]} isLoading={false} />, { wrapper });
+
+    const onboarding = screen.getByTestId('mock-onboarding-empty');
+    expect(onboarding).toHaveTextContent('canRegister: true');
+  });
+
+  it('should hide the CTA in the onboarding empty state for sales role', () => {
+    mockUseUser.mockReturnValue({ role: 'sales' });
+
+    render(<MovementsListTable data={[]} isLoading={false} />, { wrapper });
+
+    expect(screen.getByTestId('mock-onboarding-empty')).toHaveTextContent(
+      'canRegister: false'
+    );
+  });
+
+  it('should render an inline empty message when pre-filtered by product with no results', () => {
+    render(<MovementsListTable data={[]} isLoading={false} productId="p1" />, {
+      wrapper
+    });
+
+    expect(
+      screen.queryByTestId('mock-onboarding-empty')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Nenhuma movimentação encontrada para este produto.')
+    ).toBeInTheDocument();
+  });
+
   it('should pass data correctly to DataTable', () => {
-    render(<MovementsListTable data={mockMovements} />, { wrapper });
+    render(<MovementsListTable data={mockMovements} isLoading={false} />, {
+      wrapper
+    });
 
     expect(screen.getByTestId('mock-datatable')).toBeInTheDocument();
     expect(screen.getByTestId('datatable-row-count')).toHaveTextContent('2');
   });
 
-  it('should render empty state correctly when data is empty', () => {
-    render(<MovementsListTable data={[]} />, { wrapper });
-
-    expect(screen.getByTestId('datatable-row-count')).toHaveTextContent('0');
-  });
-
-  it('should handle undefined data gracefully', () => {
-    render(<MovementsListTable data={undefined as unknown as Movement[]} />, {
+  it('should render sub-row content (MovementDetails)', () => {
+    render(<MovementsListTable data={mockMovements} isLoading={false} />, {
       wrapper
     });
 
-    expect(screen.getByTestId('datatable-row-count')).toHaveTextContent('0');
-  });
-
-  it('should render sub-row content (MovementsItemsTable)', () => {
-    render(<MovementsListTable data={mockMovements} />, { wrapper });
-
-    const subRowContainer = screen.getByTestId('mock-sub-row-container');
-
-    expect(subRowContainer).toBeInTheDocument();
     expect(screen.getByTestId('mock-items-table')).toHaveTextContent(
       'Items Count: 1'
     );
   });
 
-  it('should render all filters and controllers', () => {
-    render(<MovementsListTable data={mockMovements} />, { wrapper });
+  it('should render exactly the 3 filters (type tabs, text and date range) plus the CTA for manager/owner', () => {
+    render(<MovementsListTable data={mockMovements} isLoading={false} />, {
+      wrapper
+    });
 
+    expect(screen.getByTestId('mock-type-tabs')).toBeInTheDocument();
     expect(screen.getByTestId('mock-text-filter')).toHaveTextContent(
-      'Buscar por motivo, doc ou responsável...'
-    );
-    expect(screen.getByTestId('mock-select-filter')).toHaveTextContent(
-      'Tipo: 4 options'
+      'Buscar por produto ou SKU'
     );
     expect(screen.getByTestId('mock-date-filter')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-table-content')).toBeInTheDocument();
-    expect(screen.getByTestId('mock-pagination')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /registrar/i })
+    ).toBeInTheDocument();
+  });
+
+  it('should hide the register CTA for sales role', () => {
+    mockUseUser.mockReturnValue({ role: 'sales' });
+
+    render(<MovementsListTable data={mockMovements} isLoading={false} />, {
+      wrapper
+    });
+
+    expect(
+      screen.queryByRole('link', { name: /registrar/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render the active product filter chip with the resolved product name', () => {
+    render(
+      <MovementsListTable
+        data={mockMovements}
+        isLoading={false}
+        productId="p1"
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByText('Filtrando por produto:')).toBeInTheDocument();
+    expect(screen.getByText('Produto 1')).toBeInTheDocument();
+  });
+
+  it('should render the movements count with product-scoped label when pre-filtered', () => {
+    render(
+      <MovementsListTable
+        data={mockMovements}
+        isLoading={false}
+        productId="p1"
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByText('movimentações deste produto')).toBeInTheDocument();
   });
 });
