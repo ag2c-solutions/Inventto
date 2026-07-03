@@ -45,6 +45,7 @@ describe('useMovementCreateMutation', () => {
     const input = {
       type: 'entry' as const,
       reason: 'Compra' as const,
+      executedAt: new Date('2023-10-02T08:00:00Z'),
       items: []
     };
 
@@ -70,16 +71,19 @@ describe('useMovementCreateMutation', () => {
       wrapper
     });
 
+    const executedAt = new Date('2023-10-02T08:00:00Z');
+
     await expect(
       result.current.mutateAsync({
         type: 'entry',
         reason: 'Outro',
+        executedAt,
         items: []
       })
     ).rejects.toThrow('Nenhuma organização selecionada.');
 
     expect(MovementService.create).toHaveBeenCalledWith({
-      input: { type: 'entry', reason: 'Outro', items: [] },
+      input: { type: 'entry', reason: 'Outro', executedAt, items: [] },
       organization: null
     });
   });

@@ -11,7 +11,6 @@ export type PermissionAction =
   | 'movement:create'
   | 'movement:entry'
   | 'movement:withdrawal'
-  | 'movement:adjust'
   | 'movement:view_costs'
   | 'movement:details'
   | 'stock:view_costs'

@@ -167,21 +167,6 @@ export const router = createBrowserRouter([
               );
               return { Component: MovementsListPage };
             }
-          },
-          {
-            path: 'new',
-            element: <CanNavigate required="movement:create" />,
-            children: [
-              {
-                index: true,
-                lazy: async () => {
-                  const { NewStockMovementPage } = await import(
-                    '@/features/movements'
-                  );
-                  return { Component: NewStockMovementPage };
-                }
-              }
-            ]
           }
         ]
       },

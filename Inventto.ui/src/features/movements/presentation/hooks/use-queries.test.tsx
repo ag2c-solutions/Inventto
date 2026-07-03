@@ -42,6 +42,7 @@ describe('useMovementsQuery', () => {
         type: 'entry',
         reason: 'Compra',
         createdAt: new Date(),
+        executedAt: new Date(),
         totalQuantity: 10,
         totalValue: 100,
         items: []

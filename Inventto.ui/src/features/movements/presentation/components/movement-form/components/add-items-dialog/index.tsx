@@ -20,23 +20,39 @@ import { getMovementItemImage } from '../../utils';
 import { useAddItems } from './use-add-items';
 
 export function AddItemsDialog() {
-  const { isDialogOpen, form, actions, selectedProduct } = useMovementForm();
+  const {
+    isDialogOpen,
+    form,
+    actions,
+    selectedProduct,
+    editingItem,
+    editingIndex
+  } = useMovementForm();
 
   const type = form.watch('type');
   const itemsInBatch = form.watch('items');
   const isWithdrawal = type === 'withdrawal';
+  const valueLabel = isWithdrawal ? 'Preço de venda' : 'Custo unitário';
+
+  const existingItems =
+    editingIndex !== null
+      ? itemsInBatch.filter((_, index) => index !== editingIndex)
+      : itemsInBatch;
 
   const {
     quantities,
+    values,
     totalQuantity,
     getExistingQty,
     handleQuantityChange,
+    handleValueChange,
     handleAdd
   } = useAddItems({
     product: selectedProduct,
     isOpen: isDialogOpen,
     isWithdrawal,
-    existingItems: itemsInBatch,
+    editingItem,
+    existingItems,
     onConfirm: (items) => {
       actions.addItem(items);
     }
@@ -56,7 +72,10 @@ export function AddItemsDialog() {
     >
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Adicionar Item: {selectedProduct.name}</DialogTitle>
+          <DialogTitle>
+            {editingItem ? 'Editar item' : 'Adicionar item'}:{' '}
+            {selectedProduct.name}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-4 overflow-y-auto">
@@ -101,72 +120,100 @@ export function AddItemsDialog() {
                       <div
                         key={variant.id}
                         className={cn(
-                          'flex items-center gap-3 p-2 rounded-lg border bg-card',
+                          'flex flex-col gap-3 p-3 rounded-lg border bg-card',
                           isFullyAdded && 'opacity-60 bg-muted/50'
                         )}
                       >
-                        <div className="h-10 w-10 shrink-0 rounded border overflow-hidden">
-                          <ImageCard
-                            src={variantImg}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap gap-1 mb-1">
-                            {variant.options ? (
-                              variant.options.map((option) => (
-                                <VariantOptionBadge
-                                  key={option.value}
-                                  option={option}
-                                />
-                              ))
-                            ) : (
-                              <span className="text-sm text-muted-foreground">
-                                Padrão
-                              </span>
-                            )}
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 shrink-0 rounded border overflow-hidden">
+                            <ImageCard
+                              src={variantImg}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="secondary"
-                              className="text-[10px] h-5 px-1.5"
-                            >
-                              Estoque: {stock}
-                            </Badge>
-                            {isWithdrawal && qtyInBatch > 0 && (
-                              <span className="text-[10px] text-orange-600 font-medium">
-                                (-{qtyInBatch} no lote)
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap gap-1 mb-1">
+                              {variant.options ? (
+                                variant.options.map((option) => (
+                                  <VariantOptionBadge
+                                    key={option.value}
+                                    option={option}
+                                  />
+                                ))
+                              ) : (
+                                <span className="text-sm text-muted-foreground">
+                                  Padrão
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] h-5 px-1.5"
+                              >
+                                Estoque: {stock}
+                              </Badge>
+                              {isWithdrawal && qtyInBatch > 0 && (
+                                <span className="text-[10px] text-orange-600 font-medium">
+                                  (-{qtyInBatch} no lote)
+                                </span>
+                              )}
+                              <span className="text-[10px] text-muted-foreground">
+                                SKU: {variant.sku}
                               </span>
-                            )}
-                            <span className="text-[10px] text-muted-foreground">
-                              SKU: {variant.sku}
-                            </span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="w-24">
-                          <Input
-                            type="number"
-                            min={0}
-                            max={isWithdrawal ? availableStock : undefined}
-                            value={qty || ''}
-                            placeholder={isFullyAdded ? '0' : '0'}
-                            disabled={isFullyAdded}
-                            className={cn(
-                              'text-right',
-                              isFullyAdded && 'cursor-not-allowed bg-muted'
-                            )}
-                            onChange={(e) =>
-                              handleQuantityChange(
-                                variant.id,
-                                e.target.value,
-                                stock
-                              )
-                            }
-                          />
+                        <div className="grid grid-cols-[1fr_110px] gap-2">
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">
+                              {valueLabel}
+                            </Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                R$
+                              </span>
+                              <Input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={values[variant.id] ?? ''}
+                                placeholder="0,00"
+                                className="pl-8"
+                                onChange={(e) =>
+                                  handleValueChange(variant.id, e.target.value)
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">
+                              Quantidade
+                            </Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={isWithdrawal ? availableStock : undefined}
+                              value={qty || ''}
+                              placeholder={isFullyAdded ? '0' : '0'}
+                              disabled={isFullyAdded}
+                              className={cn(
+                                'text-right',
+                                isFullyAdded && 'cursor-not-allowed bg-muted'
+                              )}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  variant.id,
+                                  e.target.value,
+                                  stock
+                                )
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
                     );
@@ -178,35 +225,62 @@ export function AddItemsDialog() {
                     const isFullyAdded = isWithdrawal && availableStock === 0;
 
                     return (
-                      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card">
-                        <div className="flex-1">
-                          <p className="font-medium">Quantidade</p>
-                          <div className="flex gap-2 text-sm text-muted-foreground mt-1">
-                            <span>Estoque: {stock}</span>
-                            {isWithdrawal && qtyInBatch > 0 && (
-                              <span className="text-orange-600">
-                                (Já adicionado: {qtyInBatch})
-                              </span>
-                            )}
-                          </div>
+                      <div className="flex flex-col gap-3 p-4 rounded-lg border bg-card">
+                        <div className="flex gap-2 text-sm text-muted-foreground">
+                          <span>Estoque: {stock}</span>
+                          {isWithdrawal && qtyInBatch > 0 && (
+                            <span className="text-orange-600">
+                              (Já adicionado: {qtyInBatch})
+                            </span>
+                          )}
                         </div>
-                        <div className="w-32">
-                          <Input
-                            type="number"
-                            min={0}
-                            max={isWithdrawal ? availableStock : undefined}
-                            value={quantities[selectedProduct.id] || ''}
-                            disabled={isFullyAdded}
-                            placeholder="0"
-                            className="text-right text-lg"
-                            onChange={(e) =>
-                              handleQuantityChange(
-                                selectedProduct.id,
-                                e.target.value,
-                                stock
-                              )
-                            }
-                          />
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">
+                              {valueLabel}
+                            </Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                R$
+                              </span>
+                              <Input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={values[selectedProduct.id] ?? ''}
+                                placeholder="0,00"
+                                className="pl-8"
+                                onChange={(e) =>
+                                  handleValueChange(
+                                    selectedProduct.id,
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-[11px] text-muted-foreground">
+                              Quantidade
+                            </Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={isWithdrawal ? availableStock : undefined}
+                              value={quantities[selectedProduct.id] || ''}
+                              disabled={isFullyAdded}
+                              placeholder="0"
+                              className="text-right"
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  selectedProduct.id,
+                                  e.target.value,
+                                  stock
+                                )
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
                     );
@@ -232,8 +306,7 @@ export function AddItemsDialog() {
               disabled={totalQuantity <= 0}
               className={cn(
                 type === 'entry' && 'bg-green-600 hover:bg-green-700',
-                type === 'withdrawal' && 'bg-red-600 hover:bg-red-700',
-                type === 'adjustment' && 'bg-orange-600 hover:bg-orange-700'
+                type === 'withdrawal' && 'bg-red-600 hover:bg-red-700'
               )}
             >
               Confirmar

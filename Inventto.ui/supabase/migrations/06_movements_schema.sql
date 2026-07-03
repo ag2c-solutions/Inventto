@@ -25,13 +25,15 @@ CREATE TABLE public.inventory_reservations (
 -- ==============================================================================
 CREATE TABLE public.movements (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  organization_id uuid NOT NULL REFERENCES public.organizations(id),  
-  user_id uuid REFERENCES public.profiles(id), 
+  organization_id uuid NOT NULL REFERENCES public.organizations(id),
+  user_id uuid REFERENCES public.profiles(id),
   type public.movement_type NOT NULL,
   reason text,
+  description text,
   document_number text,
   order_id uuid REFERENCES public.orders(id) ON DELETE SET NULL,
   created_at timestamp with time zone DEFAULT now(),
+  executed_at timestamp with time zone NOT NULL DEFAULT now(),
 
   CONSTRAINT movements_pkey PRIMARY KEY (id)
 );
@@ -62,6 +64,7 @@ CREATE INDEX idx_reservations_variant ON public.inventory_reservations(variant_i
 CREATE INDEX idx_movements_org ON public.movements(organization_id);
 CREATE INDEX idx_movements_order ON public.movements(order_id);
 CREATE INDEX idx_movements_created ON public.movements(created_at DESC);
+CREATE INDEX idx_movements_executed ON public.movements(executed_at DESC);
 
 -- ==============================================================================
 -- 5. SEGURANÇA (RLS)

@@ -18,7 +18,6 @@ const MANAGER_PERMISSIONS: PermissionAction[] = [
   'product:edit',
   'product:delete',
   'stock:view_costs',
-  'movement:adjust',
   'movement:details',
   'movement:withdrawal',
   'movement:view_costs',

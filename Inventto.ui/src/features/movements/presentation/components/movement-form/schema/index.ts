@@ -9,6 +9,7 @@ export const movementItemSchema = z.object({
   productId: z.string(),
   productName: z.string(),
   productImage: z.string().optional(),
+  sku: z.string().optional(),
   variantId: z.string().nullable().optional(),
   variantName: z.string().optional(),
   variantOptions: z.array(variantOptionSchema).optional(),
@@ -19,7 +20,7 @@ export const movementItemSchema = z.object({
 });
 
 export const baseMovementSchema = z.object({
-  type: z.enum(['entry', 'withdrawal', 'adjustment']),
+  type: z.enum(['entry', 'withdrawal']),
   date: z.date({
     error: (issue) => {
       if (
@@ -40,6 +41,7 @@ export const baseMovementSchema = z.object({
     ),
 
   reason: z.string().min(1, 'Selecione o motivo da movimentação'),
+  description: z.string().optional(),
   documentNumber: z.string().optional(),
   totalQuantity: z.number(),
   items: z
@@ -48,6 +50,14 @@ export const baseMovementSchema = z.object({
 });
 
 export const movementSchema = baseMovementSchema.superRefine((data, ctx) => {
+  if (data.reason === 'Outro' && !data.description?.trim()) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Descreva o motivo quando selecionar "Outro"',
+      path: ['description']
+    });
+  }
+
   if (data.type === 'withdrawal') {
     data.items.forEach((item, index) => {
       if (item.quantity > item.currentStock) {

@@ -897,14 +897,16 @@ BEGIN
   END IF;
 
   -- 2. Cria Header
-  INSERT INTO public.movements (organization_id, user_id, type, reason, order_id, document_number)
+  INSERT INTO public.movements (organization_id, user_id, type, reason, description, order_id, document_number, executed_at)
   VALUES (
-    v_org_id, 
-    v_user_id, 
-    v_type, 
-    movement_data->>'reason', 
+    v_org_id,
+    v_user_id,
+    v_type,
+    movement_data->>'reason',
+    movement_data->>'description',
     (movement_data->>'order_id')::UUID,
-    movement_data->>'document_number'
+    movement_data->>'document_number',
+    COALESCE((movement_data->>'executed_at')::TIMESTAMPTZ, now())
   )
   RETURNING id INTO v_movement_id;
 
@@ -921,26 +923,30 @@ BEGIN
     CASE v_type
       WHEN 'entry' THEN v_delta := ABS(v_qty);
       WHEN 'withdrawal' THEN v_delta := ABS(v_qty) * -1;
-      WHEN 'adjustment' THEN v_delta := v_qty; 
     END CASE;
 
     -- ============================================================
     -- LÓGICA DO CUSTO MÉDIO PONDERADO
     -- ============================================================
-    
+
     -- A. Se for VARIANTE
     IF v_variant_id IS NOT NULL THEN
-      SELECT stock, cost_price INTO v_current_stock, v_current_cost 
+      SELECT stock, cost_price INTO v_current_stock, v_current_cost
       FROM public.product_variants WHERE id = v_variant_id;
-      
+
+      -- RN055: saldo não pode ficar negativo em saídas
+      IF v_type = 'withdrawal' AND (v_current_stock + v_delta) < 0 THEN
+        RAISE EXCEPTION 'Estoque insuficiente — há % disponível.', v_current_stock;
+      END IF;
+
       IF v_type = 'entry' THEN
         v_total_value := (v_current_stock * v_current_cost) + (ABS(v_qty) * v_input_cost);
         v_new_cost := v_total_value / (v_current_stock + ABS(v_qty));
-        
-        UPDATE public.product_variants 
-        SET stock = stock + v_delta, cost_price = v_new_cost 
+
+        UPDATE public.product_variants
+        SET stock = stock + v_delta, cost_price = v_new_cost
         WHERE id = v_variant_id;
-        
+
         v_registered_cost := v_input_cost;
       ELSE
         UPDATE public.product_variants SET stock = stock + v_delta WHERE id = v_variant_id;
@@ -949,9 +955,14 @@ BEGIN
 
     -- B. Se for PRODUTO SIMPLES
     ELSIF v_product_id IS NOT NULL THEN
-      SELECT stock, cost_price INTO v_current_stock, v_current_cost 
+      SELECT stock, cost_price INTO v_current_stock, v_current_cost
       FROM public.products WHERE id = v_product_id;
-      
+
+      -- RN055: saldo não pode ficar negativo em saídas
+      IF v_type = 'withdrawal' AND (v_current_stock + v_delta) < 0 THEN
+        RAISE EXCEPTION 'Estoque insuficiente — há % disponível.', v_current_stock;
+      END IF;
+
       IF v_type = 'entry' THEN
         v_total_value := (v_current_stock * v_current_cost) + (ABS(v_qty) * v_input_cost);
         IF (v_current_stock + ABS(v_qty)) > 0 THEN
@@ -960,10 +971,10 @@ BEGIN
              v_new_cost := v_input_cost;
         END IF;
 
-        UPDATE public.products 
-        SET stock = stock + v_delta, cost_price = v_new_cost 
+        UPDATE public.products
+        SET stock = stock + v_delta, cost_price = v_new_cost
         WHERE id = v_product_id;
-        
+
         v_registered_cost := v_input_cost;
       ELSE
         UPDATE public.products SET stock = stock + v_delta WHERE id = v_product_id;

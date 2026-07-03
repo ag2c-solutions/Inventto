@@ -1,28 +1,30 @@
-import { forwardRef } from 'react';
-import { Link } from 'react-router';
+import { type ComponentProps, forwardRef } from 'react';
 import { ArrowLeftRight } from 'lucide-react';
 
+import { useOpenMovementSheet } from '@/features/movements';
 import { ActionButton } from '@/features/permissions';
 
 export const RegisterProductMovementAction = forwardRef<
   HTMLButtonElement,
-  { productId: string }
->(({ productId, ...props }, ref) => (
-  <ActionButton
-    ref={ref}
-    asChild
-    action="movement:create"
-    variant="ghost"
-    className="w-full justify-start gap-2 font-normal"
-    {...props}
-  >
-    <Link
-      className="w-full flex justify-start gap-2 font-normal"
-      to={`/movements/new?preselect=${productId}`}
+  { productId: string } & Omit<ComponentProps<typeof ActionButton>, 'action'>
+>(({ productId, onClick, ...props }, ref) => {
+  const openMovementSheet = useOpenMovementSheet();
+
+  return (
+    <ActionButton
+      ref={ref}
+      action="movement:create"
+      variant="ghost"
+      className="w-full justify-start gap-2 font-normal"
+      {...props}
+      onClick={(event) => {
+        onClick?.(event);
+        openMovementSheet(productId);
+      }}
     >
       <ArrowLeftRight className="h-4 w-4" />
       Registrar movimentação
-    </Link>
-  </ActionButton>
-));
+    </ActionButton>
+  );
+});
 RegisterProductMovementAction.displayName = 'RegisterProductMovementAction';

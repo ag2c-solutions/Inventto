@@ -1,8 +1,17 @@
 import type { Organization } from '@/features/organizations';
 
-export type MovementType = 'entry' | 'withdrawal' | 'adjustment';
+export type MovementType = 'entry' | 'withdrawal';
 export type MovementReason =
+  // RN053 — motivos vigentes (Sheet · MOV-03)
   | 'Compra'
+  | 'Devolução de cliente'
+  | 'Ajuste de inventário (+)'
+  | 'Perda/Avaria'
+  | 'Devolução a fornecedor'
+  | 'Uso interno'
+  | 'Ajuste de inventário (−)'
+  | 'Outro'
+  // motivos legados — mantidos apenas para exibir movimentações já registradas
   | 'Devolução(entrada)'
   | 'Transferência(entrada)'
   | 'Venda'
@@ -11,8 +20,7 @@ export type MovementReason =
   | 'Perda'
   | 'Consumo'
   | 'Inventário'
-  | 'Correção'
-  | 'Outro';
+  | 'Correção';
 
 interface MovementUser {
   fullName: string;
@@ -49,7 +57,7 @@ export interface Movement {
   orderId?: string;
   description?: string;
   createdAt: Date;
-  executedAt?: Date;
+  executedAt: Date;
   totalQuantity: number;
   totalValue: number;
   user?: MovementUser;
@@ -67,7 +75,9 @@ export interface CreateMovementItemInput {
 export interface CreateMovementInput {
   type: MovementType;
   reason: MovementReason;
+  description?: string;
   documentNumber?: string;
+  executedAt: Date;
   items: CreateMovementItemInput[];
 }
 

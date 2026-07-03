@@ -2,45 +2,38 @@ import { Loader2 } from 'lucide-react';
 
 import { ActionButton } from '@/features/permissions';
 
+import { Button } from '@/shared/components/ui/button';
+import { SheetFooter } from '@/shared/components/ui/sheet';
+
 import { useMovementForm } from '../../hooks';
 
 export function MovementFormFooter() {
-  const { form, isSubmitting } = useMovementForm();
+  const { form, isSubmitting, actions } = useMovementForm();
 
-  const totalItems = form.watch('totalQuantity');
+  const type = form.watch('type');
+  const items = form.watch('items');
+  const hasItems = !!items && items.length > 0;
+  const hasInvalidRow =
+    type === 'withdrawal' &&
+    items?.some((item) => item.quantity > item.currentStock);
+
+  const submitDisabled = isSubmitting || !hasItems || hasInvalidRow;
 
   return (
-    <div className="absolute bottom-4 left-0 rounded-xl right-0 border py-4 bg-background z-20">
-      <div className="container mx-auto px-2 sm:px-4 flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-sm text-muted-foreground">Resumo do Lote</span>
-          <span className="text-sm md:text-lg font-bold">
-            {totalItems || 0} Itens
-          </span>
-        </div>
+    <SheetFooter className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 border-t p-4">
+      <Button type="button" variant="outline" onClick={actions.cancel}>
+        Cancelar
+      </Button>
 
-        <ActionButton
-          action="movement:create"
-          size="lg"
-          type="submit"
-          disabled={!totalItems || totalItems === 0 || isSubmitting}
-          className="hidden sm:flex"
-        >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Finalizar Movimentação
-        </ActionButton>
-
-        <ActionButton
-          action="movement:create"
-          size="sm"
-          type="submit"
-          disabled={!totalItems || totalItems === 0 || isSubmitting}
-          className="sm:hidden"
-        >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Finalizar
-        </ActionButton>
-      </div>
-    </div>
+      <ActionButton
+        action="movement:create"
+        type="submit"
+        disabled={submitDisabled}
+        className="flex-1"
+      >
+        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isSubmitting ? 'Registrando…' : 'Registrar'}
+      </ActionButton>
+    </SheetFooter>
   );
 }
