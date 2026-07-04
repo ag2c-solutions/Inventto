@@ -173,6 +173,11 @@ export default defineConfig([
           capture: ['feature', 'path']
         },
         {
+          type: 'feature-tests',
+          pattern: 'src/features/*/tests/**',
+          capture: ['feature', 'path']
+        },
+        {
           type: 'feature-private',
           pattern: 'src/features/*/**',
           capture: ['feature', 'path']
@@ -340,6 +345,12 @@ export default defineConfig([
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'feature-public-api' } },
                 { to: { type: 'shared' } }
               ]
@@ -383,6 +394,12 @@ export default defineConfig([
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'feature-public-api' } },
                 { to: { type: 'shared' } }
               ]
@@ -414,6 +431,12 @@ export default defineConfig([
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'feature-public-api' } },
                 { to: { type: 'shared' } }
               ]
@@ -430,6 +453,12 @@ export default defineConfig([
                 {
                   to: {
                     type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-tests',
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
@@ -458,6 +487,12 @@ export default defineConfig([
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'feature-public-api' } },
                 { to: { type: 'shared' } }
               ]
@@ -480,6 +515,12 @@ export default defineConfig([
                 {
                   to: {
                     type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-tests',
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
@@ -526,6 +567,12 @@ export default defineConfig([
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'feature-public-api' } },
                 { to: { type: 'shared' } }
               ]
@@ -560,6 +607,12 @@ export default defineConfig([
                 {
                   to: {
                     type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-tests',
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
@@ -601,8 +654,56 @@ export default defineConfig([
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'feature-public-api' } },
                 { to: { type: 'infra' } },
+                { to: { type: 'shared' } }
+              ]
+            },
+            {
+              from: { type: 'feature-tests' },
+              allow: [
+                {
+                  to: {
+                    type: 'feature-tests',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-private',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
                 { to: { type: 'shared' } }
               ]
             },
@@ -643,6 +744,12 @@ export default defineConfig([
                 {
                   to: {
                     type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-tests',
                     captured: { feature: '{{from.captured.feature}}' }
                   }
                 },
