@@ -1,14 +1,6 @@
 import { useNavigate } from 'react-router';
 import { LogOut } from 'lucide-react';
 
-import { useSignOutMutation } from '@/features/auth';
-import {
-  AvatarChange,
-  getUserNameInitials,
-  PasswordChange,
-  useUser
-} from '@/features/users';
-
 import {
   Avatar,
   AvatarFallback,
@@ -24,6 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
+
+import { useSignOutMutation } from '@/features/auth';
+import {
+  AvatarChange,
+  getUserNameInitials,
+  PasswordChange,
+  useUser
+} from '@/features/users';
 
 export function UserNav() {
   const { user, currentOrganization: organization } = useUser();

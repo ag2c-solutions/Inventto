@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
-import { useUser } from '@/features/users';
-import { getUserNameInitials } from '@/features/users';
-
 import {
   Avatar,
   AvatarFallback,
@@ -29,6 +26,9 @@ import {
   SidebarMenuItem
 } from '@/shared/components/ui/sidebar';
 import { cn } from '@/shared/utils';
+
+import { useUser } from '@/features/users';
+import { getUserNameInitials } from '@/features/users';
 
 import { CreateOrganizationDialog } from '../create-organization-dialog';
 

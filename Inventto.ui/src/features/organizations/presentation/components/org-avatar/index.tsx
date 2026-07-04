@@ -1,7 +1,7 @@
-import { getUserNameInitials } from '@/features/users';
-
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import { cn } from '@/shared/utils';
+
+import { getUserNameInitials } from '@/features/users';
 
 export function OrgAvatar({
   name,

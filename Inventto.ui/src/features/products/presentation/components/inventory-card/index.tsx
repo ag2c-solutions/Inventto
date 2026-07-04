@@ -1,8 +1,8 @@
-import { VisibleTo } from '@/features/permissions';
-
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
+
+import { VisibleTo } from '@/features/permissions';
 
 import { getStockStatus } from '../../../domain/utils/get-stock-status';
 import { STOCK_STATUS_CONFIG } from '../../constants/status-config';

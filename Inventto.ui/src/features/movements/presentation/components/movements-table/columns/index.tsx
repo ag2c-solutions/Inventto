@@ -10,8 +10,6 @@ import {
   FileText
 } from 'lucide-react';
 
-import { ActionButton, VisibleTo } from '@/features/permissions';
-
 import { DataTableHeaderSortableColumn } from '@/shared/components/common/data-table/pieces/datatable-header-sortable-column';
 import { dateRangeFilter } from '@/shared/components/common/data-table/utils';
 import {
@@ -21,6 +19,8 @@ import {
 } from '@/shared/components/ui/avatar';
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
+
+import { ActionButton, VisibleTo } from '@/features/permissions';
 
 import type { Movement } from '../../../../domain/entities';
 

@@ -3,8 +3,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ArrowDown, ArrowUp, ChevronRight, Cpu, FileText } from 'lucide-react';
 
-import { VisibleTo } from '@/features/permissions';
-
 import { ImageCard } from '@/shared/components/common/image-card';
 import {
   Avatar,
@@ -14,6 +12,8 @@ import {
 import { Badge } from '@/shared/components/ui/badge';
 import { Separator } from '@/shared/components/ui/separator';
 import { cn } from '@/shared/utils';
+
+import { VisibleTo } from '@/features/permissions';
 
 import type { Movement } from '../../../domain/entities';
 

@@ -1,7 +1,5 @@
 import { Loader2 } from 'lucide-react';
 
-import type { UserOrganization } from '@/features/users';
-
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
 import {
@@ -22,6 +20,8 @@ import {
 } from '@/shared/components/ui/select';
 import { Separator } from '@/shared/components/ui/separator';
 import { Switch } from '@/shared/components/ui/switch';
+
+import type { UserOrganization } from '@/features/users';
 
 import type { CreateOrganizationFormValues } from '../../../domain/validators';
 import { REPLICATION_OPTIONS } from '../../constants/replication-options';

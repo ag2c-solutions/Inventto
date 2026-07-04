@@ -1,8 +1,5 @@
 import { useState } from 'react';
 
-import { ActionButton } from '@/features/permissions';
-import { useUser } from '@/features/users';
-
 import {
   Dialog,
   DialogContent,
@@ -11,6 +8,9 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
+
+import { ActionButton } from '@/features/permissions';
+import { useUser } from '@/features/users';
 
 import { CreateOrgForm } from '../create-organization-form';
 

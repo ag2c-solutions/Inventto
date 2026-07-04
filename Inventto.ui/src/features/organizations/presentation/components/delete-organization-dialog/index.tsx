@@ -1,7 +1,5 @@
 import { CircleX } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-
 import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import { Button } from '@/shared/components/ui/button';
 import { Checkbox } from '@/shared/components/ui/checkbox';
@@ -16,6 +14,8 @@ import {
 } from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
+
+import { ActionButton } from '@/features/permissions';
 
 import { useDeleteOrganizationDialog } from './use-delete-organization-dialog';
 

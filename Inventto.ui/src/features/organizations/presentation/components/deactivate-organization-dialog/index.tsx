@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-import { useUser } from '@/features/users';
-
 import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -15,6 +12,9 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/shared/components/ui/dialog';
+
+import { ActionButton } from '@/features/permissions';
+import { useUser } from '@/features/users';
 
 import { useDeactivateOrganizationMutation } from '../../hooks/use-mutations';
 

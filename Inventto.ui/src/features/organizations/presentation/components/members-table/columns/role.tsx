@@ -2,8 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, type LucideIcon, Shield, User } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
-import type { Role } from '@/features/permissions';
-
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -14,6 +12,8 @@ import {
   SelectValue
 } from '@/shared/components/ui/select';
 import { cn } from '@/shared/utils';
+
+import type { Role } from '@/features/permissions';
 
 import type { IMember } from '../../../../domain/entities';
 import {

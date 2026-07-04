@@ -1,7 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
 
-import type { VariantOption } from '@/features/products';
-
 import { ImageCard } from '@/shared/components/common/image-card';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -15,6 +13,8 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 import { cn } from '@/shared/utils';
+
+import type { VariantOption } from '@/features/products';
 
 import { ItemAttributeBadge } from '../../../item-attribute-badge';
 import { useMovementForm } from '../../hooks';

@@ -1,9 +1,9 @@
 import { memo } from 'react';
 
-import { VisibleTo } from '@/features/permissions';
-
 import { ImageCard } from '@/shared/components/common/image-card';
 import { cn } from '@/shared/utils';
+
+import { VisibleTo } from '@/features/permissions';
 
 import type { Movement, MovementItem } from '../../../domain/entities';
 

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MoreVertical } from 'lucide-react';
 
-import { VisibleTo } from '@/features/permissions';
-
 import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
+
+import { VisibleTo } from '@/features/permissions';
 
 import { useProductByIDQuery } from '../../hooks/use-queries';
 import { getVariantImages } from '../../utils/get-variant-images';

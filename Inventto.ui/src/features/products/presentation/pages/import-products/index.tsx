@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Boxes, Download, Loader2, Package, Search } from 'lucide-react';
 
-import { useUser } from '@/features/users';
-
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+
+import { useUser } from '@/features/users';
 
 import { BackToProductsLink } from '../../components/actions/back-to-products';
 import { ImportCandidateRow } from '../../components/import-products/import-candidate-row';

@@ -1,8 +1,8 @@
 import { Outlet } from 'react-router';
 
-import { MovementSheet } from '@/features/movements';
-
 import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
+
+import { MovementSheet } from '@/features/movements';
 
 import { SystemErrorBoundary } from './components/error-boundary';
 import { SystemLayoutHeader } from './components/header/system-layout-header';

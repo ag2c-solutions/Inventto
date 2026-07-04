@@ -1,6 +1,6 @@
-import { ROLES_NAME } from '@/features/permissions';
-
 import { SidebarMenuButton } from '@/shared/components/ui/sidebar';
+
+import { ROLES_NAME } from '@/features/permissions';
 
 import { OrgAvatar } from '../org-avatar';
 

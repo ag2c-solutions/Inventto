@@ -1,7 +1,5 @@
 import { NavLink, useLocation } from 'react-router';
 
-import { usePermission } from '@/features/permissions';
-
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -10,6 +8,8 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/shared/components/ui/sidebar';
+
+import { usePermission } from '@/features/permissions';
 
 import { navGroups } from '../../constants/navlinks-sidebar';
 

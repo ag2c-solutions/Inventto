@@ -1,9 +1,5 @@
 import { XIcon } from 'lucide-react';
 
-import { Logo } from '@/app/brand/logo';
-
-import { OrganizationSwitcher } from '@/features/organizations';
-
 import { Button } from '@/shared/components/ui/button';
 import {
   Sidebar,
@@ -11,6 +7,10 @@ import {
   SidebarHeader,
   useSidebar
 } from '@/shared/components/ui/sidebar';
+
+import { OrganizationSwitcher } from '@/features/organizations';
+
+import { Logo } from '@/app/brand/logo';
 
 import { NavItens } from './nav-itens';
 

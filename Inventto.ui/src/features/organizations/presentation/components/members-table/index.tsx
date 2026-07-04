@@ -8,8 +8,6 @@ import {
   type SortingState
 } from '@tanstack/react-table';
 
-import { useUser } from '@/features/users';
-
 import {
   DataTable,
   DataTableContent,
@@ -17,6 +15,8 @@ import {
   DataTableTextFilter,
   PaginationControllers
 } from '@/shared/components/common/data-table';
+
+import { useUser } from '@/features/users';
 
 import { useOrganizationMembersQuery } from '../../hooks/use-queries';
 import { AddMember } from '../add-member';

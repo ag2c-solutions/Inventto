@@ -1,10 +1,10 @@
 import { Star } from 'lucide-react';
 import type { ComponentProps } from 'react';
 
+import { CloudinaryService } from '@/infra/cloudinary';
+
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/shared/utils';
-
-import { CloudinaryService } from '@/infra/cloudinary';
 
 import { useFilePickerContext } from '../../hooks';
 import { getFilePreview } from '../../utils';

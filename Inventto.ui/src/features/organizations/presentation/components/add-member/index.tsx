@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-
 import {
   Sheet,
   SheetContent,
@@ -12,6 +10,8 @@ import {
   SheetTrigger
 } from '@/shared/components/ui/sheet';
 import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+
+import { ActionButton } from '@/features/permissions';
 
 import { MemberForm } from '../member-form';
 import { MemberFormProvider } from '../member-form/hook';

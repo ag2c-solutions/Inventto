@@ -2,8 +2,6 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Download, PlusCircle, Search } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-
 import { Input } from '@/shared/components/ui/input';
 import {
   Select,
@@ -12,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/shared/components/ui/select';
+
+import { ActionButton } from '@/features/permissions';
 
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';

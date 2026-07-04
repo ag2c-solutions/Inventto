@@ -13,8 +13,6 @@ import {
 } from '@tanstack/react-table';
 import { Download, PlusCircle } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-
 import {
   DataTable,
   DataTableContent,
@@ -23,6 +21,8 @@ import {
   PaginationControllers
 } from '@/shared/components/common/data-table';
 import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+
+import { ActionButton } from '@/features/permissions';
 
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';

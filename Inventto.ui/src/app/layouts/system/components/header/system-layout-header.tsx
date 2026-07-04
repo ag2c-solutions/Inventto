@@ -1,10 +1,10 @@
-import { Logo } from '@/app/brand/logo';
-import { ToggleTheme } from '@/app/theme/toggle-theme';
+import { Separator } from '@/shared/components/ui/separator';
+import { SidebarTrigger } from '@/shared/components/ui/sidebar';
 
 import { NotificationBell } from '@/features/notifications';
 
-import { Separator } from '@/shared/components/ui/separator';
-import { SidebarTrigger } from '@/shared/components/ui/sidebar';
+import { Logo } from '@/app/brand/logo';
+import { ToggleTheme } from '@/app/theme/toggle-theme';
 
 import { UserNav } from '../user-nav';
 

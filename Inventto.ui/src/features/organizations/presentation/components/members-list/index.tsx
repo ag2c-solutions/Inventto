@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 
-import { useUser } from '@/features/users';
-
 import { Input } from '@/shared/components/ui/input';
+
+import { useUser } from '@/features/users';
 
 import { useOrganizationMembersQuery } from '../../hooks/use-queries';
 import { AddMember } from '../add-member';

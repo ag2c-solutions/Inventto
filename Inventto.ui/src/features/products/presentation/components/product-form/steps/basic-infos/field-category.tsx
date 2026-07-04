@@ -1,7 +1,5 @@
 import { Check, ChevronsUpDown, Loader2, PlusCircle } from 'lucide-react';
 
-import { usePermission } from '@/features/permissions';
-
 import { Button } from '@/shared/components/ui/button';
 import {
   Command,
@@ -24,6 +22,8 @@ import {
   PopoverTrigger
 } from '@/shared/components/ui/popover';
 import { cn } from '@/shared/utils';
+
+import { usePermission } from '@/features/permissions';
 
 import { useProductForm } from '../../hook';
 

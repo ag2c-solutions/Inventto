@@ -89,13 +89,18 @@ A camada `infra` deve conter clientes e integrações genéricas.
 Ordem aplicada automaticamente via `simple-import-sort` (`eslint.config.js`):
 
 1. `react`/`react-dom`/`react-router` e demais bibliotecas externas
-2. `@/app/*`
-3. `@/features/*`
-4. `@/shared/*`
-5. `@/infra/*`
+2. `@/infra/*`
+3. `@/shared/*`
+4. `@/features/*`
+5. `@/app/*`
 6. Imports relativos de camadas acima (`../`)
 7. Imports relativos do mesmo diretório (`./`)
 8. `*.css`
+
+Os grupos de alias vão da camada macro mais externa/fundação (`infra`, sem
+dependência de nada) até a mais interna/específica desta aplicação (`app`, que
+depende de tudo) — mesma direção de dependência documentada em
+`references/architecture/layers.md`.
 
 Não existe um grupo separado de "imports de tipos" — o projeto usa
 `fixStyle: 'inline-type-imports'`: o modificador `type` fica **dentro** do

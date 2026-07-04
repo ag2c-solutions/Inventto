@@ -1,9 +1,9 @@
 import { Star, X } from 'lucide-react';
 
-import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
-
 // eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria importar infra direto; encapsular em um hook/util compartilhado (mesmo padrão do caso local-storage)
 import { CloudinaryService } from '@/infra/cloudinary';
+
+import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
 
 type ImageCardProps = {
   file: FileWithPreview;

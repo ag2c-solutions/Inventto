@@ -1,7 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
 
-import { ROLES_NAME } from '@/features/permissions';
-
 import {
   Command,
   CommandEmpty,
@@ -23,6 +21,8 @@ import {
 } from '@/shared/components/ui/sidebar';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { cn } from '@/shared/utils';
+
+import { ROLES_NAME } from '@/features/permissions';
 
 import { CreateOrganizationDialog } from '../create-organization-dialog';
 import { OrgAvatar } from '../org-avatar';
