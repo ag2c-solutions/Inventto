@@ -73,7 +73,7 @@ describe('handleProductError', () => {
     } as PostgrestError;
 
     expect(() => handleProductError(error, 'update')).toThrow(
-      'Ocorreu um erro inesperado ao processar o produto.'
+      'Erro ao executar update: Ocorreu um erro inesperado.'
     );
   });
 
@@ -86,7 +86,7 @@ describe('handleProductError', () => {
 
   it('should throw generic fallback error for unknown objects', () => {
     expect(() => handleProductError({ some: 'unknown error' }, 'test')).toThrow(
-      'Ocorreu um erro inesperado ao processar o produto.'
+      'Erro ao executar test: Ocorreu um erro inesperado.'
     );
   });
 });

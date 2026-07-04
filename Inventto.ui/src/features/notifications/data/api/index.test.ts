@@ -70,7 +70,9 @@ describe('NotificationsAPI', () => {
 
       await expect(
         NotificationsAPI.getLowStockNotification('org-1')
-      ).rejects.toThrow('Erro de notificação (getLowStockCount): boom');
+      ).rejects.toThrow(
+        'Erro ao executar getLowStockCount: Ocorreu um erro inesperado.'
+      );
     });
   });
 
