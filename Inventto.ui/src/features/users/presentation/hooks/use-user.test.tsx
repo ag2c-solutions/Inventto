@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAuth } from '@/features/auth';
 
+// eslint-disable-next-line boundaries/dependencies -- TODO: hook de feature não deveria importar infra direto; consumir via hook compartilhado (use-local-storage), ver references/architecture/layers/features.md
 import { LocalStorageService } from '@/infra/local-storage';
 
 import type { User, UserOrganization } from '../../domain/entities';

@@ -1,3 +1,4 @@
+// eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria importar infra direto; encapsular em um hook/util compartilhado (mesmo padrão do caso local-storage)
 import { CloudinaryService } from '@/infra/cloudinary';
 
 import type { IProductImage } from '../../domain/entities';

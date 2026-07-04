@@ -101,6 +101,12 @@ export default defineConfig([
       }
     },
     settings: {
+      // Sem isso, o plugin boundaries não consegue resolver o arquivo de
+      // destino de nenhum import (nem relativo) e trata tudo como
+      // "unknown" — a regra boundaries/dependencies nunca dispara.
+      'import/resolver': {
+        typescript: { project: './tsconfig.json' }
+      },
       'boundaries/include': ['src/**/*'],
       'boundaries/elements': [
         {
@@ -118,43 +124,58 @@ export default defineConfig([
         {
           type: 'feature-public-api',
           pattern: 'src/features/*/index.ts',
-          mode: 'file'
+          mode: 'file',
+          capture: ['feature']
         },
         {
           type: 'feature-presentation',
-          pattern: 'src/features/*/presentation/**/*'
+          pattern: 'src/features/*/presentation/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-domain-services',
-          pattern: 'src/features/*/domain/services/**/*'
+          pattern: 'src/features/*/domain/services/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-domain-entities',
-          pattern: 'src/features/*/domain/entities/**/*'
+          pattern: 'src/features/*/domain/entities/**',
+          capture: ['feature', 'path']
         },
         {
-          type: 'feature-domain-consts',
-          pattern: 'src/features/*/domain/consts/**/*'
+          type: 'feature-domain-constants',
+          pattern: 'src/features/*/domain/constants/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-domain-utils',
-          pattern: 'src/features/*/domain/utils/**/*'
+          pattern: 'src/features/*/domain/utils/**',
+          capture: ['feature', 'path']
+        },
+        {
+          type: 'feature-domain-validators',
+          pattern: 'src/features/*/domain/validators/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-domain-private',
-          pattern: 'src/features/*/domain/**/*'
+          pattern: 'src/features/*/domain/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-data-api',
-          pattern: 'src/features/*/data/api/**/*'
+          pattern: 'src/features/*/data/api/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-data-private',
-          pattern: 'src/features/*/data/**/*'
+          pattern: 'src/features/*/data/**',
+          capture: ['feature', 'path']
         },
         {
           type: 'feature-private',
-          pattern: 'src/features/*/**/*'
+          pattern: 'src/features/*/**',
+          capture: ['feature', 'path']
         }
       ]
     },
@@ -203,139 +224,429 @@ export default defineConfig([
         'error',
         {
           default: 'disallow',
+          // Alvos escopados por feature levam `captured.feature` amarrado ao
+          // `from.captured.feature` para impedir que uma feature acesse os
+          // internals de OUTRA feature que bata no mesmo tipo (ex: um
+          // domain/services de uma feature importando o domain/services de
+          // outra). feature-public-api fica sem essa amarra de propósito:
+          // consumir a API pública de QUALQUER feature é o padrão desejado.
           rules: [
             {
-              from: ['app'],
-              allow: ['app', 'shared', 'feature-public-api', 'infra']
-            },
-            {
-              from: ['infra'],
-              allow: ['infra', 'shared']
-            },
-            {
-              from: ['shared'],
-              allow: ['shared']
-            },
-            {
-              from: ['feature-public-api'],
+              from: { type: 'app' },
               allow: [
-                'feature-presentation',
-                'feature-domain-services',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'feature-data-api'
+                { to: { type: 'app' } },
+                { to: { type: 'shared' } },
+                { to: { type: 'infra' } },
+                { to: { type: 'feature-public-api' } }
               ]
             },
             {
-              from: ['feature-presentation'],
+              from: { type: 'infra' },
+              allow: [{ to: { type: 'infra' } }, { to: { type: 'shared' } }]
+            },
+            {
+              from: { type: 'shared' },
+              allow: [{ to: { type: 'shared' } }, { to: { type: 'infra' } }]
+            },
+            {
+              from: { type: 'feature-public-api' },
               allow: [
-                'feature-presentation',
-                'feature-domain-services',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'feature-data-api',
-                'feature-public-api',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-presentation',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-services',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-api',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                }
               ]
             },
             {
-              from: ['feature-domain-services'],
+              from: { type: 'feature-presentation' },
               allow: [
-                'feature-domain-services',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'feature-data-api',
-                'feature-public-api',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-presentation',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-services',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-api',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-domain-entities'],
+              from: { type: 'feature-domain-services' },
               allow: [
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'feature-public-api',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-domain-services',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-api',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-domain-consts'],
-              allow: ['feature-domain-consts', 'shared']
-            },
-            {
-              from: ['feature-domain-utils'],
+              from: { type: 'feature-domain-entities' },
               allow: [
-                'feature-domain-utils',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-domain-private'],
+              from: { type: 'feature-domain-constants' },
               allow: [
-                'feature-domain-services',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'feature-domain-private',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-domain-private'],
+              from: { type: 'feature-domain-validators' },
               allow: [
-                'feature-domain-services',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'feature-domain-private',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-data-api'],
+              from: { type: 'feature-domain-utils' },
               allow: [
-                'feature-data-api',
-                'feature-data-private',
-
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-
-                'infra',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-data-private'],
+              from: { type: 'feature-domain-private' },
               allow: [
-                'feature-data-api',
-                'feature-data-private',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-                'infra',
-                'shared'
+                {
+                  to: {
+                    type: 'feature-domain-services',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-private',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'shared' } }
               ]
             },
             {
-              from: ['feature-private'],
+              from: { type: 'feature-data-api' },
               allow: [
-                'feature-public-api',
-
-                'feature-domain-services',
-                'feature-domain-entities',
-                'feature-domain-consts',
-                'feature-domain-utils',
-
-                'feature-data-api',
-
-                'shared'
+                {
+                  to: {
+                    type: 'feature-data-api',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-private',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'infra' } },
+                { to: { type: 'shared' } }
+              ]
+            },
+            {
+              from: { type: 'feature-data-private' },
+              allow: [
+                {
+                  to: {
+                    type: 'feature-data-api',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-private',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'feature-public-api' } },
+                { to: { type: 'infra' } },
+                { to: { type: 'shared' } }
+              ]
+            },
+            {
+              from: { type: 'feature-private' },
+              allow: [
+                { to: { type: 'feature-public-api' } },
+                {
+                  to: {
+                    type: 'feature-domain-services',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-entities',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-constants',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-utils',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-data-api',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                {
+                  to: {
+                    type: 'feature-domain-validators',
+                    captured: { feature: '{{from.captured.feature}}' }
+                  }
+                },
+                { to: { type: 'shared' } }
               ]
             }
           ]

@@ -2,6 +2,7 @@ import { createContext, type ReactNode, useContext, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 
+// eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria ler constante de erro direto de data/handlers; mover identificador pra domain
 import { EMAIL_OTHER_TENANT_ERROR } from '../../../../data/handlers/error-handler';
 import type { IMember } from '../../../../domain/entities';
 import {

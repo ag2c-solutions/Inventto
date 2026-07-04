@@ -8,7 +8,7 @@ import type {
   SignInPayload,
   SignUpPayload,
   VerifyOtpPayload
-} from '../../data/dtos';
+} from '../../data/dtos'; // eslint-disable-line boundaries/dependencies -- TODO: domain/services não deveria receber tipos de data/dtos diretamente; AuthService é passthrough fino pro SDK de auth
 import type { AuthChangeEvent, Session } from '../entities';
 
 export class AuthService {

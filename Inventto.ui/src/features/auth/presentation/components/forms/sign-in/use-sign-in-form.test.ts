@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria ler constante de erro direto de data/handlers; mover identificador pra domain
 import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../../data/handlers/error-handler';
 
 import { useSignInForm } from './use-sign-in-form';
