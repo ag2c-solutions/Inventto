@@ -14,19 +14,9 @@ export const useNotifications = () => {
   const [ordersNotifications, setOrdersNotifications] = useState<
     Notification[]
   >([]);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
-  const { data: realLowStockNotification = null } = useLowStockQuery();
-
-  const lowStockNotification =
-    realLowStockNotification ||
-    ({
-      id: 'mock-low-stock-alert',
-      type: 'low-stock',
-      message: 'Estoque baixo em 3 produtos.',
-      timestamp: new Date().toISOString(),
-      route: '/produtos',
-      isRead: false
-    } as Notification);
+  const { data: lowStockNotification = null } = useLowStockQuery();
 
   useEffect(() => {
     if (!organizationId) {
@@ -45,16 +35,22 @@ export const useNotifications = () => {
     };
   }, [organizationId]);
 
-  const markAllAsRead = () => {
-    setOrdersNotifications((prev) =>
-      prev.map((notif) => ({ ...notif, isRead: true }))
-    );
-  };
+  const rawNotifications = lowStockNotification
+    ? [lowStockNotification, ...ordersNotifications]
+    : ordersNotifications;
 
-  const allNotifications = [...ordersNotifications];
-  if (lowStockNotification) {
-    allNotifications.unshift(lowStockNotification);
-  }
+  const allNotifications = rawNotifications.map((notification) => ({
+    ...notification,
+    isRead: notification.isRead || readIds.has(notification.id)
+  }));
+
+  const markAllAsRead = () => {
+    setReadIds((prev) => {
+      const next = new Set(prev);
+      rawNotifications.forEach((notification) => next.add(notification.id));
+      return next;
+    });
+  };
 
   const unreadCount = allNotifications.filter((n) => !n.isRead).length;
 
