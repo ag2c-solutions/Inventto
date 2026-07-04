@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AlertTriangleIcon, ReceiptIcon } from 'lucide-react';
 
-import type { Notification } from '../../../domain/entities';
+import type { Notification } from '../../../../../domain/entities';
 
 interface NotificationItemProps {
   notification: Notification;

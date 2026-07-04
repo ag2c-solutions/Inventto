@@ -13,8 +13,8 @@ import { Separator } from '@/shared/components/ui/separator';
 
 import { useNotifications } from '../../hooks/use-notifications';
 
-import { NotificationEmpty } from './notification-empty';
-import { NotificationItem } from './notification-item';
+import { NotificationEmpty } from './pieces/notification-empty';
+import { NotificationItem } from './pieces/notification-item';
 
 export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
