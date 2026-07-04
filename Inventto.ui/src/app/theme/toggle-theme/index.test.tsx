@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ToggleTheme } from './toggle-theme';
+import { ToggleTheme } from '.';
 
 const mocks = vi.hoisted(() => ({
   useTheme: vi.fn()

@@ -3,8 +3,8 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 
 import { CanNavigate } from '@/features/permissions';
 
-import { AuthLayout } from '../layouts/auth/auth-layout';
-import { SystemLayout } from '../layouts/system/system-layout';
+import { AuthLayout } from '../layouts/auth-layout';
+import { SystemLayout } from '../layouts/system-layout';
 
 import {
   firstAccessLoader,

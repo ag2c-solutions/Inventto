@@ -172,9 +172,15 @@ Esse erro também sobe para o `MutationCache`.
 
 ---
 
-## 4. Mutations — `MutationCache` Global
+## 4. Mutations e Queries — `MutationCache`/`QueryCache` Globais
 
 O erro relançado pelo handler ou pelo service é capturado automaticamente pelo `MutationCache`.
+
+O mesmo mecanismo (`meta.successMessage`/`errorMessage`/`suppressErrorToast`)
+também está configurado no `QueryCache` — não é exclusivo de mutations. Como
+nenhuma query hoje define `meta`, **toda falha de query já dispara toast
+automaticamente** com a mensagem genérica de fallback. Ver
+`references/architecture/layers/app.md` (`app/libs/react-query/`).
 
 ```ts
 export const queryClient = new QueryClient({
@@ -253,9 +259,11 @@ return useMutation({
 
 | Campo `meta` | Efeito |
 |---|---|
-| `successMessage` | Toast de sucesso |
+| `successMessage` | Toast de sucesso. Pode ser string estática ou `(data) => string` para mensagem dinâmica (ex: `` `${n} produto(s) importado(s)` ``) |
 | `errorMessage` | Sobrescreve erro padrão |
 | `suppressErrorToast` | Suprime toast |
+
+Válido tanto para `useMutation` quanto para `useQuery`.
 
 ---
 

@@ -1,5 +1,3 @@
-//import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-
 import { Toaster } from '@/shared/components/ui/sonner';
 
 import { AppProviders } from './providers';
