@@ -7,5 +7,4 @@ export interface Notification {
   timestamp: string; // ISO string
   route: string;
   isRead: boolean;
-  metadata?: Record<string, any>;
 }
