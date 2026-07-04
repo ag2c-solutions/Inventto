@@ -8,7 +8,7 @@ vi.mock('../../hooks/use-permissions', () => ({
   usePermission: () => mockUsePermission()
 }));
 
-import { ActionButton } from './action-button';
+import { ActionButton } from '.';
 
 describe('ActionButton', () => {
   beforeEach(() => {
