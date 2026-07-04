@@ -6,7 +6,7 @@
 |----------|-----------|
 | `presentation/hooks/use-queries.ts` | Todas as queries da feature (TanStack Query) |
 | `presentation/hooks/use-mutations.ts` | Todas as mutations da feature (TanStack Query) |
-| `presentation/components/<n>/use-<n>.ts` | Hook local do componente (React Hook Form, contextos, lógica de UI) |
+| `presentation/components/<n>/hooks/use-<n>.ts` | Hook local do componente (React Hook Form, contextos, lógica de UI) |
 
 ---
 
@@ -19,7 +19,7 @@ Queries simples podem consumir diretamente a camada `data/api`, pois não possue
 ```ts
 import { useQuery } from '@tanstack/react-query'
 
-import { OperatorAPI } from '../../data/api/operator-api'
+import { OperatorAPI } from '../../data/api'
 
 export function useOperatorsQuery() {
   return useQuery({
@@ -62,7 +62,7 @@ Mutations devem obrigatoriamente passar pelo `domain/services`.
 ```ts
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { OperatorService } from '../../domain/services/operator-service'
+import { OperatorService } from '../../domain/services'
 
 export function useCreateOperatorMutation() {
   const queryClient = useQueryClient()
@@ -137,12 +137,13 @@ O `MutationCache` global lê `mutation.meta`.
 
 # Hooks de Componente
 
-Componentes com lógica própria continuam mantendo hooks locais junto ao componente.
+Componentes com lógica própria continuam mantendo hooks locais junto ao componente, sempre dentro de `hooks/`.
 
 ```text
 presentation/components/operator-form/
-├── operator-form.tsx
-└── use-operator-form.ts
+├── hooks/
+│   └── use-operator-form.ts
+└── index.tsx
 ```
 
 Esses hooks podem usar:
@@ -159,7 +160,7 @@ Esses hooks podem usar:
 
 | Situação | Onde colocar |
 |----------|----------------|
-| Hook usado por apenas um componente | `presentation/components/<n>/use-<n>.ts` |
+| Hook usado por apenas um componente | `presentation/components/<n>/hooks/use-<n>.ts` |
 | Hook compartilhado por múltiplos componentes | `presentation/hooks/use-<context>.ts` |
 | Queries TanStack Query | `presentation/hooks/use-queries.ts` |
 | Mutations TanStack Query | `presentation/hooks/use-mutations.ts` |
@@ -173,7 +174,7 @@ Esses hooks podem usar:
 - Hook usado por apenas um componente → fica no componente
 - Hook compartilhado → vai para `presentation/hooks`
 - Query keys devem seguir hierarquia previsível
-- Hooks nunca chamam `httpClient` diretamente
+- Hooks nunca chamam o cliente `supabase` diretamente
 - Queries simples chamam `data/api`
 - Mutations chamam `domain/services`
 - Hooks não fazem regra de negócio

@@ -12,8 +12,8 @@ import { Button } from '@/shared/components/ui/button';
 Dentro da própria feature, prefira imports relativos.
 
 ```ts
-import { OperatorService } from '../../domain/services/operator-service';
-import { OperatorAPI } from '../../data/api/operator-api';
+import { OperatorService } from '../../domain/services';
+import { OperatorAPI } from '../../data/api';
 import { useOperatorsQuery } from '../hooks/use-queries';
 ```
 
@@ -47,9 +47,9 @@ import { getProducts } from '@/features/products';
 Nunca importar arquivos internos de outra feature.
 
 ```ts
-import { ProductService } from '@/features/products/domain/services/product-service';
+import { ProductService } from '@/features/products/domain/services';
 import { useProductsQuery } from '@/features/products/presentation/hooks/use-queries';
-import { ProductAPI } from '@/features/products/data/api/product-api';
+import { ProductAPI } from '@/features/products/data/api';
 ```
 
 Comunicação entre features deve acontecer apenas pelo `index.ts` da feature consumida.
@@ -86,23 +86,31 @@ A camada `infra` deve conter clientes e integrações genéricas.
 
 # Ordem de Imports
 
-Ordem padrão do projeto:
+Ordem aplicada automaticamente via `simple-import-sort` (`eslint.config.js`):
 
-1. Bibliotecas externas
-2. Imports absolutos internos
-3. Imports relativos da própria feature
-4. Imports de tipos
+1. `react`/`react-dom`/`react-router` e demais bibliotecas externas
+2. `@/app/*`
+3. `@/features/*`
+4. `@/shared/*`
+5. `@/infra/*`
+6. Imports relativos de camadas acima (`../`)
+7. Imports relativos do mesmo diretório (`./`)
+8. `*.css`
+
+Não existe um grupo separado de "imports de tipos" — o projeto usa
+`fixStyle: 'inline-type-imports'`: o modificador `type` fica **dentro** do
+import, na posição em que ele naturalmente cairia (não é puxado para o fim do
+arquivo).
 
 ```ts
 import { useQuery } from '@tanstack/react-query';
 
-import { supabase } from '@/infra/supabase'
+import { supabase } from '@/infra/supabase';
 import { Button } from '@/shared/components/ui/button';
 
-import { OperatorAPI } from '../../data/api/operator-api';
-import { OperatorMapper } from '../../data/mapper/operator-mapper';
-
-import type { Operator } from '../../domain/entities/operator.model';
+import { OperatorAPI } from '../../data/api';
+import { OperatorMapper } from '../../data/mappers';
+import type { Operator } from '../../domain/entities';
 ```
 
 ---
@@ -114,20 +122,20 @@ Dentro da própria feature, use imports relativos entre camadas.
 Exemplo em `presentation/hooks/use-mutations.ts`:
 
 ```ts
-import { OperatorService } from '../../domain/services/operator-service';
+import { OperatorService } from '../../domain/services';
 ```
 
-Exemplo em `domain/services/operator-service.ts`:
+Exemplo em `domain/services/index.ts`:
 
 ```ts
-import { OperatorAPI } from '../../data/api/operator-api';
+import { OperatorAPI } from '../../data/api';
 ```
 
-Exemplo em `data/api/operator-api.ts`:
+Exemplo em `data/api/index.ts`:
 
 ```ts
-import { OperatorMapper } from '../mapper/operator-mapper';
-import { handleOperatorError } from '../handlers/operator-error-handler';
+import { OperatorMapper } from '../mappers';
+import { handleOperatorError } from '../handlers/error-handler';
 ```
 
 ---
@@ -139,7 +147,7 @@ Uma feature nunca deve consumir detalhes internos de outra feature.
 Errado:
 
 ```ts
-import { AuthService } from '@/features/auth/domain/services/auth-service';
+import { AuthService } from '@/features/auth/domain/services';
 ```
 
 Correto:
@@ -159,7 +167,7 @@ O `index.ts` é o único ponto autorizado para comunicação entre features.
 ❌
 
 ```ts
-import { ProductMapper } from '@/features/products/data/mapper/product-mapper';
+import { ProductMapper } from '@/features/products/data/mappers';
 ```
 
 ---
@@ -179,7 +187,7 @@ import { UserRole } from '@/features/users/domain/entities/user-role';
 ❌
 
 ```ts
-import { AuthService } from '@/features/auth/domain/services/auth-service';
+import { AuthService } from '@/features/auth/domain/services';
 ```
 
 ---

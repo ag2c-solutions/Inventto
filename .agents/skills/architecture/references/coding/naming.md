@@ -4,14 +4,25 @@
 
 | Tipo | Padrão | Exemplo |
 |---|---|---|
-| Arquivos | kebab-case | `use-queries.ts` |
 | Pastas | kebab-case | `features/operator-groups/` |
-| Componentes | kebab-case | `operator-list.tsx` |
-| Hooks locais | kebab-case | `use-operator-form.ts` |
-| APIs | kebab-case | `operator-api.ts` |
-| Services | kebab-case | `operator-service.ts` |
-| Mappers | kebab-case | `operator-mapper.ts` |
-| Handlers | kebab-case | `operator-error-handler.ts` |
+| Arquivo de entrada da camada | `index.ts` na pasta da camada | `data/mappers/index.ts` |
+| Componentes | pasta kebab-case + `index.tsx` | `components/operator-list/index.tsx` |
+| Hooks de query/mutation | nome fixo | `use-queries.ts`, `use-mutations.ts` |
+| Hooks locais/de contexto | `use-<nome>.ts` | `use-operator-form.ts` |
+| Handler de erro | `error-handler.ts` | `data/handlers/error-handler.ts` |
+| Factory de teste | `<nome>.factory.ts` | `tests/factories/operator.factory.ts` |
+| Teste | `*.test.ts(x)` colocado | `index.test.ts` |
+| Barrel público da feature | `index.ts` na **raiz** da feature | `features/operators/index.ts` |
+
+> As camadas `data/api`, `data/dtos`, `data/mappers`, `domain/entities`,
+> `domain/services` e `domain/validators` contêm o artefato **direto** num
+> `index.ts` (arquivo de entrada da camada — a classe/interface fica ali, não é
+> re-export). Isso permite `import { OperatorMapper } from '../mappers'`. Não usar
+> arquivos nomeados como `operator-mapper.ts`. Exceção: handlers usam `error-handler.ts`.
+>
+> O **barrel** (re-export da superfície pública) existe **apenas** na raiz da
+> feature (`features/<nome>/index.ts`). É o único ponto de consumo por outras
+> features. As camadas internas **não** têm barrel de re-export.
 
 ---
 
@@ -70,18 +81,21 @@ export class OperatorMapper {}
 
 ---
 
-# Sufixos Obrigatórios
+# Onde cada artefato mora
 
-| Sufixo | Quando usar | Exemplo |
+Cada artefato de camada vive no `index.ts` da sua pasta e é identificado pelo
+**nome do export**, não por sufixo de arquivo.
+
+| Artefato | Local | Export |
 |---|---|---|
-| `*.dto.ts` | contrato da API | `operator.dto.ts` |
-| `*.model.ts` | entidade de domínio | `operator.model.ts` |
-| `*-service.ts` | domain services | `operator-service.ts` |
-| `*-api.ts` | data api | `operator-api.ts` |
-| `*-mapper.ts` | conversão DTO ⇄ Domain | `operator-mapper.ts` |
-| `*-error-handler.ts` | handlers | `operator-error-handler.ts` |
-| `*.test.ts` | testes | `operator.test.ts` |
-| `use-*.ts` | hooks | `use-queries.ts` |
+| DTO | `data/dtos/index.ts` | `export interface OperatorDTO` |
+| Entidade de domínio | `domain/entities/index.ts` | `export interface Operator` |
+| Domain service | `domain/services/index.ts` | `export class OperatorService` |
+| Data API | `data/api/index.ts` | `export class OperatorAPI` |
+| Mapper | `data/mappers/index.ts` | `export class OperatorMapper` |
+| Handler de erro | `data/handlers/error-handler.ts` | `export function handleOperatorError` |
+| Hook | `presentation/hooks/use-*.ts` | `export function useOperatorsQuery` |
+| Teste | `*.test.ts(x)` colocado | — |
 
 ---
 
@@ -139,10 +153,13 @@ use-buy-simulation.ts
 use-<component>.ts
 ```
 
+Sempre dentro de `hooks/`, ao lado do `index.tsx` do componente — nunca solto
+na raiz da pasta do componente.
+
 Exemplo:
 
 ```text
-use-operator-form.ts
+operator-form/hooks/use-operator-form.ts
 ```
 
 ---
@@ -202,8 +219,8 @@ index.ts
 Exemplo:
 
 ```ts
-export { OperatorsPage } from './presentation/pages/operators-page'
-export type { Operator } from './domain/entities/operator.model'
+export { OperatorsPage } from './presentation/pages/operators-list'
+export type { Operator } from './domain/entities'
 ```
 
 ---

@@ -68,7 +68,7 @@ Antes de gerar qualquer código:
 Consulte obrigatoriamente:
 
 - `references/domain/services.md`
-- `references/api/api.md`
+- `references/api/apis.md`
 - `references/api/error-handling.md`
 
 ---
@@ -77,7 +77,7 @@ Consulte obrigatoriamente:
 
 Consulte obrigatoriamente:
 
-- `references/api/api.md`
+- `references/api/apis.md`
 - `references/react/hooks.md`
 
 ---
@@ -86,7 +86,7 @@ Consulte obrigatoriamente:
 
 Consulte obrigatoriamente:
 
-- `references/architecture/feature-structure.md`
+- `references/architecture/layers/features.md`
 - `references/workflow/feature-creation.md`
 - `references/architecture/data-flow.md`
 
@@ -96,8 +96,11 @@ Consulte obrigatoriamente:
 
 | Situação | Arquivo |
 |---|---|
-| Entender como as camadas se comunicam | `references/architecture/layer.md` |
-| Criar ou organizar uma nova feature | `references/architecture/feature-structure.md` |
+| Entender o mapa macro das camadas (app/features/shared/infra) | `references/architecture/layers.md` |
+| Detalhar camadas internas e organizar pastas de uma feature (presentation/domain/data) | `references/architecture/layers/features.md` |
+| Detalhar camada `app/` (providers, routers, layouts, tema) | `references/architecture/layers/app.md` |
+| Detalhar camada `shared/` (hooks/utils genéricos) | `references/architecture/layers/shared.md` |
+| Detalhar camada `infra/` | `references/architecture/layers/infra.md` |
 | Entender fluxo de query/mutation | `references/architecture/data-flow.md` |
 | Criar uma feature do zero | `references/workflow/feature-creation.md` |
 
@@ -106,7 +109,7 @@ Consulte obrigatoriamente:
 | Situação | Arquivo |
 |---|---|
 | Criar services de domínio | `references/domain/services.md` |
-| Criar APIs HTTP | `references/api/api.md` |
+| Criar APIs HTTP | `references/api/apis.md` |
 | Criar mappers | `references/api/mappers.md` |
 | Tratar erros | `references/api/error-handling.md` |
 
@@ -115,6 +118,7 @@ Consulte obrigatoriamente:
 | Situação | Arquivo |
 |---|---|
 | Criar componentes | `references/react/components.md` |
+| Criar páginas (rota) | `references/react/pages.md` |
 | Criar hooks | `references/react/hooks.md` |
 | Gerenciar estado | `references/react/state-management.md` |
 
@@ -146,15 +150,17 @@ Consulte obrigatoriamente:
 Se estiver criando uma feature completa:
 
 1. `feature-creation.md`
-2. `feature-structure.md`
+2. `layers/features.md`
 3. `data-flow.md`
 4. `services.md`
-5. `api.md`
+5. `apis.md`
 6. `mappers.md`
 7. `error-handling.md`
 8. `hooks.md`
 9. `components.md`
-10. `testing.md`
+10. `pages.md`
+11. `state-management.md`
+12. `testing.md`
 
 ---
 
@@ -162,7 +168,7 @@ Se estiver criando uma feature completa:
 
 Se existir dúvida sobre onde algo pertence:
 
-- consulte `layer.md`
+- consulte `layers.md` (mapa macro) e `layers/*.md` (detalhe de cada camada)
 - consulte `forbidden-patterns.md`
 
 Se ainda estiver em dúvida:
