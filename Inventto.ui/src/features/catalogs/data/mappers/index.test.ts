@@ -31,6 +31,17 @@ describe('CatalogMapper', () => {
       expect(result.themeConfig.branding.showCover).toBe(false);
     });
 
+    it('deve usar string vazia quando description é falsy', () => {
+      const dtoSemDescricao = {
+        ...mockCatalogDTO,
+        description: null as unknown as string
+      };
+
+      const result = CatalogMapper.toDomain(dtoSemDescricao);
+
+      expect(result.description).toBe('');
+    });
+
     it('deve aplicar Defaults se o theme_config vier vazio ou parcial', () => {
       const dtoIncompleto = {
         ...mockCatalogDTO,
@@ -114,6 +125,120 @@ describe('CatalogMapper', () => {
       expect(result.products).toHaveLength(1);
       expect(result.products[0].name).toBe('Produto 1');
       expect(result.products[0].images).toEqual(['img1.jpg']);
+    });
+
+    it('deve mapear a variante quando variant_id está presente', () => {
+      const mockPublicDTO: PublicCatalogResponseDTO = {
+        catalog: {
+          name: 'Loja Pública',
+          description: null,
+          whatsapp_number: '551199999999',
+          theme_config: {} as CatalogThemeConfigDTO
+        },
+        items: [
+          {
+            item_id: 'item-1',
+            catalog_slug: 'loja-publica',
+            product_name: 'Produto 1',
+            product_description: null,
+            variant_id: 'variant-1',
+            variant_attributes: { cor: 'azul' },
+            price: 100,
+            original_price: null,
+            is_featured: false,
+            images: 'not-an-array' as unknown as string[],
+            in_stock: false
+          }
+        ]
+      };
+
+      const result = CatalogMapper.toPublicStorefront(mockPublicDTO);
+
+      expect(result.info.description).toBe('');
+      expect(result.products[0].description).toBe('');
+      expect(result.products[0].images).toEqual([]);
+      expect(result.products[0].variant).toEqual({
+        id: 'variant-1',
+        attributes: { cor: 'azul' }
+      });
+    });
+
+    it('deve omitir a variante quando variant_id está ausente', () => {
+      const mockPublicDTO: PublicCatalogResponseDTO = {
+        catalog: {
+          name: 'Loja Pública',
+          description: 'Desc',
+          whatsapp_number: '551199999999',
+          theme_config: {} as CatalogThemeConfigDTO
+        },
+        items: [
+          {
+            item_id: 'item-2',
+            catalog_slug: 'loja-publica',
+            product_name: 'Produto 2',
+            product_description: 'Desc Prod',
+            variant_id: null,
+            variant_attributes: null,
+            price: 50,
+            original_price: null,
+            is_featured: false,
+            images: [],
+            in_stock: true
+          }
+        ]
+      };
+
+      const result = CatalogMapper.toPublicStorefront(mockPublicDTO);
+
+      expect(result.products[0].variant).toBeUndefined();
+    });
+
+    it('deve usar atributos vazios quando variant_id está presente mas variant_attributes é falsy', () => {
+      const mockPublicDTO: PublicCatalogResponseDTO = {
+        catalog: {
+          name: 'Loja Pública',
+          description: 'Desc',
+          whatsapp_number: '551199999999',
+          theme_config: {} as CatalogThemeConfigDTO
+        },
+        items: [
+          {
+            item_id: 'item-3',
+            catalog_slug: 'loja-publica',
+            product_name: 'Produto 3',
+            product_description: 'Desc Prod',
+            variant_id: 'variant-3',
+            variant_attributes: null,
+            price: 30,
+            original_price: null,
+            is_featured: false,
+            images: [],
+            in_stock: true
+          }
+        ]
+      };
+
+      const result = CatalogMapper.toPublicStorefront(mockPublicDTO);
+
+      expect(result.products[0].variant).toEqual({
+        id: 'variant-3',
+        attributes: {}
+      });
+    });
+
+    it('deve mapear products como array vazio quando items está ausente', () => {
+      const mockPublicDTO = {
+        catalog: {
+          name: 'Loja Pública',
+          description: 'Desc',
+          whatsapp_number: '551199999999',
+          theme_config: {} as CatalogThemeConfigDTO
+        }
+      } as PublicCatalogResponseDTO;
+
+      const result = CatalogMapper.toPublicStorefront(mockPublicDTO);
+
+      expect(result.products).toEqual([]);
     });
 
     it('deve lançar erro se os dados do catálogo forem inválidos', () => {

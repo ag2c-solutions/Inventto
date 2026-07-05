@@ -24,8 +24,10 @@ vi.mock('../../domain/services', () => ({
   }
 }));
 
+const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
+
 vi.mock('@/features/users', () => ({
-  useUser: () => ({ currentOrganization: { id: 'org-123' } })
+  useUser: mockUseUser
 }));
 
 describe('Catalogs Mutations', () => {
@@ -33,6 +35,7 @@ describe('Catalogs Mutations', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-123' } });
     queryClient = new QueryClient({
       defaultOptions: {
         mutations: { retry: false }
@@ -69,6 +72,24 @@ describe('Catalogs Mutations', () => {
         organizationId: 'org-123'
       });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
+    });
+
+    it('should throw when there is no current organization', async () => {
+      mockUseUser.mockReturnValue({ currentOrganization: null });
+
+      const { result } = renderHook(() => useCatalogCreateMutation(), {
+        wrapper
+      });
+
+      await expect(
+        result.current.mutateAsync(
+          createCatalogPayloadFactory.build({
+            themeConfig: catalogThemeConfigFactory.build()
+          })
+        )
+      ).rejects.toThrow('Organização não encontrada.');
+
+      expect(CatalogService.add).not.toHaveBeenCalled();
     });
   });
 

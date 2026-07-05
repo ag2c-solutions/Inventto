@@ -113,5 +113,29 @@ describe('CatalogService', () => {
       expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith('ocupado');
       expect(result).toBe(false);
     });
+
+    it('should return false without querying when slug is empty', async () => {
+      const result = await CatalogService.checkSlugAvailability('   ');
+
+      expect(result).toBe(false);
+      expect(CatalogApi.checkSlugAvailability).not.toHaveBeenCalled();
+    });
+
+    it('should return false without querying when slug has fewer than 3 characters', async () => {
+      const result = await CatalogService.checkSlugAvailability('ab');
+
+      expect(result).toBe(false);
+      expect(CatalogApi.checkSlugAvailability).not.toHaveBeenCalled();
+    });
+
+    it('should normalize the slug to lowercase and trimmed before querying', async () => {
+      vi.mocked(CatalogApi.checkSlugAvailability).mockResolvedValue(true);
+
+      await CatalogService.checkSlugAvailability('  Minha-Loja  ');
+
+      expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith(
+        'minha-loja'
+      );
+    });
   });
 });
