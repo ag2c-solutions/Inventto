@@ -1,4 +1,16 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import {
+  confirmFirstAccessPayloadFactory,
+  recoverPasswordPayloadFactory,
+  resendOtpPayloadFactory,
+  resetPasswordPayloadFactory,
+  signInPayloadFactory,
+  signUpFirstAccessPayloadFactory,
+  signUpPayloadFactory,
+  verifyOtpPayloadFactory
+} from '../../tests/factories/auth.factory';
 
 const { mockAuth, mockRpc } = vi.hoisted(() => ({
   mockAuth: {
@@ -37,20 +49,15 @@ describe('AuthAPI', () => {
 
   describe('signIn', () => {
     it('should call supabase.auth.signInWithPassword and return the data', async () => {
+      const payload = signInPayloadFactory.build();
       mockAuth.signInWithPassword.mockResolvedValue({
         data: { user: { id: 'u1' } },
         error: null
       });
 
-      const result = await AuthAPI.signIn({
-        email: 'a@b.com',
-        password: 'Pass123!'
-      });
+      const result = await AuthAPI.signIn(payload);
 
-      expect(mockAuth.signInWithPassword).toHaveBeenCalledWith({
-        email: 'a@b.com',
-        password: 'Pass123!'
-      });
+      expect(mockAuth.signInWithPassword).toHaveBeenCalledWith(payload);
       expect(result).toEqual({ user: { id: 'u1' } });
     });
 
@@ -59,7 +66,7 @@ describe('AuthAPI', () => {
       mockAuth.signInWithPassword.mockResolvedValue({ data: null, error });
 
       await expect(
-        AuthAPI.signIn({ email: 'a@b.com', password: 'wrong' })
+        AuthAPI.signIn(signInPayloadFactory.build())
       ).rejects.toThrow('Invalid login credentials');
 
       expect(mockHandleAuthError).toHaveBeenCalledWith(error, 'signIn');
@@ -67,15 +74,7 @@ describe('AuthAPI', () => {
   });
 
   describe('signUp', () => {
-    const payload = {
-      companyName: 'Acme',
-      document: '123.456.789-09',
-      fullName: 'John Doe',
-      email: 'john@acme.com',
-      password: 'Pass123!',
-      businessAreaCode: 'clothing',
-      acceptedTerms: true as const
-    };
+    const payload = signUpPayloadFactory.build();
 
     it('should map the payload to Supabase metadata and sign up', async () => {
       mockAuth.signUp.mockResolvedValue({
@@ -86,14 +85,14 @@ describe('AuthAPI', () => {
       const result = await AuthAPI.signUp(payload);
 
       expect(mockAuth.signUp).toHaveBeenCalledWith({
-        email: 'john@acme.com',
-        password: 'Pass123!',
+        email: payload.email,
+        password: payload.password,
         options: {
           data: expect.objectContaining({
-            full_name: 'John Doe',
-            company_name: 'Acme',
-            company_document: '123.456.789-09',
-            business_area_code: 'clothing'
+            full_name: payload.fullName,
+            company_name: payload.companyName,
+            company_document: payload.document,
+            business_area_code: payload.businessAreaCode
           })
         }
       });
@@ -121,16 +120,16 @@ describe('AuthAPI', () => {
 
   describe('verifyOtp', () => {
     it('should verify with type "signup"', async () => {
+      const payload = verifyOtpPayloadFactory.build();
       mockAuth.verifyOtp.mockResolvedValue({
         data: { session: {} },
         error: null
       });
 
-      await AuthAPI.verifyOtp({ email: 'a@b.com', token: '123456' });
+      await AuthAPI.verifyOtp(payload);
 
       expect(mockAuth.verifyOtp).toHaveBeenCalledWith({
-        email: 'a@b.com',
-        token: '123456',
+        ...payload,
         type: 'signup'
       });
     });
@@ -140,7 +139,7 @@ describe('AuthAPI', () => {
       mockAuth.verifyOtp.mockResolvedValue({ data: null, error });
 
       await expect(
-        AuthAPI.verifyOtp({ email: 'a@b.com', token: '000000' })
+        AuthAPI.verifyOtp(verifyOtpPayloadFactory.build())
       ).rejects.toThrow('Token has expired or is invalid');
       expect(mockHandleAuthError).toHaveBeenCalledWith(error, 'verifyOtp');
     });
@@ -148,16 +147,16 @@ describe('AuthAPI', () => {
 
   describe('verifyRecoveryOtp', () => {
     it('should verify with type "recovery"', async () => {
+      const payload = verifyOtpPayloadFactory.build();
       mockAuth.verifyOtp.mockResolvedValue({
         data: { session: {} },
         error: null
       });
 
-      await AuthAPI.verifyRecoveryOtp({ email: 'a@b.com', token: '123456' });
+      await AuthAPI.verifyRecoveryOtp(payload);
 
       expect(mockAuth.verifyOtp).toHaveBeenCalledWith({
-        email: 'a@b.com',
-        token: '123456',
+        ...payload,
         type: 'recovery'
       });
     });
@@ -165,13 +164,14 @@ describe('AuthAPI', () => {
 
   describe('resendOtp', () => {
     it('should resend with type "signup"', async () => {
+      const payload = resendOtpPayloadFactory.build();
       mockAuth.resend.mockResolvedValue({ error: null });
 
-      await AuthAPI.resendOtp({ email: 'a@b.com' });
+      await AuthAPI.resendOtp(payload);
 
       expect(mockAuth.resend).toHaveBeenCalledWith({
         type: 'signup',
-        email: 'a@b.com'
+        ...payload
       });
     });
 
@@ -179,31 +179,35 @@ describe('AuthAPI', () => {
       const error = new Error('Rate limit exceeded');
       mockAuth.resend.mockResolvedValue({ error });
 
-      await expect(AuthAPI.resendOtp({ email: 'a@b.com' })).rejects.toThrow(
-        'Rate limit exceeded'
-      );
+      await expect(
+        AuthAPI.resendOtp(resendOtpPayloadFactory.build())
+      ).rejects.toThrow('Rate limit exceeded');
       expect(mockHandleAuthError).toHaveBeenCalledWith(error, 'resendOtp');
     });
   });
 
   describe('recoverPassword', () => {
     it('should call resetPasswordForEmail without a redirectTo (OTP flow, not magic link)', async () => {
+      const payload = recoverPasswordPayloadFactory.build();
       mockAuth.resetPasswordForEmail.mockResolvedValue({ error: null });
 
-      await AuthAPI.recoverPassword({ email: 'a@b.com' });
+      await AuthAPI.recoverPassword(payload);
 
-      expect(mockAuth.resetPasswordForEmail).toHaveBeenCalledWith('a@b.com');
+      expect(mockAuth.resetPasswordForEmail).toHaveBeenCalledWith(
+        payload.email
+      );
     });
   });
 
   describe('resetPassword', () => {
     it('should call updateUser with the new password', async () => {
+      const payload = resetPasswordPayloadFactory.build();
       mockAuth.updateUser.mockResolvedValue({ error: null });
 
-      await AuthAPI.resetPassword({ newPassword: 'NewPass123!' });
+      await AuthAPI.resetPassword(payload);
 
       expect(mockAuth.updateUser).toHaveBeenCalledWith({
-        password: 'NewPass123!'
+        password: payload.newPassword
       });
     });
   });
@@ -228,7 +232,10 @@ describe('AuthAPI', () => {
 
   describe('getSession', () => {
     it('should return the session when one exists', async () => {
-      const session = { access_token: 'tok', user: { id: 'u1' } };
+      const session = {
+        access_token: faker.string.alphanumeric(20),
+        user: { id: 'u1' }
+      };
       mockAuth.getSession.mockResolvedValue({
         data: { session },
         error: null
@@ -298,13 +305,14 @@ describe('AuthAPI', () => {
 
   describe('signUpFirstAccess', () => {
     it('should resend the signup OTP for the given email', async () => {
+      const payload = signUpFirstAccessPayloadFactory.build();
       mockAuth.resend.mockResolvedValue({ error: null });
 
-      await AuthAPI.signUpFirstAccess({ email: 'a@b.com' });
+      await AuthAPI.signUpFirstAccess(payload);
 
       expect(mockAuth.resend).toHaveBeenCalledWith({
         type: 'signup',
-        email: 'a@b.com'
+        ...payload
       });
     });
 
@@ -313,7 +321,7 @@ describe('AuthAPI', () => {
       mockAuth.resend.mockResolvedValue({ error });
 
       await expect(
-        AuthAPI.signUpFirstAccess({ email: 'a@b.com' })
+        AuthAPI.signUpFirstAccess(signUpFirstAccessPayloadFactory.build())
       ).rejects.toThrow('Rate limit exceeded');
       expect(mockHandleAuthError).toHaveBeenCalledWith(
         error,
@@ -324,13 +332,14 @@ describe('AuthAPI', () => {
 
   describe('confirmFirstAccess', () => {
     it('should call the confirm_first_access RPC with the mapped params', async () => {
+      const payload = confirmFirstAccessPayloadFactory.build();
       mockRpc.mockResolvedValue({ error: null });
 
-      await AuthAPI.confirmFirstAccess({ userId: 'user-1', orgId: 'org-1' });
+      await AuthAPI.confirmFirstAccess(payload);
 
       expect(mockRpc).toHaveBeenCalledWith('confirm_first_access', {
-        p_user_id: 'user-1',
-        p_organization_id: 'org-1'
+        p_user_id: payload.userId,
+        p_organization_id: payload.orgId
       });
     });
 
@@ -339,7 +348,7 @@ describe('AuthAPI', () => {
       mockRpc.mockResolvedValue({ error });
 
       await expect(
-        AuthAPI.confirmFirstAccess({ userId: 'user-1', orgId: 'org-1' })
+        AuthAPI.confirmFirstAccess(confirmFirstAccessPayloadFactory.build())
       ).rejects.toThrow('Permissão negada.');
       expect(mockHandleAuthError).toHaveBeenCalledWith(
         error,

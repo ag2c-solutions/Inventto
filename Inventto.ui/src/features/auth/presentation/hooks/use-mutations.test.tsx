@@ -3,6 +3,13 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthService } from '../../domain/services';
+import {
+  recoverPasswordPayloadFactory,
+  resetPasswordPayloadFactory,
+  signInPayloadFactory,
+  signUpPayloadFactory,
+  verifyOtpPayloadFactory
+} from '../../tests/factories/auth.factory';
 
 import {
   useRecoverPasswordMutation,
@@ -56,13 +63,11 @@ describe('Auth Mutations', () => {
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
       const { result } = renderHook(() => useSignInMutation(), { wrapper });
 
-      await result.current.mutateAsync({
-        email: 'test@test.com',
-        password: '123'
-      });
+      const payload = signInPayloadFactory.build();
+      await result.current.mutateAsync(payload);
 
       expect(AuthService.signIn).toHaveBeenCalledWith(
-        { email: 'test@test.com', password: '123' },
+        payload,
         expect.anything()
       );
 
@@ -78,14 +83,7 @@ describe('Auth Mutations', () => {
 
       const { result } = renderHook(() => useSignUpMutation(), { wrapper });
 
-      const payload = {
-        email: 'new@test.com',
-        password: '123',
-        fullName: 'New',
-        companyName: 'Corp',
-        businessAreaCode: 'clothing',
-        acceptedTerms: true as const
-      };
+      const payload = signUpPayloadFactory.build({ document: undefined });
 
       await result.current.mutateAsync(payload);
 
@@ -104,10 +102,11 @@ describe('Auth Mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync({ email: 'test@test.com' });
+      const payload = recoverPasswordPayloadFactory.build();
+      await result.current.mutateAsync(payload);
 
       expect(AuthService.recoverPassword).toHaveBeenCalledWith(
-        { email: 'test@test.com' },
+        payload,
         expect.anything()
       );
     });
@@ -122,7 +121,7 @@ describe('Auth Mutations', () => {
       });
 
       await expect(
-        result.current.mutateAsync({ email: 'test@test.com' })
+        result.current.mutateAsync(recoverPasswordPayloadFactory.build())
       ).rejects.toThrow();
 
       const mutation = queryClient.getMutationCache().getAll()[0];
@@ -139,13 +138,11 @@ describe('Auth Mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync({
-        email: 'test@test.com',
-        token: '123456'
-      });
+      const payload = verifyOtpPayloadFactory.build();
+      await result.current.mutateAsync(payload);
 
       expect(AuthService.verifyRecoveryOtp).toHaveBeenCalledWith(
-        { email: 'test@test.com', token: '123456' },
+        payload,
         expect.anything()
       );
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auth'] });
@@ -161,7 +158,7 @@ describe('Auth Mutations', () => {
       });
 
       await expect(
-        result.current.mutateAsync({ email: 'test@test.com', token: '000000' })
+        result.current.mutateAsync(verifyOtpPayloadFactory.build())
       ).rejects.toThrow();
 
       const mutation = queryClient.getMutationCache().getAll()[0];
@@ -178,10 +175,11 @@ describe('Auth Mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync({ newPassword: 'NewPass123!' });
+      const payload = resetPasswordPayloadFactory.build();
+      await result.current.mutateAsync(payload);
 
       expect(AuthService.completePasswordRecovery).toHaveBeenCalledWith(
-        { newPassword: 'NewPass123!' },
+        payload,
         expect.anything()
       );
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auth'] });
@@ -194,7 +192,7 @@ describe('Auth Mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync({ newPassword: 'NewPass123!' });
+      await result.current.mutateAsync(resetPasswordPayloadFactory.build());
 
       const mutation = queryClient.getMutationCache().getAll()[0];
       expect(mutation.meta?.successMessage).toBe(

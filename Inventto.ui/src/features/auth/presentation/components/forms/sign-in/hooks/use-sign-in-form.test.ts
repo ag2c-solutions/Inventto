@@ -5,6 +5,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../../../domain/constants';
+import { signInPayloadFactory } from '../../../../../tests/factories/auth.factory';
 
 import { useSignInForm } from './use-sign-in-form';
 
@@ -58,17 +59,12 @@ describe('useSignInForm', () => {
 
     const { result } = renderHook(() => useSignInForm(), { wrapper });
 
+    const credentials = signInPayloadFactory.build();
     await act(async () => {
-      await result.current.onSubmit({
-        email: 'test@test.com',
-        password: 'Pass123!'
-      });
+      await result.current.onSubmit(credentials);
     });
 
-    expect(mockMutateAsync).toHaveBeenCalledWith({
-      email: 'test@test.com',
-      password: 'Pass123!'
-    });
+    expect(mockMutateAsync).toHaveBeenCalledWith(credentials);
     expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
   });
 
@@ -78,10 +74,7 @@ describe('useSignInForm', () => {
     const { result } = renderHook(() => useSignInForm(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmit({
-        email: 'test@test.com',
-        password: 'WrongPass'
-      });
+      await result.current.onSubmit(signInPayloadFactory.build());
     });
 
     expect(result.current.pendingEmail).toBeNull();
@@ -93,15 +86,13 @@ describe('useSignInForm', () => {
 
     const { result } = renderHook(() => useSignInForm(), { wrapper });
 
+    const credentials = signInPayloadFactory.build();
     await act(async () => {
-      await result.current.onSubmit({
-        email: 'pending@test.com',
-        password: 'Pass123!'
-      });
+      await result.current.onSubmit(credentials);
     });
 
-    expect(result.current.pendingEmail).toBe('pending@test.com');
-    expect(mockResendOtp).toHaveBeenCalledWith({ email: 'pending@test.com' });
+    expect(result.current.pendingEmail).toBe(credentials.email);
+    expect(mockResendOtp).toHaveBeenCalledWith({ email: credentials.email });
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -111,11 +102,9 @@ describe('useSignInForm', () => {
 
     const { result } = renderHook(() => useSignInForm(), { wrapper });
 
+    const credentials = signInPayloadFactory.build();
     await act(async () => {
-      await result.current.onSubmit({
-        email: 'pending@test.com',
-        password: 'Pass123!'
-      });
+      await result.current.onSubmit(credentials);
     });
 
     await act(async () => {
@@ -124,7 +113,7 @@ describe('useSignInForm', () => {
 
     await waitFor(() => {
       expect(mockVerifyOtp).toHaveBeenCalledWith({
-        email: 'pending@test.com',
+        email: credentials.email,
         token: '123456'
       });
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
@@ -139,10 +128,7 @@ describe('useSignInForm', () => {
     const { result } = renderHook(() => useSignInForm(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmit({
-        email: 'pending@test.com',
-        password: 'Pass123!'
-      });
+      await result.current.onSubmit(signInPayloadFactory.build());
     });
 
     expect(result.current.verifyErrorMessage).toBe(
@@ -162,10 +148,7 @@ describe('useSignInForm', () => {
     const { result } = renderHook(() => useSignInForm(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmit({
-        email: 'pending@test.com',
-        password: 'Pass123!'
-      });
+      await result.current.onSubmit(signInPayloadFactory.build());
     });
 
     act(() => {

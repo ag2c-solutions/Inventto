@@ -3,6 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { signInPayloadFactory } from '../../../../tests/factories/auth.factory';
+
 import { SignInForm } from './index';
 
 const mockMutateAsync = vi.fn();
@@ -118,8 +120,9 @@ describe('SignInForm Component', () => {
 
     renderComponent();
 
-    await user.type(screen.getByLabelText(/e-mail/i), 'admin@inventto.com');
-    await user.type(screen.getByLabelText(/senha/i), 'SecurePass123!');
+    const credentials = signInPayloadFactory.build();
+    await user.type(screen.getByLabelText(/e-mail/i), credentials.email);
+    await user.type(screen.getByLabelText(/senha/i), credentials.password);
 
     const submitBtn = screen.getByRole('button', { name: /entrar/i });
     const clickPromise = user.click(submitBtn);
@@ -131,10 +134,7 @@ describe('SignInForm Component', () => {
     await clickPromise;
 
     await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalledWith({
-        email: 'admin@inventto.com',
-        password: 'SecurePass123!'
-      });
+      expect(mockMutateAsync).toHaveBeenCalledWith(credentials);
     });
 
     await waitFor(() => {
@@ -147,12 +147,13 @@ describe('SignInForm Component', () => {
 
     renderComponent();
 
+    const credentials = signInPayloadFactory.build();
     const emailInput = screen.getByLabelText(/e-mail/i);
     const passwordInput = screen.getByLabelText(/senha/i);
     const submitBtn = screen.getByRole('button', { name: /entrar/i });
 
-    await user.type(emailInput, 'admin@inventto.com');
-    await user.type(passwordInput, 'WrongPass');
+    await user.type(emailInput, credentials.email);
+    await user.type(passwordInput, credentials.password);
 
     await user.click(submitBtn);
 
@@ -164,7 +165,7 @@ describe('SignInForm Component', () => {
       expect(passwordInput).toHaveValue('');
     });
 
-    expect(emailInput).toHaveValue('admin@inventto.com');
+    expect(emailInput).toHaveValue(credentials.email);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -173,8 +174,11 @@ describe('SignInForm Component', () => {
 
     renderComponent();
 
-    await user.type(screen.getByLabelText(/e-mail/i), 'pending@inventto.com');
-    await user.type(screen.getByLabelText(/senha/i), 'ValidPass123!');
+    const credentials = signInPayloadFactory.build({
+      email: 'pending@inventto.com'
+    });
+    await user.type(screen.getByLabelText(/e-mail/i), credentials.email);
+    await user.type(screen.getByLabelText(/senha/i), credentials.password);
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {
@@ -183,7 +187,7 @@ describe('SignInForm Component', () => {
 
     expect(screen.getByText(/p•••@inventto\.com/)).toBeInTheDocument();
     expect(mockResendOtp).toHaveBeenCalledWith({
-      email: 'pending@inventto.com'
+      email: credentials.email
     });
 
     await user.click(
@@ -200,8 +204,11 @@ describe('SignInForm Component', () => {
 
     renderComponent();
 
-    await user.type(screen.getByLabelText(/e-mail/i), 'pending@inventto.com');
-    await user.type(screen.getByLabelText(/senha/i), 'ValidPass123!');
+    const credentials = signInPayloadFactory.build({
+      email: 'pending@inventto.com'
+    });
+    await user.type(screen.getByLabelText(/e-mail/i), credentials.email);
+    await user.type(screen.getByLabelText(/senha/i), credentials.password);
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => {

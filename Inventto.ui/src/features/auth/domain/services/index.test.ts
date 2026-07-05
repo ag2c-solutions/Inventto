@@ -1,6 +1,15 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthAPI } from '../../data/api';
+import {
+  recoverPasswordPayloadFactory,
+  resendOtpPayloadFactory,
+  resetPasswordPayloadFactory,
+  signInPayloadFactory,
+  signUpPayloadFactory,
+  verifyOtpPayloadFactory
+} from '../../tests/factories/auth.factory';
 
 import { AuthService } from './index';
 
@@ -28,25 +37,16 @@ describe('AuthService', () => {
   });
 
   it('signIn deve delegar para AuthAPI.signIn', async () => {
+    const payload = signInPayloadFactory.build();
     vi.mocked(AuthAPI.signIn).mockResolvedValue({} as never);
 
-    await AuthService.signIn({ email: 'a@b.com', password: 'Pass123!' });
+    await AuthService.signIn(payload);
 
-    expect(AuthAPI.signIn).toHaveBeenCalledWith({
-      email: 'a@b.com',
-      password: 'Pass123!'
-    });
+    expect(AuthAPI.signIn).toHaveBeenCalledWith(payload);
   });
 
   it('signUp deve delegar para AuthAPI.signUp', async () => {
-    const payload = {
-      companyName: 'Acme',
-      fullName: 'John Doe',
-      email: 'john@acme.com',
-      password: 'Pass123!',
-      businessAreaCode: 'clothing',
-      acceptedTerms: true as const
-    };
+    const payload = signUpPayloadFactory.build({ document: undefined });
     vi.mocked(AuthAPI.signUp).mockResolvedValue({} as never);
 
     await AuthService.signUp(payload);
@@ -55,54 +55,48 @@ describe('AuthService', () => {
   });
 
   it('verifyOtp deve delegar para AuthAPI.verifyOtp', async () => {
+    const payload = verifyOtpPayloadFactory.build();
     vi.mocked(AuthAPI.verifyOtp).mockResolvedValue({} as never);
 
-    await AuthService.verifyOtp({ email: 'a@b.com', token: '123456' });
+    await AuthService.verifyOtp(payload);
 
-    expect(AuthAPI.verifyOtp).toHaveBeenCalledWith({
-      email: 'a@b.com',
-      token: '123456'
-    });
+    expect(AuthAPI.verifyOtp).toHaveBeenCalledWith(payload);
   });
 
   it('resendOtp deve delegar para AuthAPI.resendOtp', async () => {
+    const payload = resendOtpPayloadFactory.build();
     vi.mocked(AuthAPI.resendOtp).mockResolvedValue(undefined);
 
-    await AuthService.resendOtp({ email: 'a@b.com' });
+    await AuthService.resendOtp(payload);
 
-    expect(AuthAPI.resendOtp).toHaveBeenCalledWith({ email: 'a@b.com' });
+    expect(AuthAPI.resendOtp).toHaveBeenCalledWith(payload);
   });
 
   it('recoverPassword deve delegar para AuthAPI.recoverPassword', async () => {
+    const payload = recoverPasswordPayloadFactory.build();
     vi.mocked(AuthAPI.recoverPassword).mockResolvedValue(undefined);
 
-    await AuthService.recoverPassword({ email: 'a@b.com' });
+    await AuthService.recoverPassword(payload);
 
-    expect(AuthAPI.recoverPassword).toHaveBeenCalledWith({ email: 'a@b.com' });
+    expect(AuthAPI.recoverPassword).toHaveBeenCalledWith(payload);
   });
 
   it('verifyRecoveryOtp deve delegar para AuthAPI.verifyRecoveryOtp', async () => {
+    const payload = verifyOtpPayloadFactory.build();
     vi.mocked(AuthAPI.verifyRecoveryOtp).mockResolvedValue({} as never);
 
-    await AuthService.verifyRecoveryOtp({
-      email: 'test@test.com',
-      token: '123456'
-    });
+    await AuthService.verifyRecoveryOtp(payload);
 
-    expect(AuthAPI.verifyRecoveryOtp).toHaveBeenCalledWith({
-      email: 'test@test.com',
-      token: '123456'
-    });
+    expect(AuthAPI.verifyRecoveryOtp).toHaveBeenCalledWith(payload);
   });
 
   it('completePasswordRecovery deve atualizar a senha mantendo a sessão (sem signOut: cai no dashboard)', async () => {
+    const payload = resetPasswordPayloadFactory.build();
     vi.mocked(AuthAPI.resetPassword).mockResolvedValue(undefined);
 
-    await AuthService.completePasswordRecovery({ newPassword: 'NewPass123!' });
+    await AuthService.completePasswordRecovery(payload);
 
-    expect(AuthAPI.resetPassword).toHaveBeenCalledWith({
-      newPassword: 'NewPass123!'
-    });
+    expect(AuthAPI.resetPassword).toHaveBeenCalledWith(payload);
     expect(AuthAPI.signOut).not.toHaveBeenCalled();
   });
 
@@ -112,7 +106,7 @@ describe('AuthService', () => {
     );
 
     await expect(
-      AuthService.completePasswordRecovery({ newPassword: 'NewPass123!' })
+      AuthService.completePasswordRecovery(resetPasswordPayloadFactory.build())
     ).rejects.toThrow();
   });
 
@@ -154,29 +148,24 @@ describe('AuthService', () => {
   });
 
   it('setFirstAccessPassword deve definir a senha e então reenviar o OTP de confirmação', async () => {
+    const newPassword = faker.internet.password({ length: 12 });
+    const email = faker.internet.email();
     vi.mocked(AuthAPI.resetPassword).mockResolvedValue(undefined);
     vi.mocked(AuthAPI.signUpFirstAccess).mockResolvedValue(undefined);
 
-    await AuthService.setFirstAccessPassword({
-      newPassword: 'NewPass123!',
-      email: 'a@b.com'
-    });
+    await AuthService.setFirstAccessPassword({ newPassword, email });
 
-    expect(AuthAPI.resetPassword).toHaveBeenCalledWith({
-      newPassword: 'NewPass123!'
-    });
-    expect(AuthAPI.signUpFirstAccess).toHaveBeenCalledWith({
-      email: 'a@b.com'
-    });
+    expect(AuthAPI.resetPassword).toHaveBeenCalledWith({ newPassword });
+    expect(AuthAPI.signUpFirstAccess).toHaveBeenCalledWith({ email });
   });
 
   describe('confirmFirstAccess', () => {
     it('deve lançar erro quando a organização não tem id', async () => {
       await expect(
         AuthService.confirmFirstAccess({
-          email: 'a@b.com',
-          token: '123456',
-          userId: 'user-1',
+          email: faker.internet.email(),
+          token: faker.string.numeric(6),
+          userId: faker.string.uuid(),
           organization: null
         })
       ).rejects.toThrow('Organização não encontrada.');
@@ -186,23 +175,24 @@ describe('AuthService', () => {
     });
 
     it('deve verificar o OTP e confirmar o acesso com o orgId da organização', async () => {
+      const email = faker.internet.email();
+      const token = faker.string.numeric(6);
+      const userId = faker.string.uuid();
+      const orgId = faker.string.uuid();
       vi.mocked(AuthAPI.verifyOtp).mockResolvedValue({} as never);
       vi.mocked(AuthAPI.confirmFirstAccess).mockResolvedValue(undefined);
 
       await AuthService.confirmFirstAccess({
-        email: 'a@b.com',
-        token: '123456',
-        userId: 'user-1',
-        organization: { id: 'org-1' } as never
+        email,
+        token,
+        userId,
+        organization: { id: orgId } as never
       });
 
-      expect(AuthAPI.verifyOtp).toHaveBeenCalledWith({
-        email: 'a@b.com',
-        token: '123456'
-      });
+      expect(AuthAPI.verifyOtp).toHaveBeenCalledWith({ email, token });
       expect(AuthAPI.confirmFirstAccess).toHaveBeenCalledWith({
-        userId: 'user-1',
-        orgId: 'org-1'
+        userId,
+        orgId
       });
     });
   });

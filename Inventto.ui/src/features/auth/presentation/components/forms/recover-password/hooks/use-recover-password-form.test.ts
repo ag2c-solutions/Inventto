@@ -3,6 +3,11 @@ import { MemoryRouter } from 'react-router';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  recoverPasswordPayloadFactory,
+  resetPasswordFormValuesFactory
+} from '../../../../../tests/factories/auth.factory';
+
 import { useRecoverPasswordForm } from './use-recover-password-form';
 
 const mockNavigate = vi.fn();
@@ -47,15 +52,14 @@ describe('useRecoverPasswordForm', () => {
   it('advances to the otp step and stores the email on submit', async () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
+    const payload = recoverPasswordPayloadFactory.build();
     await act(async () => {
-      await result.current.onSubmitEmail({ email: 'user@example.com' });
+      await result.current.onSubmitEmail(payload);
     });
 
-    expect(mockRecoverPassword).toHaveBeenCalledWith({
-      email: 'user@example.com'
-    });
+    expect(mockRecoverPassword).toHaveBeenCalledWith(payload);
     expect(result.current.step).toBe('otp');
-    expect(result.current.email).toBe('user@example.com');
+    expect(result.current.email).toBe(payload.email);
   });
 
   it('still advances to otp when the send fails (RN002 anti-enumeração)', async () => {
@@ -64,7 +68,7 @@ describe('useRecoverPasswordForm', () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitEmail({ email: 'ghost@example.com' });
+      await result.current.onSubmitEmail(recoverPasswordPayloadFactory.build());
     });
 
     expect(result.current.step).toBe('otp');
@@ -73,15 +77,16 @@ describe('useRecoverPasswordForm', () => {
   it('advances to the password step after a valid code', async () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
+    const payload = recoverPasswordPayloadFactory.build();
     await act(async () => {
-      await result.current.onSubmitEmail({ email: 'user@example.com' });
+      await result.current.onSubmitEmail(payload);
     });
     await act(async () => {
       await result.current.onSubmitOtp('123456');
     });
 
     expect(mockVerifyRecoveryOtp).toHaveBeenCalledWith({
-      email: 'user@example.com',
+      email: payload.email,
       token: '123456'
     });
     expect(result.current.step).toBe('password');
@@ -93,7 +98,7 @@ describe('useRecoverPasswordForm', () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitEmail({ email: 'user@example.com' });
+      await result.current.onSubmitEmail(recoverPasswordPayloadFactory.build());
     });
     await act(async () => {
       await result.current.onSubmitOtp('000000');
@@ -106,15 +111,13 @@ describe('useRecoverPasswordForm', () => {
   it('navigates to the dashboard after setting the new password', async () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
+    const passwordValues = resetPasswordFormValuesFactory.build();
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(passwordValues);
     });
 
     expect(mockSetNewPassword).toHaveBeenCalledWith({
-      newPassword: 'NewPass123!'
+      newPassword: passwordValues.password
     });
     expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
   });
@@ -122,8 +125,9 @@ describe('useRecoverPasswordForm', () => {
   it('resends the code through recoverPassword', async () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
+    const payload = recoverPasswordPayloadFactory.build();
     await act(async () => {
-      await result.current.onSubmitEmail({ email: 'user@example.com' });
+      await result.current.onSubmitEmail(payload);
     });
 
     mockRecoverPassword.mockClear();
@@ -132,16 +136,14 @@ describe('useRecoverPasswordForm', () => {
       result.current.onResendOtp();
     });
 
-    expect(mockRecoverPassword).toHaveBeenCalledWith({
-      email: 'user@example.com'
-    });
+    expect(mockRecoverPassword).toHaveBeenCalledWith(payload);
   });
 
   it('goes back to the email step', async () => {
     const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitEmail({ email: 'user@example.com' });
+      await result.current.onSubmitEmail(recoverPasswordPayloadFactory.build());
     });
     act(() => {
       result.current.onBackToEmail();
