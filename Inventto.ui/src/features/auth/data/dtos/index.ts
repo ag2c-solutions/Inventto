@@ -39,7 +39,7 @@ export interface ResetPasswordPayload {
   newPassword: string;
 }
 
-export interface signUpFirstAccess {
+export interface SignUpFirstAccessPayload {
   email: string;
 }
 

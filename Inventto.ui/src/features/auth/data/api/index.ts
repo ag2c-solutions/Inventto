@@ -7,7 +7,7 @@ import type {
   ResendOtpPayload,
   ResetPasswordPayload,
   SignInPayload,
-  signUpFirstAccess,
+  SignUpFirstAccessPayload,
   SignUpPayload,
   VerifyOtpPayload
 } from '../dtos';
@@ -145,7 +145,7 @@ export class AuthAPI {
     };
   }
 
-  static async signUpFirstAccess({ email }: signUpFirstAccess) {
+  static async signUpFirstAccess({ email }: SignUpFirstAccessPayload) {
     const { error: otpError } = await supabase.auth.resend({
       type: 'signup',
       email

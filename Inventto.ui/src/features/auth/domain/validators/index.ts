@@ -63,18 +63,9 @@ export const firstAccessSchema = z
     path: ['confirmPassword']
   });
 
-// Schema próprio (não reusa firstAccessSchema) porque a microcopy do
-// AUTH-07 difere: "As senhas não coincidem." (wireframe 04 · Redefinir senha).
-export const resetPasswordSchema = z
-  .object({
-    password: passwordSchema,
-    confirmPassword: z.string()
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'As senhas não coincidem.',
-    path: ['confirmPassword']
-  });
+// AUTH-07 (Redefinir senha) usa o mesmo formato e mensagens do first access.
+export const resetPasswordSchema = firstAccessSchema;
 
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
 export type FirstAccessFormValues = z.infer<typeof firstAccessSchema>;
-export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+export type ResetPasswordFormValues = FirstAccessFormValues;
