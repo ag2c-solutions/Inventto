@@ -1,66 +1,43 @@
 import { describe, expect, it } from 'vitest';
 
-import type { MovementDTO } from '../dtos';
+import {
+  createMovementInputFactory,
+  createMovementItemInputFactory,
+  movementDTOFactory,
+  movementItemDTOFactory
+} from '../../tests/factories/movement.factory';
 
 import { MovementMapper } from './index';
 
 describe('MovementMapper', () => {
   describe('toDomain', () => {
-    const baseDTO: MovementDTO = {
-      id: 'mov-1',
-      organization_id: 'org-1',
-      user_id: 'user-1',
-      type: 'entry',
-      reason: 'purchase',
-      description: null,
-      document_number: 'DOC-001',
-      order_id: null,
-      created_at: '2023-10-01T10:00:00Z',
-      executed_at: '2023-10-02T08:00:00Z',
-      profiles: { full_name: 'John Doe', avatar_url: 'avatar.jpg' },
-      movement_items: []
-    };
-
     it('should map scalar fields correctly', () => {
-      const result = MovementMapper.toDomain(baseDTO);
+      const dto = movementDTOFactory.build({
+        reason: 'purchase',
+        document_number: 'DOC-001',
+        profiles: { full_name: 'John Doe', avatar_url: 'avatar.jpg' }
+      });
 
-      expect(result.id).toBe('mov-1');
-      expect(result.organizationId).toBe('org-1');
-      expect(result.type).toBe('entry');
+      const result = MovementMapper.toDomain(dto);
+
+      expect(result.id).toBe(dto.id);
+      expect(result.organizationId).toBe(dto.organization_id);
+      expect(result.type).toBe(dto.type);
       expect(result.reason).toBe('Compra');
       expect(result.documentNumber).toBe('DOC-001');
       expect(result.createdAt).toBeInstanceOf(Date);
-      expect(result.executedAt).toEqual(new Date('2023-10-02T08:00:00Z'));
+      expect(result.executedAt).toEqual(new Date(dto.executed_at));
       expect(result.user?.fullName).toBe('John Doe');
       expect(result.user?.avatarUrl).toBe('avatar.jpg');
     });
 
     it('should compute totalQuantity and totalValue from items', () => {
-      const dto: MovementDTO = {
-        ...baseDTO,
+      const dto = movementDTOFactory.build({
         movement_items: [
-          {
-            id: 'item-1',
-            movement_id: 'mov-1',
-            product_id: 'prod-1',
-            variant_id: null,
-            quantity: 5,
-            unit_cost: 10,
-            unit_price: 20,
-            products: { name: 'Product A', product_images: [] }
-          },
-          {
-            id: 'item-2',
-            movement_id: 'mov-1',
-            product_id: 'prod-2',
-            variant_id: null,
-            quantity: 3,
-            unit_cost: 15,
-            unit_price: 30,
-            products: { name: 'Product B', product_images: [] }
-          }
+          movementItemDTOFactory.build({ quantity: 5, unit_cost: 10 }),
+          movementItemDTOFactory.build({ quantity: 3, unit_cost: 15 })
         ]
-      };
+      });
 
       const result = MovementMapper.toDomain(dto);
 
@@ -69,17 +46,10 @@ describe('MovementMapper', () => {
     });
 
     it('should use variant image url when available (primary)', () => {
-      const dto: MovementDTO = {
-        ...baseDTO,
+      const dto = movementDTOFactory.build({
         movement_items: [
-          {
-            id: 'item-1',
-            movement_id: 'mov-1',
-            product_id: 'prod-1',
+          movementItemDTOFactory.build({
             variant_id: 'var-1',
-            quantity: 1,
-            unit_cost: 10,
-            unit_price: 20,
             products: { name: 'T-Shirt', product_images: [] },
             product_variants: {
               sku: 'SKU-001',
@@ -91,9 +61,9 @@ describe('MovementMapper', () => {
                 }
               ]
             }
-          }
+          })
         ]
-      };
+      });
 
       const result = MovementMapper.toDomain(dto);
 
@@ -103,17 +73,11 @@ describe('MovementMapper', () => {
     });
 
     it('should fallback to product primary image when no variant image', () => {
-      const dto: MovementDTO = {
-        ...baseDTO,
+      const dto = movementDTOFactory.build({
         movement_items: [
-          {
-            id: 'item-1',
-            movement_id: 'mov-1',
-            product_id: 'prod-1',
+          movementItemDTOFactory.build({
             variant_id: null,
-            quantity: 1,
-            unit_cost: 10,
-            unit_price: 20,
+            product_variants: null,
             products: {
               name: 'Cap',
               product_images: [
@@ -121,9 +85,9 @@ describe('MovementMapper', () => {
                 { url: 'cap-front.jpg', is_primary: true }
               ]
             }
-          }
+          })
         ]
-      };
+      });
 
       const result = MovementMapper.toDomain(dto);
 
@@ -131,16 +95,19 @@ describe('MovementMapper', () => {
     });
 
     it('should set user to undefined when profiles is null', () => {
-      const result = MovementMapper.toDomain({ ...baseDTO, profiles: null });
+      const dto = movementDTOFactory.build({ profiles: null });
+
+      const result = MovementMapper.toDomain(dto);
 
       expect(result.user).toBeUndefined();
     });
 
     it('should use "Sistema" as fullName when profiles.full_name is null', () => {
-      const result = MovementMapper.toDomain({
-        ...baseDTO,
+      const dto = movementDTOFactory.build({
         profiles: { full_name: null, avatar_url: null }
       });
+
+      const result = MovementMapper.toDomain(dto);
 
       expect(result.user?.fullName).toBe('Sistema');
     });
@@ -148,46 +115,41 @@ describe('MovementMapper', () => {
 
   describe('toPersistence', () => {
     it('should map CreateMovementInput to CreateStockMovementRPCDTO correctly', () => {
-      const executedAt = new Date('2023-10-02T08:00:00Z');
-      const result = MovementMapper.toPersistence(
-        {
-          type: 'entry',
-          reason: 'Ajuste de inventário (+)',
-          documentNumber: 'DOC-123',
-          executedAt,
-          items: [
-            {
-              productId: 'prod-1',
-              variantId: 'var-1',
-              quantity: 5,
-              unitCost: 10,
-              unitPrice: 20
-            }
-          ]
-        },
-        'org-1'
-      );
+      const input = createMovementInputFactory.build({
+        type: 'entry',
+        reason: 'Ajuste de inventário (+)',
+        documentNumber: 'DOC-123',
+        items: [
+          createMovementItemInputFactory.build({
+            productId: 'prod-1',
+            variantId: 'var-1',
+            quantity: 5,
+            unitCost: 10,
+            unitPrice: 20
+          })
+        ]
+      });
+
+      const result = MovementMapper.toPersistence(input, 'org-1');
 
       expect(result.organization_id).toBe('org-1');
       expect(result.type).toBe('entry');
       expect(result.reason).toBe('adjustment_in');
       expect(result.document_number).toBe('DOC-123');
-      expect(result.executed_at).toBe(executedAt.toISOString());
+      expect(result.executed_at).toBe(input.executedAt.toISOString());
       expect(result.items[0].product_id).toBe('prod-1');
       expect(result.items[0].variant_id).toBe('var-1');
       expect(result.items[0].quantity).toBe(5);
     });
 
     it('should set document_number to null when not provided', () => {
-      const result = MovementMapper.toPersistence(
-        {
-          type: 'entry',
-          reason: 'Outro',
-          executedAt: new Date('2023-10-02T08:00:00Z'),
-          items: []
-        },
-        'org-1'
-      );
+      const input = createMovementInputFactory.build({
+        reason: 'Outro',
+        documentNumber: undefined,
+        items: []
+      });
+
+      const result = MovementMapper.toPersistence(input, 'org-1');
 
       expect(result.document_number).toBeNull();
     });

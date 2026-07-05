@@ -4,7 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { Movement } from '../../../../../domain/entities';
-import { movementFactory } from '../../../../../tests/factories/movement.factory';
+import {
+  movementFactory,
+  movementItemFactory
+} from '../../../../../tests/factories/movement.factory';
 
 import { MovementCardList } from '.';
 
@@ -71,15 +74,10 @@ describe('MovementCardList', () => {
   it('should show a search-specific empty message when the search has no matches', async () => {
     const movements = movementFactory.buildList(1, {
       items: [
-        {
-          id: 'item-1',
-          movementId: 'mov-1',
+        movementItemFactory.build({
           productId: 'prod-1',
-          quantity: 1,
-          unitCost: 0,
-          unitPrice: 0,
           product: { name: 'Camisa Social' }
-        }
+        })
       ]
     });
 

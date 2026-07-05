@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { IProduct } from '@/features/products';
 
+import { movementBatchItemFactory } from '../schema/batch-item.factory';
+
 import { MovementFormProvider, useMovementForm } from './use-movement-form';
 
 const { mockUseProductsQuery, mockUseMovementCreateMutation, mockMutateAsync } =
@@ -137,15 +139,7 @@ describe('useMovementForm', () => {
 
     act(() => {
       result.current.actions.addItem([
-        {
-          productId: 'prod-1',
-          productName: 'Camisa Social',
-          variantId: null,
-          currentStock: 20,
-          unitCost: 10,
-          unitPrice: 0,
-          quantity: 3
-        } as never
+        movementBatchItemFactory.build({ productId: 'prod-1', quantity: 3 })
       ]);
     });
 
@@ -158,22 +152,17 @@ describe('useMovementForm', () => {
   it('should merge quantities when adding the same product/variant twice', () => {
     const { result } = renderHook(() => useMovementForm(), { wrapper });
 
-    const item = {
+    const item = movementBatchItemFactory.build({
       productId: 'prod-1',
-      productName: 'Camisa Social',
-      variantId: null,
-      currentStock: 20,
-      unitCost: 10,
-      unitPrice: 0,
       quantity: 3
-    };
-
-    act(() => {
-      result.current.actions.addItem([item as never]);
     });
 
     act(() => {
-      result.current.actions.addItem([{ ...item, quantity: 2 } as never]);
+      result.current.actions.addItem([item]);
+    });
+
+    act(() => {
+      result.current.actions.addItem([{ ...item, quantity: 2 }]);
     });
 
     const items = result.current.form.getValues('items');
@@ -187,15 +176,7 @@ describe('useMovementForm', () => {
 
     act(() => {
       result.current.actions.addItem([
-        {
-          productId: 'prod-1',
-          productName: 'Camisa Social',
-          variantId: null,
-          currentStock: 20,
-          unitCost: 10,
-          unitPrice: 0,
-          quantity: 3
-        } as never
+        movementBatchItemFactory.build({ productId: 'prod-1', quantity: 3 })
       ]);
     });
 
@@ -210,15 +191,7 @@ describe('useMovementForm', () => {
 
     act(() => {
       result.current.actions.addItem([
-        {
-          productId: 'prod-1',
-          productName: 'Camisa Social',
-          variantId: null,
-          currentStock: 20,
-          unitCost: 10,
-          unitPrice: 0,
-          quantity: 9
-        } as never
+        movementBatchItemFactory.build({ productId: 'prod-1', quantity: 9 })
       ]);
     });
 
@@ -243,15 +216,7 @@ describe('useMovementForm', () => {
 
     act(() => {
       result.current.actions.addItem([
-        {
-          productId: 'prod-1',
-          productName: 'Camisa Social',
-          variantId: null,
-          currentStock: 20,
-          unitCost: 10,
-          unitPrice: 0,
-          quantity: 3
-        } as never
+        movementBatchItemFactory.build({ productId: 'prod-1', quantity: 3 })
       ]);
     });
 
@@ -268,29 +233,13 @@ describe('useMovementForm', () => {
 
     act(() => {
       result.current.actions.addItem([
-        {
-          productId: 'prod-1',
-          productName: 'Camisa Social',
-          variantId: null,
-          currentStock: 20,
-          unitCost: 10,
-          unitPrice: 0,
-          quantity: 3
-        } as never
+        movementBatchItemFactory.build({ productId: 'prod-1', quantity: 3 })
       ]);
     });
 
     act(() => {
       result.current.actions.addItem([
-        {
-          productId: 'prod-2',
-          productName: 'Lenço de Seda',
-          variantId: null,
-          currentStock: 6,
-          unitCost: 15,
-          unitPrice: 0,
-          quantity: 2
-        } as never
+        movementBatchItemFactory.build({ productId: 'prod-2', quantity: 2 })
       ]);
     });
 
@@ -329,6 +278,11 @@ describe('useMovementForm', () => {
       )
     });
 
+    const batchItem = movementBatchItemFactory.build({
+      productId: 'prod-1',
+      quantity: 3
+    });
+
     await act(async () => {
       await result.current.actions.submit({
         type: 'entry',
@@ -338,17 +292,7 @@ describe('useMovementForm', () => {
         description: '',
         documentNumber: '',
         totalQuantity: 3,
-        items: [
-          {
-            productId: 'prod-1',
-            productName: 'Camisa Social',
-            variantId: null,
-            currentStock: 20,
-            unitCost: 10,
-            unitPrice: 0,
-            quantity: 3
-          }
-        ]
+        items: [batchItem]
       } as never);
     });
 
@@ -359,11 +303,11 @@ describe('useMovementForm', () => {
         description: undefined,
         items: [
           {
-            productId: 'prod-1',
-            variantId: null,
-            quantity: 3,
-            unitCost: 10,
-            unitPrice: 0
+            productId: batchItem.productId,
+            variantId: batchItem.variantId,
+            quantity: batchItem.quantity,
+            unitCost: batchItem.unitCost,
+            unitPrice: batchItem.unitPrice
           }
         ]
       })

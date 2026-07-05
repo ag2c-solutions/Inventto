@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { movementBatchItemFactory } from '../../schema/batch-item.factory';
+
 import { MovementBatchList } from '.';
 
 const { mockUseMovementForm, mockUseIsMobile } = vi.hoisted(() => ({
@@ -23,16 +25,15 @@ function buildForm(type: 'entry' | 'withdrawal', items: unknown[]) {
   };
 }
 
-const baseItem = {
+const baseItem = movementBatchItemFactory.build({
   productId: 'prod-1',
-  variantId: null,
   productName: 'Camisa Social',
   sku: 'CS-1',
   currentStock: 5,
   unitCost: 10,
   unitPrice: 20,
   quantity: 2
-};
+});
 
 describe('MovementBatchList', () => {
   const editItem = vi.fn();

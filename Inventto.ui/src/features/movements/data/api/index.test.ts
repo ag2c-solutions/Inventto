@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { MovementDTO } from '../dtos';
+import {
+  createMovementInputFactory,
+  movementDTOFactory
+} from '../../tests/factories/movement.factory';
 
 import { MovementApi } from './index';
 
@@ -40,21 +43,6 @@ vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
 }));
 
-const mockMovementDTO: MovementDTO = {
-  id: 'mov-1',
-  organization_id: 'org-1',
-  user_id: 'user-1',
-  type: 'entry',
-  reason: 'purchase',
-  description: null,
-  document_number: null,
-  order_id: null,
-  created_at: '2023-01-01T00:00:00Z',
-  executed_at: '2023-01-01T00:00:00Z',
-  profiles: { full_name: 'John Doe', avatar_url: null },
-  movement_items: []
-};
-
 describe('MovementApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -70,21 +58,27 @@ describe('MovementApi', () => {
 
   describe('getAll', () => {
     it('should query "movements" filtered by organizationId and return mapped domain objects', async () => {
+      const dto = movementDTOFactory.build();
       mockOverrideTypes.mockResolvedValue({
-        data: [mockMovementDTO],
+        data: [dto],
         error: null
       });
 
-      const result = await MovementApi.getAll({ organizationId: 'org-1' });
+      const result = await MovementApi.getAll({
+        organizationId: dto.organization_id
+      });
 
       expect(mockSupabase.from).toHaveBeenCalledWith('movements');
-      expect(mockEq).toHaveBeenCalledWith('organization_id', 'org-1');
+      expect(mockEq).toHaveBeenCalledWith(
+        'organization_id',
+        dto.organization_id
+      );
       expect(mockOrder).toHaveBeenCalledWith('created_at', {
         ascending: false
       });
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('mov-1');
-      expect(result[0].type).toBe('entry');
+      expect(result[0].id).toBe(dto.id);
+      expect(result[0].type).toBe(dto.type);
     });
 
     it('should apply productId filter when provided', async () => {
@@ -134,21 +128,14 @@ describe('MovementApi', () => {
     it('should call RPC "create_stock_movement" with correctly mapped payload', async () => {
       mockRpc.mockResolvedValue({ data: 'new-movement-id', error: null });
 
+      const input = createMovementInputFactory.build({
+        type: 'entry',
+        reason: 'Compra'
+      });
+
       const result = await MovementApi.create({
         organizationId: 'org-1',
-        input: {
-          type: 'entry',
-          reason: 'Compra',
-          executedAt: new Date('2023-01-01T00:00:00Z'),
-          items: [
-            {
-              productId: 'prod-1',
-              quantity: 5,
-              unitCost: 10,
-              unitPrice: 20
-            }
-          ]
-        }
+        input
       });
 
       expect(mockRpc).toHaveBeenCalledWith(
@@ -178,12 +165,7 @@ describe('MovementApi', () => {
       await expect(
         MovementApi.create({
           organizationId: 'org-1',
-          input: {
-            type: 'withdrawal',
-            reason: 'Venda',
-            executedAt: new Date('2023-01-01T00:00:00Z'),
-            items: []
-          }
+          input: createMovementInputFactory.build({ type: 'withdrawal' })
         })
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'
@@ -200,12 +182,7 @@ describe('MovementApi', () => {
       await expect(
         MovementApi.create({
           organizationId: 'org-1',
-          input: {
-            type: 'entry',
-            reason: 'Outro',
-            executedAt: new Date('2023-01-01T00:00:00Z'),
-            items: []
-          }
+          input: createMovementInputFactory.build()
         })
       ).rejects.toThrow(
         'Você não tem permissão para realizar movimentações de estoque.'

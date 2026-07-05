@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { movementBatchItemFactory } from '../../schema/batch-item.factory';
+
 import { AddItemsDialog } from '.';
 
 const { mockUseMovementForm, mockUseIsMobile } = vi.hoisted(() => ({
@@ -160,14 +162,12 @@ describe('AddItemsDialog', () => {
       form: buildForm('entry'),
       actions: { toggleDialog, addItem },
       selectedProduct: simpleProduct,
-      editingItem: {
+      editingItem: movementBatchItemFactory.build({
         productId: 'prod-1',
-        variantId: null,
         quantity: 2,
         currentStock: 10,
-        unitCost: 5,
-        unitPrice: 0
-      },
+        unitCost: 5
+      }),
       editingIndex: 0
     });
 

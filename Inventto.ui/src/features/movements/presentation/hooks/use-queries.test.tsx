@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MovementApi } from '../../data/api';
-import type { Movement } from '../../domain/entities';
+import { movementFactory } from '../../tests/factories/movement.factory';
 
 const mockUseUser = vi.fn();
 
@@ -35,19 +35,7 @@ describe('useMovementsQuery', () => {
   );
 
   it('should fetch movements using MovementApi.getAll with organizationId', async () => {
-    const mockMovements: Movement[] = [
-      {
-        id: 'mov-1',
-        organizationId: 'org-1',
-        type: 'entry',
-        reason: 'Compra',
-        createdAt: new Date(),
-        executedAt: new Date(),
-        totalQuantity: 10,
-        totalValue: 100,
-        items: []
-      }
-    ];
+    const mockMovements = movementFactory.buildList(1);
 
     vi.mocked(MovementApi.getAll).mockResolvedValue(mockMovements);
 

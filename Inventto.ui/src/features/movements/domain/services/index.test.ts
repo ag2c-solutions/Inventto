@@ -1,6 +1,8 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MovementApi } from '../../data/api';
+import { createMovementInputFactory } from '../../tests/factories/movement.factory';
 
 import { MovementService } from './index';
 
@@ -10,32 +12,32 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
+function buildOrganization(overrides: { id?: string } = {}) {
+  return {
+    id: overrides.id ?? faker.string.uuid(),
+    name: faker.company.name(),
+    slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
+    role: 'owner' as const
+  };
+}
+
 describe('MovementService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('create', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
-    const executedAt = new Date('2023-10-02T08:00:00Z');
-
     it('should delegate to MovementApi.create with orgId extracted from organization', async () => {
       vi.mocked(MovementApi.create).mockResolvedValue('new-movement-id');
 
-      const result = await MovementService.create({
-        input: { type: 'entry', reason: 'Compra', executedAt, items: [] },
-        organization: mockOrganization
-      });
+      const input = createMovementInputFactory.build();
+      const organization = buildOrganization();
+
+      const result = await MovementService.create({ input, organization });
 
       expect(MovementApi.create).toHaveBeenCalledWith({
-        input: { type: 'entry', reason: 'Compra', executedAt, items: [] },
-        organizationId: 'org-1'
+        input,
+        organizationId: organization.id
       });
       expect(result).toBe('new-movement-id');
     });
@@ -43,7 +45,7 @@ describe('MovementService', () => {
     it('should throw when organization is null', async () => {
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Venda', executedAt, items: [] },
+          input: createMovementInputFactory.build(),
           organization: null
         })
       ).rejects.toThrow('Nenhuma organização selecionada.');
@@ -58,8 +60,8 @@ describe('MovementService', () => {
 
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Venda', executedAt, items: [] },
-          organization: mockOrganization
+          input: createMovementInputFactory.build(),
+          organization: buildOrganization()
         })
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'

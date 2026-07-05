@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MovementService } from '../../domain/services';
+import { createMovementInputFactory } from '../../tests/factories/movement.factory';
 
 const mockUseUser = vi.fn();
 
@@ -42,12 +43,10 @@ describe('useMovementCreateMutation', () => {
       wrapper
     });
 
-    const input = {
-      type: 'entry' as const,
-      reason: 'Compra' as const,
-      executedAt: new Date('2023-10-02T08:00:00Z'),
-      items: []
-    };
+    const input = createMovementInputFactory.build({
+      type: 'entry',
+      reason: 'Compra'
+    });
 
     await result.current.mutateAsync(input);
 
@@ -71,19 +70,17 @@ describe('useMovementCreateMutation', () => {
       wrapper
     });
 
-    const executedAt = new Date('2023-10-02T08:00:00Z');
+    const input = createMovementInputFactory.build({
+      type: 'entry',
+      reason: 'Outro'
+    });
 
-    await expect(
-      result.current.mutateAsync({
-        type: 'entry',
-        reason: 'Outro',
-        executedAt,
-        items: []
-      })
-    ).rejects.toThrow('Nenhuma organização selecionada.');
+    await expect(result.current.mutateAsync(input)).rejects.toThrow(
+      'Nenhuma organização selecionada.'
+    );
 
     expect(MovementService.create).toHaveBeenCalledWith({
-      input: { type: 'entry', reason: 'Outro', executedAt, items: [] },
+      input,
       organization: null
     });
   });

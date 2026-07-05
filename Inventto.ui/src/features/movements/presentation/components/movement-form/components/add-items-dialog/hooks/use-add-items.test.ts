@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IProduct } from '@/features/products';
 
 import type { MovementFormData } from '../../../schema';
+import { movementBatchItemFactory } from '../../../schema/batch-item.factory';
 
 import { useAddItems } from './use-add-items';
 
@@ -107,15 +108,13 @@ describe('useAddItems', () => {
 
   it('accounts for quantity already in the batch when computing available stock', () => {
     const existingItems: FormItem[] = [
-      {
+      movementBatchItemFactory.build({
         productId: 'prod-1',
-        productName: 'Camisa Social Algodão',
         variantId: 'var-2',
         currentStock: 8,
         quantity: 6,
-        unitCost: 29,
-        unitPrice: 0
-      } as FormItem
+        unitCost: 29
+      })
     ];
 
     const { result } = renderHook(() =>
@@ -132,15 +131,14 @@ describe('useAddItems', () => {
   });
 
   it('prefills quantity and value from the editing item', () => {
-    const editingItem: FormItem = {
+    const editingItem: FormItem = movementBatchItemFactory.build({
       productId: 'prod-1',
-      productName: 'Camisa Social Algodão',
       variantId: 'var-1',
       currentStock: 12,
       quantity: 4,
       unitCost: 29,
       unitPrice: 89.9
-    } as FormItem;
+    });
 
     const { result } = renderHook(() =>
       useAddItems(buildProps({ isWithdrawal: true, editingItem }))
