@@ -50,6 +50,17 @@ describe('handleCategoryError', () => {
     );
   });
 
+  it('deve relançar com mensagem genérica para erro Postgrest sem code 23505 e sem "network" na mensagem', () => {
+    const error = makePostgrestError({
+      code: '500',
+      message: 'Database crash'
+    });
+
+    expect(() => handleCategoryError(error, 'add')).toThrow(
+      'Não foi possível realizar a operação. Tente novamente.'
+    );
+  });
+
   it('deve relançar com a mensagem original para instâncias de Error que não sejam Postgrest', () => {
     const error = new Error('Algo deu errado');
 

@@ -7,6 +7,8 @@ import { categoryFactory } from '../../tests/factories/category.factory';
 
 import { useCategoriesQuery } from './use-queries';
 
+const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
+
 vi.mock('../../data/api', () => ({
   CategoryApi: {
     getAll: vi.fn()
@@ -14,9 +16,7 @@ vi.mock('../../data/api', () => ({
 }));
 
 vi.mock('@/features/users', () => ({
-  useUser: vi.fn(() => ({
-    currentOrganization: { id: 'org-1' }
-  }))
+  useUser: mockUseUser
 }));
 
 describe('useCategoriesQuery', () => {
@@ -24,6 +24,7 @@ describe('useCategoriesQuery', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } }
     });
@@ -58,5 +59,14 @@ describe('useCategoriesQuery', () => {
     expect(result.current.error?.message).toBe(
       'Não foi possível realizar a operação.'
     );
+  });
+
+  it('should not fetch when there is no current organization', () => {
+    mockUseUser.mockReturnValue({ currentOrganization: null });
+
+    const { result } = renderHook(() => useCategoriesQuery(), { wrapper });
+
+    expect(CategoryApi.getAll).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
   });
 });
