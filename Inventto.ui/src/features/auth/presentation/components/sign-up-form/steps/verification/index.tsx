@@ -5,10 +5,10 @@ import { useWizard } from '@/shared/components/common/wizard';
 import {
   useResendOtpMutation,
   useVerifyOtpMutation
-} from '../../../../../hooks/use-mutations';
-import { maskEmail } from '../../../../../utils/mask-email';
-import { OtpStep } from '../../../../otp-step/';
-import { useSignUpForm } from '../../hook';
+} from '../../../../hooks/use-mutations';
+import { maskEmail } from '../../../../utils/mask-email';
+import { OtpStep } from '../../../otp-step/';
+import { useSignUpForm } from '../../hooks/use-sign-up-form';
 
 export function VerificationStep() {
   const navigate = useNavigate();

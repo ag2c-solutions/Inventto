@@ -4,7 +4,7 @@ import {
   WizardControl
 } from '@/shared/components/common/wizard';
 
-import { useSignUpForm } from './hook';
+import { useSignUpForm } from './hooks/use-sign-up-form';
 import { steps } from './steps';
 
 export function SignUpForm() {

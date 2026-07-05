@@ -6,20 +6,17 @@ import { useForm } from 'react-hook-form';
 import {
   type ResetPasswordFormValues,
   resetPasswordSchema
-} from '../../../domain/validators';
-import {
-  type RecoverPasswordFormData,
-  recoverPasswordSchema
-} from '../../components/forms/recover-password/schema';
+} from '../../../../domain/validators';
 import {
   useRecoverPasswordMutation,
   useSetNewPasswordMutation,
   useVerifyRecoveryOtpMutation
-} from '../../hooks/use-mutations';
+} from '../../../hooks/use-mutations';
+import { type RecoverPasswordFormData, recoverPasswordSchema } from '../schema';
 
 type RecoverStep = 'email' | 'otp' | 'password';
 
-export function useRecoverPassword() {
+export function useRecoverPasswordForm() {
   const navigate = useNavigate();
   const [step, setStep] = useState<RecoverStep>('email');
   const [email, setEmail] = useState('');

@@ -11,7 +11,7 @@ const mockResendOtp = vi.fn();
 const mockPrevStep = vi.fn();
 const mockNavigate = vi.fn();
 
-vi.mock('../../hook', () => ({
+vi.mock('../../hooks/use-sign-up-form', () => ({
   useSignUpForm: () => ({
     form: {
       getValues: (field?: string) => {
@@ -22,7 +22,7 @@ vi.mock('../../hook', () => ({
   })
 }));
 
-vi.mock('../../../../../hooks/use-mutations', () => ({
+vi.mock('../../../../hooks/use-mutations', () => ({
   useVerifyOtpMutation: () => ({
     mutateAsync: mockVerifyOtp,
     isPending: false,

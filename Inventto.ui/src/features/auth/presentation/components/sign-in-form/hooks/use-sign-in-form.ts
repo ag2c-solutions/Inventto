@@ -9,8 +9,7 @@ import {
   useSignInMutation,
   useVerifyOtpMutation
 } from '../../../hooks/use-mutations';
-
-import { type SignInFormData, signInSchema } from './schema';
+import { type SignInFormData, signInSchema } from '../schema';
 
 export function useSignInForm() {
   const { mutateAsync: signIn } = useSignInMutation();

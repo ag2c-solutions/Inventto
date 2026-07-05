@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { RecoverPasswordPage } from './index';
+import { RecoverPasswordForm } from './index';
 
 const mockNavigate = vi.fn();
 const mockRecoverPassword = vi.fn();
@@ -58,12 +58,12 @@ vi.mock('@/shared/components/ui/input-otp', () => ({
 function renderPage() {
   return render(
     <MemoryRouter>
-      <RecoverPasswordPage />
+      <RecoverPasswordForm />
     </MemoryRouter>
   );
 }
 
-describe('RecoverPasswordPage', () => {
+describe('RecoverPasswordForm', () => {
   const user = userEvent.setup();
 
   beforeEach(() => {

@@ -11,7 +11,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import { useSignUpForm } from '../../hook';
+import { useSignUpForm } from '../../hooks/use-sign-up-form';
 
 export function UserStep() {
   const { form } = useSignUpForm();

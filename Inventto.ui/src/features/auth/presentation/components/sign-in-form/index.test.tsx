@@ -11,7 +11,7 @@ const mockResendOtp = vi.fn().mockResolvedValue(undefined);
 
 let verifyOtpError: Error | null = null;
 
-vi.mock('../../../hooks/use-mutations', () => ({
+vi.mock('../../hooks/use-mutations', () => ({
   useSignInMutation: () => ({
     mutateAsync: mockMutateAsync,
     isPending: false

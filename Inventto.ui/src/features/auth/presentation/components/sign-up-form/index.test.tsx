@@ -9,7 +9,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { SignUpFormProvider, useSignUpForm } from './hook';
+import { SignUpFormProvider, useSignUpForm } from './hooks/use-sign-up-form';
 import { SignUpForm } from './index';
 
 const mockSignUp = vi.fn();
@@ -17,7 +17,7 @@ const mockVerifyOtp = vi.fn();
 const mockResendOtp = vi.fn();
 const mockNavigate = vi.fn();
 
-vi.mock('../../../hooks/use-mutations', () => ({
+vi.mock('../../hooks/use-mutations', () => ({
   useSignUpMutation: () => ({
     mutateAsync: mockSignUp,
     isPending: false

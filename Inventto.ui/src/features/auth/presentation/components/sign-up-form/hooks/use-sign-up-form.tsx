@@ -9,8 +9,8 @@ import { formatDocument, normalizeDocument } from '@/shared/utils';
 import {
   type SignUpFormValues as SignUpFormData,
   signUpSchema
-} from '../../../../../domain/validators';
-import { useSignUpMutation } from '../../../../hooks/use-mutations';
+} from '../../../../domain/validators';
+import { useSignUpMutation } from '../../../hooks/use-mutations';
 
 interface SignUpFormContextType {
   form: UseFormReturn<SignUpFormData>;

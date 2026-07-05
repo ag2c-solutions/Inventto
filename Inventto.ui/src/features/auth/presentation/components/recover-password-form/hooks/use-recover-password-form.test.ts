@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useRecoverPassword } from './use-recover-password';
+import { useRecoverPasswordForm } from './use-recover-password-form';
 
 const mockNavigate = vi.fn();
 const mockRecoverPassword = vi.fn();
@@ -16,7 +16,7 @@ vi.mock('react-router', async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-vi.mock('../../hooks/use-mutations', () => ({
+vi.mock('../../../hooks/use-mutations', () => ({
   useRecoverPasswordMutation: () => ({ mutateAsync: mockRecoverPassword }),
   useVerifyRecoveryOtpMutation: () => ({
     mutateAsync: mockVerifyRecoveryOtp,
@@ -30,7 +30,7 @@ vi.mock('../../hooks/use-mutations', () => ({
 const wrapper = ({ children }: { children: ReactNode }) =>
   createElement(MemoryRouter, null, children);
 
-describe('useRecoverPassword', () => {
+describe('useRecoverPasswordForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRecoverPassword.mockResolvedValue(undefined);
@@ -39,13 +39,13 @@ describe('useRecoverPassword', () => {
   });
 
   it('starts at the email step', () => {
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     expect(result.current.step).toBe('email');
   });
 
   it('advances to the otp step and stores the email on submit', async () => {
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitEmail({ email: 'user@example.com' });
@@ -61,7 +61,7 @@ describe('useRecoverPassword', () => {
   it('still advances to otp when the send fails (RN002 anti-enumeração)', async () => {
     mockRecoverPassword.mockRejectedValue(new Error('rate limit'));
 
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitEmail({ email: 'ghost@example.com' });
@@ -71,7 +71,7 @@ describe('useRecoverPassword', () => {
   });
 
   it('advances to the password step after a valid code', async () => {
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitEmail({ email: 'user@example.com' });
@@ -90,7 +90,7 @@ describe('useRecoverPassword', () => {
   it('stays on the otp step when the code is invalid', async () => {
     mockVerifyRecoveryOtp.mockRejectedValue(new Error('Código inválido.'));
 
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitEmail({ email: 'user@example.com' });
@@ -104,7 +104,7 @@ describe('useRecoverPassword', () => {
   });
 
   it('navigates to the dashboard after setting the new password', async () => {
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitPassword({
@@ -120,7 +120,7 @@ describe('useRecoverPassword', () => {
   });
 
   it('resends the code through recoverPassword', async () => {
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitEmail({ email: 'user@example.com' });
@@ -138,7 +138,7 @@ describe('useRecoverPassword', () => {
   });
 
   it('goes back to the email step', async () => {
-    const { result } = renderHook(() => useRecoverPassword(), { wrapper });
+    const { result } = renderHook(() => useRecoverPasswordForm(), { wrapper });
 
     await act(async () => {
       await result.current.onSubmitEmail({ email: 'user@example.com' });

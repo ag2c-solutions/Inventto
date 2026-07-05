@@ -12,7 +12,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import type { RecoverPasswordFormData } from './schema';
+import type { RecoverPasswordFormData } from '../schema';
 
 interface EmailStepProps {
   form: UseFormReturn<RecoverPasswordFormData>;

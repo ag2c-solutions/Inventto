@@ -9,7 +9,7 @@ import {
 } from '@/shared/components/ui/input-otp';
 import { cn } from '@/shared/utils';
 
-import { useOtpStep } from './use-otp-step';
+import { useOtpStep } from './hooks/use-otp-step';
 
 export interface OtpStepProps {
   title: string;
