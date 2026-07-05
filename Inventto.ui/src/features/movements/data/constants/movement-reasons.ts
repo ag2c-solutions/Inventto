@@ -1,5 +1,5 @@
-import type { MovementReasonDTO } from '../../data/dtos';
 import type { MovementReason } from '../../domain/entities';
+import type { MovementReasonDTO } from '../dtos';
 
 export const MOVEMENT_REASONS_DTO: Record<MovementReason, MovementReasonDTO> = {
   // RN053 — motivos vigentes

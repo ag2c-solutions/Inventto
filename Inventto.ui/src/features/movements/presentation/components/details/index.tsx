@@ -1,8 +1,7 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-import type { Movement } from '@/features/movements/domain/entities';
-
+import type { Movement } from '../../../domain/entities';
 import { ItemsList } from '../items-list';
 
 interface Props {

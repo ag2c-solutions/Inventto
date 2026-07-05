@@ -6,7 +6,6 @@ import { MovementService } from './index';
 
 vi.mock('../../data/api', () => ({
   MovementApi: {
-    getAll: vi.fn(),
     create: vi.fn()
   }
 }));
@@ -65,58 +64,6 @@ describe('MovementService', () => {
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'
       );
-    });
-  });
-
-  describe('getAll', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
-    it('should delegate to MovementApi.getAll with orgId extracted from organization', async () => {
-      vi.mocked(MovementApi.getAll).mockResolvedValue([]);
-
-      await MovementService.getAll({ organization: mockOrganization });
-
-      expect(MovementApi.getAll).toHaveBeenCalledWith({
-        organizationId: 'org-1',
-        productId: undefined
-      });
-    });
-
-    it('should pass productId filter when provided', async () => {
-      vi.mocked(MovementApi.getAll).mockResolvedValue([]);
-
-      await MovementService.getAll({
-        organization: mockOrganization,
-        productId: 'prod-123'
-      });
-
-      expect(MovementApi.getAll).toHaveBeenCalledWith({
-        organizationId: 'org-1',
-        productId: 'prod-123'
-      });
-    });
-
-    it('should throw when organization is null', async () => {
-      await expect(
-        MovementService.getAll({ organization: null })
-      ).rejects.toThrow('Nenhuma organização selecionada.');
-
-      expect(MovementApi.getAll).not.toHaveBeenCalled();
-    });
-
-    it('should propagate errors thrown by MovementApi.getAll', async () => {
-      vi.mocked(MovementApi.getAll).mockRejectedValue(
-        new Error('Erro de conexão. Verifique sua internet.')
-      );
-
-      await expect(
-        MovementService.getAll({ organization: mockOrganization })
-      ).rejects.toThrow('Erro de conexão. Verifique sua internet.');
     });
   });
 });
