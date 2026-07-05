@@ -6,10 +6,10 @@ import { Input } from '@/shared/components/ui/input';
 import { useUser } from '@/features/users';
 
 import { useOrganizationMembersQuery } from '../../hooks/use-queries';
-import { AddMember } from '../add-member';
+import { AddMember } from '../actions/add-member';
 
-import { MemberCard } from './member-card';
-import { MembersCardListSkeleton } from './skeleton';
+import { MemberCard } from './pieces/card';
+import { MembersCardListSkeleton } from './pieces/skeleton';
 
 const PAGE_SIZE = 8;
 

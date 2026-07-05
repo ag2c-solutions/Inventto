@@ -9,11 +9,11 @@ vi.mock('../hooks/use-queries', () => ({
   useOrganizationQuery: mockUseOrganizationQuery
 }));
 
-vi.mock('../components/organization-settings-form', () => ({
+vi.mock('../components/forms/organization-settings', () => ({
   OrganizationSettingsForm: () => <div data-testid="settings-form" />
 }));
 
-vi.mock('../components/organization-settings-form/skeleton', () => ({
+vi.mock('../components/forms/organization-settings/pieces/skeleton', () => ({
   OrganizationSettingsFormSkeleton: () => (
     <div data-testid="settings-skeleton" />
   )

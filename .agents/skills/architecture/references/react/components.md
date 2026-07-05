@@ -195,6 +195,44 @@ Um componente por pasta, no padrão `nome-do-componente/index.tsx`.
 
 ---
 
+## Agrupamento por tipo (`forms/` e `actions/`)
+
+Quando a feature tiver múltiplos formulários e/ou componentes de ação
+(dialogs, sheets, botões, switchers que disparam mutation ou abrem um form),
+agrupe-os por tipo dentro de `presentation/components/`:
+
+```text
+presentation/components/
+├── forms/
+│   ├── create-organization/
+│   │   ├── hooks/
+│   │   │   └── use-create-organization-form.ts
+│   │   └── index.tsx
+│   └── organization-settings/
+│       ├── tabs/
+│       ├── hooks/
+│       └── index.tsx
+│
+├── actions/
+│   ├── create-organization/        # dialog + trigger, consome forms/create-organization
+│   ├── delete-organization/
+│   └── logo-change/
+│
+└── org-avatar/                     # sem semântica de form/action, fica solto
+```
+
+- `forms/<nome>/` — formulário puro (React Hook Form). Recebe `onSuccess`/`onCancel`
+  via props; não decide como/quando aparecer na tela.
+- `actions/<nome>/` — dispara a ação (dialog, sheet, botão, switcher). Controla
+  abertura/fechamento e compõe o form quando houver um.
+- Componente sem essa semântica (lista, tabela, card, avatar) continua solto em
+  `presentation/components/<nome>/`, como no exemplo acima.
+
+Use esse agrupamento em toda feature nova; ao dar manutenção numa feature
+existente, migre para esse padrão.
+
+---
+
 # Estrutura interna de um componente
 
 Nem toda pasta abaixo existe em todo componente — só crie a que o componente
@@ -204,7 +242,7 @@ realmente precisar. `index.tsx` é a única obrigatória.
 |---|---|
 | `schema/` | Schemas de validação (Zod) do componente |
 | `hooks/` | Toda a lógica do componente. `use-<component>.ts` é o hook principal, mesmo quando é o único — sempre dentro de `hooks/`, nunca solto ao lado do `index.tsx`. Hooks auxiliares (ex: `use-<component>-fields.ts`) também vivem aqui |
-| `pieces/` | Sub-componentes, quando o componente precisar ser quebrado em pedaços menores. Cada piece pode ter sua própria estrutura interna completa (`hooks/`, `types/` etc.) quando for complexo o suficiente |
+| `pieces/` | Sub-componentes, quando o componente precisar ser quebrado em pedaços menores (ex: skeleton, card de lista, trigger customizado). Sempre `pieces/<nome>/index.tsx` — nunca um arquivo solto ao lado do `index.tsx` do componente pai. Cada piece pode ter sua própria estrutura interna completa (`hooks/`, `types/` etc.) quando for complexo o suficiente |
 | `types/` | Interfaces/props do componente e dos seus pieces |
 | `utils/` | Funções puras auxiliares específicas do componente (formatação, transformação local) |
 | `constants/` | Opções fixas, labels, valores default — só quando o componente tiver esse tipo de dado |

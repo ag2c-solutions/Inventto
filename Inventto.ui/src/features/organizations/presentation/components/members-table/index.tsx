@@ -19,10 +19,10 @@ import {
 import { useUser } from '@/features/users';
 
 import { useOrganizationMembersQuery } from '../../hooks/use-queries';
-import { AddMember } from '../add-member';
+import { AddMember } from '../actions/add-member';
 
+import { MembersTableSkeleton } from './pieces/skeleton';
 import { columns } from './columns';
-import { MembersTableSkeleton } from './skeleton';
 
 export function MembersListTable() {
   const { isLoading: isLoadingOrg } = useUser();

@@ -370,6 +370,10 @@ Componentes:
 - modais
 - cards
 
+Quando houver múltiplos formulários e/ou componentes de ação (dialogs, botões,
+switchers), agrupe-os em `components/forms/` e `components/actions/`. Ver
+`references/react/components.md`.
+
 Pages:
 
 - listagem
