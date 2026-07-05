@@ -1,6 +1,11 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UserAPI } from '../../data/api';
+import {
+  userFactory,
+  userOrganizationFactory
+} from '../../tests/factories/user.factory';
 import type { User } from '../entities';
 
 import { UserService } from './index';
@@ -17,27 +22,13 @@ const mockUploadImage = vi.mocked(UserAPI.saveProfileImage);
 const mockUpdateAvatar = vi.mocked(UserAPI.updateAvatar);
 const mockUpdatePassword = vi.mocked(UserAPI.updatePassword);
 
-const user: User = {
-  id: 'user-123',
-  email: 'rafael@test.com',
-  fullName: 'Rafael Conceição',
-  avatarUrl: 'https://cdn.example.com/avatar.png',
-  mustChangePassword: false,
-  createdAt: new Date('2026-05-04T10:00:00.000Z'),
-  updatedAt: new Date('2026-05-04T12:00:00.000Z'),
-  availableOrganizations: [
-    {
-      id: 'organization-123',
-      name: 'Inventto',
-      role: 'owner'
-    },
-    {
-      id: 'organization-456',
-      name: 'Smart Tech',
-      role: 'manager'
-    }
-  ]
-};
+const org1 = userOrganizationFactory.build({ role: 'owner' });
+const org2 = userOrganizationFactory.build({ role: 'manager' });
+const unknownOrgId = faker.string.uuid();
+
+const user: User = userFactory.build({
+  availableOrganizations: [org1, org2]
+});
 
 describe('UserService', () => {
   beforeEach(() => {
@@ -45,7 +36,7 @@ describe('UserService', () => {
   });
 
   describe('updateAvatar', () => {
-    const userId = 'user-123';
+    const userId = user.id;
     const croppedFile = new File(['content'], 'avatar.png', {
       type: 'image/png'
     });
@@ -189,7 +180,7 @@ describe('UserService', () => {
 
   describe('getOrganizationById', () => {
     it('should return organization by id', () => {
-      const result = UserService.getOrganizationById(user, 'organization-456');
+      const result = UserService.getOrganizationById(user, org2.id);
 
       expect(result).toEqual(user.availableOrganizations[1]);
     });
@@ -207,7 +198,7 @@ describe('UserService', () => {
     });
 
     it('should return default organization when organization id does not exist', () => {
-      const result = UserService.getOrganizationById(user, 'organization-999');
+      const result = UserService.getOrganizationById(user, unknownOrgId);
 
       expect(result).toEqual(user.availableOrganizations[0]);
     });
@@ -218,7 +209,7 @@ describe('UserService', () => {
           ...user,
           availableOrganizations: []
         },
-        'organization-123'
+        org1.id
       );
 
       expect(result).toBeNull();
@@ -227,15 +218,15 @@ describe('UserService', () => {
 
   describe('selectOrganization', () => {
     it('should return selected organization when user belongs to it', () => {
-      const result = UserService.selectOrganization(user, 'organization-456');
+      const result = UserService.selectOrganization(user, org2.id);
 
       expect(result).toEqual(user.availableOrganizations[1]);
     });
 
     it('should throw when user is not loaded', () => {
-      expect(() =>
-        UserService.selectOrganization(null, 'organization-123')
-      ).toThrow('Usuário não carregado.');
+      expect(() => UserService.selectOrganization(null, org1.id)).toThrow(
+        'Usuário não carregado.'
+      );
     });
 
     it('should throw when organization id is empty', () => {
@@ -245,27 +236,27 @@ describe('UserService', () => {
     });
 
     it('should throw when user does not belong to selected organization', () => {
-      expect(() =>
-        UserService.selectOrganization(user, 'organization-999')
-      ).toThrow('Usuário não pertence à organização selecionada.');
+      expect(() => UserService.selectOrganization(user, unknownOrgId)).toThrow(
+        'Usuário não pertence à organização selecionada.'
+      );
     });
   });
 
   describe('isOrganizationMember', () => {
     it('should return true when user belongs to organization', () => {
-      const result = UserService.isOrganizationMember(user, 'organization-123');
+      const result = UserService.isOrganizationMember(user, org1.id);
 
       expect(result).toBe(true);
     });
 
     it('should return false when user does not belong to organization', () => {
-      const result = UserService.isOrganizationMember(user, 'organization-999');
+      const result = UserService.isOrganizationMember(user, unknownOrgId);
 
       expect(result).toBe(false);
     });
 
     it('should return false when user is null', () => {
-      const result = UserService.isOrganizationMember(null, 'organization-123');
+      const result = UserService.isOrganizationMember(null, org1.id);
 
       expect(result).toBe(false);
     });
