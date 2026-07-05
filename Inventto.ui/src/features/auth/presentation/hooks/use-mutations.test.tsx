@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -5,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '../../domain/services';
 import {
   recoverPasswordPayloadFactory,
+  resendOtpPayloadFactory,
   resetPasswordPayloadFactory,
   signInPayloadFactory,
   signUpPayloadFactory,
@@ -12,11 +14,15 @@ import {
 } from '../../tests/factories/auth.factory';
 
 import {
+  useConfirmFirstAccessMutation,
   useRecoverPasswordMutation,
+  useResendOtpMutation,
+  useSetFirstAccessPasswordMutation,
   useSetNewPasswordMutation,
   useSignInMutation,
   useSignOutMutation,
   useSignUpMutation,
+  useVerifyOtpMutation,
   useVerifyRecoveryOtpMutation
 } from './use-mutations';
 
@@ -25,9 +31,13 @@ vi.mock('../../domain/services', () => ({
     signIn: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
+    verifyOtp: vi.fn(),
+    resendOtp: vi.fn(),
     recoverPassword: vi.fn(),
     verifyRecoveryOtp: vi.fn(),
-    completePasswordRecovery: vi.fn()
+    completePasswordRecovery: vi.fn(),
+    setFirstAccessPassword: vi.fn(),
+    confirmFirstAccess: vi.fn()
   }
 }));
 
@@ -212,6 +222,140 @@ describe('Auth Mutations', () => {
 
       expect(AuthService.signOut).toHaveBeenCalled();
       expect(clearSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('useVerifyOtpMutation', () => {
+    it('should call AuthService.verifyOtp and invalidate auth queries on success', async () => {
+      vi.mocked(AuthService.verifyOtp).mockResolvedValue({} as never);
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+      const { result } = renderHook(() => useVerifyOtpMutation(), { wrapper });
+
+      const payload = verifyOtpPayloadFactory.build();
+      await result.current.mutateAsync(payload);
+
+      expect(AuthService.verifyOtp).toHaveBeenCalledWith(
+        payload,
+        expect.anything()
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auth'] });
+    });
+
+    it('should suppress the global error toast (erro inline no OtpStep)', async () => {
+      vi.mocked(AuthService.verifyOtp).mockRejectedValue(
+        new Error('Código inválido ou expirado.')
+      );
+
+      const { result } = renderHook(() => useVerifyOtpMutation(), { wrapper });
+
+      await expect(
+        result.current.mutateAsync(verifyOtpPayloadFactory.build())
+      ).rejects.toThrow();
+
+      const mutation = queryClient.getMutationCache().getAll()[0];
+      expect(mutation.meta?.suppressErrorToast).toBe(true);
+    });
+  });
+
+  describe('useResendOtpMutation', () => {
+    it('should call AuthService.resendOtp with the email', async () => {
+      vi.mocked(AuthService.resendOtp).mockResolvedValue();
+
+      const { result } = renderHook(() => useResendOtpMutation(), { wrapper });
+
+      const payload = resendOtpPayloadFactory.build();
+      await result.current.mutateAsync(payload);
+
+      expect(AuthService.resendOtp).toHaveBeenCalledWith(
+        payload,
+        expect.anything()
+      );
+    });
+  });
+
+  describe('useSetFirstAccessPasswordMutation', () => {
+    it('should call AuthService.setFirstAccessPassword with the payload', async () => {
+      vi.mocked(AuthService.setFirstAccessPassword).mockResolvedValue();
+
+      const { result } = renderHook(() => useSetFirstAccessPasswordMutation(), {
+        wrapper
+      });
+
+      const payload = {
+        newPassword: faker.internet.password({ length: 12 }),
+        email: faker.internet.email()
+      };
+      await result.current.mutateAsync(payload);
+
+      expect(AuthService.setFirstAccessPassword).toHaveBeenCalledWith(payload);
+    });
+
+    it('should expose the errorMessage via meta on failure', async () => {
+      vi.mocked(AuthService.setFirstAccessPassword).mockRejectedValue(
+        new Error('Falha ao definir senha')
+      );
+
+      const { result } = renderHook(() => useSetFirstAccessPasswordMutation(), {
+        wrapper
+      });
+
+      await expect(
+        result.current.mutateAsync({
+          newPassword: faker.internet.password({ length: 12 }),
+          email: faker.internet.email()
+        })
+      ).rejects.toThrow();
+
+      const mutation = queryClient.getMutationCache().getAll()[0];
+      expect(mutation.meta?.errorMessage).toBe(
+        'Não foi possível definir a senha. Tente novamente.'
+      );
+    });
+  });
+
+  describe('useConfirmFirstAccessMutation', () => {
+    it('should call AuthService.confirmFirstAccess with the current organization and invalidate auth queries', async () => {
+      vi.mocked(AuthService.confirmFirstAccess).mockResolvedValue();
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+      const { result } = renderHook(() => useConfirmFirstAccessMutation(), {
+        wrapper
+      });
+
+      const payload = {
+        email: faker.internet.email(),
+        token: faker.string.numeric(6),
+        userId: faker.string.uuid()
+      };
+      await result.current.mutateAsync(payload);
+
+      expect(AuthService.confirmFirstAccess).toHaveBeenCalledWith({
+        ...payload,
+        organization: { id: 'org-123' }
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['auth'] });
+    });
+
+    it('should suppress the global error toast (erro inline no OtpStep)', async () => {
+      vi.mocked(AuthService.confirmFirstAccess).mockRejectedValue(
+        new Error('Código inválido ou expirado.')
+      );
+
+      const { result } = renderHook(() => useConfirmFirstAccessMutation(), {
+        wrapper
+      });
+
+      const payload = {
+        email: faker.internet.email(),
+        token: faker.string.numeric(6),
+        userId: faker.string.uuid()
+      };
+
+      await expect(result.current.mutateAsync(payload)).rejects.toThrow();
+
+      const mutation = queryClient.getMutationCache().getAll()[0];
+      expect(mutation.meta?.suppressErrorToast).toBe(true);
     });
   });
 });

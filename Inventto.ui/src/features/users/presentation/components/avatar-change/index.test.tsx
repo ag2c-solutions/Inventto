@@ -338,6 +338,39 @@ describe('AvatarChange Feature', () => {
           expect.objectContaining({ onSuccess: expect.any(Function) })
         );
       });
+
+      it('deve resetar o formulário e chamar onSaved quando a mutation tem sucesso', async () => {
+        const onSaved = vi.fn();
+        const { result } = renderHook(() => useAvatarChange(onSaved));
+
+        act(() => {
+          result.current.setFiles([{ url: 'blob:file' } as FileWithPreview]);
+          result.current.setZoom(2);
+          result.current.onCropComplete(
+            {},
+            {
+              width: 100,
+              height: 100,
+              x: 0,
+              y: 0
+            }
+          );
+        });
+
+        await act(async () => {
+          await result.current.handleSave();
+        });
+
+        const onSuccess = mockMutate.mock.calls[0][1].onSuccess as () => void;
+
+        act(() => {
+          onSuccess();
+        });
+
+        expect(onSaved).toHaveBeenCalledTimes(1);
+        expect(result.current.files).toEqual([]);
+        expect(result.current.zoom).toBe(1);
+      });
     });
   });
 });
