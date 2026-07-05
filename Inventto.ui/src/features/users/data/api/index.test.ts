@@ -344,7 +344,7 @@ describe('UserAPI', () => {
       expect(mockHandleUserError).toHaveBeenCalledWith(error, 'updatePassword');
     });
 
-    it('should throw CurrentPasswordInvalidError when current password is wrong', async () => {
+    it('should delegate to handleUserError when the current password is wrong', async () => {
       const signInError = {
         message: 'Invalid login credentials',
         status: 400
@@ -360,6 +360,10 @@ describe('UserAPI', () => {
         error: signInError
       } as never);
 
+      mockHandleUserError.mockImplementation(() => {
+        throw new Error('Senha atual incorreta.');
+      });
+
       await expect(
         UserAPI.updatePassword({
           currentPassword: 'wrong-password',
@@ -368,7 +372,10 @@ describe('UserAPI', () => {
       ).rejects.toThrow('Senha atual incorreta.');
 
       expect(mockUpdateUser).not.toHaveBeenCalled();
-      expect(mockHandleUserError).not.toHaveBeenCalled();
+      expect(mockHandleUserError).toHaveBeenCalledWith(
+        signInError,
+        'updatePassword'
+      );
     });
   });
 

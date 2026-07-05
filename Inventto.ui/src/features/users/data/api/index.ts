@@ -2,8 +2,6 @@ import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
 import type { UpdatePasswordVariables, User } from '../../domain/entities';
-// eslint-disable-next-line boundaries/dependencies -- TODO: essa tradução de erro deveria acontecer em handleUserError (data/handlers), não via classe de domain/errors lançada direto na API
-import { CurrentPasswordInvalidError } from '../../domain/errors';
 import type { UserWithOrganizationDTO } from '../dtos';
 import { handleUserError } from '../handlers/error-handler';
 import { UserMapper } from '../mappers';
@@ -64,9 +62,6 @@ export class UserAPI {
     });
 
     if (signInError) {
-      if (signInError.message.includes('Invalid login credentials')) {
-        throw new CurrentPasswordInvalidError();
-      }
       handleUserError(signInError, 'updatePassword');
     }
 

@@ -26,10 +26,10 @@ export function useChangePassword(onSuccess?: () => void) {
 
       form.reset();
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error) {
       if (
-        error?.name === 'CurrentPasswordInvalidError' ||
-        error?.message === 'Senha atual incorreta.'
+        error instanceof Error &&
+        error.message === 'Senha atual incorreta.'
       ) {
         form.setError('currentPassword', { message: 'Senha atual incorreta.' });
       }

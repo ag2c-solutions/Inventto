@@ -2,8 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// eslint-disable-next-line boundaries/dependencies -- TODO: hook de feature não deveria importar infra direto; consumir via hook compartilhado (use-local-storage), ver references/architecture/layers/features.md
-import { LocalStorageService } from '@/infra/local-storage';
+import { useLocalStorage } from '@/shared/hooks/use-local-storage';
 
 import { useAuth } from '@/features/auth';
 
@@ -18,12 +17,12 @@ vi.mock('@/features/auth', () => ({
   useAuth: vi.fn()
 }));
 
-vi.mock('@/infra/local-storage', () => ({
-  LocalStorageService: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn()
-  }
+const mockGetItem = vi.fn();
+const mockSetItem = vi.fn();
+const mockRemoveItem = vi.fn();
+
+vi.mock('@/shared/hooks/use-local-storage', () => ({
+  useLocalStorage: vi.fn()
 }));
 
 vi.mock('../../domain/services', () => ({
@@ -39,9 +38,7 @@ vi.mock('./use-query', () => ({
 
 const mockUseAuth = vi.mocked(useAuth);
 const mockUseUserProfileQuery = vi.mocked(useUserProfileQuery);
-const mockGetItem = vi.mocked(LocalStorageService.getItem);
-const mockSetItem = vi.mocked(LocalStorageService.setItem);
-const mockRemoveItem = vi.mocked(LocalStorageService.removeItem);
+const mockUseLocalStorage = vi.mocked(useLocalStorage);
 const mockGetOrganizationById = vi.mocked(UserService.getOrganizationById);
 const mockSelectOrganization = vi.mocked(UserService.selectOrganization);
 
@@ -82,6 +79,11 @@ describe('useUser', () => {
     vi.clearAllMocks();
 
     mockGetItem.mockReturnValue(null);
+    mockUseLocalStorage.mockReturnValue({
+      getItem: mockGetItem,
+      setItem: mockSetItem,
+      removeItem: mockRemoveItem
+    });
 
     mockUseAuth.mockReturnValue({
       session: {

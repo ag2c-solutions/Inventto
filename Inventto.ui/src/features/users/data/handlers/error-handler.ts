@@ -23,6 +23,10 @@ export function handleUserError(
   }
 
   if (error instanceof Error) {
+    if (error.message.includes('Invalid login credentials')) {
+      throw new Error('Senha atual incorreta.');
+    }
+
     throw new Error(error.message);
   }
 
