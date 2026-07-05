@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { IProduct } from '@/features/products';
 
-import type { MovementFormData } from '../../schema';
+import type { MovementFormData } from '../../../schema';
 
 import { useAddItems } from './use-add-items';
 

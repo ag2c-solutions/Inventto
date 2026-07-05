@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { formatVariantOptions, type IProduct } from '@/features/products';
 
-import type { MovementFormData } from '../../schema';
-import { getMovementItemImage } from '../../utils';
-
-import { parseMoneyInput } from './format-money';
+import type { MovementFormData } from '../../../schema';
+import { getMovementItemImage } from '../../../utils';
+import { parseMoneyInput } from '../utils/format-money';
 
 type FormItem = MovementFormData['items'][number];
 

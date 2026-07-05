@@ -5,7 +5,7 @@ import { SheetFooter } from '@/shared/components/ui/sheet';
 
 import { ActionButton } from '@/features/permissions';
 
-import { useMovementForm } from '../../hooks';
+import { useMovementForm } from '../../hooks/use-movement-form';
 
 export function MovementFormFooter() {
   const { form, isSubmitting, actions } = useMovementForm();

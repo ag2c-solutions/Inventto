@@ -4,11 +4,11 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Search } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 
-import type { Movement, MovementType } from '../../../domain/entities';
-import { ProductFilterChip } from '../filter-chip';
+import type { Movement, MovementType } from '../../../../../domain/entities';
+import { ProductFilterChip } from '../../../filter-chip';
+import { matchesProductSearch } from '../../utils/matches-product-search';
 
-import { matchesProductSearch } from './utils/matches-product-search';
-import { MovementCard } from './movement-card';
+import { MovementCard } from './pieces/movement-card';
 
 type TypeFilter = MovementType | 'all';
 

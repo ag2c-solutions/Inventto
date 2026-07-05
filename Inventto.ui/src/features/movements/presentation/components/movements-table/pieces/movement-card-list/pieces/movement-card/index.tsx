@@ -15,7 +15,7 @@ import { cn } from '@/shared/utils';
 
 import { VisibleTo } from '@/features/permissions';
 
-import type { Movement } from '../../../domain/entities';
+import type { Movement } from '../../../../../../../domain/entities';
 
 const currency = new Intl.NumberFormat('pt-BR', {
   style: 'currency',

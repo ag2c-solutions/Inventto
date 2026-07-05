@@ -62,11 +62,11 @@ vi.mock(
   })
 );
 
-vi.mock('./loading', () => ({
+vi.mock('./pieces/loading', () => ({
   MovementsListTableLoading: () => <div data-testid="mock-loading" />
 }));
 
-vi.mock('./onboarding-empty', () => ({
+vi.mock('./pieces/onboarding-empty', () => ({
   MovementsOnboardingEmpty: () => <div data-testid="mock-onboarding-empty" />
 }));
 

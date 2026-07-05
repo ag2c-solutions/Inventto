@@ -16,7 +16,7 @@ import type {
   MovementType
 } from '../../../../domain/entities';
 import { useMovementCreateMutation } from '../../../hooks/use-mutations';
-import { type MovementReason, ReasonOptions } from '../consts';
+import { type MovementReason, ReasonOptions } from '../constants';
 import { type MovementFormData, movementSchema } from '../schema';
 
 type FormItem = MovementFormData['items'][number];

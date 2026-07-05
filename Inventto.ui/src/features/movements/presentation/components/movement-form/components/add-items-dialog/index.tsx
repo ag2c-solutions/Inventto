@@ -17,10 +17,10 @@ import { cn } from '@/shared/utils';
 import type { VariantOption } from '@/features/products';
 
 import { ItemAttributeBadge } from '../../../item-attribute-badge';
-import { useMovementForm } from '../../hooks';
+import { useMovementForm } from '../../hooks/use-movement-form';
 
-import { formatMoneyInput } from './format-money';
-import { useAddItems } from './use-add-items';
+import { useAddItems } from './hooks/use-add-items';
+import { formatMoneyInput } from './utils/format-money';
 
 interface ItemRowProps {
   label?: string;

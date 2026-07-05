@@ -1,6 +1,6 @@
 import { Inbox } from 'lucide-react';
 
-import { AddNewMovements } from '../add-moviment';
+import { AddNewMovements } from '../../../add-moviment';
 
 export function MovementsOnboardingEmpty() {
   return (

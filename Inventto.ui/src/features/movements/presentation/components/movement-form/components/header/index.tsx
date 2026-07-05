@@ -30,7 +30,7 @@ import { cn } from '@/shared/utils';
 
 import type { MovementType } from '@/features/movements';
 
-import { useMovementForm } from '../../hooks';
+import { useMovementForm } from '../../hooks/use-movement-form';
 
 export function MovementFormHeader() {
   const { form, reasonOptions, actions } = useMovementForm();

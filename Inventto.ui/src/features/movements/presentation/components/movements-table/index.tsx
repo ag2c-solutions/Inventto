@@ -28,14 +28,14 @@ import { AddNewMovements } from '../add-moviment';
 import { MovementDetails } from '../details';
 import { ProductFilterChip } from '../filter-chip';
 
+import { MovementsListTableLoading } from './pieces/loading';
+import { MovementCardList } from './pieces/movement-card-list';
+import { MovementsOnboardingEmpty } from './pieces/onboarding-empty';
 import {
   matchesProductSearch,
   resolveProductNameById
 } from './utils/matches-product-search';
 import { columnsMovementsListTable } from './columns';
-import { MovementsListTableLoading } from './loading';
-import { MovementCardList } from './movement-card-list';
-import { MovementsOnboardingEmpty } from './onboarding-empty';
 
 interface MovementsListTableProps {
   data: Movement[];
