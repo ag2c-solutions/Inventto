@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { CatalogDTO, CatalogThemeConfigDTO } from '../dtos';
+import {
+  catalogDTOFactory,
+  catalogThemeConfigDTOFactory,
+  createCatalogPayloadFactory
+} from '../../tests/factories/catalog.factory';
 
 import { CatalogApi } from './index';
 
@@ -56,25 +60,10 @@ vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
 }));
 
-const mockThemeConfigDTO: CatalogThemeConfigDTO = {
-  colors: { primary: '#000000', background: '#ffffff' },
-  branding: { show_cover: false },
-  layout: { mode: 'grid', products_per_page: 10 },
-  behavior: { display_price: true, whatsapp_message: 'Olá' }
-};
-
-const mockCatalogDTO: CatalogDTO = {
-  id: 'cat-1',
-  organization_id: 'org-1',
-  name: 'Catálogo Teste',
-  slug: 'teste',
-  whatsapp_number: '551199999999',
-  description: 'Desc',
-  is_active: true,
-  theme_config: mockThemeConfigDTO,
-  created_at: '2023-01-01',
-  updated_at: '2023-01-01'
-};
+const mockThemeConfigDTO = catalogThemeConfigDTOFactory.build();
+const mockCatalogDTO = catalogDTOFactory.build({
+  theme_config: mockThemeConfigDTO
+});
 
 describe('CatalogApi', () => {
   beforeEach(() => {
@@ -103,8 +92,8 @@ describe('CatalogApi', () => {
       expect(mockSupabase.from).toHaveBeenCalledWith('catalogs');
       expect(mockSelect).toHaveBeenCalled();
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('cat-1');
-      expect(result[0].whatsappNumber).toBe('551199999999');
+      expect(result[0].id).toBe(mockCatalogDTO.id);
+      expect(result[0].whatsappNumber).toBe(mockCatalogDTO.whatsapp_number);
     });
 
     it('should throw handled error on database failure', async () => {
@@ -127,11 +116,11 @@ describe('CatalogApi', () => {
         error: null
       });
 
-      const result = await CatalogApi.getOneById('cat-1');
+      const result = await CatalogApi.getOneById(mockCatalogDTO.id);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('catalogs');
-      expect(mockEq).toHaveBeenCalledWith('id', 'cat-1');
-      expect(result.id).toBe('cat-1');
+      expect(mockEq).toHaveBeenCalledWith('id', mockCatalogDTO.id);
+      expect(result.id).toBe(mockCatalogDTO.id);
     });
 
     it('should throw "Catálogo não encontrado" for PGRST116', async () => {
@@ -169,28 +158,17 @@ describe('CatalogApi', () => {
         error: null
       });
 
-      const payload = {
-        organizationId: 'org-1',
-        name: 'Novo',
-        slug: 'novo',
-        whatsappNumber: '123',
-        themeConfig: {
-          colors: { primary: '#000000', background: '#ffffff' },
-          branding: { showCover: false },
-          layout: { mode: 'grid' as const, productsPerPage: 10 },
-          behavior: { displayPrice: true, whatsappMessage: 'Olá' }
-        }
-      };
+      const payload = createCatalogPayloadFactory.build();
 
       const result = await CatalogApi.add(payload);
       const insertCall = vi.mocked(mockSupabase.from().insert).mock.calls[0][0];
 
       expect(insertCall).toMatchObject({
-        whatsapp_number: '123',
-        slug: 'novo',
+        whatsapp_number: payload.whatsappNumber,
+        slug: payload.slug,
         is_active: true
       });
-      expect(result.id).toBe('cat-1');
+      expect(result.id).toBe(mockCatalogDTO.id);
     });
 
     it('should throw "slug em uso" for duplicate key error (23505 + slug)', async () => {
@@ -205,18 +183,7 @@ describe('CatalogApi', () => {
       });
 
       await expect(
-        CatalogApi.add({
-          organizationId: 'org-1',
-          name: 'A',
-          slug: 'teste',
-          whatsappNumber: '1',
-          themeConfig: {
-            colors: { primary: '#000000', background: '#ffffff' },
-            branding: { showCover: false },
-            layout: { mode: 'grid', productsPerPage: 10 },
-            behavior: { displayPrice: true, whatsappMessage: 'Olá' }
-          }
-        })
+        CatalogApi.add(createCatalogPayloadFactory.build())
       ).rejects.toThrow(
         'Este link personalizado já está em uso. Por favor, escolha outro.'
       );
@@ -230,18 +197,7 @@ describe('CatalogApi', () => {
       });
 
       await expect(
-        CatalogApi.add({
-          organizationId: 'org-1',
-          name: 'A',
-          slug: 'teste',
-          whatsappNumber: '1',
-          themeConfig: {
-            colors: { primary: '#000000', background: '#ffffff' },
-            branding: { showCover: false },
-            layout: { mode: 'grid', productsPerPage: 10 },
-            behavior: { displayPrice: true, whatsappMessage: 'Olá' }
-          }
-        })
+        CatalogApi.add(createCatalogPayloadFactory.build())
       ).rejects.toThrow('Ocorreu um erro inesperado ao processar o catálogo.');
     });
   });
@@ -253,7 +209,10 @@ describe('CatalogApi', () => {
         error: null
       });
 
-      const result = await CatalogApi.update({ id: 'cat-1', name: 'Editado' });
+      const result = await CatalogApi.update({
+        id: mockCatalogDTO.id,
+        name: 'Editado'
+      });
       const updateCall = vi.mocked(mockSupabase.from().update).mock.calls[0][0];
 
       expect(updateCall.name).toBe('Editado');
@@ -270,7 +229,7 @@ describe('CatalogApi', () => {
       });
 
       await CatalogApi.update({
-        id: 'cat-1',
+        id: mockCatalogDTO.id,
         themeConfig: {
           colors: { primary: '#FFF', background: '#000' },
           branding: { showCover: true },
@@ -294,7 +253,7 @@ describe('CatalogApi', () => {
       });
 
       await expect(
-        CatalogApi.update({ id: 'cat-1', name: 'Fail' })
+        CatalogApi.update({ id: mockCatalogDTO.id, name: 'Fail' })
       ).rejects.toThrow('Ocorreu um erro inesperado ao processar o catálogo.');
     });
   });

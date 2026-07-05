@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Catalog } from '../../domain/entities';
-import type {
-  CreateCatalogPayload,
-  UpdateCatalogPayload
-} from '../../domain/entities';
+import type { Catalog, UpdateCatalogPayload } from '../../domain/entities';
 import { CatalogService } from '../../domain/services';
+import {
+  catalogThemeConfigFactory,
+  createCatalogPayloadFactory
+} from '../../tests/factories/catalog.factory';
 
 import {
   useCatalogCreateMutation,
@@ -46,17 +46,10 @@ describe('Catalogs Mutations', () => {
 
   describe('useCatalogCreateMutation', () => {
     it('should create catalog with injected organizationId and invalidate "catalogs" query', async () => {
-      const payload: Omit<CreateCatalogPayload, 'organizationId'> = {
-        name: 'New Catalog',
-        slug: 'new-catalog',
-        whatsappNumber: '1234567890',
-        themeConfig: {
-          colors: { primary: '#000000', background: '#ffffff' },
-          branding: { showCover: true },
-          layout: { mode: 'grid', productsPerPage: 12 },
-          behavior: { displayPrice: true, whatsappMessage: 'Hello' }
-        }
-      };
+      const { organizationId: _organizationId, ...payload } =
+        createCatalogPayloadFactory.build({
+          themeConfig: catalogThemeConfigFactory.build()
+        });
 
       vi.mocked(CatalogService.add).mockResolvedValue({
         id: 'new',

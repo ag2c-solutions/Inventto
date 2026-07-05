@@ -1,41 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CatalogThemeConfig } from '../../domain/entities';
-import type {
-  CatalogDTO,
-  CatalogThemeConfigDTO,
-  PublicCatalogResponseDTO
-} from '../dtos';
+import {
+  catalogDTOFactory,
+  catalogThemeConfigDTOFactory
+} from '../../tests/factories/catalog.factory';
+import type { CatalogThemeConfigDTO, PublicCatalogResponseDTO } from '../dtos';
 
 import { CatalogMapper } from './index';
 
 describe('CatalogMapper', () => {
-  const mockThemeDTO: CatalogThemeConfigDTO = {
+  const mockThemeDTO = catalogThemeConfigDTOFactory.build({
     colors: { primary: '#FF0000', background: '#000000', text: '#FFFFFF' },
     branding: { show_cover: false, logo_url: 'logo.png' },
     layout: { mode: 'list', products_per_page: 50 },
     behavior: { display_price: false, whatsapp_message: 'Zap' }
-  };
+  });
 
-  const mockCatalogDTO: CatalogDTO = {
-    id: '123',
-    organization_id: 'org-1',
-    name: 'Catálogo Teste',
-    slug: 'catalogo-teste',
-    whatsapp_number: '551199999999',
-    description: 'Desc',
-    is_active: true,
-    theme_config: mockThemeDTO,
-    created_at: '2023-01-01T00:00:00Z',
-    updated_at: '2023-01-02T00:00:00Z'
-  };
+  const mockCatalogDTO = catalogDTOFactory.build({
+    theme_config: mockThemeDTO
+  });
 
   describe('toDomain', () => {
     it('deve mapear corretamente um DTO completo para Domain', () => {
       const result = CatalogMapper.toDomain(mockCatalogDTO);
 
-      expect(result.id).toBe('123');
-      expect(result.whatsappNumber).toBe('551199999999');
+      expect(result.id).toBe(mockCatalogDTO.id);
+      expect(result.whatsappNumber).toBe(mockCatalogDTO.whatsapp_number);
       expect(result.themeConfig.colors.primary).toBe('#FF0000');
       expect(result.themeConfig.branding.showCover).toBe(false);
     });
