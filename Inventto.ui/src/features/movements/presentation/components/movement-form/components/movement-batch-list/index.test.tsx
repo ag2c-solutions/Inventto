@@ -153,4 +153,68 @@ describe('MovementBatchList', () => {
     expect(screen.getByText('Camisa Social')).toBeInTheDocument();
     expect(screen.getByText('Qtd.')).toBeInTheDocument();
   });
+
+  it('should call actions.editItem when the mobile edit button is clicked', async () => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockUseMovementForm.mockReturnValue({
+      form: buildForm('entry', [baseItem]),
+      actions: { editItem, removeItem }
+    });
+
+    render(<MovementBatchList />);
+
+    await user.click(screen.getByRole('button', { name: 'Editar item' }));
+
+    expect(editItem).toHaveBeenCalledWith(0);
+  });
+
+  it('should ask for confirmation before removing on mobile and call actions.removeItem on confirm', async () => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockUseMovementForm.mockReturnValue({
+      form: buildForm('entry', [baseItem]),
+      actions: { editItem, removeItem }
+    });
+
+    render(<MovementBatchList />);
+
+    await user.click(screen.getByRole('button', { name: 'Remover item' }));
+
+    expect(screen.getByText('Remover este item?')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remover' }));
+
+    expect(removeItem).toHaveBeenCalledWith(0);
+  });
+
+  it('should cancel the mobile removal when "Manter" is clicked', async () => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockUseMovementForm.mockReturnValue({
+      form: buildForm('entry', [baseItem]),
+      actions: { editItem, removeItem }
+    });
+
+    render(<MovementBatchList />);
+
+    await user.click(screen.getByRole('button', { name: 'Remover item' }));
+    await user.click(screen.getByRole('button', { name: 'Manter' }));
+
+    expect(removeItem).not.toHaveBeenCalled();
+    expect(screen.queryByText('Remover este item?')).not.toBeInTheDocument();
+  });
+
+  it('should show an insufficient stock warning on mobile for withdrawals exceeding current stock', () => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockUseMovementForm.mockReturnValue({
+      form: buildForm('withdrawal', [
+        { ...baseItem, quantity: 10, currentStock: 5 }
+      ]),
+      actions: { editItem, removeItem }
+    });
+
+    render(<MovementBatchList />);
+
+    expect(
+      screen.getByText('Estoque insuficiente — há 5 disponível.')
+    ).toBeInTheDocument();
+  });
 });
