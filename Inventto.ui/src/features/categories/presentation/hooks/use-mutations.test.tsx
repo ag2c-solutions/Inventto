@@ -2,8 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Category } from '../../domain/entities';
 import { CategoryService } from '../../domain/services';
+import { categoryFactory } from '../../tests/factories/category.factory';
 
 import { useCategoryAddMutation } from './use-mutations';
 
@@ -34,17 +34,17 @@ describe('useCategoryAddMutation', () => {
   );
 
   it('should call CategoryService.add with name and organizationId', async () => {
-    const createdCategory: Category = { id: 'c1', name: 'Acessórios' };
+    const createdCategory = categoryFactory.build();
     vi.mocked(CategoryService.add).mockResolvedValue(createdCategory);
 
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     const { result } = renderHook(() => useCategoryAddMutation(), { wrapper });
 
-    await result.current.mutateAsync('Acessórios');
+    await result.current.mutateAsync(createdCategory.name);
 
     expect(CategoryService.add).toHaveBeenCalledWith({
-      name: 'Acessórios',
+      name: createdCategory.name,
       organizationId: 'org-1'
     });
 

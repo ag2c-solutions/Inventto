@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CategoryApi } from '../../data/api';
-import type { Category } from '../../domain/entities';
+import { categoryFactory } from '../../tests/factories/category.factory';
 
 import { useCategoriesQuery } from './use-queries';
 
@@ -34,10 +34,7 @@ describe('useCategoriesQuery', () => {
   );
 
   it('should fetch categories using CategoryApi.getAll with organizationId', async () => {
-    const mockCategories: Category[] = [
-      { id: '1', name: 'Roupas' },
-      { id: '2', name: 'Eletrônicos' }
-    ];
+    const mockCategories = categoryFactory.buildList(2);
 
     vi.mocked(CategoryApi.getAll).mockResolvedValue(mockCategories);
 

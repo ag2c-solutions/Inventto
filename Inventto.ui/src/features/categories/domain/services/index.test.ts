@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CategoryApi } from '../../data/api';
+import {
+  categoryFactory,
+  createCategoryPayloadFactory
+} from '../../tests/factories/category.factory';
 
 import { CategoryService } from './index';
 
@@ -10,8 +14,6 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
-const mockCategory = { id: 'c1', name: 'Roupas' };
-
 describe('CategoryService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,13 +21,14 @@ describe('CategoryService', () => {
 
   describe('add', () => {
     it('should delegate to CategoryApi.add with correct payload', async () => {
-      vi.mocked(CategoryApi.add).mockResolvedValue(mockCategory);
+      const payload = createCategoryPayloadFactory.build();
+      const createdCategory = categoryFactory.build({ name: payload.name });
+      vi.mocked(CategoryApi.add).mockResolvedValue(createdCategory);
 
-      const payload = { name: 'Roupas', organizationId: 'org-1' };
       const result = await CategoryService.add(payload);
 
       expect(CategoryApi.add).toHaveBeenCalledWith(payload);
-      expect(result).toEqual(mockCategory);
+      expect(result).toEqual(createdCategory);
     });
 
     it('should propagate errors thrown by CategoryApi.add', async () => {
@@ -34,19 +37,23 @@ describe('CategoryService', () => {
       );
 
       await expect(
-        CategoryService.add({ name: 'Duplicata', organizationId: 'org-1' })
+        CategoryService.add(createCategoryPayloadFactory.build())
       ).rejects.toThrow('Já existe uma categoria com este nome.');
     });
 
     it('should throw when organizationId is empty', async () => {
       await expect(
-        CategoryService.add({ name: 'Roupas', organizationId: '' })
+        CategoryService.add(
+          createCategoryPayloadFactory.build({ organizationId: '' })
+        )
       ).rejects.toThrow('Nenhuma organização selecionada.');
     });
 
     it('should throw when organizationId is whitespace', async () => {
       await expect(
-        CategoryService.add({ name: 'Roupas', organizationId: '   ' })
+        CategoryService.add(
+          createCategoryPayloadFactory.build({ organizationId: '   ' })
+        )
       ).rejects.toThrow('Nenhuma organização selecionada.');
     });
   });

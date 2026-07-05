@@ -1,28 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CategoryDTO } from '../dtos';
+import { categoryDTOFactory } from '../../tests/factories/category.factory';
 
 import { CategoryMapper } from './index';
 
 describe('CategoryMapper.toDomain', () => {
   it('deve mapear corretamente id e name do DTO para o modelo de domínio', () => {
-    const dto: CategoryDTO = {
-      id: 'c1',
-      name: 'Roupas',
-      organization_id: 'org-1'
-    };
+    const dto = categoryDTOFactory.build();
 
     const result = CategoryMapper.toDomain(dto);
 
-    expect(result).toEqual({ id: 'c1', name: 'Roupas' });
+    expect(result).toEqual({ id: dto.id, name: dto.name });
   });
 
   it('deve ignorar o campo organization_id presente no DTO', () => {
-    const dto: CategoryDTO = {
-      id: 'c2',
-      name: 'Calçados',
-      organization_id: 'org-2'
-    };
+    const dto = categoryDTOFactory.build();
 
     const result = CategoryMapper.toDomain(dto);
 
@@ -30,10 +22,10 @@ describe('CategoryMapper.toDomain', () => {
   });
 
   it('deve mapear corretamente quando organization_id é undefined no DTO', () => {
-    const dto: CategoryDTO = { id: 'c3', name: 'Acessórios' };
+    const dto = categoryDTOFactory.build({ organization_id: undefined });
 
     const result = CategoryMapper.toDomain(dto);
 
-    expect(result).toEqual({ id: 'c3', name: 'Acessórios' });
+    expect(result).toEqual({ id: dto.id, name: dto.name });
   });
 });
