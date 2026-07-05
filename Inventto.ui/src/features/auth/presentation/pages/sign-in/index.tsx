@@ -1,4 +1,4 @@
-import { SignInForm } from '../../components/sign-in-form';
+import { SignInForm } from '../../components/forms/sign-in/index';
 
 export function SignInPage() {
   return (

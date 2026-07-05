@@ -17,7 +17,7 @@ const mockVerifyOtp = vi.fn();
 const mockResendOtp = vi.fn();
 const mockNavigate = vi.fn();
 
-vi.mock('../../hooks/use-mutations', () => ({
+vi.mock('../../../hooks/use-mutations', () => ({
   useSignUpMutation: () => ({
     mutateAsync: mockSignUp,
     isPending: false

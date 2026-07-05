@@ -1,4 +1,4 @@
-import { RecoverPasswordForm } from '../../components/recover-password-form';
+import { RecoverPasswordForm } from '../../components/forms/recover-password';
 
 export function RecoverPasswordPage() {
   return (

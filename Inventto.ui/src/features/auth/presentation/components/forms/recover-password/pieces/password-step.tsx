@@ -13,7 +13,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import type { ResetPasswordFormValues } from '../../../../domain/validators';
+import type { ResetPasswordFormValues } from '../../../../../domain/validators';
 
 interface PasswordStepProps {
   form: UseFormReturn<ResetPasswordFormValues>;

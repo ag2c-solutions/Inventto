@@ -6,12 +6,12 @@ import { useForm } from 'react-hook-form';
 import {
   type ResetPasswordFormValues,
   resetPasswordSchema
-} from '../../../../domain/validators';
+} from '../../../../../domain/validators';
 import {
   useRecoverPasswordMutation,
   useSetNewPasswordMutation,
   useVerifyRecoveryOtpMutation
-} from '../../../hooks/use-mutations';
+} from '../../../../hooks/use-mutations';
 import { type RecoverPasswordFormData, recoverPasswordSchema } from '../schema';
 
 type RecoverStep = 'email' | 'otp' | 'password';

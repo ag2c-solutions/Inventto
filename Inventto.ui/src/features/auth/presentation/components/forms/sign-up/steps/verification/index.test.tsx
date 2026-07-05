@@ -22,7 +22,7 @@ vi.mock('../../hooks/use-sign-up-form', () => ({
   })
 }));
 
-vi.mock('../../../../hooks/use-mutations', () => ({
+vi.mock('../../../../../hooks/use-mutations', () => ({
   useVerifyOtpMutation: () => ({
     mutateAsync: mockVerifyOtp,
     isPending: false,

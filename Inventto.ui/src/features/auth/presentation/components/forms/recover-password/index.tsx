@@ -1,5 +1,5 @@
-import { maskEmail } from '../../utils/mask-email';
-import { OtpStep } from '../otp-step';
+import { maskEmail } from '../../../utils/mask-email';
+import { OtpStep } from '../../otp-step';
 
 import { useRecoverPasswordForm } from './hooks/use-recover-password-form';
 import { EmailStep } from './pieces/email-step';

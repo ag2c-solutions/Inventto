@@ -9,7 +9,7 @@ import {
 } from '@/shared/components/ui/form';
 import { Input } from '@/shared/components/ui/input';
 
-import { BusinessAreaButtonGroup } from '../../../business-area';
+import { BusinessAreaButtonGroup } from '../../../../business-area';
 import { useSignUpForm } from '../../hooks/use-sign-up-form';
 
 export function OrganizationStep() {
