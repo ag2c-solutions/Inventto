@@ -12,15 +12,6 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
-function buildOrganization(overrides: { id?: string } = {}) {
-  return {
-    id: overrides.id ?? faker.string.uuid(),
-    name: faker.company.name(),
-    slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
-    role: 'owner' as const
-  };
-}
-
 describe('MovementService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,7 +22,10 @@ describe('MovementService', () => {
       vi.mocked(MovementApi.create).mockResolvedValue('new-movement-id');
 
       const input = createMovementInputFactory.build();
-      const organization = buildOrganization();
+      const organization = {
+        id: faker.string.uuid(),
+        name: faker.company.name()
+      };
 
       const result = await MovementService.create({ input, organization });
 
@@ -61,7 +55,7 @@ describe('MovementService', () => {
       await expect(
         MovementService.create({
           input: createMovementInputFactory.build(),
-          organization: buildOrganization()
+          organization: { id: faker.string.uuid(), name: faker.company.name() }
         })
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'
