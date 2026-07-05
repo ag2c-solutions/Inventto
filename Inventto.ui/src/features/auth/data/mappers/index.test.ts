@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SignUpPayload } from '../dtos';
+import type { SignUpPayload } from '../../domain/entities';
 
 import { AuthMapper } from '.';
 

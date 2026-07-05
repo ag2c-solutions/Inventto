@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { EMAIL_NOT_CONFIRMED_ERROR, handleAuthError } from './error-handler';
+import { EMAIL_NOT_CONFIRMED_ERROR } from '../../domain/constants';
+
+import { handleAuthError } from './error-handler';
 
 const action = 'testAction';
 

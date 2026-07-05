@@ -2,14 +2,15 @@ import type { Organization } from '@/features/organizations';
 
 import { AuthAPI } from '../../data/api';
 import type {
+  AuthChangeEvent,
   RecoverPasswordPayload,
   ResendOtpPayload,
   ResetPasswordPayload,
+  Session,
   SignInPayload,
   SignUpPayload,
   VerifyOtpPayload
-} from '../../data/dtos'; // eslint-disable-line boundaries/dependencies -- TODO: domain/services não deveria receber tipos de data/dtos diretamente; AuthService é passthrough fino pro SDK de auth
-import type { AuthChangeEvent, Session } from '../entities';
+} from '../entities';
 
 export class AuthService {
   static async signIn(args: SignInPayload) {

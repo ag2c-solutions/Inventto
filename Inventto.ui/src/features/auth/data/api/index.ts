@@ -1,15 +1,18 @@
 import { supabase } from '@/infra/supabase';
 
-import type { AuthChangeEvent, Session } from '../../domain/entities';
 import type {
-  ConfirmFirstAccessPayload,
+  AuthChangeEvent,
   RecoverPasswordPayload,
   ResendOtpPayload,
   ResetPasswordPayload,
+  Session,
   SignInPayload,
-  SignUpFirstAccessPayload,
   SignUpPayload,
   VerifyOtpPayload
+} from '../../domain/entities';
+import type {
+  ConfirmFirstAccessPayload,
+  SignUpFirstAccessPayload
 } from '../dtos';
 import { handleAuthError } from '../handlers/error-handler';
 import { AuthMapper } from '../mappers';

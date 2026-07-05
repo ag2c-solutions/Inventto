@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-// eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria ler constante de erro direto de data/handlers; mover identificador pra domain
-import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../../data/handlers/error-handler';
+import { EMAIL_NOT_CONFIRMED_ERROR } from '../../../../domain/constants';
 import {
   useResendOtpMutation,
   useSignInMutation,

@@ -1,4 +1,5 @@
-import type { CreateUserMetadataDTO, SignUpPayload } from '../dtos';
+import type { SignUpPayload } from '../../domain/entities';
+import type { CreateUserMetadataDTO } from '../dtos';
 
 export class AuthMapper {
   static toSupabaseMetadata(payload: SignUpPayload): CreateUserMetadataDTO {
