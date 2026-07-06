@@ -13,8 +13,7 @@ vi.mock('../../data/api', () => ({
   CatalogApi: {
     add: vi.fn(),
     update: vi.fn(),
-    remove: vi.fn(),
-    checkSlugAvailability: vi.fn()
+    remove: vi.fn()
   }
 }));
 
@@ -35,16 +34,22 @@ describe('CatalogService', () => {
       expect(result).toEqual(createdCatalog);
     });
 
+    it('should reject when name is empty without calling the API', async () => {
+      await expect(
+        CatalogService.add(createCatalogPayloadFactory.build({ name: '  ' }))
+      ).rejects.toThrow('Informe um nome para o catálogo.');
+
+      expect(CatalogApi.add).not.toHaveBeenCalled();
+    });
+
     it('should propagate errors thrown by CatalogApi.add', async () => {
       vi.mocked(CatalogApi.add).mockRejectedValue(
-        new Error(
-          'Este link personalizado já está em uso. Por favor, escolha outro.'
-        )
+        new Error('Já existe um catálogo com estes dados.')
       );
 
       await expect(
         CatalogService.add(createCatalogPayloadFactory.build())
-      ).rejects.toThrow('Este link personalizado já está em uso.');
+      ).rejects.toThrow('Já existe um catálogo com estes dados.');
     });
   });
 
@@ -61,6 +66,14 @@ describe('CatalogService', () => {
 
       expect(CatalogApi.update).toHaveBeenCalledWith(payload);
       expect(result.name).toBe('Editado');
+    });
+
+    it('should reject when name is provided but empty', async () => {
+      await expect(
+        CatalogService.update({ id: faker.string.uuid(), name: '   ' })
+      ).rejects.toThrow('Informe um nome para o catálogo.');
+
+      expect(CatalogApi.update).not.toHaveBeenCalled();
     });
 
     it('should propagate errors thrown by CatalogApi.update', async () => {
@@ -91,50 +104,6 @@ describe('CatalogService', () => {
 
       await expect(CatalogService.remove(faker.string.uuid())).rejects.toThrow(
         'Ocorreu um erro inesperado'
-      );
-    });
-  });
-
-  describe('checkSlugAvailability', () => {
-    it('should return true when slug is available', async () => {
-      vi.mocked(CatalogApi.checkSlugAvailability).mockResolvedValue(true);
-
-      const result = await CatalogService.checkSlugAvailability('livre');
-
-      expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith('livre');
-      expect(result).toBe(true);
-    });
-
-    it('should return false when slug is taken', async () => {
-      vi.mocked(CatalogApi.checkSlugAvailability).mockResolvedValue(false);
-
-      const result = await CatalogService.checkSlugAvailability('ocupado');
-
-      expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith('ocupado');
-      expect(result).toBe(false);
-    });
-
-    it('should return false without querying when slug is empty', async () => {
-      const result = await CatalogService.checkSlugAvailability('   ');
-
-      expect(result).toBe(false);
-      expect(CatalogApi.checkSlugAvailability).not.toHaveBeenCalled();
-    });
-
-    it('should return false without querying when slug has fewer than 3 characters', async () => {
-      const result = await CatalogService.checkSlugAvailability('ab');
-
-      expect(result).toBe(false);
-      expect(CatalogApi.checkSlugAvailability).not.toHaveBeenCalled();
-    });
-
-    it('should normalize the slug to lowercase and trimmed before querying', async () => {
-      vi.mocked(CatalogApi.checkSlugAvailability).mockResolvedValue(true);
-
-      await CatalogService.checkSlugAvailability('  Minha-Loja  ');
-
-      expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith(
-        'minha-loja'
       );
     });
   });

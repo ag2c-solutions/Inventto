@@ -7,22 +7,22 @@ import type {
 
 export class CatalogService {
   static async add(params: CreateCatalogPayload): Promise<Catalog> {
+    if (!params.name?.trim()) {
+      throw new Error('Informe um nome para o catálogo.');
+    }
+
     return CatalogApi.add(params);
   }
 
   static async update(params: UpdateCatalogPayload): Promise<Catalog> {
+    if (params.name !== undefined && !params.name.trim()) {
+      throw new Error('Informe um nome para o catálogo.');
+    }
+
     return CatalogApi.update(params);
   }
 
   static async remove(id: string): Promise<void> {
     return CatalogApi.remove(id);
-  }
-
-  static async checkSlugAvailability(slug: string): Promise<boolean> {
-    const normalizedSlug = slug.toLowerCase().trim();
-
-    if (!normalizedSlug || normalizedSlug.length < 3) return false;
-
-    return CatalogApi.checkSlugAvailability(normalizedSlug);
   }
 }

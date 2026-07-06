@@ -10,11 +10,6 @@ export function handleCatalogError(
 
   if (isPostgrestError(error)) {
     if (error.code === '23505') {
-      if (error.message?.includes('slug') || error.details?.includes('slug')) {
-        throw new Error(
-          'Este link personalizado já está em uso. Por favor, escolha outro.'
-        );
-      }
       throw new Error('Já existe um catálogo com estes dados.');
     }
 

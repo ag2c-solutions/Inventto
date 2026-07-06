@@ -5,7 +5,6 @@ import { stripUndefined } from '@/shared/utils';
 import type {
   Catalog,
   CreateCatalogPayload,
-  PublicStorefront,
   UpdateCatalogPayload
 } from '../../domain/entities';
 import type { CatalogDTO } from '../dtos';
@@ -16,13 +15,9 @@ const SELECT_QUERY = `
   id,
   organization_id,
   name,
-  slug,
-  whatsapp_number,
-  description,
-  is_active,
-  theme_config,
   created_at,
-  updated_at
+  updated_at,
+  catalog_items(count)
 `;
 
 export class CatalogApi {
@@ -66,12 +61,7 @@ export class CatalogApi {
 
   static async add(params: CreateCatalogPayload): Promise<Catalog> {
     try {
-      const rawDbPayload = CatalogMapper.toPersistence({
-        ...params,
-        isActive: true
-      });
-
-      const dbPayload = stripUndefined(rawDbPayload);
+      const dbPayload = stripUndefined(CatalogMapper.toPersistence(params));
 
       const { data, error } = await supabase
         .from('catalogs')
@@ -91,11 +81,7 @@ export class CatalogApi {
   static async update(params: UpdateCatalogPayload): Promise<Catalog> {
     try {
       const { id, ...updates } = params;
-      const rawDbUpdates = CatalogMapper.toPersistence(updates);
-      const dbUpdates = {
-        ...stripUndefined(rawDbUpdates),
-        updated_at: new Date().toISOString()
-      };
+      const dbUpdates = stripUndefined(CatalogMapper.toPersistence(updates));
 
       const { data, error } = await supabase
         .from('catalogs')
@@ -120,39 +106,6 @@ export class CatalogApi {
       if (error) throw error;
     } catch (error) {
       handleCatalogError(error, 'remove');
-    }
-  }
-
-  static async checkSlugAvailability(slug: string): Promise<boolean> {
-    if (slug.length < 3) return false;
-
-    try {
-      const { count, error } = await supabase
-        .from('catalogs')
-        .select('id', { count: 'exact', head: true })
-        .eq('slug', slug);
-
-      if (error) return false;
-
-      return count === 0;
-    } catch (error) {
-      console.error('Erro ao verificar slug:', error);
-
-      return false;
-    }
-  }
-
-  static async getPublicStorefront(slug: string): Promise<PublicStorefront> {
-    try {
-      const { data, error } = await supabase.rpc('get_public_catalog', {
-        p_slug: slug
-      });
-
-      if (error) throw error;
-
-      return CatalogMapper.toPublicStorefront(data);
-    } catch (error) {
-      handleCatalogError(error, 'getPublicStorefront');
     }
   }
 }

@@ -11,13 +11,18 @@ CREATE TABLE public.catalogs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
-  slug text NOT NULL,
+  slug text, -- nullable: catálogo canal-agnóstico (CAT-01); reservado ao Storefront/Vitrines (Módulo 8)
   is_active boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
 
   CONSTRAINT catalogs_pkey     PRIMARY KEY (id),
   CONSTRAINT catalogs_slug_key UNIQUE (slug)
 );
+
+CREATE TRIGGER handle_updated_at_catalogs
+BEFORE UPDATE ON public.catalogs
+FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
 -- ==============================================================================
 -- 2. TABELA CATALOG_ITEMS (Preços Específicos por Catálogo)
@@ -102,9 +107,18 @@ ALTER TABLE public.catalog_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
--- 6.1. CATÁLOGOS (Leitura Pública para Vendedores/Membros)
+-- 6.1. CATÁLOGOS (Leitura para todos os membros; escrita restrita a Manager/Owner — RN062)
 CREATE POLICY "Members can view catalogs" ON public.catalogs
 FOR SELECT USING (public.is_org_member(organization_id));
+
+CREATE POLICY "Managers can create catalogs" ON public.catalogs
+FOR INSERT WITH CHECK (public.has_role(organization_id, 'manager'));
+
+CREATE POLICY "Managers can update catalogs" ON public.catalogs
+FOR UPDATE USING (public.has_role(organization_id, 'manager'));
+
+CREATE POLICY "Managers can delete catalogs" ON public.catalogs
+FOR DELETE USING (public.has_role(organization_id, 'manager'));
 
 CREATE POLICY "Members can view catalog items" ON public.catalog_items
 FOR SELECT USING (

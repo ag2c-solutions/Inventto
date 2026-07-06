@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { CatalogApi } from '../../data/api';
-import { CatalogService } from '../../domain/services';
 import { CATALOG_KEYS } from '../constants';
 
 export function useCatalogsQuery() {
@@ -17,13 +16,5 @@ export function useCatalogByIDQuery(id: string) {
     queryKey: CATALOG_KEYS.detail(id),
     queryFn: () => CatalogApi.getOneById(id),
     enabled: !!id
-  });
-}
-
-export function useCatalogCheckSlugAvailabilityQuery(slug: string) {
-  return useQuery({
-    queryKey: CATALOG_KEYS.slugAvailability(slug),
-    queryFn: () => CatalogService.checkSlugAvailability(slug),
-    enabled: !!slug
   });
 }

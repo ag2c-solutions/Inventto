@@ -8,22 +8,10 @@ describe('handleCatalogError', () => {
   it('should rethrow duplicate error (23505) with a friendly message', () => {
     const error = {
       code: '23505',
-      message: 'duplicate key value violates unique constraint "slug"',
-      details: 'Key (slug)=(teste) already exists.'
-    };
-
-    expect(() => handleCatalogError(error, 'test')).toThrow(
-      'Este link personalizado já está em uso'
-    );
-    expect(consoleSpy).toHaveBeenCalled();
-  });
-
-  it('should rethrow generic duplicate error (23505) if not slug', () => {
-    const error = {
-      code: '23505',
-      message: 'duplicate key value violates other constraint',
+      message: 'duplicate key value violates unique constraint',
       details: ''
     };
+
     expect(() => handleCatalogError(error, 'test')).toThrow(
       'Já existe um catálogo com estes dados.'
     );

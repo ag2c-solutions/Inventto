@@ -171,6 +171,19 @@ export const router = createBrowserRouter([
         ]
       },
       {
+        path: 'catalogos',
+        element: <CanNavigate required="catalog:view" />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { CatalogsListPage } = await import('@/features/catalogs');
+              return { Component: CatalogsListPage };
+            }
+          }
+        ]
+      },
+      {
         path: 'team',
         element: <CanNavigate required="team:manage" />,
         children: [
