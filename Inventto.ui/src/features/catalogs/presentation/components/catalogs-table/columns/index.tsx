@@ -1,10 +1,11 @@
 import { Link } from 'react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Package, Pencil, Trash2 } from 'lucide-react';
+import { Package, Trash2 } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 
 import type { Catalog } from '../../../../domain/entities';
+import { EditCatalogSheet } from '../../edit-catalog-sheet';
 
 interface GetCatalogsTableColumnsOptions {
   canManage: boolean;
@@ -53,17 +54,9 @@ export function getCatalogsTableColumns({
     columns.push({
       id: 'actions',
       header: () => <span className="sr-only">Ações</span>,
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            title="Editar catálogo"
-          >
-            <Pencil className="h-4 w-4" />
-            <span className="sr-only">Editar catálogo</span>
-          </Button>
+          <EditCatalogSheet catalogId={row.original.id} />
           <Button
             type="button"
             variant="ghost"

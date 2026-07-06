@@ -14,9 +14,10 @@ import {
   PaginationControllers
 } from '@/shared/components/common/data-table';
 
-import { ActionButton, usePermission } from '@/features/permissions';
+import { usePermission } from '@/features/permissions';
 
 import type { Catalog } from '../../../domain/entities';
+import { CreateCatalogDialog } from '../create-catalog-dialog';
 
 import { CatalogsEmptyState } from './pieces/empty';
 import { CatalogsTableLoading } from './pieces/loading';
@@ -71,7 +72,7 @@ export function CatalogsTable({ data, isLoading }: CatalogsTableProps) {
           className="max-w-[320px]"
         />
 
-        <ActionButton action="catalog:manage">Criar catálogo</ActionButton>
+        <CreateCatalogDialog />
       </div>
 
       <div className="my-2.5 rounded-lg border overflow-hidden">

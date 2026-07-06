@@ -13,6 +13,26 @@ vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
+vi.mock('../create-catalog-dialog', () => ({
+  CreateCatalogDialog: () => {
+    const { role } = mockUseUser();
+    if (role === 'sales') return null;
+    return <button type="button">Criar catálogo</button>;
+  }
+}));
+
+vi.mock('../edit-catalog-sheet', () => ({
+  EditCatalogSheet: ({ catalogId }: { catalogId: string }) => {
+    const { role } = mockUseUser();
+    if (role === 'sales') return null;
+    return (
+      <button type="button" title="Editar catálogo" data-catalog-id={catalogId}>
+        Editar catálogo
+      </button>
+    );
+  }
+}));
+
 const catalogs = [
   catalogFactory.build({
     name: 'Catálogo Verão',
@@ -89,6 +109,14 @@ describe('CatalogsTable', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByTitle('Editar catálogo')).toHaveLength(2);
     expect(screen.getAllByTitle('Remover catálogo')).toHaveLength(2);
+  });
+
+  it('should pass each row catalog id to the edit sheet', () => {
+    render(<CatalogsTable data={catalogs} isLoading={false} />, { wrapper });
+
+    const editButtons = screen.getAllByTitle('Editar catálogo');
+    expect(editButtons[0]).toHaveAttribute('data-catalog-id', catalogs[0].id);
+    expect(editButtons[1]).toHaveAttribute('data-catalog-id', catalogs[1].id);
   });
 
   it('should hide the "Criar catálogo" CTA and the Ações column for sales', () => {

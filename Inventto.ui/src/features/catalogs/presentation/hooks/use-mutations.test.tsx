@@ -1,5 +1,6 @@
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { UpdateCatalogPayload } from '../../domain/entities';
@@ -7,24 +8,35 @@ import { CatalogService } from '../../domain/services';
 import { catalogFactory } from '../../tests/factories/catalog.factory';
 
 import {
-  useCatalogCreateMutation,
   useCatalogRemoveMutation,
-  useCatalogUpdateMutation
+  useCreateCatalogMutation,
+  useUpdateCatalogMutation
 } from './use-mutations';
 
 vi.mock('../../domain/services', () => ({
   CatalogService: {
-    add: vi.fn(),
+    create: vi.fn(),
     update: vi.fn(),
     remove: vi.fn()
   }
 }));
 
-const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
+const { mockUseUser, mockNavigate } = vi.hoisted(() => ({
+  mockUseUser: vi.fn(),
+  mockNavigate: vi.fn()
+}));
 
 vi.mock('@/features/users', () => ({
   useUser: mockUseUser
 }));
+
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate
+  };
+});
 
 describe('Catalogs Mutations', () => {
   let queryClient: QueryClient;
@@ -40,33 +52,40 @@ describe('Catalogs Mutations', () => {
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
   );
 
-  describe('useCatalogCreateMutation', () => {
-    it('should create catalog with injected organizationId and invalidate "catalogs" query', async () => {
+  describe('useCreateCatalogMutation', () => {
+    it('should create catalog with injected organizationId, invalidate "catalogs" and navigate to curation', async () => {
       const catalog = catalogFactory.build();
-      vi.mocked(CatalogService.add).mockResolvedValue(catalog);
+      vi.mocked(CatalogService.create).mockResolvedValue(catalog);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useCatalogCreateMutation(), {
+      const { result } = renderHook(() => useCreateCatalogMutation(), {
         wrapper
       });
 
       await result.current.mutateAsync({ name: catalog.name });
 
-      expect(CatalogService.add).toHaveBeenCalledWith({
+      expect(CatalogService.create).toHaveBeenCalledWith({
         name: catalog.name,
         organizationId: 'org-123'
       });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          `/catalogos/${catalog.id}/produtos`
+        )
+      );
     });
 
     it('should throw when there is no current organization', async () => {
       mockUseUser.mockReturnValue({ currentOrganization: null });
 
-      const { result } = renderHook(() => useCatalogCreateMutation(), {
+      const { result } = renderHook(() => useCreateCatalogMutation(), {
         wrapper
       });
 
@@ -74,11 +93,12 @@ describe('Catalogs Mutations', () => {
         result.current.mutateAsync({ name: 'Catálogo' })
       ).rejects.toThrow('Organização não encontrada.');
 
-      expect(CatalogService.add).not.toHaveBeenCalled();
+      expect(CatalogService.create).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  describe('useCatalogUpdateMutation', () => {
+  describe('useUpdateCatalogMutation', () => {
     it('should update catalog and invalidate both "catalogs" and specific detail queries', async () => {
       const payload: UpdateCatalogPayload = {
         id: '123',
@@ -91,7 +111,7 @@ describe('Catalogs Mutations', () => {
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useCatalogUpdateMutation(), {
+      const { result } = renderHook(() => useUpdateCatalogMutation(), {
         wrapper
       });
 

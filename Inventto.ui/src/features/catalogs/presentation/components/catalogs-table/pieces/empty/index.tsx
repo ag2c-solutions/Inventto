@@ -1,6 +1,6 @@
 import { BookOpen } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
+import { CreateCatalogDialog } from '../../../create-catalog-dialog';
 
 export function CatalogsEmptyState() {
   return (
@@ -15,7 +15,7 @@ export function CatalogsEmptyState() {
         Crie um catálogo para definir o que você vende e por quanto.
       </p>
 
-      <ActionButton action="catalog:manage">Criar catálogo</ActionButton>
+      <CreateCatalogDialog />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import type {
 } from '../entities';
 
 export class CatalogService {
-  static async add(params: CreateCatalogPayload): Promise<Catalog> {
+  static async create(params: CreateCatalogPayload): Promise<Catalog> {
     if (!params.name?.trim()) {
       throw new Error('Informe um nome para o catálogo.');
     }
