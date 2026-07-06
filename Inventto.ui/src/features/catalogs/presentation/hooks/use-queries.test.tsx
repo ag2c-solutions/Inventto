@@ -3,25 +3,14 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CatalogApi } from '../../data/api';
-import type { Catalog } from '../../domain/entities';
-import { CatalogService } from '../../domain/services';
+import { catalogFactory } from '../../tests/factories/catalog.factory';
 
-import {
-  useCatalogByIDQuery,
-  useCatalogCheckSlugAvailabilityQuery,
-  useCatalogsQuery
-} from './use-queries';
+import { useCatalogByIDQuery, useCatalogsQuery } from './use-queries';
 
 vi.mock('../../data/api', () => ({
   CatalogApi: {
     getAll: vi.fn(),
     getOneById: vi.fn()
-  }
-}));
-
-vi.mock('../../domain/services', () => ({
-  CatalogService: {
-    checkSlugAvailability: vi.fn()
   }
 }));
 
@@ -43,7 +32,7 @@ describe('Catalogs Queries', () => {
 
   describe('useCatalogsQuery', () => {
     it('should fetch catalogs using CatalogApi.getAll', async () => {
-      const mockCatalogs = [{ id: '1', name: 'Catalog A' }] as Catalog[];
+      const mockCatalogs = catalogFactory.buildList(2);
       vi.mocked(CatalogApi.getAll).mockResolvedValue(mockCatalogs);
 
       const { result } = renderHook(() => useCatalogsQuery(), { wrapper });
@@ -57,76 +46,27 @@ describe('Catalogs Queries', () => {
 
   describe('useCatalogByIDQuery', () => {
     it('should fetch a single catalog using CatalogApi.getOneById', async () => {
-      const catalogId = '123';
-      const mockCatalog = { id: catalogId, name: 'Catalog B' } as Catalog;
+      const mockCatalog = catalogFactory.build();
       vi.mocked(CatalogApi.getOneById).mockResolvedValue(mockCatalog);
 
-      const { result } = renderHook(() => useCatalogByIDQuery(catalogId), {
+      const { result } = renderHook(() => useCatalogByIDQuery(mockCatalog.id), {
         wrapper
       });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(CatalogApi.getOneById).toHaveBeenCalledWith(catalogId);
+      expect(CatalogApi.getOneById).toHaveBeenCalledWith(mockCatalog.id);
       expect(result.current.data).toEqual(mockCatalog);
     });
-  });
 
-  describe('useCatalogCheckSlugAvailabilityQuery', () => {
-    it('should return true when slug is available', async () => {
-      vi.mocked(CatalogService.checkSlugAvailability).mockResolvedValue(true);
-
-      const { result } = renderHook(
-        () => useCatalogCheckSlugAvailabilityQuery('meu-catalogo'),
-        { wrapper }
-      );
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      expect(CatalogService.checkSlugAvailability).toHaveBeenCalledWith(
-        'meu-catalogo'
-      );
-      expect(result.current.data).toBe(true);
-    });
-
-    it('should return false when slug is unavailable', async () => {
-      vi.mocked(CatalogService.checkSlugAvailability).mockResolvedValue(false);
-
-      const { result } = renderHook(
-        () => useCatalogCheckSlugAvailabilityQuery('slug-ocupado'),
-        { wrapper }
-      );
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      expect(result.current.data).toBe(false);
-    });
-
-    it('should not execute query when slug is empty', async () => {
-      const { result } = renderHook(
-        () => useCatalogCheckSlugAvailabilityQuery(''),
-        { wrapper }
-      );
+    it('should not execute the query when id is empty', async () => {
+      const { result } = renderHook(() => useCatalogByIDQuery(''), {
+        wrapper
+      });
 
       await waitFor(() => expect(result.current.fetchStatus).toBe('idle'));
 
-      expect(CatalogService.checkSlugAvailability).not.toHaveBeenCalled();
-      expect(result.current.data).toBeUndefined();
-    });
-
-    it('should call CatalogService.checkSlugAvailability with the correct slug', async () => {
-      vi.mocked(CatalogService.checkSlugAvailability).mockResolvedValue(true);
-
-      const { result } = renderHook(
-        () => useCatalogCheckSlugAvailabilityQuery('catalogo-novo'),
-        { wrapper }
-      );
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      expect(CatalogService.checkSlugAvailability).toHaveBeenCalledWith(
-        'catalogo-novo'
-      );
+      expect(CatalogApi.getOneById).not.toHaveBeenCalled();
     });
   });
 });

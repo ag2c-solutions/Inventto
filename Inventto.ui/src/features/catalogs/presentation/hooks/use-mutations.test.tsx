@@ -2,12 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Catalog, UpdateCatalogPayload } from '../../domain/entities';
+import type { UpdateCatalogPayload } from '../../domain/entities';
 import { CatalogService } from '../../domain/services';
-import {
-  catalogThemeConfigFactory,
-  createCatalogPayloadFactory
-} from '../../tests/factories/catalog.factory';
+import { catalogFactory } from '../../tests/factories/catalog.factory';
 
 import {
   useCatalogCreateMutation,
@@ -19,8 +16,7 @@ vi.mock('../../domain/services', () => ({
   CatalogService: {
     add: vi.fn(),
     update: vi.fn(),
-    remove: vi.fn(),
-    checkSlugAvailability: vi.fn()
+    remove: vi.fn()
   }
 }));
 
@@ -49,15 +45,8 @@ describe('Catalogs Mutations', () => {
 
   describe('useCatalogCreateMutation', () => {
     it('should create catalog with injected organizationId and invalidate "catalogs" query', async () => {
-      const { organizationId: _organizationId, ...payload } =
-        createCatalogPayloadFactory.build({
-          themeConfig: catalogThemeConfigFactory.build()
-        });
-
-      vi.mocked(CatalogService.add).mockResolvedValue({
-        id: 'new',
-        ...payload
-      } as unknown as Catalog);
+      const catalog = catalogFactory.build();
+      vi.mocked(CatalogService.add).mockResolvedValue(catalog);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -65,10 +54,10 @@ describe('Catalogs Mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync(payload);
+      await result.current.mutateAsync({ name: catalog.name });
 
       expect(CatalogService.add).toHaveBeenCalledWith({
-        ...payload,
+        name: catalog.name,
         organizationId: 'org-123'
       });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
@@ -82,11 +71,7 @@ describe('Catalogs Mutations', () => {
       });
 
       await expect(
-        result.current.mutateAsync(
-          createCatalogPayloadFactory.build({
-            themeConfig: catalogThemeConfigFactory.build()
-          })
-        )
+        result.current.mutateAsync({ name: 'Catálogo' })
       ).rejects.toThrow('Organização não encontrada.');
 
       expect(CatalogService.add).not.toHaveBeenCalled();
@@ -100,10 +85,9 @@ describe('Catalogs Mutations', () => {
         name: 'Updated Catalog'
       };
 
-      vi.mocked(CatalogService.update).mockResolvedValue({
-        ...payload,
-        slug: 'updated-catalog'
-      } as unknown as Catalog);
+      vi.mocked(CatalogService.update).mockResolvedValue(
+        catalogFactory.build(payload)
+      );
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 

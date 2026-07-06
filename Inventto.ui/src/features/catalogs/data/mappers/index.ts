@@ -1,69 +1,30 @@
 import type {
   Catalog,
   CreateCatalogPayload,
-  PublicStorefront
+  UpdateCatalogPayload
 } from '../../domain/entities';
-import type { CatalogDTO, PublicCatalogResponseDTO } from '../dtos';
-import { formatThemeForPersistence, parseThemeConfig } from '../utils';
+import type { CatalogDTO } from '../dtos';
 
 export class CatalogMapper {
   static toDomain(dto: CatalogDTO): Catalog {
     return {
       id: dto.id,
+      organizationId: dto.organization_id,
       name: dto.name,
-      slug: dto.slug,
-      whatsappNumber: dto.whatsapp_number,
-      description: dto.description || '',
-      isActive: dto.is_active,
-      themeConfig: parseThemeConfig(dto.theme_config),
-      createdAt: new Date(dto.created_at)
+      createdAt: new Date(dto.created_at),
+      updatedAt: new Date(dto.updated_at),
+      productsCount: dto.catalog_items?.[0]?.count ?? 0,
+      // Fonte de vínculo (storefronts/PDV) ainda não existe — Módulo 8/7.
+      channelsCount: 0
     };
   }
 
   static toPersistence(
-    payload: Partial<CreateCatalogPayload & { isActive?: boolean }>
-  ): Partial<CatalogDTO> {
+    payload: Partial<CreateCatalogPayload & UpdateCatalogPayload>
+  ): Partial<Pick<CatalogDTO, 'organization_id' | 'name'>> {
     return {
       organization_id: payload.organizationId,
-      name: payload.name,
-      slug: payload.slug,
-      whatsapp_number: payload.whatsappNumber,
-      description: payload.description,
-      is_active: payload.isActive,
-      theme_config: payload.themeConfig
-        ? formatThemeForPersistence(payload.themeConfig)
-        : undefined
-    };
-  }
-
-  static toPublicStorefront(dto: PublicCatalogResponseDTO): PublicStorefront {
-    if (!dto || !dto.catalog) {
-      throw new Error('Dados do catálogo inválidos.');
-    }
-
-    return {
-      info: {
-        name: dto.catalog.name,
-        description: dto.catalog.description || '',
-        whatsappNumber: dto.catalog.whatsapp_number,
-        theme: parseThemeConfig(dto.catalog.theme_config)
-      },
-      products: (dto.items || []).map((item) => ({
-        id: item.item_id,
-        name: item.product_name,
-        description: item.product_description || '',
-        price: item.price,
-        originalPrice: item.original_price,
-        isFeatured: item.is_featured,
-        isInStock: item.in_stock,
-        images: Array.isArray(item.images) ? item.images : [],
-        variant: item.variant_id
-          ? {
-              id: item.variant_id,
-              attributes: item.variant_attributes || {}
-            }
-          : undefined
-      }))
+      name: payload.name
     };
   }
 }

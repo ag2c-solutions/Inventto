@@ -60,7 +60,7 @@ export const navGroups: NavGroup[] = [
         href: '/catalogos',
         icon: Layers,
         permission: 'catalog:view',
-        enabled: false
+        enabled: true
       },
       {
         label: 'Vitrines',
