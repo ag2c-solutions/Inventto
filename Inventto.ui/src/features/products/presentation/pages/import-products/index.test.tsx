@@ -4,6 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ImportCandidate } from '../../../domain/entities';
+import {
+  importCandidateFactory,
+  importCandidateVariantFactory
+} from '../../../tests/factories/import-candidate.factory';
 import { useImportProductsMutation } from '../../hooks/use-mutations';
 import {
   useImportCandidatesQuery,
@@ -23,25 +27,25 @@ vi.mock('@/features/users', () => ({
 }));
 
 const TWO_ORGS = [
-  { id: 'org-1', name: 'Ateliê Joana', role: 'owner' },
-  { id: 'org-2', name: 'Loja Shopping Norte', role: 'owner' }
+  { id: 'org-1', name: 'Ateliê Joana' },
+  { id: 'org-2', name: 'Loja Shopping Norte' }
 ];
 
 const CANDIDATES: ImportCandidate[] = [
-  {
+  importCandidateFactory.build({
     id: 'p-1',
     name: 'Tênis Casual Couro',
     sku: 'TC-COURO',
     alreadyImported: false,
     variantCount: 3
-  },
-  {
+  }),
+  importCandidateFactory.build({
     id: 'p-2',
     name: 'Boné Aba Curva',
     sku: 'BC-ABA',
     alreadyImported: true,
     variantCount: 0
-  }
+  })
 ];
 
 const mutateMock = vi.fn();
@@ -63,11 +67,11 @@ function setup(candidates: ImportCandidate[] = CANDIDATES, orgs = TWO_ORGS) {
   vi.mocked(useProductsQuery).mockReturnValue({} as never);
   vi.mocked(useSourceProductVariantsQuery).mockReturnValue({
     data: [
-      {
+      importCandidateVariantFactory.build({
         id: 'v-1',
         sku: 'TC-COURO-P',
         options: [{ name: 'Cor', value: 'Preto' }]
-      }
+      })
     ],
     isLoading: false
   } as never);

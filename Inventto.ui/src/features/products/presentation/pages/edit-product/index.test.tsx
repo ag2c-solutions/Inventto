@@ -8,6 +8,7 @@ import {
   useCategoryAddMutation as useCreateCategoryMutation
 } from '@/features/categories';
 
+import { productFactory } from '../../../tests/factories/product.factory';
 import {
   useChangeProductStatusMutation,
   useCreateProductMutation,
@@ -68,7 +69,7 @@ const renderComponent = () => {
 };
 
 describe('EditProductPage (Integration)', () => {
-  const mockProduct = {
+  const mockProduct = productFactory.build({
     id: 'p123',
     name: 'Caneta Luxo',
     sku: 'PEN-LUX-01',
@@ -76,11 +77,11 @@ describe('EditProductPage (Integration)', () => {
     stock: 100,
     minimumStock: 10,
     hasVariants: false,
-    category: { id: 'cat1', name: 'Escritório' },
+    categories: [{ id: 'cat1', name: 'Escritório' }],
     attributes: [],
     variants: [],
     allImages: []
-  };
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();

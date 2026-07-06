@@ -1,5 +1,4 @@
-// eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria importar infra direto; encapsular em um hook/util compartilhado (mesmo padrão do caso local-storage)
-import { CloudinaryService } from '@/infra/cloudinary';
+import { createCloudinaryThumbnail } from '@/shared/utils/cloudinary';
 
 import type { IProductImage } from '../../domain/entities';
 
@@ -7,7 +6,7 @@ import { canUseCloudinaryThumbnail } from './can-use-cloudinary-thumbnail';
 
 export function getImageSrc(image: IProductImage, size: number) {
   if (canUseCloudinaryThumbnail(image.publicId)) {
-    return CloudinaryService.createThumbnail(image.publicId, {
+    return createCloudinaryThumbnail(image.publicId, {
       height: size,
       width: size,
       quality: size >= 900 ? 80 : 75

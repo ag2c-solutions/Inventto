@@ -44,6 +44,14 @@ Funções puras auxiliares reutilizadas por múltiplas features (ex:
 Critério de promoção: a mesma lógica usada em duas ou mais features vira
 `shared/utils/`. Regra de pureza detalhada em `references/quality/testing.md`.
 
+Exceção: um wrapper fino de infra de serviço externo (ex: `shared/utils/cloudinary`
+sobre `infra/cloudinary`) pode viver aqui em vez de `shared/hooks/` quando o
+consumo acontece fora de componentes/hooks (ex: adapters, funções chamadas
+dentro de `.map()` de renderização) — hooks só podem ser chamados no corpo de
+componentes/hooks. Mesmo critério de "ponto único de contato" dos hooks de
+infra se aplica: feature-presentation nunca importa `infra/` diretamente,
+sempre passa pelo wrapper de `shared/`.
+
 ---
 
 ## Regras

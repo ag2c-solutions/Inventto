@@ -20,11 +20,11 @@ import { RegisterProductMovementAction } from '../actions/register-movement';
 import { ProductGradeSummary } from '../grade-summary';
 import { ProductInventoryCard } from '../inventory-card';
 
+import { ProductNotFound } from './pieces/not-found';
+import { ProductDetailLoading } from './pieces/skeleton';
 import { ProductBasicInfosCard } from './basic-infos-card';
 import { ProductImageCarousel } from './image-carousel';
-import { ProductNotFound } from './not-found';
 import { ProductOptionsSelect } from './options-select';
-import { ProductDetailLoading } from './skeleton';
 
 interface ProductDetailsProps {
   productId: string;

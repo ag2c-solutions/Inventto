@@ -1,9 +1,7 @@
 import { Star, X } from 'lucide-react';
 
-// eslint-disable-next-line boundaries/dependencies -- TODO: presentation não deveria importar infra direto; encapsular em um hook/util compartilhado (mesmo padrão do caso local-storage)
-import { CloudinaryService } from '@/infra/cloudinary';
-
 import type { FileWithPreview } from '@/shared/components/common/file-picker/types';
+import { createCloudinaryThumbnail } from '@/shared/utils/cloudinary';
 
 type ImageCardProps = {
   file: FileWithPreview;
@@ -20,7 +18,7 @@ export function ImageCard({
 }: ImageCardProps) {
   const imageSrc =
     file.publicId && !file.publicId.startsWith('mock')
-      ? CloudinaryService.createThumbnail(file.publicId, {
+      ? createCloudinaryThumbnail(file.publicId, {
           width: 300,
           height: 300,
           quality: 90

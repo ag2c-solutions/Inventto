@@ -29,13 +29,20 @@ export const ChangeProductStatusAction = ({
     useChangeProductStatusMutation();
 
   const handleInactivate = async () => {
-    await changeProductStatus({ productId: productId, isActive: false });
-
-    setOpenModal(false);
+    try {
+      await changeProductStatus({ productId: productId, isActive: false });
+      setOpenModal(false);
+    } catch {
+      // erro já é exibido via toast global (MutationCache); modal permanece aberto
+    }
   };
 
   const handleActivate = async () => {
-    await changeProductStatus({ productId: productId, isActive: true });
+    try {
+      await changeProductStatus({ productId: productId, isActive: true });
+    } catch {
+      // erro já é exibido via toast global (MutationCache)
+    }
   };
 
   return isActive ? (

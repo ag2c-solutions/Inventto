@@ -1,7 +1,7 @@
-import { MemoryRouter } from 'react-router';
+import { type Link, MemoryRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProductTableColumnActions } from './actions';
@@ -26,12 +26,19 @@ vi.mock('react-router', async (importOriginal) => {
 
   return {
     ...mod,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Link: ({ to, children, className, ...rest }: any) => (
+    Link: ({
+      to,
+      children,
+      className,
+      ...rest
+    }: ComponentProps<typeof Link>) => (
       <a
-        href={to}
+        href={typeof to === 'string' ? to : to.pathname}
         className={className}
-        data-testid={`link-${String(children[1]).toLowerCase().trim().replace(' ', '-')}`}
+        data-testid={`link-${String((children as ReactNode[])[1])
+          .toLowerCase()
+          .trim()
+          .replace(' ', '-')}`}
         {...rest}
       >
         {children}

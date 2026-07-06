@@ -1,7 +1,7 @@
+import { ColorBadge } from '@/shared/components/common/color-badge';
 import { Badge } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/utils';
 
-import { ColorBadge } from '../../../../../shared/components/common/color-badge';
 import type { VariantOption } from '../../../domain/entities';
 
 interface VariantOptionBadgeProps {

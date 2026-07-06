@@ -8,9 +8,9 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { useUser } from '@/features/users';
 
 import { BackToProductsLink } from '../../components/actions/back-to-products';
-import { ImportCandidateRow } from '../../components/import-products/import-candidate-row';
-import { ImportEmptyState } from '../../components/import-products/import-empty-state';
-import { ImportSourceSelect } from '../../components/import-products/import-source-select';
+import { ImportCandidateRow } from '../../components/import-candidate-row';
+import { ImportEmptyState } from '../../components/import-empty-state';
+import { ImportSourceSelect } from '../../components/import-source-select';
 import { useImportProductsMutation } from '../../hooks/use-mutations';
 import { useImportCandidatesQuery } from '../../hooks/use-queries';
 

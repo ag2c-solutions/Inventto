@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { formatVariantOptions, type IProduct } from '@/features/products';
 
@@ -50,20 +50,26 @@ export function useAddItems({
 
     setQuantities({});
     setValues({});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, product, editingItem]);
+  }, [isOpen, product, editingItem, isWithdrawal]);
 
-  const getExistingQty = (variantId: string | null) => {
-    if (!product) return 0;
-    return existingItems
-      .filter(
-        (item) => item.productId === product.id && item.variantId === variantId
-      )
-      .reduce((acc, item) => acc + item.quantity, 0);
-  };
+  const getExistingQty = useCallback(
+    (variantId: string | null) => {
+      if (!product) return 0;
+      return existingItems
+        .filter(
+          (item) =>
+            item.productId === product.id && item.variantId === variantId
+        )
+        .reduce((acc, item) => acc + item.quantity, 0);
+    },
+    [product, existingItems]
+  );
 
-  const getAvailableStock = (variantId: string | null, stock: number) =>
-    Math.max(0, stock - getExistingQty(variantId));
+  const getAvailableStock = useCallback(
+    (variantId: string | null, stock: number) =>
+      Math.max(0, stock - getExistingQty(variantId)),
+    [getExistingQty]
+  );
 
   const rows = useMemo(() => {
     if (!product) return [];
@@ -92,8 +98,7 @@ export function useAddItems({
     }
 
     return keys;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWithdrawal, rows, quantities, existingItems]);
+  }, [isWithdrawal, rows, quantities, getAvailableStock]);
 
   const handleQuantityChange = (key: string, value: string) => {
     let qty = Number.parseInt(value);
