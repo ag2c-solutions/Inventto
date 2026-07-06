@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useUser } from '@/features/users';
@@ -9,9 +10,10 @@ import type {
 import { CatalogService } from '../../domain/services';
 import { CATALOG_KEYS } from '../constants';
 
-export function useCatalogCreateMutation() {
+export function useCreateCatalogMutation() {
   const queryClient = useQueryClient();
   const { currentOrganization } = useUser();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (payload: Omit<CreateCatalogPayload, 'organizationId'>) => {
@@ -19,25 +21,25 @@ export function useCatalogCreateMutation() {
         throw new Error('Organização não encontrada.');
       }
 
-      return CatalogService.add({
+      return CatalogService.create({
         ...payload,
         organizationId: currentOrganization.id
       });
     },
-    meta: { successMessage: 'Catálogo criado com sucesso' },
-    onSuccess: () => {
+    onSuccess: (catalog) => {
       queryClient.invalidateQueries({ queryKey: CATALOG_KEYS.all });
+      navigate(`/catalogos/${catalog.id}/produtos`);
     }
   });
 }
 
-export function useCatalogUpdateMutation() {
+export function useUpdateCatalogMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: UpdateCatalogPayload) =>
       CatalogService.update(payload),
-    meta: { successMessage: 'Catálogo atualizado com sucesso' },
+    meta: { successMessage: 'Alterações salvas.' },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: CATALOG_KEYS.all });
       queryClient.invalidateQueries({ queryKey: CATALOG_KEYS.detail(data.id) });

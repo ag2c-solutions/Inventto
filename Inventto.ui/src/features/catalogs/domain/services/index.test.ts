@@ -22,13 +22,13 @@ describe('CatalogService', () => {
     vi.clearAllMocks();
   });
 
-  describe('add', () => {
+  describe('create', () => {
     it('should delegate to CatalogApi.add with correct payload', async () => {
       const payload = createCatalogPayloadFactory.build();
       const createdCatalog = catalogFactory.build({ name: payload.name });
       vi.mocked(CatalogApi.add).mockResolvedValue(createdCatalog);
 
-      const result = await CatalogService.add(payload);
+      const result = await CatalogService.create(payload);
 
       expect(CatalogApi.add).toHaveBeenCalledWith(payload);
       expect(result).toEqual(createdCatalog);
@@ -36,7 +36,7 @@ describe('CatalogService', () => {
 
     it('should reject when name is empty without calling the API', async () => {
       await expect(
-        CatalogService.add(createCatalogPayloadFactory.build({ name: '  ' }))
+        CatalogService.create(createCatalogPayloadFactory.build({ name: '  ' }))
       ).rejects.toThrow('Informe um nome para o catálogo.');
 
       expect(CatalogApi.add).not.toHaveBeenCalled();
@@ -48,7 +48,7 @@ describe('CatalogService', () => {
       );
 
       await expect(
-        CatalogService.add(createCatalogPayloadFactory.build())
+        CatalogService.create(createCatalogPayloadFactory.build())
       ).rejects.toThrow('Já existe um catálogo com estes dados.');
     });
   });
