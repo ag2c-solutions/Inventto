@@ -14,10 +14,10 @@ import type {
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+import { useLocalStorage } from '@/shared/hooks/use-local-storage';
+
 import { useAuth } from '@/features/auth';
 import type { Role } from '@/features/permissions';
-
-import { LocalStorageService } from '@/infra/local-storage';
 
 import type { User, UserOrganization } from '../../domain/entities';
 import { UserService } from '../../domain/services';
@@ -50,9 +50,10 @@ export const UserContext = createContext<UserContextType | null>(null);
 export function UserProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user?.id;
+  const { getItem, setItem, removeItem } = useLocalStorage();
 
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(
-    () => LocalStorageService.getItem<string>(STORAGE_ORG_KEY) ?? null
+    () => getItem<string>(STORAGE_ORG_KEY) ?? null
   );
 
   // Flag de troca de contexto: ativada quando o selectedOrgId muda mas a
@@ -98,15 +99,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (organization.id === selectedOrgId) return;
 
     setSelectedOrgId(organization.id);
-    LocalStorageService.setItem(STORAGE_ORG_KEY, organization.id);
-  }, [user, selectedOrgId]);
+    setItem(STORAGE_ORG_KEY, organization.id);
+  }, [user, selectedOrgId, setItem]);
 
   const handleSetOrganization = useCallback(
     (orgId: string, availableOverride?: UserOrganization[]) => {
       // Limpa a seleção (ex.: org atual excluída e sem outra disponível).
       if (!orgId) {
         setSelectedOrgId(null);
-        LocalStorageService.removeItem(STORAGE_ORG_KEY);
+        removeItem(STORAGE_ORG_KEY);
         return;
       }
 
@@ -127,14 +128,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
         setIsSwitching(true);
         setSelectedOrgId(organization.id);
-        LocalStorageService.setItem(STORAGE_ORG_KEY, organization.id);
+        setItem(STORAGE_ORG_KEY, organization.id);
       } catch {
         toast.error('Não foi possível trocar de organização. Tente de novo.', {
           duration: 7000
         });
       }
     },
-    []
+    [setItem, removeItem]
   );
 
   const value = useMemo<UserContextType>(

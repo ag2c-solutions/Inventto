@@ -11,6 +11,14 @@ import type {
 } from '../entities';
 import { getOrganizationId } from '../utils/get-organization-id';
 
+// Discriminador de controle de fluxo (RN034/RN007): o e-mail informado já
+// pertence a um usuário de OUTRO negócio. O valor precisa ficar em sincronia
+// com a constante de mesmo nome em `data/handlers/error-handler.ts` — o
+// handler é quem efetivamente lança o erro, mas presentation não pode
+// importar de `data/` diretamente (boundary), então o domínio expõe o mesmo
+// identificador para o form comparar.
+export const EMAIL_OTHER_TENANT_ERROR = 'EMAIL_OTHER_TENANT';
+
 export class OrganizationService {
   static async getById(organization: Organization | null) {
     const orgId = getOrganizationId(organization);

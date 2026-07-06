@@ -1,7 +1,11 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CatalogApi } from '../../data/api';
-import type { Catalog } from '../../domain/entities';
+import {
+  catalogFactory,
+  createCatalogPayloadFactory
+} from '../../tests/factories/catalog.factory';
 
 import { CatalogService } from './index';
 
@@ -14,22 +18,6 @@ vi.mock('../../data/api', () => ({
   }
 }));
 
-const mockCatalog: Catalog = {
-  id: 'cat-1',
-  name: 'Catálogo Teste',
-  slug: 'teste',
-  whatsappNumber: '551199999999',
-  description: 'Desc',
-  isActive: true,
-  themeConfig: {
-    colors: { primary: '#000000', background: '#ffffff' },
-    branding: { showCover: false },
-    layout: { mode: 'grid', productsPerPage: 10 },
-    behavior: { displayPrice: true, whatsappMessage: 'Olá' }
-  },
-  createdAt: new Date()
-};
-
 describe('CatalogService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -37,25 +25,14 @@ describe('CatalogService', () => {
 
   describe('add', () => {
     it('should delegate to CatalogApi.add with correct payload', async () => {
-      vi.mocked(CatalogApi.add).mockResolvedValue(mockCatalog);
-
-      const payload = {
-        organizationId: 'org-1',
-        name: 'Novo',
-        slug: 'novo',
-        whatsappNumber: '123',
-        themeConfig: {
-          colors: { primary: '#000000', background: '#ffffff' },
-          branding: { showCover: false },
-          layout: { mode: 'grid' as const, productsPerPage: 10 },
-          behavior: { displayPrice: true, whatsappMessage: 'Olá' }
-        }
-      };
+      const payload = createCatalogPayloadFactory.build();
+      const createdCatalog = catalogFactory.build({ name: payload.name });
+      vi.mocked(CatalogApi.add).mockResolvedValue(createdCatalog);
 
       const result = await CatalogService.add(payload);
 
       expect(CatalogApi.add).toHaveBeenCalledWith(payload);
-      expect(result).toEqual(mockCatalog);
+      expect(result).toEqual(createdCatalog);
     });
 
     it('should propagate errors thrown by CatalogApi.add', async () => {
@@ -66,30 +43,20 @@ describe('CatalogService', () => {
       );
 
       await expect(
-        CatalogService.add({
-          organizationId: 'org-1',
-          name: 'A',
-          slug: 'ocupado',
-          whatsappNumber: '1',
-          themeConfig: {
-            colors: { primary: '#000000', background: '#ffffff' },
-            branding: { showCover: false },
-            layout: { mode: 'grid', productsPerPage: 10 },
-            behavior: { displayPrice: true, whatsappMessage: 'Olá' }
-          }
-        })
+        CatalogService.add(createCatalogPayloadFactory.build())
       ).rejects.toThrow('Este link personalizado já está em uso.');
     });
   });
 
   describe('update', () => {
     it('should delegate to CatalogApi.update with correct payload', async () => {
+      const catalog = catalogFactory.build();
       vi.mocked(CatalogApi.update).mockResolvedValue({
-        ...mockCatalog,
+        ...catalog,
         name: 'Editado'
       });
 
-      const payload = { id: 'cat-1', name: 'Editado' };
+      const payload = { id: catalog.id, name: 'Editado' };
       const result = await CatalogService.update(payload);
 
       expect(CatalogApi.update).toHaveBeenCalledWith(payload);
@@ -102,18 +69,19 @@ describe('CatalogService', () => {
       );
 
       await expect(
-        CatalogService.update({ id: 'cat-1', name: 'Fail' })
+        CatalogService.update({ id: faker.string.uuid(), name: 'Fail' })
       ).rejects.toThrow('Ocorreu um erro inesperado');
     });
   });
 
   describe('remove', () => {
     it('should delegate to CatalogApi.remove with correct id', async () => {
+      const catalogId = faker.string.uuid();
       vi.mocked(CatalogApi.remove).mockResolvedValue(undefined);
 
-      await CatalogService.remove('cat-1');
+      await CatalogService.remove(catalogId);
 
-      expect(CatalogApi.remove).toHaveBeenCalledWith('cat-1');
+      expect(CatalogApi.remove).toHaveBeenCalledWith(catalogId);
     });
 
     it('should propagate errors thrown by CatalogApi.remove', async () => {
@@ -121,7 +89,7 @@ describe('CatalogService', () => {
         new Error('Ocorreu um erro inesperado ao processar o catálogo.')
       );
 
-      await expect(CatalogService.remove('cat-1')).rejects.toThrow(
+      await expect(CatalogService.remove(faker.string.uuid())).rejects.toThrow(
         'Ocorreu um erro inesperado'
       );
     });
@@ -144,6 +112,30 @@ describe('CatalogService', () => {
 
       expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith('ocupado');
       expect(result).toBe(false);
+    });
+
+    it('should return false without querying when slug is empty', async () => {
+      const result = await CatalogService.checkSlugAvailability('   ');
+
+      expect(result).toBe(false);
+      expect(CatalogApi.checkSlugAvailability).not.toHaveBeenCalled();
+    });
+
+    it('should return false without querying when slug has fewer than 3 characters', async () => {
+      const result = await CatalogService.checkSlugAvailability('ab');
+
+      expect(result).toBe(false);
+      expect(CatalogApi.checkSlugAvailability).not.toHaveBeenCalled();
+    });
+
+    it('should normalize the slug to lowercase and trimmed before querying', async () => {
+      vi.mocked(CatalogApi.checkSlugAvailability).mockResolvedValue(true);
+
+      await CatalogService.checkSlugAvailability('  Minha-Loja  ');
+
+      expect(CatalogApi.checkSlugAvailability).toHaveBeenCalledWith(
+        'minha-loja'
+      );
     });
   });
 });

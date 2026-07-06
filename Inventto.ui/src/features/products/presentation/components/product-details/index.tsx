@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MoreVertical } from 'lucide-react';
 
-import { VisibleTo } from '@/features/permissions';
-
 import { Button } from '@/shared/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +10,8 @@ import {
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu';
 
+import { VisibleTo } from '@/features/permissions';
+
 import { useProductByIDQuery } from '../../hooks/use-queries';
 import { getVariantImages } from '../../utils/get-variant-images';
 import { ChangeProductStatusAction } from '../actions/change-product-status';
@@ -20,11 +20,11 @@ import { RegisterProductMovementAction } from '../actions/register-movement';
 import { ProductGradeSummary } from '../grade-summary';
 import { ProductInventoryCard } from '../inventory-card';
 
+import { ProductNotFound } from './pieces/not-found';
+import { ProductDetailLoading } from './pieces/skeleton';
 import { ProductBasicInfosCard } from './basic-infos-card';
 import { ProductImageCarousel } from './image-carousel';
-import { ProductNotFound } from './not-found';
 import { ProductOptionsSelect } from './options-select';
-import { ProductDetailLoading } from './skeleton';
 
 interface ProductDetailsProps {
   productId: string;

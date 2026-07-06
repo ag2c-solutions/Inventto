@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { IMember } from '../../../domain/entities';
+import { memberFactory } from '../../../tests/factories/member.factory';
 
 const { mockUseUser, mockUseMembersQuery } = vi.hoisted(() => ({
   mockUseUser: vi.fn(),
@@ -28,57 +28,41 @@ vi.mock('../../hooks/use-mutations', () => ({
   })
 }));
 
-vi.mock('../add-member', () => ({
+vi.mock('../actions/add-member', () => ({
   AddMember: () => <button>Adicionar Membro</button>
 }));
 
 import { MembersListTable } from './index';
 
-const members: IMember[] = [
-  {
-    id: '1',
-    profileId: 'p1',
-    organizationId: 'org',
+const members = [
+  memberFactory.build({
     name: 'Joana Ribeiro',
     email: 'joana@email.com',
     role: 'owner',
     status: 'active',
-    joinedAt: new Date(),
     isMe: true
-  },
-  {
-    id: '2',
-    profileId: 'p2',
-    organizationId: 'org',
+  }),
+  memberFactory.build({
     name: 'Marcos Lima',
     email: 'marcos.lima@email.com',
     role: 'manager',
     status: 'active',
-    joinedAt: new Date(),
     isMe: false
-  },
-  {
-    id: '3',
-    profileId: 'p3',
-    organizationId: 'org',
+  }),
+  memberFactory.build({
     name: 'Carla Mendes',
     email: 'carla.m@email.com',
     role: 'sales',
     status: 'invited',
-    joinedAt: new Date(),
     isMe: false
-  },
-  {
-    id: '4',
-    profileId: 'p4',
-    organizationId: 'org',
+  }),
+  memberFactory.build({
     name: 'Pedro Alves',
     email: 'pedro.alves@email.com',
     role: 'manager',
     status: 'inactive',
-    joinedAt: new Date(),
     isMe: false
-  }
+  })
 ];
 
 describe('MembersListTable', () => {

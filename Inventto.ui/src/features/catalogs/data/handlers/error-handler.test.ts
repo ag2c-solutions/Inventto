@@ -56,6 +56,19 @@ describe('handleCatalogError', () => {
     expect(consoleSpy).toHaveBeenCalled();
   });
 
+  it('should throw generic fallback for a Postgrest error that is neither 23505, 42501 nor network-related', () => {
+    const error = {
+      code: '500',
+      message: 'Database crash',
+      details: ''
+    };
+
+    expect(() => handleCatalogError(error, 'test')).toThrow(
+      'Ocorreu um erro inesperado ao processar o catálogo.'
+    );
+    expect(consoleSpy).toHaveBeenCalled();
+  });
+
   it('should rethrow generic error', () => {
     const error = new Error('Erro customizado');
 

@@ -1,11 +1,11 @@
 import { Loader2 } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-
 import { Button } from '@/shared/components/ui/button';
 import { SheetFooter } from '@/shared/components/ui/sheet';
 
-import { useMovementForm } from '../../hooks';
+import { ActionButton } from '@/features/permissions';
+
+import { useMovementForm } from '../../hooks/use-movement-form';
 
 export function MovementFormFooter() {
   const { form, isSubmitting, actions } = useMovementForm();

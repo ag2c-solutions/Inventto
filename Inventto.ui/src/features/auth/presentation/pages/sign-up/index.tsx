@@ -1,5 +1,5 @@
-import { SignUpForm } from '../../components/forms/signup';
-import { SignUpFormProvider } from '../../components/forms/signup/hook';
+import { SignUpForm } from '../../components/forms/sign-up';
+import { SignUpFormProvider } from '../../components/forms/sign-up/hooks/use-sign-up-form';
 
 export function SignUpPage() {
   return (

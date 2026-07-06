@@ -19,7 +19,7 @@ import {
 } from '@/shared/components/ui/popover';
 import { cn } from '@/shared/utils';
 
-import { useMovementForm } from '../../hooks';
+import { useMovementForm } from '../../hooks/use-movement-form';
 import { getProductAvailableStock } from '../../utils';
 
 export function ProductSearch() {

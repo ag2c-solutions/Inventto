@@ -2,8 +2,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, TrendingDown, TrendingUp } from 'lucide-react';
 
-import type { MovementType } from '@/features/movements';
-
 import { Calendar } from '@/shared/components/ui/calendar';
 import {
   FormControl,
@@ -30,7 +28,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Textarea } from '@/shared/components/ui/textarea';
 import { cn } from '@/shared/utils';
 
-import { useMovementForm } from '../../hooks';
+import type { MovementType } from '../../../../../domain/entities';
+import { useMovementForm } from '../../hooks/use-movement-form';
 
 export function MovementFormHeader() {
   const { form, reasonOptions, actions } = useMovementForm();

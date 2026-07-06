@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
-import type { User } from '../../domain/entities';
+import { buildUserFixture } from '../../tests/factories/user.factory';
 import type { UserWithOrganizationDTO } from '../dtos';
 import { handleUserError } from '../handlers/error-handler';
 import { UserMapper } from '../mappers';
@@ -80,59 +80,8 @@ describe('UserAPI', () => {
   });
 
   describe('getProfile', () => {
-    const userId = 'user-123';
-
-    const userDto: UserWithOrganizationDTO = {
-      id: userId,
-      full_name: 'Rafael Conceição',
-      email: 'rafael@test.com',
-      avatar_url: 'https://cdn.example.com/avatar.png',
-      must_change_password: false,
-      created_at: '2026-05-04T10:00:00.000Z',
-      updated_at: '2026-05-04T12:00:00.000Z',
-      organization_members: [
-        {
-          role: 'owner',
-          organization_id: 'organization-123',
-          organizations: {
-            id: 'organization-123',
-            name: 'Inventto',
-            slug: 'inventto'
-          }
-        },
-        {
-          role: 'manager',
-          organization_id: 'organization-456',
-          organizations: {
-            id: 'organization-456',
-            name: 'Smart Tech',
-            slug: 'smart-tech'
-          }
-        }
-      ]
-    };
-
-    const user: User = {
-      id: userId,
-      email: 'rafael@test.com',
-      fullName: 'Rafael Conceição',
-      avatarUrl: 'https://cdn.example.com/avatar.png',
-      mustChangePassword: false,
-      createdAt: new Date('2026-05-04T10:00:00.000Z'),
-      updatedAt: new Date('2026-05-04T12:00:00.000Z'),
-      availableOrganizations: [
-        {
-          id: 'organization-123',
-          name: 'Inventto',
-          role: 'owner'
-        },
-        {
-          id: 'organization-456',
-          name: 'Smart Tech',
-          role: 'manager'
-        }
-      ]
-    };
+    const { dto: userDto, user } = buildUserFixture();
+    const userId = userDto.id;
 
     it('should get user profile successfully', async () => {
       const queryMock = createGetProfileQueryMock({
@@ -344,7 +293,7 @@ describe('UserAPI', () => {
       expect(mockHandleUserError).toHaveBeenCalledWith(error, 'updatePassword');
     });
 
-    it('should throw CurrentPasswordInvalidError when current password is wrong', async () => {
+    it('should delegate to handleUserError when the current password is wrong', async () => {
       const signInError = {
         message: 'Invalid login credentials',
         status: 400
@@ -360,6 +309,10 @@ describe('UserAPI', () => {
         error: signInError
       } as never);
 
+      mockHandleUserError.mockImplementation(() => {
+        throw new Error('Senha atual incorreta.');
+      });
+
       await expect(
         UserAPI.updatePassword({
           currentPassword: 'wrong-password',
@@ -368,7 +321,10 @@ describe('UserAPI', () => {
       ).rejects.toThrow('Senha atual incorreta.');
 
       expect(mockUpdateUser).not.toHaveBeenCalled();
-      expect(mockHandleUserError).not.toHaveBeenCalled();
+      expect(mockHandleUserError).toHaveBeenCalledWith(
+        signInError,
+        'updatePassword'
+      );
     });
   });
 

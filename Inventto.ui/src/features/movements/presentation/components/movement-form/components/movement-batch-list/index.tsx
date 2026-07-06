@@ -15,7 +15,7 @@ import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 import { cn } from '@/shared/utils';
 
 import { ItemAttributeBadge } from '../../../item-attribute-badge';
-import { useMovementForm } from '../../hooks';
+import { useMovementForm } from '../../hooks/use-movement-form';
 
 const currency = new Intl.NumberFormat('pt-BR', {
   style: 'currency',

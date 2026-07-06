@@ -1,15 +1,18 @@
 import { supabase } from '@/infra/supabase';
 
-import type { AuthChangeEvent, Session } from '../../domain/entities';
 import type {
-  ConfirmFirstAccessPayload,
+  AuthChangeEvent,
   RecoverPasswordPayload,
   ResendOtpPayload,
   ResetPasswordPayload,
+  Session,
   SignInPayload,
-  signUpFirstAccess,
   SignUpPayload,
   VerifyOtpPayload
+} from '../../domain/entities';
+import type {
+  ConfirmFirstAccessPayload,
+  SignUpFirstAccessPayload
 } from '../dtos';
 import { handleAuthError } from '../handlers/error-handler';
 import { AuthMapper } from '../mappers';
@@ -145,7 +148,7 @@ export class AuthAPI {
     };
   }
 
-  static async signUpFirstAccess({ email }: signUpFirstAccess) {
+  static async signUpFirstAccess({ email }: SignUpFirstAccessPayload) {
     const { error: otpError } = await supabase.auth.resend({
       type: 'signup',
       email

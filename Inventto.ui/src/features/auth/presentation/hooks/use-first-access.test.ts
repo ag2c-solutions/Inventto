@@ -1,8 +1,11 @@
 import { createElement } from 'react';
 import { MemoryRouter } from 'react-router';
+import { faker } from '@faker-js/faker';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { resetPasswordFormValuesFactory } from '../../tests/factories/auth.factory';
 
 import { useFirstAccess } from './use-first-access';
 
@@ -43,8 +46,10 @@ import { useUser } from '@/features/users';
 
 import { useAuth } from './use-auth';
 
+const userEmail = faker.internet.email();
+
 const mockSession = {
-  user: { id: 'user-123', email: 'user@example.com' }
+  user: { id: faker.string.uuid(), email: userEmail }
 } as never;
 
 describe('useFirstAccess', () => {
@@ -63,7 +68,7 @@ describe('useFirstAccess', () => {
     });
     vi.mocked(useUser).mockReturnValue({
       currentOrganization: {
-        id: 'org-1',
+        id: faker.string.uuid(),
         name: 'Org',
         slug: 'org',
         role: 'owner'
@@ -114,10 +119,9 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(
+        resetPasswordFormValuesFactory.build()
+      );
     });
 
     expect(mockSetPassword).not.toHaveBeenCalled();
@@ -129,10 +133,9 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(
+        resetPasswordFormValuesFactory.build()
+      );
     });
 
     await waitFor(() => {
@@ -146,10 +149,9 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(
+        resetPasswordFormValuesFactory.build()
+      );
     });
 
     expect(result.current.step).toBe('password');
@@ -162,10 +164,9 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(
+        resetPasswordFormValuesFactory.build()
+      );
     });
 
     await act(async () => {
@@ -184,10 +185,9 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(
+        resetPasswordFormValuesFactory.build()
+      );
     });
 
     await act(async () => {
@@ -203,10 +203,9 @@ describe('useFirstAccess', () => {
     const { result } = renderHook(() => useFirstAccess(), { wrapper });
 
     await act(async () => {
-      await result.current.onSubmitPassword({
-        password: 'NewPass123!',
-        confirmPassword: 'NewPass123!'
-      });
+      await result.current.onSubmitPassword(
+        resetPasswordFormValuesFactory.build()
+      );
     });
 
     act(() => {
@@ -224,7 +223,7 @@ describe('useFirstAccess', () => {
     });
 
     expect(mockResendOtp).toHaveBeenCalledWith({
-      email: 'user@example.com'
+      email: userEmail
     });
   });
 });

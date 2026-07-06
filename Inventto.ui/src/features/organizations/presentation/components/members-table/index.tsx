@@ -8,8 +8,6 @@ import {
   type SortingState
 } from '@tanstack/react-table';
 
-import { useUser } from '@/features/users';
-
 import {
   DataTable,
   DataTableContent,
@@ -18,11 +16,13 @@ import {
   PaginationControllers
 } from '@/shared/components/common/data-table';
 
-import { useOrganizationMembersQuery } from '../../hooks/use-queries';
-import { AddMember } from '../add-member';
+import { useUser } from '@/features/users';
 
+import { useOrganizationMembersQuery } from '../../hooks/use-queries';
+import { AddMember } from '../actions/add-member';
+
+import { MembersTableSkeleton } from './pieces/skeleton';
 import { columns } from './columns';
-import { MembersTableSkeleton } from './skeleton';
 
 export function MembersListTable() {
   const { isLoading: isLoadingOrg } = useUser();

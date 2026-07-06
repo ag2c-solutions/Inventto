@@ -7,15 +7,4 @@ export interface Notification {
   timestamp: string; // ISO string
   route: string;
   isRead: boolean;
-  metadata?: Record<string, any>;
-}
-
-export interface LowStockCountResult {
-  count: number;
-}
-
-export interface NewOrderPayload {
-  id: string;
-  organization_id: string;
-  created_at: string;
 }

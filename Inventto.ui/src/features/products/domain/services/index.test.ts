@@ -14,6 +14,8 @@ vi.mock('../../data/api', () => ({
     getOneById: vi.fn(),
     add: vi.fn(),
     update: vi.fn(),
+    checkHasMovements: vi.fn(),
+    setProductActive: vi.fn(),
     getImportCandidates: vi.fn(),
     importProducts: vi.fn(),
     getSourceProductVariants: vi.fn()
@@ -21,24 +23,28 @@ vi.mock('../../data/api', () => ({
 }));
 
 import { ProductAPI } from '../../data/api';
+import {
+  importCandidateFactory,
+  importCandidateVariantFactory
+} from '../../tests/factories/import-candidate.factory';
+import { organizationFactory } from '../../tests/factories/organization.factory';
+import {
+  createProductFactory,
+  createProductWithVariantsFactory,
+  productFactory,
+  updateProductFactory
+} from '../../tests/factories/product.factory';
 
 import { ProductService } from './index';
 
-const mockProduct = { id: 'p-1', name: 'Produto A' } as never;
-
 describe('ProductService', () => {
+  const mockOrganization = organizationFactory.build({ id: 'org-1' });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('getAll', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
     it('deve lançar quando organization é null', async () => {
       await expect(ProductService.getAll(null, 'sales')).rejects.toThrow(
         'Nenhuma organização selecionada.'
@@ -52,16 +58,19 @@ describe('ProductService', () => {
     });
 
     it('deve chamar ProductAPI.getAllForSales quando role é sales', async () => {
-      vi.mocked(ProductAPI.getAllForSales).mockResolvedValue([mockProduct]);
+      const product = productFactory.build();
+      vi.mocked(ProductAPI.getAllForSales).mockResolvedValue([product]);
 
       const result = await ProductService.getAll(mockOrganization, 'sales');
 
       expect(ProductAPI.getAllForSales).toHaveBeenCalledWith('org-1');
-      expect(result).toEqual([mockProduct]);
+      expect(result).toEqual([product]);
     });
 
     it('deve chamar ProductAPI.getAllForInternals quando role é manager', async () => {
-      vi.mocked(ProductAPI.getAllForInternals).mockResolvedValue([mockProduct]);
+      vi.mocked(ProductAPI.getAllForInternals).mockResolvedValue([
+        productFactory.build()
+      ]);
 
       await ProductService.getAll(mockOrganization, 'manager');
 
@@ -69,7 +78,9 @@ describe('ProductService', () => {
     });
 
     it('deve chamar ProductAPI.getAllForInternals quando role é owner', async () => {
-      vi.mocked(ProductAPI.getAllForInternals).mockResolvedValue([mockProduct]);
+      vi.mocked(ProductAPI.getAllForInternals).mockResolvedValue([
+        productFactory.build()
+      ]);
 
       await ProductService.getAll(mockOrganization, 'owner');
 
@@ -101,10 +112,13 @@ describe('ProductService', () => {
     });
 
     it('deve chamar ProductAPI.getOneById com o id correto', async () => {
-      vi.mocked(ProductAPI.getOneById).mockResolvedValue(mockProduct);
+      const product = productFactory.build({ id: 'p-1' });
+      vi.mocked(ProductAPI.getOneById).mockResolvedValue(product);
+
       const result = await ProductService.getOneById('p-1');
+
       expect(ProductAPI.getOneById).toHaveBeenCalledWith('p-1');
-      expect(result).toEqual(mockProduct);
+      expect(result).toEqual(product);
     });
 
     it('deve propagar erros da API', async () => {
@@ -118,56 +132,66 @@ describe('ProductService', () => {
   });
 
   describe('add', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
     it('deve lançar quando organization é null', async () => {
-      await expect(
-        ProductService.add({ name: 'Produto A' } as never, null)
-      ).rejects.toThrow('Nenhuma organização selecionada.');
+      const { organizationId: _organizationId, ...withoutOrg } =
+        createProductFactory.build();
+
+      await expect(ProductService.add(withoutOrg, null)).rejects.toThrow(
+        'Nenhuma organização selecionada.'
+      );
 
       expect(ProductAPI.add).not.toHaveBeenCalled();
     });
 
     it('deve chamar ProductAPI.add com o produto validado', async () => {
-      vi.mocked(ProductAPI.add).mockResolvedValue(mockProduct);
+      const product = productFactory.build();
+      vi.mocked(ProductAPI.add).mockResolvedValue(product);
 
-      const input = {
-        name: 'Produto A',
-        sku: '123',
-        categories: [{ id: '1', name: 'Cat 1' }],
-        stock: 10,
-        minimumStock: 2,
-        isActive: true,
-        hasVariants: false,
-        variants: [],
-        attributes: [],
-        allImages: []
-      } as never;
+      const { organizationId: _organizationId, ...withoutOrg } =
+        createProductFactory.build();
 
-      await ProductService.add(input, mockOrganization);
+      await ProductService.add(withoutOrg, mockOrganization);
 
       expect(ProductAPI.add).toHaveBeenCalledWith(
         expect.objectContaining({ organizationId: 'org-1' })
       );
     });
 
+    it('deve validar produtos com variações corretamente', async () => {
+      const product = productFactory.build();
+      vi.mocked(ProductAPI.add).mockResolvedValue(product);
+
+      const { organizationId: _organizationId, ...withoutOrg } =
+        createProductWithVariantsFactory.build();
+
+      await ProductService.add(withoutOrg, mockOrganization);
+
+      expect(ProductAPI.add).toHaveBeenCalledWith(
+        expect.objectContaining({ hasVariants: true })
+      );
+    });
+
     it('deve lançar erro de validação quando o produto é inválido', async () => {
-      const input = {
-        sku: '123',
-        categories: [{ id: '1', name: 'Cat 1' }],
-        stock: 10,
-        minimumStock: 2,
-        isActive: true,
-        hasVariants: false
-      } as never;
+      const { organizationId: _organizationId, ...withoutOrg } =
+        createProductFactory.build({ name: '' });
 
       await expect(
-        ProductService.add(input, mockOrganization)
+        ProductService.add(withoutOrg, mockOrganization)
+      ).rejects.toThrow();
+
+      expect(ProductAPI.add).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro de validação quando produto sem variações possui variantes', async () => {
+      const invalidInput = {
+        ...createProductFactory.build(),
+        hasVariants: false,
+        variants: createProductWithVariantsFactory.build().variants
+      } as ReturnType<typeof createProductFactory.build>;
+      const { organizationId: _organizationId, ...withoutOrg } = invalidInput;
+
+      await expect(
+        ProductService.add(withoutOrg, mockOrganization)
       ).rejects.toThrow();
 
       expect(ProductAPI.add).not.toHaveBeenCalled();
@@ -175,55 +199,34 @@ describe('ProductService', () => {
   });
 
   describe('update', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
     it('deve lançar quando organization é null', async () => {
-      await expect(
-        ProductService.update({ id: 'p-1' } as never, null)
-      ).rejects.toThrow('Nenhuma organização selecionada.');
+      const { organizationId: _organizationId, ...withoutOrg } =
+        updateProductFactory.build();
+
+      await expect(ProductService.update(withoutOrg, null)).rejects.toThrow(
+        'Nenhuma organização selecionada.'
+      );
 
       expect(ProductAPI.update).not.toHaveBeenCalled();
     });
 
     it('deve lançar erro de validação quando o produto é inválido', async () => {
-      const input = {
-        id: 'p1',
-        sku: '123',
-        categories: [{ id: '1', name: 'Cat 1' }],
-        stock: 10,
-        minimumStock: 2,
-        isActive: true,
-        hasVariants: false
-      } as never;
+      const { organizationId: _organizationId, ...withoutOrg } =
+        updateProductFactory.build({ name: '' });
 
       await expect(
-        ProductService.update(input, mockOrganization)
+        ProductService.update(withoutOrg, mockOrganization)
       ).rejects.toThrow();
     });
 
     it('deve chamar ProductAPI.update com o produto validado', async () => {
-      vi.mocked(ProductAPI.update).mockResolvedValue(mockProduct);
+      const product = productFactory.build();
+      vi.mocked(ProductAPI.update).mockResolvedValue(product);
 
-      const input = {
-        id: 'p-1',
-        name: 'Produto A',
-        sku: '123',
-        categories: [{ id: '1', name: 'Cat 1' }],
-        stock: 10,
-        minimumStock: 2,
-        isActive: true,
-        hasVariants: false,
-        variants: [],
-        attributes: [],
-        allImages: []
-      } as never;
+      const { organizationId: _organizationId, ...withoutOrg } =
+        updateProductFactory.build({ id: 'p-1' });
 
-      await ProductService.update(input, mockOrganization);
+      await ProductService.update(withoutOrg, mockOrganization);
 
       expect(ProductAPI.update).toHaveBeenCalledWith(
         expect.objectContaining({ organizationId: 'org-1', id: 'p-1' })
@@ -231,9 +234,60 @@ describe('ProductService', () => {
     });
   });
 
-  describe('getImportCandidates', () => {
-    const targetOrg = { id: 'org-1', name: 'Destino' } as never;
+  describe('checkHasMovements', () => {
+    it('deve retornar false quando productId não é informado', async () => {
+      const result = await ProductService.checkHasMovements(undefined);
 
+      expect(result).toBe(false);
+      expect(ProductAPI.checkHasMovements).not.toHaveBeenCalled();
+    });
+
+    it('deve retornar false quando productId é string vazia', async () => {
+      const result = await ProductService.checkHasMovements('');
+
+      expect(result).toBe(false);
+      expect(ProductAPI.checkHasMovements).not.toHaveBeenCalled();
+    });
+
+    it('deve chamar ProductAPI.checkHasMovements com o id informado', async () => {
+      vi.mocked(ProductAPI.checkHasMovements).mockResolvedValue(true);
+
+      const result = await ProductService.checkHasMovements('p-1');
+
+      expect(ProductAPI.checkHasMovements).toHaveBeenCalledWith('p-1');
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('changeStatus', () => {
+    it('deve lançar quando productId não é informado', async () => {
+      await expect(
+        ProductService.changeStatus('', true, mockOrganization)
+      ).rejects.toThrow('Produto não informado.');
+
+      expect(ProductAPI.setProductActive).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar quando organization é null', async () => {
+      await expect(
+        ProductService.changeStatus('p-1', true, null)
+      ).rejects.toThrow('Nenhuma organização selecionada.');
+    });
+
+    it('deve chamar ProductAPI.setProductActive com os parâmetros corretos', async () => {
+      vi.mocked(ProductAPI.setProductActive).mockResolvedValue(undefined);
+
+      await ProductService.changeStatus('p-1', false, mockOrganization);
+
+      expect(ProductAPI.setProductActive).toHaveBeenCalledWith(
+        'p-1',
+        'org-1',
+        false
+      );
+    });
+  });
+
+  describe('getImportCandidates', () => {
     it('deve lançar quando a org destino é null', async () => {
       await expect(
         ProductService.getImportCandidates('org-2', null)
@@ -242,33 +296,25 @@ describe('ProductService', () => {
 
     it('deve lançar quando a origem não é informada', async () => {
       await expect(
-        ProductService.getImportCandidates(undefined, targetOrg)
+        ProductService.getImportCandidates(undefined, mockOrganization)
       ).rejects.toThrow('Organização de origem não informada.');
     });
 
     it('deve lançar quando origem e destino são iguais', async () => {
       await expect(
-        ProductService.getImportCandidates('org-1', targetOrg)
+        ProductService.getImportCandidates('org-1', mockOrganization)
       ).rejects.toThrow(
         'A organização de origem deve ser diferente da organização ativa.'
       );
     });
 
     it('deve chamar ProductAPI.getImportCandidates com origem e destino', async () => {
-      const candidates = [
-        {
-          id: 'p-1',
-          name: 'A',
-          sku: 'A1',
-          alreadyImported: false,
-          variantCount: 0
-        }
-      ];
+      const candidates = importCandidateFactory.buildList(2);
       vi.mocked(ProductAPI.getImportCandidates).mockResolvedValue(candidates);
 
       const result = await ProductService.getImportCandidates(
         'org-2',
-        targetOrg
+        mockOrganization
       );
 
       expect(ProductAPI.getImportCandidates).toHaveBeenCalledWith(
@@ -280,8 +326,6 @@ describe('ProductService', () => {
   });
 
   describe('import', () => {
-    const targetOrg = { id: 'org-1', name: 'Destino' } as never;
-
     it('deve lançar quando a org destino é null', async () => {
       await expect(
         ProductService.import('org-2', ['p-1'], null)
@@ -291,7 +335,7 @@ describe('ProductService', () => {
 
     it('deve lançar quando origem e destino são iguais', async () => {
       await expect(
-        ProductService.import('org-1', ['p-1'], targetOrg)
+        ProductService.import('org-1', ['p-1'], mockOrganization)
       ).rejects.toThrow(
         'A organização de origem deve ser diferente da organização ativa.'
       );
@@ -300,7 +344,7 @@ describe('ProductService', () => {
 
     it('deve lançar quando nenhum produto é selecionado', async () => {
       await expect(
-        ProductService.import('org-2', [], targetOrg)
+        ProductService.import('org-2', [], mockOrganization)
       ).rejects.toThrow('Selecione ao menos um produto para importar.');
       expect(ProductAPI.importProducts).not.toHaveBeenCalled();
     });
@@ -311,7 +355,7 @@ describe('ProductService', () => {
       const result = await ProductService.import(
         'org-2',
         ['p-1', 'p-2'],
-        targetOrg
+        mockOrganization
       );
 
       expect(ProductAPI.importProducts).toHaveBeenCalledWith({
@@ -339,7 +383,7 @@ describe('ProductService', () => {
     });
 
     it('deve chamar ProductAPI.getSourceProductVariants com origem e produto', async () => {
-      const variants = [{ id: 'v-1', sku: 'SKU-1', options: [] }];
+      const variants = [importCandidateVariantFactory.build()];
       vi.mocked(ProductAPI.getSourceProductVariants).mockResolvedValue(
         variants
       );

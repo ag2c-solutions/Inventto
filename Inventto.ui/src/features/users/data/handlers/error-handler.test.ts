@@ -45,6 +45,13 @@ describe('handleUserError', () => {
     );
   });
 
+  it('should translate invalid login credentials into a wrong-password message', () => {
+    const error = new Error('Invalid login credentials');
+    expect(() => handleUserError(error, 'updatePassword')).toThrow(
+      'Senha atual incorreta.'
+    );
+  });
+
   it('should throw generic fallback error for unknown objects', () => {
     expect(() => handleUserError({ some: 'object' }, 'test')).toThrow(
       'Ocorreu um erro inesperado ao processar os dados do usuário.'

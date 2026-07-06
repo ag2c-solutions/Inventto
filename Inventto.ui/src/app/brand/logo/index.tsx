@@ -1,6 +1,6 @@
 import { cn } from '@/shared/utils';
 
-import InventtoIcon from '@/assets/icon.svg';
+import InventtoIcon from '@/app/assets/icon.svg';
 
 interface LogoProps {
   className?: string;

@@ -22,9 +22,9 @@ APIs devem ser classes com métodos estáticos.
 ```ts
 import { supabase } from '@/infra/supabase';
 
-import { ProductMapper } from '../mapper/product-mapper';
-import { handleProductError } from '../handlers/product-error-handler';
-import type { Product } from '../../domain/entities/product.model';
+import { ProductMapper } from '../mappers';
+import { handleProductError } from '../handlers/error-handler';
+import type { Product } from '../../domain/entities';
 
 export class ProductAPI {
   static async create(product: Product): Promise<Product> {
@@ -68,10 +68,10 @@ export class ProductAPI {
 
 ---
 
-# Cliente HTTP Base
+# Cliente de Dados Base
 
 ```text
-infra/api/
+infra/supabase/
 ```
 
 ---

@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { IMember } from '../../../domain/entities';
+import { memberFactory } from '../../../tests/factories/member.factory';
 
 const { mockUseUser, mockUseMembersQuery } = vi.hoisted(() => ({
   mockUseUser: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock('../../hooks/use-mutations', () => ({
   })
 }));
 
-vi.mock('../add-member', () => ({
+vi.mock('../actions/add-member', () => ({
   AddMember: ({ iconOnly }: { iconOnly?: boolean }) => (
     <button aria-label="Adicionar Membro">
       {iconOnly ? null : 'Adicionar Membro'}
@@ -38,40 +38,28 @@ vi.mock('../add-member', () => ({
 
 import { MembersCardList } from '.';
 
-const members: IMember[] = [
-  {
-    id: '1',
-    profileId: 'p1',
-    organizationId: 'org',
+const members = [
+  memberFactory.build({
     name: 'Joana Ribeiro',
     email: 'joana@email.com',
     role: 'owner',
     status: 'active',
-    joinedAt: new Date(),
     isMe: true
-  },
-  {
-    id: '2',
-    profileId: 'p2',
-    organizationId: 'org',
+  }),
+  memberFactory.build({
     name: 'Marcos Lima',
     email: 'marcos.lima@email.com',
     role: 'manager',
     status: 'active',
-    joinedAt: new Date(),
     isMe: false
-  },
-  {
-    id: '3',
-    profileId: 'p3',
-    organizationId: 'org',
+  }),
+  memberFactory.build({
     name: 'Pedro Alves',
     email: 'pedro.alves@email.com',
     role: 'manager',
     status: 'inactive',
-    joinedAt: new Date(),
     isMe: false
-  }
+  })
 ];
 
 describe('MembersCardList', () => {

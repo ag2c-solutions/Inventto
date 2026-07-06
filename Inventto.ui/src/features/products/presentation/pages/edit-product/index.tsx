@@ -2,8 +2,8 @@ import { useParams } from 'react-router';
 
 import { BackToProductsLink } from '../../components/actions/back-to-products';
 import { ChangeProductStatusAction } from '../../components/actions/change-product-status';
-import { ProductForm } from '../../components/product-form';
-import { ProductFormProvider } from '../../components/product-form/hook';
+import { ProductForm } from '../../components/forms/product-form';
+import { ProductFormProvider } from '../../components/forms/product-form/hook';
 import { useProductByIDQuery } from '../../hooks/use-queries';
 
 interface ProductParams {

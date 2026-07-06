@@ -1,28 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SignUpPayload } from '../dtos';
+import { signUpPayloadFactory } from '../../tests/factories/auth.factory';
 
 import { AuthMapper } from '.';
 
 describe('Auth Mappers', () => {
   describe('toSupabaseMetadata', () => {
     it('should correctly map SignUpPayload to CreateUserMetadataDTO', () => {
-      const payload: SignUpPayload = {
-        fullName: 'John Doe',
-        companyName: 'Acme Corp',
-        email: 'john@acme.com',
-        password: 'securePassword123!',
-        document: '12345678900',
-        businessAreaCode: 'clothing',
-        acceptedTerms: true
-      };
+      const payload = signUpPayloadFactory.build();
 
       const result = AuthMapper.toSupabaseMetadata(payload);
 
-      expect(result.full_name).toBe('John Doe');
-      expect(result.company_name).toBe('Acme Corp');
-      expect(result.company_document).toBe('12345678900');
-      expect(result.business_area_code).toBe('clothing');
+      expect(result.full_name).toBe(payload.fullName);
+      expect(result.company_name).toBe(payload.companyName);
+      expect(result.company_document).toBe(payload.document);
+      expect(result.business_area_code).toBe(payload.businessAreaCode);
       expect(result.avatar_url).toBe('');
       // terms_accepted_at deve ser um timestamp ISO válido
       expect(() => new Date(result.terms_accepted_at)).not.toThrow();
@@ -32,14 +24,9 @@ describe('Auth Mappers', () => {
     });
 
     it('should not contain company_slug in the mapped metadata', () => {
-      const payload: SignUpPayload = {
-        fullName: 'Jane Doe',
-        companyName: 'Minha Empresa Legal',
-        email: 'jane@company.com',
-        password: 'Password1!',
-        businessAreaCode: 'petshop',
-        acceptedTerms: true
-      };
+      const payload = signUpPayloadFactory.build({
+        businessAreaCode: 'petshop'
+      });
 
       const result = AuthMapper.toSupabaseMetadata(payload);
 
@@ -49,14 +36,7 @@ describe('Auth Mappers', () => {
     });
 
     it('should handle null document correctly', () => {
-      const payload: SignUpPayload = {
-        fullName: 'User Without Doc',
-        companyName: 'No Doc Inc',
-        email: 'nodoc@inc.com',
-        password: 'Password1!',
-        businessAreaCode: 'other',
-        acceptedTerms: true
-      };
+      const payload = signUpPayloadFactory.build({ document: undefined });
 
       const result = AuthMapper.toSupabaseMetadata(payload);
 

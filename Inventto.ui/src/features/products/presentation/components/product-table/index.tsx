@@ -13,8 +13,6 @@ import {
 } from '@tanstack/react-table';
 import { Download, PlusCircle } from 'lucide-react';
 
-import { ActionButton } from '@/features/permissions';
-
 import {
   DataTable,
   DataTableContent,
@@ -24,15 +22,17 @@ import {
 } from '@/shared/components/common/data-table';
 import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 
+import { ActionButton } from '@/features/permissions';
+
 import type { IProduct } from '../../../domain/entities';
 import { STATUS_FILTER_OPTIONS } from '../../constants/status-filter-options';
 import { useProductsQuery } from '../../hooks/use-queries';
 import { ProductVariantsCard } from '../variants-card';
 
+import { ProductListTableLoading } from './pieces/loading';
+import { ProductListOnboardingEmpty } from './pieces/onboarding-empty';
+import { ProductCardList } from './pieces/product-card-list';
 import { columnsProductListTable } from './columns';
-import { ProductListTableLoading } from './loading';
-import { ProductListOnboardingEmpty } from './onboarding-empty';
-import { ProductCardList } from './product-card-list';
 
 export function ProductListTable() {
   const isMobile = useIsMobile();

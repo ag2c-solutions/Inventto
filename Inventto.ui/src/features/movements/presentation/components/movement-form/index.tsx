@@ -4,7 +4,10 @@ import { AddItemsDialog } from './components/add-items-dialog';
 import { MovementFormFooter } from './components/footer';
 import { MovementFormHeader } from './components/header';
 import { MovementProductsSection } from './components/products-section';
-import { MovementFormProvider, useMovementForm } from './hooks';
+import {
+  MovementFormProvider,
+  useMovementForm
+} from './hooks/use-movement-form';
 
 function MovementFormContent() {
   const { form, actions } = useMovementForm();

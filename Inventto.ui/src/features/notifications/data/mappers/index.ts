@@ -1,4 +1,5 @@
-import type { NewOrderPayload, Notification } from '../../domain/entities';
+import type { Notification } from '../../domain/entities';
+import type { NewOrderPayload } from '../dtos';
 
 export class NotificationMapper {
   static fromOrderPayload(payload: NewOrderPayload): Notification {

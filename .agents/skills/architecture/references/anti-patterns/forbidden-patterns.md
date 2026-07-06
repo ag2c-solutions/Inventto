@@ -24,13 +24,13 @@ Dados vindos da API devem ser gerenciados com **TanStack Query**.
 
 ---
 
-## ❌ Chamada HTTP direta no componente
+## ❌ Acesso a dados direto no componente
 
 ```tsx
 // PROIBIDO
 export function OperatorList() {
   useEffect(() => {
-    httpClient.get('/operators').then(...);
+    supabase.from('operators').select().then(...);
   }, []);
 
   return null;
@@ -46,18 +46,18 @@ export function OperatorList() {
 }
 ```
 
-Componentes não chamam HTTP.
+Componentes não acessam dados diretamente.
 
 ---
 
-## ❌ Chamada HTTP direta no hook
+## ❌ Acesso a dados direto no hook
 
 ```ts
 // PROIBIDO
 export function useOperatorsQuery() {
   return useQuery({
     queryKey: ['operators'],
-    queryFn: () => httpClient.get('/operators')
+    queryFn: () => supabase.from('operators').select()
   });
 }
 ```
@@ -72,7 +72,7 @@ export function useOperatorsQuery() {
 }
 ```
 
-Hooks nunca chamam `httpClient` diretamente.
+Hooks nunca chamam o cliente `supabase` diretamente.
 
 ---
 
@@ -92,7 +92,7 @@ export function OperatorCard({ operator }: { operator: Operator }) {
 }
 ```
 
-DTO pertence à camada `data/dto`.
+DTO pertence à camada `data/dtos`.
 
 UI consome domínio.
 
@@ -137,9 +137,9 @@ Componentes apenas renderizam e disparam ações.
 
 ```ts
 // PROIBIDO
-import { ProductService } from '@/features/products/domain/services/product-service';
+import { ProductService } from '@/features/products/domain/services';
 import { useProductsQuery } from '@/features/products/presentation/hooks/use-queries';
-import { ProductAPI } from '@/features/products/data/api/product-api';
+import { ProductAPI } from '@/features/products/data/api';
 ```
 
 ```ts
@@ -187,21 +187,21 @@ Quando um hook é consumido por dois ou mais componentes, ele deve ir para `pres
 
 ```text
 // PROIBIDO
-presentation/components/buy-simulation-form/use-buy-simulation.ts
+presentation/components/buy-simulation-form/hooks/use-buy-simulation.ts
 // ...e outro componente importa esse hook de dentro do form
 ```
 
 ```text
 // CORRETO
 presentation/hooks/use-buy-simulation.ts
-presentation/components/buy-simulation-form/use-buy-simulation-form.ts
+presentation/components/buy-simulation-form/hooks/use-buy-simulation-form.ts
 ```
 
 ---
 
 ## ❌ Hook exclusivo de um componente colocado em `presentation/hooks/`
 
-Hooks usados por apenas um componente devem ficar junto ao componente.
+Hooks usados por apenas um componente devem ficar junto ao componente, dentro de `hooks/`.
 
 ```text
 // PROIBIDO
@@ -210,7 +210,7 @@ presentation/hooks/use-operator-form.ts
 
 ```text
 // CORRETO
-presentation/components/operator-form/use-operator-form.ts
+presentation/components/operator-form/hooks/use-operator-form.ts
 ```
 
 ---
@@ -273,13 +273,13 @@ Services podem lançar erros de validação ou regra de negócio.
 
 ---
 
-## ❌ Chamada HTTP fora de `data/api`
+## ❌ Acesso a dados fora de `data/api`
 
 ```ts
-// PROIBIDO
+// PROIBIDO — service falando com o supabase direto
 export class OperatorService {
   static async create(model: Operator): Promise<Operator> {
-    const { data } = await httpClient.post('/operators', model);
+    const { data } = await supabase.from('operators').insert(model);
 
     return data;
   }
@@ -287,22 +287,24 @@ export class OperatorService {
 ```
 
 ```ts
-// CORRETO
+// CORRETO — acesso a dados na camada data/api
 export class OperatorAPI {
   static async create(model: Operator): Promise<Operator> {
     const payload = OperatorMapper.toDTO(model);
 
-    const { data } = await httpClient.post<OperatorDTO>(
-      '/operators',
-      payload
-    );
+    const { data } = await supabase
+      .from('operators')
+      .insert(payload)
+      .select()
+      .single()
+      .overrideTypes<OperatorDTO, { merge: false }>();
 
     return OperatorMapper.toDomain(data);
   }
 }
 ```
 
-Chamadas HTTP pertencem à camada `data/api`.
+Acesso ao `supabase` pertence à camada `data/api`.
 
 ---
 
@@ -311,11 +313,16 @@ Chamadas HTTP pertencem à camada `data/api`.
 Toda API deve normalizar erros externos usando `data/handlers`.
 
 ```ts
-// PROIBIDO
+// PROIBIDO — erro do Postgres/Supabase sobe bruto
 export class OperatorAPI {
   static async create(model: Operator): Promise<Operator> {
     const payload = OperatorMapper.toDTO(model);
-    const { data } = await httpClient.post<OperatorDTO>('/operators', payload);
+
+    const { data } = await supabase
+      .from('operators')
+      .insert(payload)
+      .select()
+      .single();
 
     return OperatorMapper.toDomain(data);
   }
@@ -323,16 +330,20 @@ export class OperatorAPI {
 ```
 
 ```ts
-// CORRETO
+// CORRETO — erro tratado e relançado pelo handler
 export class OperatorAPI {
   static async create(model: Operator): Promise<Operator> {
     try {
       const payload = OperatorMapper.toDTO(model);
 
-      const { data } = await httpClient.post<OperatorDTO>(
-        '/operators',
-        payload
-      );
+      const { data, error } = await supabase
+        .from('operators')
+        .insert(payload)
+        .select()
+        .single()
+        .overrideTypes<OperatorDTO, { merge: false }>();
+
+      if (error) throw error;
 
       return OperatorMapper.toDomain(data);
     } catch (error) {
@@ -366,47 +377,58 @@ import { Button } from '@/shared/components/ui/button';
 
 ---
 
-## ❌ Importar store diretamente na camada `infra/`
+## ❌ Múltiplos componentes no mesmo arquivo
 
-A infra não conhece stores.
+Cada componente vive na própria pasta no padrão `nome-do-componente/index.tsx`.
 
-Dependências como token e callbacks de auth são injetadas via parâmetro pelo bootstrap em `app/`.
+Não aglomerar vários componentes num único arquivo.
+
+```tsx
+// PROIBIDO — dois componentes no mesmo arquivo
+// components/operator-list.tsx
+export function OperatorItem() { ... }
+export function OperatorList() { ... }
+```
+
+```tsx
+// CORRETO — um componente por pasta, cada um em seu index.tsx
+// components/operator-list/index.tsx
+import { OperatorItem } from '../operator-item';
+
+export function OperatorList() { ... }
+```
+
+```tsx
+// components/operator-item/index.tsx
+export function OperatorItem() { ... }
+```
+
+---
+
+## ❌ Importar store/feature diretamente na camada `infra/`
+
+A infra não conhece stores nem features.
+
+O cliente `supabase` depende apenas de `env`/`constants`. Dependências que precisam de estado de feature são injetadas via parâmetro em `app/providers`.
 
 ```ts
-// PROIBIDO
+// PROIBIDO — infra acoplada a uma store de feature
+import { createClient } from '@supabase/supabase-js';
+
 import { useAuthStore } from '@/features/auth/presentation/stores/auth-store';
 
-export const httpClient = axios.create({
-  baseURL: env.VITE_GATEWAY_API
-});
+const token = useAuthStore.getState().token; // ← infra conhecendo feature
 
-httpClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
+export const supabase = createClient(SUPABASE_URL, token);
 ```
 
 ```ts
-// CORRETO
-export const setupHttpClientInterceptors = (
-  getToken: () => string | null,
-  onUnauthorized: () => void
-) => {
-  httpClient.interceptors.request.use((config) => {
-    const token = getToken();
+// CORRETO — infra depende apenas de env/constants
+import { createClient } from '@supabase/supabase-js';
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../constants';
 
-    return config;
-  });
-};
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 ```
 
 ---
@@ -474,14 +496,17 @@ Feedback visual de mutation deve passar pelo `MutationCache`.
 
 ```ts
 // PROIBIDO
-const { data } = await httpClient.get('/operators') as any;
+const { data } = (await supabase.from('operators').select()) as any;
 ```
 
 ```ts
-// CORRETO
-const { data } = await httpClient.get<OperatorDTO[]>('/operators');
+// CORRETO — tipar o retorno com o DTO via overrideTypes
+const { data } = await supabase
+  .from('operators')
+  .select()
+  .overrideTypes<Array<OperatorDTO>, { merge: false }>();
 
-return data.map(OperatorMapper.toDomain);
+return (data ?? []).map(OperatorMapper.toDomain);
 ```
 
 ---
@@ -534,14 +559,39 @@ import { UserRole } from '@/features/users/domain/entities/user-role';
 
 ---
 
+## ❌ Recriar util que já existe
+
+Antes de criar qualquer utilitário (máscara, formatação de data, debounce, parse, etc.), busque no projeto (grep) por uma função de mesmo propósito.
+
+Reutilize se já existir em `shared/utils/` ou `features/<feature>/*/utils/`. Só crie se não existir.
+
+```ts
+// PROIBIDO — recriar sem checar o que já existe
+function formatCurrency(value: number) {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  });
+}
+```
+
+```ts
+// CORRETO — reutilizar o utilitário existente
+import { formatCurrency } from '@/shared/utils/formatters/format-currency';
+```
+
+---
+
 # Regra final
 
-- Componentes não fazem HTTP.
-- Hooks não chamam `httpClient`.
+- Componentes não acessam dados diretamente.
+- Hooks não chamam o cliente `supabase`.
 - Queries simples usam `data/api`.
 - Mutations usam `domain/services`.
 - Services são classes estáticas.
-- APIs fazem HTTP, mapper e handler.
+- APIs acessam o `supabase`, mapper e handler.
 - DTOs não chegam na UI.
 - Features só se comunicam via `index.ts`.
 - Feedback visual de mutations passa pelo `MutationCache`.
+- Um componente por arquivo, no padrão `nome-do-componente/index.tsx`.
+- Buscar (grep) e reutilizar utils existentes antes de criar novos.

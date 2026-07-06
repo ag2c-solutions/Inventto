@@ -5,6 +5,7 @@ import type {
   ImportCandidate,
   ImportCandidateVariant,
   IProduct,
+  IProductAttribute,
   UpdateProduct
 } from '../../domain/entities';
 import { SELECT_QUERY_INTERNALS } from '../constants/select-query-internals';
@@ -16,7 +17,7 @@ import type {
   SourceVariantDTO
 } from '../dtos';
 import { handleProductError } from '../handlers/error-handler';
-import { ProductMapper } from '../mapper';
+import { ProductMapper } from '../mappers';
 
 export class ProductAPI {
   static async getAllForInternals(organizationId: string): Promise<IProduct[]> {
@@ -77,7 +78,7 @@ export class ProductAPI {
     }
   }
 
-  static async getGlobalAttributes(): Promise<ProductAttributeDTO[]> {
+  static async getGlobalAttributes(): Promise<IProductAttribute[]> {
     try {
       const { data, error } = await supabase
         .from('organization_attributes')
@@ -87,7 +88,7 @@ export class ProductAPI {
 
       if (error) throw error;
 
-      return data;
+      return ProductMapper.toDomainAttributeList(data);
     } catch (error) {
       handleProductError(error, 'getGlobalAttributes');
     }

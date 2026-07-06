@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Catalog } from '../../domain/entities';
-import type {
-  CreateCatalogPayload,
-  UpdateCatalogPayload
-} from '../../domain/entities';
+import type { Catalog, UpdateCatalogPayload } from '../../domain/entities';
 import { CatalogService } from '../../domain/services';
+import {
+  catalogThemeConfigFactory,
+  createCatalogPayloadFactory
+} from '../../tests/factories/catalog.factory';
 
 import {
   useCatalogCreateMutation,
@@ -24,8 +24,10 @@ vi.mock('../../domain/services', () => ({
   }
 }));
 
+const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
+
 vi.mock('@/features/users', () => ({
-  useUser: () => ({ currentOrganization: { id: 'org-123' } })
+  useUser: mockUseUser
 }));
 
 describe('Catalogs Mutations', () => {
@@ -33,6 +35,7 @@ describe('Catalogs Mutations', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-123' } });
     queryClient = new QueryClient({
       defaultOptions: {
         mutations: { retry: false }
@@ -46,17 +49,10 @@ describe('Catalogs Mutations', () => {
 
   describe('useCatalogCreateMutation', () => {
     it('should create catalog with injected organizationId and invalidate "catalogs" query', async () => {
-      const payload: Omit<CreateCatalogPayload, 'organizationId'> = {
-        name: 'New Catalog',
-        slug: 'new-catalog',
-        whatsappNumber: '1234567890',
-        themeConfig: {
-          colors: { primary: '#000000', background: '#ffffff' },
-          branding: { showCover: true },
-          layout: { mode: 'grid', productsPerPage: 12 },
-          behavior: { displayPrice: true, whatsappMessage: 'Hello' }
-        }
-      };
+      const { organizationId: _organizationId, ...payload } =
+        createCatalogPayloadFactory.build({
+          themeConfig: catalogThemeConfigFactory.build()
+        });
 
       vi.mocked(CatalogService.add).mockResolvedValue({
         id: 'new',
@@ -76,6 +72,24 @@ describe('Catalogs Mutations', () => {
         organizationId: 'org-123'
       });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
+    });
+
+    it('should throw when there is no current organization', async () => {
+      mockUseUser.mockReturnValue({ currentOrganization: null });
+
+      const { result } = renderHook(() => useCatalogCreateMutation(), {
+        wrapper
+      });
+
+      await expect(
+        result.current.mutateAsync(
+          createCatalogPayloadFactory.build({
+            themeConfig: catalogThemeConfigFactory.build()
+          })
+        )
+      ).rejects.toThrow('Organização não encontrada.');
+
+      expect(CatalogService.add).not.toHaveBeenCalled();
     });
   });
 

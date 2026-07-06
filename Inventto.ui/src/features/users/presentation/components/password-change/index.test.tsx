@@ -204,5 +204,71 @@ describe('PasswordChange Feature', () => {
         newPassword: 'ValidPass123!'
       });
     });
+
+    it('should reset the form and call onSuccess after a successful submit', async () => {
+      const onSuccess = vi.fn();
+      const { result } = renderHook(() => useChangePassword(onSuccess));
+
+      act(() => {
+        result.current.form.setValue('currentPassword', 'OldPass123!');
+        result.current.form.setValue('password', 'ValidPass123!');
+        result.current.form.setValue('confirmPassword', 'ValidPass123!');
+      });
+
+      await act(async () => {
+        await result.current.handleSubmit({
+          currentPassword: 'OldPass123!',
+          password: 'ValidPass123!',
+          confirmPassword: 'ValidPass123!'
+        });
+      });
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(result.current.form.getValues('currentPassword')).toBe('');
+    });
+
+    it('should set a field error on currentPassword when it is wrong', async () => {
+      mockMutate.mockRejectedValueOnce(new Error('Senha atual incorreta.'));
+
+      const { result } = renderHook(() => {
+        const value = useChangePassword();
+        // Touch formState.errors during render so react-hook-form's proxy
+        // subscribes this hook to future error-state updates.
+        void value.form.formState.errors;
+        return value;
+      });
+
+      await act(async () => {
+        await result.current.handleSubmit({
+          currentPassword: 'WrongPass123!',
+          password: 'ValidPass123!',
+          confirmPassword: 'ValidPass123!'
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          result.current.form.formState.errors.currentPassword?.message
+        ).toBe('Senha atual incorreta.');
+      });
+    });
+
+    it('should not set a field error for unrelated failures', async () => {
+      mockMutate.mockRejectedValueOnce(new Error('Erro de conexão.'));
+
+      const { result } = renderHook(() => useChangePassword());
+
+      await act(async () => {
+        await result.current.handleSubmit({
+          currentPassword: 'OldPass123!',
+          password: 'ValidPass123!',
+          confirmPassword: 'ValidPass123!'
+        });
+      });
+
+      expect(
+        result.current.form.formState.errors.currentPassword
+      ).toBeUndefined();
+    });
   });
 });

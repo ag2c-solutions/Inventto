@@ -1,4 +1,4 @@
-import { useMovementForm } from '../../hooks';
+import { useMovementForm } from '../../hooks/use-movement-form';
 import { MovementBatchList } from '../movement-batch-list';
 import { ProductSearch } from '../product-search';
 

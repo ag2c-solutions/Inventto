@@ -1,6 +1,6 @@
 import { BackToProductsLink } from '../../components/actions/back-to-products';
-import { ProductForm } from '../../components/product-form';
-import { ProductFormProvider } from '../../components/product-form/hook';
+import { ProductForm } from '../../components/forms/product-form';
+import { ProductFormProvider } from '../../components/forms/product-form/hook';
 
 export function CreateProductPage() {
   return (

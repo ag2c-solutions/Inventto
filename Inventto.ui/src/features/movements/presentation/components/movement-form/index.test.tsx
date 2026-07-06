@@ -1,10 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useMovementForm } from './hooks';
+import { useMovementForm } from './hooks/use-movement-form';
 import { MovementForm } from './index';
 
-vi.mock('./hooks', () => ({
+vi.mock('./hooks/use-movement-form', () => ({
   MovementFormProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),

@@ -1,12 +1,13 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MovementApi } from '../../data/api';
+import { createMovementInputFactory } from '../../tests/factories/movement.factory';
 
 import { MovementService } from './index';
 
 vi.mock('../../data/api', () => ({
   MovementApi: {
-    getAll: vi.fn(),
     create: vi.fn()
   }
 }));
@@ -17,26 +18,20 @@ describe('MovementService', () => {
   });
 
   describe('create', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
-    const executedAt = new Date('2023-10-02T08:00:00Z');
-
     it('should delegate to MovementApi.create with orgId extracted from organization', async () => {
       vi.mocked(MovementApi.create).mockResolvedValue('new-movement-id');
 
-      const result = await MovementService.create({
-        input: { type: 'entry', reason: 'Compra', executedAt, items: [] },
-        organization: mockOrganization
-      });
+      const input = createMovementInputFactory.build();
+      const organization = {
+        id: faker.string.uuid(),
+        name: faker.company.name()
+      };
+
+      const result = await MovementService.create({ input, organization });
 
       expect(MovementApi.create).toHaveBeenCalledWith({
-        input: { type: 'entry', reason: 'Compra', executedAt, items: [] },
-        organizationId: 'org-1'
+        input,
+        organizationId: organization.id
       });
       expect(result).toBe('new-movement-id');
     });
@@ -44,7 +39,7 @@ describe('MovementService', () => {
     it('should throw when organization is null', async () => {
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Venda', executedAt, items: [] },
+          input: createMovementInputFactory.build(),
           organization: null
         })
       ).rejects.toThrow('Nenhuma organização selecionada.');
@@ -59,64 +54,12 @@ describe('MovementService', () => {
 
       await expect(
         MovementService.create({
-          input: { type: 'withdrawal', reason: 'Venda', executedAt, items: [] },
-          organization: mockOrganization
+          input: createMovementInputFactory.build(),
+          organization: { id: faker.string.uuid(), name: faker.company.name() }
         })
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'
       );
-    });
-  });
-
-  describe('getAll', () => {
-    const mockOrganization = {
-      id: 'org-1',
-      name: 'Inventto',
-      slug: 'inventto',
-      role: 'owner' as const
-    };
-
-    it('should delegate to MovementApi.getAll with orgId extracted from organization', async () => {
-      vi.mocked(MovementApi.getAll).mockResolvedValue([]);
-
-      await MovementService.getAll({ organization: mockOrganization });
-
-      expect(MovementApi.getAll).toHaveBeenCalledWith({
-        organizationId: 'org-1',
-        productId: undefined
-      });
-    });
-
-    it('should pass productId filter when provided', async () => {
-      vi.mocked(MovementApi.getAll).mockResolvedValue([]);
-
-      await MovementService.getAll({
-        organization: mockOrganization,
-        productId: 'prod-123'
-      });
-
-      expect(MovementApi.getAll).toHaveBeenCalledWith({
-        organizationId: 'org-1',
-        productId: 'prod-123'
-      });
-    });
-
-    it('should throw when organization is null', async () => {
-      await expect(
-        MovementService.getAll({ organization: null })
-      ).rejects.toThrow('Nenhuma organização selecionada.');
-
-      expect(MovementApi.getAll).not.toHaveBeenCalled();
-    });
-
-    it('should propagate errors thrown by MovementApi.getAll', async () => {
-      vi.mocked(MovementApi.getAll).mockRejectedValue(
-        new Error('Erro de conexão. Verifique sua internet.')
-      );
-
-      await expect(
-        MovementService.getAll({ organization: mockOrganization })
-      ).rejects.toThrow('Erro de conexão. Verifique sua internet.');
     });
   });
 });

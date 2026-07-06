@@ -227,15 +227,16 @@ Use:
 Quando a lógica pertence apenas a um componente:
 
 ```text
-presentation/components/<component>/use-<component>.ts
+presentation/components/<component>/hooks/use-<component>.ts
 ```
 
 Exemplo:
 
 ```text
 presentation/components/operator-form/
-├── operator-form.tsx
-└── use-operator-form.ts
+├── hooks/
+│   └── use-operator-form.ts
+└── index.tsx
 ```
 
 ---
@@ -277,13 +278,7 @@ Usado por:
 
 # Realtime State
 
-Clientes de:
-
-- SSE
-- SignalR
-- WebSocket
-
-podem atualizar diretamente:
+O **Supabase Realtime** (via `infra/real-time`) pode atualizar diretamente:
 
 ```text
 React Query Cache

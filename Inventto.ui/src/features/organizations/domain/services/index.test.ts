@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OrganizationApi } from '../../data/api';
+import { addressFactory } from '../../tests/factories/address.factory';
+import { organizationFactory } from '../../tests/factories/organization.factory';
 
-import { OrganizationService } from './index';
+import { EMAIL_OTHER_TENANT_ERROR, OrganizationService } from './index';
+
 vi.mock('../../data/api', () => ({
   OrganizationApi: {
     getById: vi.fn(),
@@ -16,15 +19,20 @@ vi.mock('../../data/api', () => ({
     replicateMember: vi.fn(),
     updateMemberRole: vi.fn(),
     updateMemberStatus: vi.fn(),
-    deactivate: vi.fn()
+    deactivate: vi.fn(),
+    remove: vi.fn()
   }
 }));
 
-const mockOrganization = { id: 'org-1', role: 'owner' } as never;
+const mockOrganization = organizationFactory.build({ id: 'org-1' });
 
 describe('OrganizationService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('expõe o mesmo identificador de erro usado pelo handler de dados (RN034)', () => {
+    expect(EMAIL_OTHER_TENANT_ERROR).toBe('EMAIL_OTHER_TENANT');
   });
 
   describe('getById', () => {
@@ -86,6 +94,29 @@ describe('OrganizationService', () => {
     });
   });
 
+  describe('create', () => {
+    it('deve delegar para OrganizationApi.create com o payload', async () => {
+      vi.mocked(OrganizationApi.create).mockResolvedValue('new-org-id');
+      const payload = { name: 'Nova Empresa' };
+      const result = await OrganizationService.create(payload);
+      expect(OrganizationApi.create).toHaveBeenCalledWith(payload);
+      expect(result).toBe('new-org-id');
+    });
+
+    it('deve rejeitar quando o nome é vazio', async () => {
+      await expect(OrganizationService.create({ name: '' })).rejects.toThrow(
+        'Nome da organização é obrigatório.'
+      );
+      expect(OrganizationApi.create).not.toHaveBeenCalled();
+    });
+
+    it('deve rejeitar quando o nome é apenas espaços', async () => {
+      await expect(OrganizationService.create({ name: '   ' })).rejects.toThrow(
+        'Nome da organização é obrigatório.'
+      );
+    });
+  });
+
   describe('update', () => {
     it('deve delegar para OrganizationApi.update com orgId e o input completo', async () => {
       vi.mocked(OrganizationApi.update).mockResolvedValue(undefined);
@@ -143,22 +174,37 @@ describe('OrganizationService', () => {
     });
   });
 
-  describe('lookupCep', () => {
-    it('deve delegar para OrganizationApi.lookupCep', async () => {
-      const address = {
-        zip: '01310-100',
-        street: 'Av. Paulista',
-        number: '',
-        district: 'Bela Vista',
-        city: 'São Paulo',
-        state: 'SP'
-      };
-      vi.mocked(OrganizationApi.lookupCep).mockResolvedValue(address);
+  describe('deactivate', () => {
+    it('deve resolver o orgId e delegar para OrganizationApi.deactivate', async () => {
+      vi.mocked(OrganizationApi.deactivate).mockResolvedValue(undefined);
+      await OrganizationService.deactivate(mockOrganization);
+      expect(OrganizationApi.deactivate).toHaveBeenCalledWith('org-1');
+    });
 
-      const result = await OrganizationService.lookupCep('01310100');
+    it('deve propagar o erro quando organization é null', async () => {
+      await expect(OrganizationService.deactivate(null)).rejects.toThrow(
+        'ID da organização é obrigatório.'
+      );
+    });
+  });
 
-      expect(OrganizationApi.lookupCep).toHaveBeenCalledWith('01310100');
-      expect(result).toEqual(address);
+  describe('remove', () => {
+    it('deve resolver o orgId e delegar para OrganizationApi.remove com purge default false', async () => {
+      vi.mocked(OrganizationApi.remove).mockResolvedValue(undefined);
+      await OrganizationService.remove(mockOrganization);
+      expect(OrganizationApi.remove).toHaveBeenCalledWith('org-1', false);
+    });
+
+    it('deve repassar purge=true quando informado', async () => {
+      vi.mocked(OrganizationApi.remove).mockResolvedValue(undefined);
+      await OrganizationService.remove(mockOrganization, true);
+      expect(OrganizationApi.remove).toHaveBeenCalledWith('org-1', true);
+    });
+
+    it('deve propagar o erro quando organization é null', async () => {
+      await expect(OrganizationService.remove(null)).rejects.toThrow(
+        'ID da organização é obrigatório.'
+      );
     });
   });
 
@@ -202,6 +248,15 @@ describe('OrganizationService', () => {
         OrganizationService.replicateMember(null, 'user-2', 'manager')
       ).rejects.toThrow('ID da organização é obrigatório.');
     });
+
+    it('deve rejeitar a replicação com cargo de proprietário', async () => {
+      await expect(
+        OrganizationService.replicateMember(mockOrganization, 'user-2', 'owner')
+      ).rejects.toThrow(
+        'Usuário não pode ser replicado com cargo de proprietário'
+      );
+      expect(OrganizationApi.replicateMember).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateMemberRole', () => {
@@ -212,6 +267,15 @@ describe('OrganizationService', () => {
         'member-1',
         'manager'
       );
+    });
+
+    it('deve rejeitar a atualização para cargo de proprietário', async () => {
+      await expect(
+        OrganizationService.updateMemberRole('member-1', 'owner')
+      ).rejects.toThrow(
+        'Usuário não pode ser atualizado com cargo de proprietário'
+      );
+      expect(OrganizationApi.updateMemberRole).not.toHaveBeenCalled();
     });
   });
 
@@ -228,16 +292,22 @@ describe('OrganizationService', () => {
     });
   });
 
-  describe('deactivate', () => {
-    it('deve resolver o orgId e delegar para OrganizationApi.deactivate', async () => {
-      vi.mocked(OrganizationApi.deactivate).mockResolvedValue(undefined);
-      await OrganizationService.deactivate(mockOrganization);
-      expect(OrganizationApi.deactivate).toHaveBeenCalledWith('org-1');
+  describe('lookupCep', () => {
+    it('deve delegar para OrganizationApi.lookupCep e retornar o endereço', async () => {
+      const address = addressFactory.build();
+      vi.mocked(OrganizationApi.lookupCep).mockResolvedValue(address);
+
+      const result = await OrganizationService.lookupCep('01310100');
+
+      expect(OrganizationApi.lookupCep).toHaveBeenCalledWith('01310100');
+      expect(result).toEqual(address);
     });
 
-    it('deve propagar o erro quando organization é null', async () => {
-      await expect(OrganizationService.deactivate(null)).rejects.toThrow(
-        'ID da organização é obrigatório.'
+    it('deve lançar erro quando o CEP não é encontrado', async () => {
+      vi.mocked(OrganizationApi.lookupCep).mockResolvedValue(null);
+
+      await expect(OrganizationService.lookupCep('00000000')).rejects.toThrow(
+        'CEP não encontrado'
       );
     });
   });

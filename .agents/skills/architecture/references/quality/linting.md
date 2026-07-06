@@ -30,24 +30,13 @@ Corrige automaticamente o que for possível.
 ---
 
 ```bash
-pnpm type-check
-```
-
-Executa validação completa de tipagem.
-
-Exemplo:
-
-```bash
-tsc --noEmit
-```
-
----
-
-```bash
 pnpm test
 ```
 
 Executa a suíte completa de testes.
+
+> Não existe script `pnpm type-check` no projeto. A validação de tipos
+> completa (`tsc -b --noEmit`) roda no **pre-push**, não como script avulso.
 
 ---
 
@@ -62,38 +51,35 @@ pnpm lint --fix
 pnpm vitest related --run --passWithNoTests
 ```
 
+Lint não detecta vários erros de TypeScript (incompatibilidade de generics,
+erro de resolver do React Hook Form, problemas de inferência) — mas o
+pre-commit **não** roda type-check hoje. Essa validação acontece no pre-push
+(ver abaixo). Se um erro de tipo precisar ser barrado mais cedo, adicionar
+`tsc-files --noEmit` ao `lint-staged` é uma opção, mas não é o que o projeto
+faz atualmente.
+
 ---
 
-## Validação de tipos no pre-commit
+# Pre-push
 
-Lint não detecta vários erros de TypeScript.
-
-Exemplo real:
-
-- incompatibilidade de generics
-- erro de resolver do React Hook Form
-- erros de contracts
-- problemas de inferência
-
-Por isso pode ser necessário adicionar:
+O hook `.husky/pre-push` faz duas coisas antes de permitir o push:
 
 ```bash
-tsc-files --noEmit
+#!/usr/bin/env sh
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$branch_name" = "main" ]; then
+  echo "❌ Erro: Commits diretos na branch main não são permitidos!"
+  exit 1
+fi
+
+cd Inventto.ui
+pnpm tsc -b --noEmit
 ```
 
-Exemplo:
-
-```json
-{
-  "src/**/*.{ts,tsx}": [
-    "tsc-files --noEmit",
-    "pnpm lint --fix",
-    "pnpm vitest related --run --passWithNoTests"
-  ]
-}
-```
-
-Isso evita que erros de tipagem cheguem no CI/CD.
+- Bloqueia push direto para `main`
+- Roda a validação completa de tipos (`tsc -b --noEmit`) — é aqui, não no
+  pre-commit, que erros de tipagem são barrados antes do CI/CD
 
 ---
 
@@ -107,7 +93,7 @@ Exemplo:
 
 ```ts
 // PROIBIDO
-import { ProductService } from '@/features/products/domain/services/product-service'
+import { ProductService } from '@/features/products/domain/services'
 ```
 
 ---
@@ -125,8 +111,8 @@ import { getProducts } from '@/features/products'
 Exemplo proibido:
 
 ```ts
-// presentation chamando http client
-import { httpClient } from '@/infra/api'
+// presentation acessando o cliente de dados direto
+import { supabase } from '@/infra/supabase'
 ```
 
 ```ts

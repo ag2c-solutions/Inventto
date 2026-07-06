@@ -1,7 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
 
-import type { VariantOption } from '@/features/products';
-
 import { ImageCard } from '@/shared/components/common/image-card';
 import { Button } from '@/shared/components/ui/button';
 import {
@@ -16,11 +14,13 @@ import { Label } from '@/shared/components/ui/label';
 import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 import { cn } from '@/shared/utils';
 
-import { ItemAttributeBadge } from '../../../item-attribute-badge';
-import { useMovementForm } from '../../hooks';
+import type { VariantOption } from '@/features/products';
 
-import { formatMoneyInput } from './format-money';
-import { useAddItems } from './use-add-items';
+import { ItemAttributeBadge } from '../../../item-attribute-badge';
+import { useMovementForm } from '../../hooks/use-movement-form';
+
+import { useAddItems } from './hooks/use-add-items';
+import { formatMoneyInput } from './utils/format-money';
 
 interface ItemRowProps {
   label?: string;

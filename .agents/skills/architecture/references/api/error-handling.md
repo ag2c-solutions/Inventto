@@ -41,7 +41,7 @@ Cada feature possui handlers em:
 features/<feature>/data/handlers/
 ```
 
-Esses handlers interceptam erros técnicos externos, mapeiam status HTTP para mensagens legíveis e **sempre relançam** usando:
+Esses handlers interceptam erros técnicos externos, mapeiam erros do Postgres/Supabase para mensagens legíveis e **sempre relançam** usando:
 
 ```ts
 throw new Error(message)
@@ -58,46 +58,34 @@ never
 Porque obrigatoriamente lançam exceção.
 
 ```ts
-import { AxiosError } from 'axios'
+import type { PostgrestError } from '@supabase/supabase-js'
+
+import { isPostgrestError } from '@/infra/supabase/guards/is-postgres-error'
 
 export function handleOperatorError(
-  error: Error | unknown,
+  error: PostgrestError | Error | unknown,
   action: string
 ): never {
   let message = 'Ocorreu um erro inesperado na operação.'
 
-  if (error instanceof AxiosError) {
-    const status = error.response?.status
-    const apiMessage = error.response?.data?.message
-
-    switch (status) {
-      case 400:
-        message =
-          apiMessage ||
-          'Dados inválidos para esta operação.'
+  if (isPostgrestError(error)) {
+    switch (error.code) {
+      case '23505': // unique_violation
+        message = 'Já existe um registro com estes dados.'
         break
 
-      case 403:
+      case '23503': // foreign_key_violation
         message =
-          'Você não tem permissão para realizar esta ação.'
+          'Operação inválida: registro relacionado não encontrado.'
         break
 
-      case 404:
-        message =
-          apiMessage ||
-          'Recurso não encontrado.'
+      case '23502': // not_null_violation
+        message = 'Dados obrigatórios ausentes.'
         break
+    }
 
-      case 409:
-        message =
-          apiMessage ||
-          'Conflito: o registro já existe.'
-        break
-
-      case 500:
-        message =
-          'Erro interno no servidor. Tente novamente mais tarde.'
-        break
+    if (error.message.toLowerCase().includes('network')) {
+      message = 'Erro de conexão. Verifique sua internet.'
     }
   } else if (error instanceof Error) {
     message = error.message
@@ -106,6 +94,10 @@ export function handleOperatorError(
   throw new Error(message)
 }
 ```
+
+O guard `isPostgrestError` (em `infra/supabase/guards/`) identifica erros do
+Postgres/Supabase; os códigos são os do Postgres (`23505` = duplicado,
+`23503` = FK, `23502` = campo obrigatório).
 
 ---
 
@@ -122,11 +114,13 @@ export class OperatorAPI {
       const payload =
         OperatorMapper.toDTO(model)
 
-      const { data } =
-        await httpClient.post(
-          '/operators',
-          payload
-        )
+      const { data, error } = await supabase
+        .from('operators')
+        .insert(payload)
+        .select()
+        .single()
+
+      if (error) throw error
 
       return OperatorMapper.toDomain(data)
     } catch (error) {
@@ -178,9 +172,15 @@ Esse erro também sobe para o `MutationCache`.
 
 ---
 
-## 4. Mutations — `MutationCache` Global
+## 4. Mutations e Queries — `MutationCache`/`QueryCache` Globais
 
 O erro relançado pelo handler ou pelo service é capturado automaticamente pelo `MutationCache`.
+
+O mesmo mecanismo (`meta.successMessage`/`errorMessage`/`suppressErrorToast`)
+também está configurado no `QueryCache` — não é exclusivo de mutations. Como
+nenhuma query hoje define `meta`, **toda falha de query já dispara toast
+automaticamente** com a mensagem genérica de fallback. Ver
+`references/architecture/layers/app.md` (`app/libs/react-query/`).
 
 ```ts
 export const queryClient = new QueryClient({
@@ -192,13 +192,6 @@ export const queryClient = new QueryClient({
       mutation
     ) => {
       if (
-        error instanceof AxiosError &&
-        error.response?.status === 401
-      ) {
-        return
-      }
-
-      if (
         mutation.meta?.suppressErrorToast
       ) {
         return
@@ -208,9 +201,7 @@ export const queryClient = new QueryClient({
         mutation.meta?.errorMessage
 
       const backendMessage =
-        error instanceof Error
-          ? error.message
-          : 'Erro desconhecido'
+        error.message ?? 'Erro desconhecido'
 
       toast.error(
         customMessage ||
@@ -268,39 +259,36 @@ return useMutation({
 
 | Campo `meta` | Efeito |
 |---|---|
-| `successMessage` | Toast de sucesso |
+| `successMessage` | Toast de sucesso. Pode ser string estática ou `(data) => string` para mensagem dinâmica (ex: `` `${n} produto(s) importado(s)` ``) |
 | `errorMessage` | Sobrescreve erro padrão |
 | `suppressErrorToast` | Suprime toast |
 
+Válido tanto para `useMutation` quanto para `useQuery`.
+
 ---
 
-## 5. Infraestrutura — Interceptors via Bootstrap
+## 5. Sessão — `onAuthStateChange` do Supabase
 
-O erro `401` continua sendo tratado na infraestrutura.
+Expiração de sessão e mudanças de auth **não** passam por interceptor HTTP. O
+Supabase gerencia a sessão (refresh automático) e notifica via `onAuthStateChange`.
 
-A infra não pode importar stores diretamente.
+A feature `auth` encapsula essa assinatura e expõe um `subscribe` para o app reagir
+(ex: logout, redirecionar para login):
 
 ```ts
-setupHttpClientInterceptors(
-  getToken,
-  () => {
-    const isLoggingOut =
-      useAuthStore.getState().status ===
-      'unauthenticated'
+static async subscribeToAuthChanges(
+  callback: (event: AuthChangeEvent, session: Session | null) => void
+) {
+  const {
+    data: { subscription }
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(event, session)
+  })
 
-    if (!isLoggingOut) {
-      window.dispatchEvent(
-        new CustomEvent(
-          'on-session-expired'
-        )
-      )
-
-      useAuthStore
-        .getState()
-        .logout()
-    }
+  return () => {
+    subscription.unsubscribe()
   }
-)
+}
 ```
 
 ---
@@ -331,12 +319,12 @@ domain/service
 | Campo inválido no formulário | Zod schema |
 | Validação de domínio | `domain/services` ou `domain/validators` |
 | Violação de regra de negócio | `domain/services` |
-| Erro técnico externo | `data/handlers/*-error-handler.ts` |
+| Erro técnico externo | `data/handlers/error-handler.ts` |
 | Exibição de toast | `MutationCache` global |
 | Mensagem customizada | `meta.errorMessage` |
 | Toast de sucesso | `meta.successMessage` |
 | Supressão de toast | `meta.suppressErrorToast` |
-| HTTP 401 | Interceptor em `infra/api` |
+| Sessão expirada / mudança de auth | `supabase.auth.onAuthStateChange` (feature `auth`) |
 
 ---
 

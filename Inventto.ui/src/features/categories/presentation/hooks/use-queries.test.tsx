@@ -3,9 +3,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CategoryApi } from '../../data/api';
-import type { Category } from '../../domain/entities';
+import { categoryFactory } from '../../tests/factories/category.factory';
 
 import { useCategoriesQuery } from './use-queries';
+
+const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
 vi.mock('../../data/api', () => ({
   CategoryApi: {
@@ -14,9 +16,7 @@ vi.mock('../../data/api', () => ({
 }));
 
 vi.mock('@/features/users', () => ({
-  useUser: vi.fn(() => ({
-    currentOrganization: { id: 'org-1' }
-  }))
+  useUser: mockUseUser
 }));
 
 describe('useCategoriesQuery', () => {
@@ -24,6 +24,7 @@ describe('useCategoriesQuery', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } }
     });
@@ -34,10 +35,7 @@ describe('useCategoriesQuery', () => {
   );
 
   it('should fetch categories using CategoryApi.getAll with organizationId', async () => {
-    const mockCategories: Category[] = [
-      { id: '1', name: 'Roupas' },
-      { id: '2', name: 'Eletrônicos' }
-    ];
+    const mockCategories = categoryFactory.buildList(2);
 
     vi.mocked(CategoryApi.getAll).mockResolvedValue(mockCategories);
 
@@ -61,5 +59,14 @@ describe('useCategoriesQuery', () => {
     expect(result.current.error?.message).toBe(
       'Não foi possível realizar a operação.'
     );
+  });
+
+  it('should not fetch when there is no current organization', () => {
+    mockUseUser.mockReturnValue({ currentOrganization: null });
+
+    const { result } = renderHook(() => useCategoriesQuery(), { wrapper });
+
+    expect(CategoryApi.getAll).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe('idle');
   });
 });

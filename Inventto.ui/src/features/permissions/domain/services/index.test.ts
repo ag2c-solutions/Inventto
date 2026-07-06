@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PermissionAction } from '../entities';
+import type { PermissionAction, Role } from '../entities';
 
 import { PermissionService } from './index';
 
@@ -41,5 +41,11 @@ describe('PermissionService.can', () => {
     expect(
       PermissionService.can('owner', 'nonexistent:action' as PermissionAction)
     ).toBe(false);
+  });
+
+  it('deve retornar false para um Role sem mapeamento em ROLE_PERMISSIONS', () => {
+    expect(PermissionService.can('unmapped-role' as Role, 'product:view')).toBe(
+      false
+    );
   });
 });

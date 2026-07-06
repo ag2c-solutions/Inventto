@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useUser } from '@/features/users';
 
-import { MovementService } from '../../domain/services';
+import { MovementApi } from '../../data/api';
 import { MOVEMENT_KEYS } from '../constants';
 
 export function useMovementsQuery(filters?: { productId?: string }) {
@@ -11,8 +11,8 @@ export function useMovementsQuery(filters?: { productId?: string }) {
   return useQuery({
     queryKey: MOVEMENT_KEYS.list(currentOrganization?.id, filters),
     queryFn: () =>
-      MovementService.getAll({
-        organization: currentOrganization,
+      MovementApi.getAll({
+        organizationId: currentOrganization?.id ?? '',
         productId: filters?.productId
       }),
     enabled: !!currentOrganization

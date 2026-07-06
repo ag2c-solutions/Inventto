@@ -4,313 +4,37 @@
 
 A aplicação segue:
 
-- Feature-Sliced Design
+- Feature-Based Architecture
 - 3-Tier Architecture
 - CQRS pragmático
 
----
-
-## Fluxo de Query
-
-```text
-React Components
-      ↓
-Presentation Hooks (use-queries)
-      ↓
-Data API
-      ↓
-Data Mapper
-      ↓
-Infra Layer
-      ↓
-Backend
-```
-
-Handlers podem participar quando houver erro técnico:
-
-```text
-Data API
-↓
-Data Handler
-↓
-throw Error
-```
+O fluxo de dados entre as camadas internas de uma feature (query e mutation,
+incluindo tratamento de erro) está descrito em
+`references/architecture/data-flow.md`.
 
 ---
 
-## Fluxo de Mutation
+# Mapa das Camadas Macro
 
-```text
-React Components
-      ↓
-Presentation Hooks (use-mutations)
-      ↓
-Domain Services
-      ↓
-Data API
-      ↓
-Data Mapper
-      ↓
-Infra Layer
-      ↓
-Backend
-```
+O sistema é dividido em 4 camadas macro:
 
-Services podem lançar erros de domínio:
-
-```text
-Domain Service
-↓
-throw Error
-```
-
----
-
-# Responsabilidades por Camada
-
----
-
-## Presentation Components
-
-Responsáveis por:
-
-- renderizar UI
-- capturar interação
-- submit
-- clique
-- modal
-- navegação visual
-
-Recebem dados exclusivamente via hooks.
-
----
-
-### Components NÃO podem:
-
-❌ fazer HTTP
-
-❌ usar DTO
-
-❌ conter regra de negócio
-
-❌ acessar API diretamente
-
----
-
-# Presentation Hooks
-
-Responsáveis por:
-
-- TanStack Query
-- queries
-- mutations
-- cache
-- invalidation
-- loading state
-- optimistic updates
-- integração com MutationCache
-
-Também podem acessar:
-
-- Zustand
-- contexto visual
-
----
-
-### Hooks podem chamar:
-
-### Queries
-
-```text
-Data API
-```
-
----
-
-### Mutations
-
-```text
-Domain Service
-```
-
----
-
-### Hooks NÃO podem:
-
-❌ chamar `httpClient`
-
-❌ conter regra de negócio
-
-❌ fazer mapper manual
-
----
-
-# Domain Services
-
-Vivem em:
-
-```text
-domain/services
-```
-
-Responsáveis por:
-
-- regras de negócio
-- validações
-- orquestração
-- decisões de domínio
-- erros de negócio
-
----
-
-## Services podem:
-
-- chamar APIs da própria feature
-- lançar erros
-- coordenar múltiplas chamadas
-
----
-
-## Services NÃO podem:
-
-❌ usar React
-
-❌ usar React Query
-
-❌ fazer HTTP direto
-
-❌ acessar components
-
----
-
-# Domain Validators
-
-Vivem em:
-
-```text
-domain/validators
-```
-
-Responsáveis por validações reutilizáveis de domínio.
-
----
-
-# Data API
-
-Vivem em:
-
-```text
-data/api
-```
-
-Responsáveis por:
-
-- chamadas HTTP
-- integração externa
-- uso de mapper
-- uso de handlers
-
----
-
-## APIs NÃO podem:
-
-❌ conter regra de negócio
-
-❌ usar React
-
-❌ acessar hooks
-
----
-
-# Data Mapper
-
-Vivem em:
-
-```text
-data/mapper
-```
-
-Responsáveis por:
-
-- DTO → Domain
-- Domain → DTO
-
-Sem side-effects.
-
----
-
-# Data Handlers
-
-Vivem em:
-
-```text
-data/handlers
-```
-
-Responsáveis por:
-
-- normalizar erros externos
-- traduzir status HTTP
-- relançar erros previsíveis
-
----
-
-# Infra (`infra/api`, `infra/realtime`)
-
-Responsável por:
-
-- clientes HTTP base
-- interceptors
-- SSE
-- SignalR
-- websocket
-- integrações técnicas globais
-
-Clientes realtime podem atualizar diretamente:
-
-```text
-React Query Cache
-```
-
----
-
-## Infra NÃO pode:
-
-❌ importar hooks
-
-❌ importar components
-
-❌ importar services
-
-❌ importar stores
-
----
-
-Dependências como:
-
-- `getToken`
-- `onUnauthorized`
-
-devem ser injetadas via:
-
-```text
-app/bootstrap
-```
-
----
-
-# Regras de Comunicação entre Camadas
-
-| De | Pode chamar | Não pode chamar |
+| Camada | Responsabilidade | Detalhes |
 |---|---|---|
-| Component | Hook | Service, API, httpClient |
-| Hook (query) | Data API | httpClient |
-| Hook (mutation) | Domain Service | httpClient |
-| Domain Service | Data API | Hook, Component |
-| Data API | Mapper, Handler, Infra | Hook, Component |
-| Mapper | — | qualquer outra camada |
-| Handler | — | qualquer outra camada |
-| Infra | Backend externo | Hooks, Components, Stores |
+| `app/` | Composição da aplicação: roteamento, providers globais, layouts, tema, marca. É o shell que envolve as features — não contém regra de negócio | `references/architecture/layers/app.md` |
+| `features/` | Domínio de negócio da aplicação. Cada feature é autocontida e se divide internamente em Presentation, Domain e Data | `references/architecture/layers/features.md` |
+| `shared/` | Código reutilizável entre features: componentes, hooks e utils genéricos, sem conhecimento de nenhuma feature específica | `references/architecture/layers/shared.md` |
+| `infra/` | Integrações externas à aplicação — não só backend, também APIs de browser. Camada mais externa, sem dependência de nenhuma outra | `references/architecture/layers/infra.md` |
+
+---
+
+# Comunicação entre Camadas Macro
+
+| De | Pode importar | Não pode importar |
+|---|---|---|
+| `app/` | `features/` (via `index.ts`), `shared/` | `infra/` diretamente |
+| `features/` | `shared/`, `infra/` | outra feature além de `index.ts` |
+| `shared/` | `infra/` | `features/`, `app/` |
+| `infra/` | — (é folha) | `features/`, `shared/`, `app/` |
 
 ---
 

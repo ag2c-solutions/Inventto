@@ -73,30 +73,35 @@ features/<feature-name>/
 │
 ├── data/
 │   ├── api/
-│   ├── dto/
-│   ├── mapper/
+│   ├── dtos/
+│   ├── mappers/
 │   └── handlers/
+│
+├── tests/
+│   ├── factories/
+│   └── mocks/
 │
 └── index.ts
 ```
 
 ---
 
-# Passo 2 — Criar contratos externos (`data/dto`)
+# Passo 2 — Criar contratos externos (`data/dtos`)
 
 Defina os contratos exatos do backend.
 
 ```text
 data/
-└── dto/
+└── dtos/
+    └── index.ts
 ```
 
-Exemplo:
+Exemplo — os contratos ficam num único `index.ts`:
 
-```text
-product.dto.ts
-create-product.dto.ts
-update-product.dto.ts
+```ts
+export interface ProductDTO { ... }
+export interface CreateProductDTO { ... }
+export interface UpdateProductDTO { ... }
 ```
 
 DTO representa exatamente o formato da API.
@@ -110,19 +115,20 @@ Crie os modelos internos da aplicação.
 ```text
 domain/
 └── entities/
+    └── index.ts
 ```
 
-Exemplo:
+Exemplo — as entidades ficam num único `index.ts`:
 
-```text
-product.model.ts
+```ts
+export interface Product { ... }
 ```
 
 Esses modelos representam o formato ideal da aplicação.
 
 ---
 
-# Passo 4 — Criar mappers (`data/mapper`)
+# Passo 4 — Criar mappers (`data/mappers`)
 
 Responsável por traduzir:
 
@@ -133,7 +139,8 @@ Domain Model → DTO
 
 ```text
 data/
-└── mapper/
+└── mappers/
+    └── index.ts
 ```
 
 Mappers devem ser classes com métodos estáticos.
@@ -191,7 +198,7 @@ ProductAPI
 
 A API pode usar:
 
-- client HTTP global
+- cliente `supabase` (`@/infra/supabase`)
 - DTOs
 - mappers
 - handlers
@@ -363,6 +370,10 @@ Componentes:
 - modais
 - cards
 
+Quando houver múltiplos formulários e/ou componentes de ação (dialogs, botões,
+switchers), agrupe-os em `components/forms/` e `components/actions/`. Ver
+`references/react/components.md`.
+
 Pages:
 
 - listagem
@@ -374,14 +385,15 @@ Pages:
 
 ## Hooks locais de componente
 
-Hooks usados por apenas um componente ficam junto ao componente.
+Hooks usados por apenas um componente ficam junto ao componente, dentro de `hooks/`.
 
 Exemplo:
 
 ```text
 presentation/components/product-form/
-├── product-form.tsx
-└── use-product-form.ts
+├── hooks/
+│   └── use-product-form.ts
+└── index.tsx
 ```
 
 Use esse padrão para:
@@ -411,15 +423,15 @@ Usar Zustand para:
 Toda feature deve expor apenas o necessário.
 
 ```ts
-export { ProductsPage } from './presentation/pages/products-page'
-export type { Product } from './domain/entities/product.model'
+export { ProductsListPage } from './presentation/pages/products-list'
+export type { Product } from './domain/entities'
 ```
 
 Outras features só podem consumir recursos expostos pelo `index.ts`.
 
 ---
 
-# Passo 13 — Registrar rotas
+# Passo 13 — Registrar rotas e sidebar
 
 Se a feature possuir páginas:
 
@@ -428,6 +440,10 @@ app/routers
 ```
 
 Registrar rotas protegidas/públicas quando necessário.
+
+Se a página for acessada via menu lateral, registrar também em `navGroups`
+(`app/layouts/system/constants/navlinks-sidebar.tsx`). Ver
+`references/react/pages.md`.
 
 ---
 

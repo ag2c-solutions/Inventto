@@ -23,17 +23,17 @@ export class UserService {
 
   static async updateAvatar({
     userId,
-    file: File
+    file
   }: UpdateAvatarVariables): Promise<void> {
     if (!userId?.trim()) {
       throw new Error('Usuário não informado.');
     }
 
-    if (!File) {
+    if (!file) {
       throw new Error('Imagem não informada.');
     }
 
-    const url = await UserAPI.saveProfileImage(File);
+    const url = await UserAPI.saveProfileImage(file);
 
     await UserAPI.updateAvatar(userId, url);
   }

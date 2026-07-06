@@ -1,6 +1,6 @@
-import { stripUndefined } from '@/shared/utils';
-
 import { supabase } from '@/infra/supabase';
+
+import { stripUndefined } from '@/shared/utils';
 
 import type {
   Catalog,

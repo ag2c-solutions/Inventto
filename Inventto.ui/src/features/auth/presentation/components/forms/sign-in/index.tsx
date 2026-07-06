@@ -16,7 +16,7 @@ import { Input } from '@/shared/components/ui/input';
 import { maskEmail } from '../../../utils/mask-email';
 import { OtpStep } from '../../otp-step';
 
-import { useSignInForm } from './use-sign-in-form';
+import { useSignInForm } from './hooks/use-sign-in-form';
 
 export function SignInForm() {
   const {

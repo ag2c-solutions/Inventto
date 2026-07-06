@@ -2,12 +2,16 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useLocalStorage } from '@/shared/hooks/use-local-storage';
+
 import { useAuth } from '@/features/auth';
 
-import { LocalStorageService } from '@/infra/local-storage';
-
-import type { User, UserOrganization } from '../../domain/entities';
+import type { UserOrganization } from '../../domain/entities';
 import { UserService } from '../../domain/services';
+import {
+  userFactory,
+  userOrganizationFactory
+} from '../../tests/factories/user.factory';
 
 import { useUserProfileQuery } from './use-query';
 import { useUser } from './use-user';
@@ -17,12 +21,12 @@ vi.mock('@/features/auth', () => ({
   useAuth: vi.fn()
 }));
 
-vi.mock('@/infra/local-storage', () => ({
-  LocalStorageService: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn()
-  }
+const mockGetItem = vi.fn();
+const mockSetItem = vi.fn();
+const mockRemoveItem = vi.fn();
+
+vi.mock('@/shared/hooks/use-local-storage', () => ({
+  useLocalStorage: vi.fn()
 }));
 
 vi.mock('../../domain/services', () => ({
@@ -38,37 +42,21 @@ vi.mock('./use-query', () => ({
 
 const mockUseAuth = vi.mocked(useAuth);
 const mockUseUserProfileQuery = vi.mocked(useUserProfileQuery);
-const mockGetItem = vi.mocked(LocalStorageService.getItem);
-const mockSetItem = vi.mocked(LocalStorageService.setItem);
-const mockRemoveItem = vi.mocked(LocalStorageService.removeItem);
+const mockUseLocalStorage = vi.mocked(useLocalStorage);
 const mockGetOrganizationById = vi.mocked(UserService.getOrganizationById);
 const mockSelectOrganization = vi.mocked(UserService.selectOrganization);
 
 const STORAGE_ORG_KEY = 'inventto:current-org-id';
 
+const unknownOrgId = 'organization-999';
+const invalidStoredOrgId = 'organization-invalid';
+
 const availableOrganizations: UserOrganization[] = [
-  {
-    id: 'organization-123',
-    name: 'Inventto',
-    role: 'owner'
-  },
-  {
-    id: 'organization-456',
-    name: 'Smart Tech',
-    role: 'manager'
-  }
+  userOrganizationFactory.build({ role: 'owner' }),
+  userOrganizationFactory.build({ role: 'manager' })
 ];
 
-const user: User = {
-  id: 'user-123',
-  email: 'rafael@test.com',
-  fullName: 'Rafael Conceição',
-  avatarUrl: 'https://cdn.example.com/avatar.png',
-  mustChangePassword: false,
-  createdAt: new Date('2026-05-04T10:00:00.000Z'),
-  updatedAt: new Date('2026-05-04T12:00:00.000Z'),
-  availableOrganizations
-};
+const user = userFactory.build({ availableOrganizations });
 
 function createWrapper() {
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -81,11 +69,16 @@ describe('useUser', () => {
     vi.clearAllMocks();
 
     mockGetItem.mockReturnValue(null);
+    mockUseLocalStorage.mockReturnValue({
+      getItem: mockGetItem,
+      setItem: mockSetItem,
+      removeItem: mockRemoveItem
+    });
 
     mockUseAuth.mockReturnValue({
       session: {
         user: {
-          id: 'user-123'
+          id: user.id
         }
       }
     } as never);
@@ -113,7 +106,7 @@ describe('useUser', () => {
       wrapper: createWrapper()
     });
 
-    expect(mockUseUserProfileQuery).toHaveBeenCalledWith('user-123');
+    expect(mockUseUserProfileQuery).toHaveBeenCalledWith(user.id);
 
     expect(result.current.user).toEqual(user);
     expect(result.current.isLoading).toBe(false);
@@ -130,7 +123,7 @@ describe('useUser', () => {
   });
 
   it('should use stored organization id when initializing context', () => {
-    mockGetItem.mockReturnValue('organization-456');
+    mockGetItem.mockReturnValue(availableOrganizations[1].id);
     mockGetOrganizationById.mockReturnValue(availableOrganizations[1]);
 
     const { result } = renderHook(() => useUser(), {
@@ -140,7 +133,7 @@ describe('useUser', () => {
     expect(mockGetItem).toHaveBeenCalledWith(STORAGE_ORG_KEY);
     expect(mockGetOrganizationById).toHaveBeenCalledWith(
       user,
-      'organization-456'
+      availableOrganizations[1].id
     );
 
     expect(result.current.currentOrganization).toEqual(
@@ -150,7 +143,7 @@ describe('useUser', () => {
   });
 
   it('should set fallback organization in storage when selected organization is invalid', async () => {
-    mockGetItem.mockReturnValue('organization-invalid');
+    mockGetItem.mockReturnValue(invalidStoredOrgId);
     mockGetOrganizationById.mockReturnValue(availableOrganizations[0]);
 
     renderHook(() => useUser(), {
@@ -160,13 +153,13 @@ describe('useUser', () => {
     await waitFor(() => {
       expect(mockSetItem).toHaveBeenCalledWith(
         STORAGE_ORG_KEY,
-        'organization-123'
+        availableOrganizations[0].id
       );
     });
   });
 
   it('should not sync storage when selected organization is already current organization', async () => {
-    mockGetItem.mockReturnValue('organization-123');
+    mockGetItem.mockReturnValue(availableOrganizations[0].id);
     mockGetOrganizationById.mockReturnValue(availableOrganizations[0]);
 
     renderHook(() => useUser(), {
@@ -184,17 +177,17 @@ describe('useUser', () => {
     });
 
     act(() => {
-      result.current.setCurrentOrganization('organization-456');
+      result.current.setCurrentOrganization(availableOrganizations[1].id);
     });
 
     expect(mockSelectOrganization).toHaveBeenCalledWith(
       user,
-      'organization-456'
+      availableOrganizations[1].id
     );
 
     expect(mockSetItem).toHaveBeenCalledWith(
       STORAGE_ORG_KEY,
-      'organization-456'
+      availableOrganizations[1].id
     );
   });
 
@@ -212,18 +205,12 @@ describe('useUser', () => {
     });
 
     act(() => {
-      result.current.setCurrentOrganization('organization-999');
+      result.current.setCurrentOrganization(unknownOrgId);
     });
 
-    expect(mockSelectOrganization).toHaveBeenCalledWith(
-      user,
-      'organization-999'
-    );
+    expect(mockSelectOrganization).toHaveBeenCalledWith(user, unknownOrgId);
 
-    expect(mockSetItem).not.toHaveBeenCalledWith(
-      STORAGE_ORG_KEY,
-      'organization-999'
-    );
+    expect(mockSetItem).not.toHaveBeenCalledWith(STORAGE_ORG_KEY, unknownOrgId);
 
     consoleWarnSpy.mockRestore();
   });

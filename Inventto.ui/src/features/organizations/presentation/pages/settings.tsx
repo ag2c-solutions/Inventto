@@ -1,5 +1,5 @@
-import { OrganizationSettingsForm } from '../components/organization-settings-form';
-import { OrganizationSettingsFormSkeleton } from '../components/organization-settings-form/skeleton';
+import { OrganizationSettingsForm } from '../components/forms/organization-settings';
+import { OrganizationSettingsFormSkeleton } from '../components/forms/organization-settings/pieces/skeleton';
 import { useOrganizationQuery } from '../hooks/use-queries';
 
 export function SettingsPage() {

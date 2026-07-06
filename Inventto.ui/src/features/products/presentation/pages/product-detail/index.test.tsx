@@ -6,6 +6,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUser } from '@/features/users';
 
+import {
+  productAttributeFactory,
+  productImageFactory,
+  productVariantFactory,
+  productWithVariantsFactory
+} from '../../../tests/factories/product.factory';
 import { useProductByIDQuery } from '../../hooks/use-queries';
 
 import { ProductDetailsPage } from './index';
@@ -70,56 +76,55 @@ const renderComponent = () => {
   );
 };
 
-const mockProductVariant = {
-  id: 'p1',
-  name: 'Tênis Runner',
-  description: 'Tênis de corrida',
-  sku: 'RUN-BASE',
-  hasVariants: true,
-  categories: [{ id: 'cat-1', name: 'Calçados' }],
-  allImages: [
-    {
-      id: 'img-blue',
-      url: 'url-blue',
-      name: 'img-blue',
-      type: 'image',
-      isPrimary: false
-    },
-    {
-      id: 'img-red',
-      url: 'url-red',
-      name: 'img-red',
-      type: 'image',
-      isPrimary: false
-    }
-  ],
-  attributes: [
-    {
-      id: 'attr-1',
-      name: 'Cor',
-      slug: 'cor',
-      type: 'text',
-      values: ['Azul', 'Vermelho']
-    }
-  ],
-  variants: [
-    {
-      id: 'v1',
-      sku: 'RUN-BLUE',
-      stock: 50,
-      minimumStock: 5,
-      options: [{ name: 'Cor', value: 'Azul' }],
-      images: [{ id: 'img-blue', isPrimary: true }]
-    },
-    {
-      id: 'v2',
-      sku: 'RUN-RED',
-      stock: 20,
-      minimumStock: 2,
-      options: [{ name: 'Cor', value: 'Vermelho' }],
-      images: [{ id: 'img-red', isPrimary: true }]
-    }
-  ]
+const buildProductWithVariants = () => {
+  const imgBlue = productImageFactory.build({
+    id: 'img-blue',
+    url: 'url-blue',
+    name: 'img-blue',
+    isPrimary: false
+  });
+  const imgRed = productImageFactory.build({
+    id: 'img-red',
+    url: 'url-red',
+    name: 'img-red',
+    isPrimary: false
+  });
+
+  return productWithVariantsFactory.build({
+    id: 'p1',
+    name: 'Tênis Runner',
+    description: 'Tênis de corrida',
+    sku: 'RUN-BASE',
+    categories: [{ id: 'cat-1', name: 'Calçados' }],
+    allImages: [imgBlue, imgRed],
+    attributes: [
+      productAttributeFactory.build({
+        id: 'attr-1',
+        name: 'Cor',
+        slug: 'cor',
+        type: 'text',
+        values: ['Azul', 'Vermelho']
+      })
+    ],
+    variants: [
+      productVariantFactory.build({
+        id: 'v1',
+        sku: 'RUN-BLUE',
+        stock: 50,
+        minimumStock: 5,
+        options: [{ name: 'Cor', value: 'Azul' }],
+        images: [{ id: 'img-blue', isPrimary: true }]
+      }),
+      productVariantFactory.build({
+        id: 'v2',
+        sku: 'RUN-RED',
+        stock: 20,
+        minimumStock: 2,
+        options: [{ name: 'Cor', value: 'Vermelho' }],
+        images: [{ id: 'img-red', isPrimary: true }]
+      })
+    ]
+  });
 };
 
 describe('ProductDetailsPage (Integration)', () => {
@@ -166,29 +171,28 @@ describe('ProductDetailsPage (Integration)', () => {
   });
 
   it('should render simple product details correctly (no variants)', () => {
-    const mockProductSimple = {
+    const productSimple = productWithVariantsFactory.build({
       id: 'p-simple',
       name: 'Camiseta Lisa',
       sku: 'TEE-SMP',
       hasVariants: false,
       categories: [{ id: 'cat-1', name: 'Roupas' }],
       allImages: [
-        {
+        productImageFactory.build({
           id: 'img-1',
           url: 'url-1',
           name: 'img-1',
-          type: 'image',
           isPrimary: true
-        }
+        })
       ],
       attributes: [],
       variants: [],
       stock: 100,
       minimumStock: 10
-    };
+    });
 
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: mockProductSimple,
+      data: productSimple,
       isLoading: false
     } as never);
 
@@ -205,7 +209,7 @@ describe('ProductDetailsPage (Integration)', () => {
 
   it('should render product details and default to first variant', () => {
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: mockProductVariant,
+      data: buildProductWithVariants(),
       isLoading: false
     } as never);
 
@@ -221,7 +225,7 @@ describe('ProductDetailsPage (Integration)', () => {
 
   it('should switch variant data when user selects a different option', async () => {
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: mockProductVariant,
+      data: buildProductWithVariants(),
       isLoading: false
     } as never);
 
@@ -241,40 +245,39 @@ describe('ProductDetailsPage (Integration)', () => {
   });
 
   it('should handle variant images correctly even if no primary image is defined', () => {
-    const mockProductNoPrimary = {
-      ...mockProductVariant,
+    const productNoPrimary = productWithVariantsFactory.build({
+      ...buildProductWithVariants(),
       allImages: [
-        {
+        productImageFactory.build({
           id: 'img-np',
           url: 'url-np',
           name: 'img-np',
-          type: 'image',
           isPrimary: false
-        }
+        })
       ],
       variants: [
-        {
+        productVariantFactory.build({
           id: 'v-no-primary',
           sku: 'RUN-NP',
           stock: 10,
           minimumStock: 1,
           options: [{ name: 'Cor', value: 'Verde' }],
           images: [{ id: 'img-np', isPrimary: false }]
-        }
+        })
       ],
       attributes: [
-        {
+        productAttributeFactory.build({
           id: 'attr-1',
           name: 'Cor',
           slug: 'cor',
           type: 'text',
           values: ['Verde']
-        }
+        })
       ]
-    };
+    });
 
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: mockProductNoPrimary,
+      data: productNoPrimary,
       isLoading: false
     } as never);
 
@@ -285,26 +288,24 @@ describe('ProductDetailsPage (Integration)', () => {
   });
 
   it('should correctly identify primary image when it is NOT the first one in the list', () => {
-    const mockProductMultiImages = {
-      ...mockProductVariant,
+    const productMultiImages = productWithVariantsFactory.build({
+      ...buildProductWithVariants(),
       allImages: [
-        {
+        productImageFactory.build({
           id: 'img-1',
           url: 'url-1',
           name: 'img-1',
-          type: 'image',
           isPrimary: false
-        },
-        {
+        }),
+        productImageFactory.build({
           id: 'img-2',
           url: 'url-2',
           name: 'img-2',
-          type: 'image',
           isPrimary: true
-        }
+        })
       ],
       variants: [
-        {
+        productVariantFactory.build({
           id: 'v-multi',
           sku: 'RUN-MULTI',
           stock: 10,
@@ -314,21 +315,21 @@ describe('ProductDetailsPage (Integration)', () => {
             { id: 'img-1', isPrimary: false },
             { id: 'img-2', isPrimary: true }
           ]
-        }
+        })
       ],
       attributes: [
-        {
+        productAttributeFactory.build({
           id: 'attr-1',
           name: 'Cor',
           slug: 'cor',
           type: 'text',
           values: ['Roxo']
-        }
+        })
       ]
-    };
+    });
 
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: mockProductMultiImages,
+      data: productMultiImages,
       isLoading: false
     } as never);
 
@@ -340,7 +341,7 @@ describe('ProductDetailsPage (Integration)', () => {
 
   it('should show the management actions menu and status badge for owner/manager', async () => {
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: { ...mockProductVariant, isActive: true },
+      data: { ...buildProductWithVariants(), isActive: true },
       isLoading: false
     } as never);
 
@@ -365,7 +366,7 @@ describe('ProductDetailsPage (Integration)', () => {
 
   it('should hide the "Inativar" action for an already inactive product', async () => {
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: { ...mockProductVariant, isActive: false },
+      data: { ...buildProductWithVariants(), isActive: false },
       isLoading: false
     } as never);
 
@@ -385,7 +386,7 @@ describe('ProductDetailsPage (Integration)', () => {
   it('should hide edit/inactivate actions for sales (no product:edit or product:delete permission)', async () => {
     vi.mocked(useUser).mockReturnValue({ role: 'sales' } as never);
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: { ...mockProductVariant, isActive: true },
+      data: { ...buildProductWithVariants(), isActive: true },
       isLoading: false
     } as never);
 
@@ -404,31 +405,31 @@ describe('ProductDetailsPage (Integration)', () => {
   });
 
   it('should handle variant with empty images array gracefully', () => {
-    const mockProductEmptyImages = {
-      ...mockProductVariant,
+    const productEmptyImages = productWithVariantsFactory.build({
+      ...buildProductWithVariants(),
       variants: [
-        {
+        productVariantFactory.build({
           id: 'v-empty',
           sku: 'RUN-EMPTY',
           stock: 5,
           minimumStock: 1,
           options: [{ name: 'Cor', value: 'Cinza' }],
           images: []
-        }
+        })
       ],
       attributes: [
-        {
+        productAttributeFactory.build({
           id: 'attr-1',
           name: 'Cor',
           slug: 'cor',
           type: 'text',
           values: ['Cinza']
-        }
+        })
       ]
-    };
+    });
 
     vi.mocked(useProductByIDQuery).mockReturnValue({
-      data: mockProductEmptyImages,
+      data: productEmptyImages,
       isLoading: false
     } as never);
 

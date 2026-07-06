@@ -2,7 +2,8 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 
 import { supabase } from '@/infra/supabase';
 
-import type { NewOrderPayload, Notification } from '../../domain/entities';
+import type { Notification } from '../../domain/entities';
+import type { NewOrderPayload } from '../dtos';
 import { handleNotificationError } from '../handlers/error-handler';
 import { NotificationMapper } from '../mappers';
 

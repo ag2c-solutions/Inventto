@@ -2,7 +2,7 @@
 
 A aplicação utiliza um fluxo previsível de dados baseado em:
 
-- Feature-Sliced Design
+- Feature-Based Architecture
 - 3-Tier Architecture
 - CQRS pragmático
 
@@ -12,6 +12,10 @@ O objetivo é manter:
 - domínio protegido
 - integração previsível
 - código fácil de manter
+
+Esta doc trata apenas da **sequência** de chamadas entre camadas. Para a
+responsabilidade de cada camada (o que `data/api`, `domain/services`,
+`presentation/hooks` etc. fazem), ver `references/architecture/layers/features.md`.
 
 ---
 
@@ -58,74 +62,6 @@ Handler
 ↓
 throw Error
 ```
-
----
-
-# Responsabilidade de cada camada
-
----
-
-## `data/api`
-
-Responsável por:
-
-- chamadas HTTP
-- integração externa
-- comunicação com backend
-- uso de mapper
-- uso de handlers
-
-Exemplo:
-
-```ts
-ProductAPI.getAll()
-UserAPI.getById()
-OrderAPI.getDashboard()
-```
-
----
-
-## `data/mapper`
-
-Responsável por converter:
-
-```text
-DTO → Domain Entity
-Domain Entity → DTO
-```
-
-A UI nunca deve consumir DTO diretamente.
-
-O mapper é usado internamente pela API.
-
----
-
-## `data/handlers`
-
-Responsável por:
-
-- normalizar erros externos
-- mapear status HTTP
-- relançar erros previsíveis
-
----
-
-## `presentation/hooks/use-queries.ts`
-
-Responsável por:
-
-- TanStack Query
-- cache
-- loading state
-- retry
-- refetch
-- orchestration de leitura
-
----
-
-## `presentation/components`
-
-Responsável apenas por renderizar os dados.
 
 ---
 
@@ -196,68 +132,6 @@ throw Error
 
 ---
 
-# Responsabilidade de cada camada
-
----
-
-## `presentation/components`
-
-Captura interação:
-
-- clique
-- submit
-- confirmação
-
----
-
-## `presentation/hooks/use-mutations.ts`
-
-Executa mutation com:
-
-- React Query
-- optimistic updates
-- cache invalidation
-- loading states
-- `meta.successMessage`
-- `meta.errorMessage`
-- `meta.suppressErrorToast`
-
----
-
-## `domain/services`
-
-Responsável por:
-
-- regras de negócio
-- validações
-- orquestração de mutações
-- erros de domínio
-
-Exemplo:
-
-- approveProduct()
-- cancelOrder()
-- createUser()
-
-Services podem lançar erros quando houver:
-
-- regra inválida
-- estado inválido
-- validação de domínio
-
----
-
-## `data/api`
-
-Responsável por:
-
-- enviar dados
-- receber respostas
-- usar mapper
-- usar handlers
-
----
-
 # Exemplo de Mutation
 
 ```text
@@ -273,6 +147,10 @@ ProductMapper
 ↓
 Backend
 ```
+
+`use-mutations.ts` controla o feedback via `meta.successMessage`,
+`meta.errorMessage` e `meta.suppressErrorToast` (ver
+`references/architecture/layers/features.md`).
 
 ---
 
@@ -336,14 +214,13 @@ Use service em leitura apenas quando existir:
 
 ---
 
-## Component chamando API diretamente
+## Component acessando dados diretamente
 
 ❌
 
 ```ts
-axios.get(...)
+supabase.from(...).select(...)
 fetch(...)
-api.get(...)
 ```
 
 ---
@@ -381,12 +258,12 @@ useQuery()
 
 ---
 
-## Hook chamando httpClient diretamente
+## Hook chamando supabase diretamente
 
 ❌
 
 ```ts
-httpClient.get(...)
+supabase.from(...).select(...)
 ```
 
 ---

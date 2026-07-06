@@ -1,6 +1,10 @@
+import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { CategoryDTO } from '../dtos';
+import {
+  categoryDTOFactory,
+  createCategoryPayloadFactory
+} from '../../tests/factories/category.factory';
 
 import { CategoryApi } from './index';
 
@@ -45,8 +49,6 @@ vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
 }));
 
-const mockCategoryDTO: CategoryDTO = { id: 'c1', name: 'Roupas' };
-
 describe('CategoryApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,25 +58,29 @@ describe('CategoryApi', () => {
 
   describe('getAll', () => {
     it('should query "categories" and return mapped domain objects', async () => {
+      const dto = categoryDTOFactory.build();
       mockOverrideTypes.mockResolvedValue({
-        data: [mockCategoryDTO],
+        data: [dto],
         error: null
       });
 
-      const result = await CategoryApi.getAll('org-1');
+      const result = await CategoryApi.getAll(dto.organization_id!);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('categories');
       expect(mockSelect).toHaveBeenCalledWith('id, name');
-      expect(mockEq).toHaveBeenCalledWith('organization_id', 'org-1');
+      expect(mockEq).toHaveBeenCalledWith(
+        'organization_id',
+        dto.organization_id
+      );
       expect(mockOrder).toHaveBeenCalledWith('name', { ascending: true });
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({ id: 'c1', name: 'Roupas' });
+      expect(result[0]).toEqual({ id: dto.id, name: dto.name });
     });
 
     it('should return an empty array when data is null', async () => {
       mockOverrideTypes.mockResolvedValue({ data: null, error: null });
 
-      const result = await CategoryApi.getAll('org-1');
+      const result = await CategoryApi.getAll(faker.string.uuid());
 
       expect(result).toEqual([]);
     });
@@ -85,7 +91,7 @@ describe('CategoryApi', () => {
         error: { message: 'Network request failed', code: '', details: null }
       });
 
-      await expect(CategoryApi.getAll('org-1')).rejects.toThrow(
+      await expect(CategoryApi.getAll(faker.string.uuid())).rejects.toThrow(
         'Erro de conexão. Verifique sua internet.'
       );
     });
@@ -96,7 +102,7 @@ describe('CategoryApi', () => {
         error: { message: 'Unknown Error', code: '500' }
       });
 
-      await expect(CategoryApi.getAll('org-1')).rejects.toThrow(
+      await expect(CategoryApi.getAll(faker.string.uuid())).rejects.toThrow(
         'Não foi possível realizar a operação. Tente novamente.'
       );
     });
@@ -106,23 +112,25 @@ describe('CategoryApi', () => {
 
   describe('add', () => {
     it('should insert with name + organization_id and return the created category', async () => {
+      const payload = createCategoryPayloadFactory.build();
+      const dto = categoryDTOFactory.build({
+        name: payload.name,
+        organization_id: payload.organizationId
+      });
       mockOverrideTypes.mockResolvedValue({
-        data: mockCategoryDTO,
+        data: dto,
         error: null
       });
 
-      const result = await CategoryApi.add({
-        name: 'Roupas',
-        organizationId: 'org-1'
-      });
+      const result = await CategoryApi.add(payload);
 
       const insertCall = vi.mocked(mockSupabase.from().insert).mock.calls[0][0];
 
       expect(insertCall).toMatchObject({
-        name: 'Roupas',
-        organization_id: 'org-1'
+        name: payload.name,
+        organization_id: payload.organizationId
       });
-      expect(result).toEqual({ id: 'c1', name: 'Roupas' });
+      expect(result).toEqual({ id: dto.id, name: dto.name });
     });
 
     it('should throw "Já existe uma categoria" for duplicate names (23505)', async () => {
@@ -136,7 +144,7 @@ describe('CategoryApi', () => {
       });
 
       await expect(
-        CategoryApi.add({ name: 'Duplicata', organizationId: 'org-1' })
+        CategoryApi.add(createCategoryPayloadFactory.build())
       ).rejects.toThrow('Já existe uma categoria com este nome.');
     });
 
@@ -147,7 +155,7 @@ describe('CategoryApi', () => {
       });
 
       await expect(
-        CategoryApi.add({ name: 'Erro', organizationId: 'org-1' })
+        CategoryApi.add(createCategoryPayloadFactory.build())
       ).rejects.toThrow(
         'Não foi possível realizar a operação. Tente novamente.'
       );
@@ -157,7 +165,7 @@ describe('CategoryApi', () => {
       mockOverrideTypes.mockResolvedValue({ data: null, error: null });
 
       await expect(
-        CategoryApi.add({ name: 'Sem retorno', organizationId: 'org-1' })
+        CategoryApi.add(createCategoryPayloadFactory.build())
       ).rejects.toThrow('Erro inesperado: Categoria não retornada.');
     });
   });

@@ -4,7 +4,12 @@ import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { IProduct } from '../../../domain/entities';
+import {
+  productAttributeFactory,
+  productFactory,
+  productVariantFactory,
+  productWithVariantsFactory
+} from '../../../tests/factories/product.factory';
 import { useProductsQuery } from '../../hooks/use-queries';
 
 import { ProductListTable } from './index';
@@ -18,8 +23,8 @@ vi.mock('@/features/users', () => ({
   })
 }));
 
-const mockProducts: IProduct[] = [
-  {
+const mockProducts = [
+  productFactory.build({
     id: 'prod-1',
     organizationId: 'org-1',
     name: 'Camiseta Básica',
@@ -28,13 +33,12 @@ const mockProducts: IProduct[] = [
     stock: 50,
     minimumStock: 10,
     isActive: true,
-    hasVariants: false,
     categories: [{ id: 'cat-1', name: 'Roupas' }],
     attributes: [],
     allImages: [],
     variants: []
-  },
-  {
+  }),
+  productWithVariantsFactory.build({
     id: 'prod-2',
     organizationId: 'org-1',
     name: 'Tênis Esportivo',
@@ -42,19 +46,18 @@ const mockProducts: IProduct[] = [
     stock: 20,
     minimumStock: 5,
     isActive: true,
-    hasVariants: true,
     categories: [{ id: 'cat-2', name: 'Calçados' }],
     attributes: [
-      {
+      productAttributeFactory.build({
         id: 'a1',
         name: 'Tamanho',
         slug: 'tamanho',
         type: 'text',
         values: ['40', '41']
-      }
+      })
     ],
     variants: [
-      {
+      productVariantFactory.build({
         id: 'var-1',
         sku: 'SNEAKER-X-40',
         stock: 10,
@@ -62,8 +65,8 @@ const mockProducts: IProduct[] = [
         isActive: true,
         options: [{ name: 'Tamanho', value: '40' }],
         images: []
-      },
-      {
+      }),
+      productVariantFactory.build({
         id: 'var-2',
         sku: 'SNEAKER-X-41',
         stock: 10,
@@ -71,10 +74,10 @@ const mockProducts: IProduct[] = [
         isActive: true,
         options: [{ name: 'Tamanho', value: '41' }],
         images: []
-      }
+      })
     ],
     allImages: []
-  }
+  })
 ];
 
 const renderWithProviders = (ui: ReactNode) => {

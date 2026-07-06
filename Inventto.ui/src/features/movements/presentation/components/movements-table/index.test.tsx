@@ -3,6 +3,10 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Movement } from '../../../domain/entities';
+import {
+  movementFactory,
+  movementItemFactory
+} from '../../../tests/factories/movement.factory';
 
 import { MovementsListTable } from './index';
 
@@ -62,11 +66,11 @@ vi.mock(
   })
 );
 
-vi.mock('./loading', () => ({
+vi.mock('./pieces/loading', () => ({
   MovementsListTableLoading: () => <div data-testid="mock-loading" />
 }));
 
-vi.mock('./onboarding-empty', () => ({
+vi.mock('./pieces/onboarding-empty', () => ({
   MovementsOnboardingEmpty: () => <div data-testid="mock-onboarding-empty" />
 }));
 
@@ -87,43 +91,16 @@ vi.mock('../details', () => ({
 }));
 
 const mockMovements: Movement[] = [
-  {
-    id: '1',
-    organizationId: 'org-1',
+  movementFactory.build({
     type: 'entry',
-    reason: 'Compra',
-    createdAt: new Date('2023-10-01T10:00:00Z'),
-    executedAt: new Date('2023-10-01T10:00:00Z'),
-    totalQuantity: 100,
-    totalValue: 500,
     items: [
-      {
-        id: 'item-1',
-        movementId: '1',
+      movementItemFactory.build({
         productId: 'p1',
-        quantity: 5,
-        unitCost: 10,
-        unitPrice: 20,
-        product: {
-          name: 'Produto 1',
-          sku: 'SKU-1',
-          imageUrl: undefined,
-          variantOptions: undefined
-        }
-      }
+        product: { name: 'Produto 1', sku: 'SKU-1' }
+      })
     ]
-  },
-  {
-    id: '2',
-    organizationId: 'org-1',
-    type: 'withdrawal',
-    reason: 'Venda',
-    createdAt: new Date('2023-10-02T14:30:00Z'),
-    executedAt: new Date('2023-10-02T14:30:00Z'),
-    totalQuantity: 5,
-    totalValue: 100,
-    items: []
-  }
+  }),
+  movementFactory.build({ type: 'withdrawal', reason: 'Venda', items: [] })
 ];
 
 describe('MovementsListTable', () => {

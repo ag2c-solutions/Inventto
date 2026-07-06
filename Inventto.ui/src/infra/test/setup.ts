@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { vi } from 'vitest';
 
 import '@testing-library/jest-dom/vitest';
 
 const ResizeObserverMock = class {
-  //@ts-expect-error callback unused
-  constructor(callback: ResizeObserverCallback) {}
+  constructor(_: ResizeObserverCallback) {}
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();
@@ -14,8 +12,7 @@ const ResizeObserverMock = class {
 vi.stubGlobal('ResizeObserver', ResizeObserverMock);
 
 const IntersectionObserverMock = class {
-  //@ts-expect-error callback unused
-  constructor(callback: IntersectionObserverCallback) {}
+  constructor(_: IntersectionObserverCallback) {}
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();
