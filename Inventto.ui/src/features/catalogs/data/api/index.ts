@@ -3,13 +3,16 @@ import { supabase } from '@/infra/supabase';
 import { stripUndefined } from '@/shared/utils';
 
 import type {
+  AddCatalogItemsPayload,
   Catalog,
+  CatalogItem,
   CreateCatalogPayload,
+  UpdateCatalogItemPricePayload,
   UpdateCatalogPayload
 } from '../../domain/entities';
-import type { CatalogDTO } from '../dtos';
+import type { CatalogDTO, CatalogItemDTO } from '../dtos';
 import { handleCatalogError } from '../handlers/error-handler';
-import { CatalogMapper } from '../mappers';
+import { CatalogItemMapper, CatalogMapper } from '../mappers';
 
 const SELECT_QUERY = `
   id,
@@ -18,6 +21,21 @@ const SELECT_QUERY = `
   created_at,
   updated_at,
   catalog_items(count)
+`;
+
+const ITEM_SELECT_QUERY = `
+  id,
+  catalog_id,
+  product_id,
+  variant_id,
+  price,
+  original_price,
+  product:products(
+    id,
+    name,
+    sku,
+    product_images(url, is_primary)
+  )
 `;
 
 export class CatalogApi {
@@ -106,6 +124,104 @@ export class CatalogApi {
       if (error) throw error;
     } catch (error) {
       handleCatalogError(error, 'remove');
+    }
+  }
+
+  static async getItems(catalogId: string): Promise<CatalogItem[]> {
+    try {
+      const { data, error } = await supabase
+        .from('catalog_items')
+        .select(ITEM_SELECT_QUERY)
+        .eq('catalog_id', catalogId)
+        .overrideTypes<CatalogItemDTO[], { merge: false }>();
+
+      if (error) throw error;
+
+      return data.map(CatalogItemMapper.toDomain);
+    } catch (error) {
+      handleCatalogError(error, 'getItems');
+    }
+  }
+
+  static async addItems(
+    params: AddCatalogItemsPayload
+  ): Promise<CatalogItem[]> {
+    try {
+      const rows = params.productIds.map((productId) => ({
+        catalog_id: params.catalogId,
+        product_id: productId,
+        price: 0
+      }));
+
+      const { data, error } = await supabase
+        .from('catalog_items')
+        .insert(rows)
+        .select(ITEM_SELECT_QUERY)
+        .overrideTypes<CatalogItemDTO[], { merge: false }>();
+
+      if (error) throw error;
+
+      return data.map(CatalogItemMapper.toDomain);
+    } catch (error) {
+      handleCatalogError(error, 'addItems');
+    }
+  }
+
+  static async updateItemPrice(
+    params: UpdateCatalogItemPricePayload
+  ): Promise<CatalogItem> {
+    try {
+      const { id, price, originalPrice } = params;
+
+      const { data, error } = await supabase
+        .from('catalog_items')
+        .update({ price, original_price: originalPrice ?? null })
+        .eq('id', id)
+        .select(ITEM_SELECT_QUERY)
+        .single()
+        .overrideTypes<CatalogItemDTO, { merge: false }>();
+
+      if (error) throw error;
+
+      return CatalogItemMapper.toDomain(data);
+    } catch (error) {
+      handleCatalogError(error, 'updateItemPrice');
+    }
+  }
+
+  static async removeItem(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('catalog_items')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      handleCatalogError(error, 'removeItem');
+    }
+  }
+
+  static async restoreItem(item: CatalogItem): Promise<CatalogItem> {
+    try {
+      const { data, error } = await supabase
+        .from('catalog_items')
+        .insert({
+          catalog_id: item.catalogId,
+          product_id: item.productId,
+          variant_id: item.variantId ?? null,
+          price: item.price,
+          original_price: item.originalPrice ?? null
+        })
+        .select(ITEM_SELECT_QUERY)
+        .single()
+        .overrideTypes<CatalogItemDTO, { merge: false }>();
+
+      if (error) throw error;
+
+      return CatalogItemMapper.toDomain(data);
+    } catch (error) {
+      handleCatalogError(error, 'restoreItem');
     }
   }
 }

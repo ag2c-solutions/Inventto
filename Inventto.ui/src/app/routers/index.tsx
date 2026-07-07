@@ -180,6 +180,21 @@ export const router = createBrowserRouter([
               const { CatalogsListPage } = await import('@/features/catalogs');
               return { Component: CatalogsListPage };
             }
+          },
+          {
+            path: ':catalogId/produtos',
+            element: <CanNavigate required="catalog:view" />,
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { CatalogCurationPage } = await import(
+                    '@/features/catalogs'
+                  );
+                  return { Component: CatalogCurationPage };
+                }
+              }
+            ]
           }
         ]
       },

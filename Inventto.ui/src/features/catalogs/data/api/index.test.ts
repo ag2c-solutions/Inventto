@@ -4,11 +4,12 @@ import {
   catalogDTOFactory,
   createCatalogPayloadFactory
 } from '../../tests/factories/catalog.factory';
+import { catalogItemDTOFactory } from '../../tests/factories/catalog-item.factory';
 
 import { CatalogApi } from './index';
 
-const { mockSupabase, mockSelect, mockOverrideTypes, mockEq } = vi.hoisted(
-  () => {
+const { mockSupabase, mockSelect, mockOverrideTypes, mockEq, queryBuilder } =
+  vi.hoisted(() => {
     const mockSelect = vi.fn();
     const mockOrder = vi.fn();
     const mockEq = vi.fn();
@@ -46,10 +47,10 @@ const { mockSupabase, mockSelect, mockOverrideTypes, mockEq } = vi.hoisted(
       mockOverrideTypes,
       mockInsert,
       mockUpdate,
-      mockDelete
+      mockDelete,
+      queryBuilder
     };
-  }
-);
+  });
 
 vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
@@ -60,6 +61,7 @@ const mockCatalogDTO = catalogDTOFactory.build();
 describe('CatalogApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSupabase.from.mockImplementation(() => queryBuilder);
   });
 
   const consoleErrorSpy = vi.spyOn(console, 'error');
@@ -231,6 +233,115 @@ describe('CatalogApi', () => {
       await expect(CatalogApi.remove('cat-1')).rejects.toThrow(
         'Ocorreu um erro inesperado'
       );
+    });
+  });
+
+  describe('getItems', () => {
+    it('should query "catalog_items" filtered by catalog_id and return mapped items', async () => {
+      const mockItemDTO = catalogItemDTOFactory.build();
+      mockOverrideTypes.mockResolvedValue({
+        data: [mockItemDTO],
+        error: null
+      });
+
+      const result = await CatalogApi.getItems(mockItemDTO.catalog_id);
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('catalog_items');
+      expect(mockEq).toHaveBeenCalledWith('catalog_id', mockItemDTO.catalog_id);
+      expect(result[0].id).toBe(mockItemDTO.id);
+    });
+  });
+
+  describe('addItems', () => {
+    it('should insert one pending row (price 0) per product id', async () => {
+      const mockItemDTO = catalogItemDTOFactory.build();
+      mockOverrideTypes.mockResolvedValue({
+        data: [mockItemDTO],
+        error: null
+      });
+
+      await CatalogApi.addItems({
+        catalogId: 'cat-1',
+        productIds: ['p1', 'p2']
+      });
+      const insertCall = vi.mocked(mockSupabase.from().insert).mock.calls[0][0];
+
+      expect(insertCall).toEqual([
+        { catalog_id: 'cat-1', product_id: 'p1', price: 0 },
+        { catalog_id: 'cat-1', product_id: 'p2', price: 0 }
+      ]);
+    });
+  });
+
+  describe('updateItemPrice', () => {
+    it('should update price and original_price', async () => {
+      const mockItemDTO = catalogItemDTOFactory.build();
+      mockOverrideTypes.mockResolvedValue({
+        data: mockItemDTO,
+        error: null
+      });
+
+      await CatalogApi.updateItemPrice({
+        id: mockItemDTO.id,
+        price: 99.9,
+        originalPrice: 129.9
+      });
+      const updateCall = vi.mocked(mockSupabase.from().update).mock.calls[0][0];
+
+      expect(updateCall).toEqual({ price: 99.9, original_price: 129.9 });
+    });
+
+    it('should send null for original_price when not provided', async () => {
+      const mockItemDTO = catalogItemDTOFactory.build();
+      mockOverrideTypes.mockResolvedValue({
+        data: mockItemDTO,
+        error: null
+      });
+
+      await CatalogApi.updateItemPrice({ id: mockItemDTO.id, price: 50 });
+      const updateCall = vi.mocked(mockSupabase.from().update).mock.calls[0][0];
+
+      expect(updateCall).toEqual({ price: 50, original_price: null });
+    });
+  });
+
+  describe('removeItem', () => {
+    it('should delete the catalog item by id', async () => {
+      mockSupabase.from.mockReturnValue({
+        delete: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ error: null })
+        })
+      } as unknown as ReturnType<typeof mockSupabase.from>);
+
+      await expect(CatalogApi.removeItem('item-1')).resolves.not.toThrow();
+    });
+  });
+
+  describe('restoreItem', () => {
+    it('should re-insert the item preserving its price and product', async () => {
+      const mockItemDTO = catalogItemDTOFactory.build();
+      mockOverrideTypes.mockResolvedValue({
+        data: mockItemDTO,
+        error: null
+      });
+
+      await CatalogApi.restoreItem({
+        id: 'old-id',
+        catalogId: 'cat-1',
+        productId: 'p1',
+        price: 50,
+        originalPrice: 70,
+        product: { id: 'p1', name: 'Produto', sku: 'SKU-1' }
+      });
+      const insertCall = vi.mocked(mockSupabase.from().insert).mock.calls[0][0];
+
+      expect(insertCall).toEqual({
+        catalog_id: 'cat-1',
+        product_id: 'p1',
+        variant_id: null,
+        price: 50,
+        original_price: 70
+      });
     });
   });
 });
