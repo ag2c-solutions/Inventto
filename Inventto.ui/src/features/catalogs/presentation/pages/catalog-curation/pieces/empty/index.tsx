@@ -1,6 +1,6 @@
 import { Package } from 'lucide-react';
 
-import { AddProductsSheet } from '../../../../components/add-products-sheet';
+import { AddProductsSheet } from '../../../../components/actions/add-products';
 
 interface CurationEmptyStateProps {
   catalogId: string;

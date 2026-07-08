@@ -13,7 +13,7 @@ vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
-vi.mock('../create-catalog-dialog', () => ({
+vi.mock('../actions/create', () => ({
   CreateCatalogDialog: () => {
     const { role } = mockUseUser();
     if (role === 'sales') return null;
@@ -21,7 +21,7 @@ vi.mock('../create-catalog-dialog', () => ({
   }
 }));
 
-vi.mock('../edit-catalog-sheet', () => ({
+vi.mock('../actions/edit', () => ({
   EditCatalogSheet: ({ catalogId }: { catalogId: string }) => {
     const { role } = mockUseUser();
     if (role === 'sales') return null;

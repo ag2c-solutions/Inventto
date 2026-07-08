@@ -18,6 +18,7 @@ vi.mock('../../data/api', () => ({
     getItems: vi.fn(),
     addItems: vi.fn(),
     updateItemPrice: vi.fn(),
+    updateItemsPrices: vi.fn(),
     removeItem: vi.fn(),
     restoreItem: vi.fn()
   }
@@ -137,7 +138,13 @@ describe('CatalogItemService', () => {
       const items = catalogItemFactory.buildList(2);
       vi.mocked(CatalogApi.addItems).mockResolvedValue(items);
 
-      const payload = { catalogId: 'cat-1', productIds: ['p1', 'p2'] };
+      const payload = {
+        catalogId: 'cat-1',
+        items: [
+          { productId: 'p1', price: 8990 },
+          { productId: 'p2', price: 9990 }
+        ]
+      };
       const result = await CatalogItemService.addItems(payload);
 
       expect(CatalogApi.addItems).toHaveBeenCalledWith(payload);
@@ -146,7 +153,7 @@ describe('CatalogItemService', () => {
 
     it('should reject without calling the API when no product is selected', async () => {
       await expect(
-        CatalogItemService.addItems({ catalogId: 'cat-1', productIds: [] })
+        CatalogItemService.addItems({ catalogId: 'cat-1', items: [] })
       ).rejects.toThrow('Selecione ao menos um produto.');
 
       expect(CatalogApi.addItems).not.toHaveBeenCalled();
@@ -155,10 +162,10 @@ describe('CatalogItemService', () => {
 
   describe('updateItemPrice', () => {
     it('should delegate to CatalogApi.updateItemPrice for a positive price', async () => {
-      const item = catalogItemFactory.build({ price: 99.9 });
+      const item = catalogItemFactory.build({ price: 9990 });
       vi.mocked(CatalogApi.updateItemPrice).mockResolvedValue(item);
 
-      const payload = { id: item.id, price: 99.9 };
+      const payload = { id: item.id, price: 9990 };
       const result = await CatalogItemService.updateItemPrice(payload);
 
       expect(CatalogApi.updateItemPrice).toHaveBeenCalledWith(payload);
@@ -181,16 +188,66 @@ describe('CatalogItemService', () => {
       expect(CatalogApi.updateItemPrice).not.toHaveBeenCalled();
     });
 
-    it('should reject a non-positive original price without calling the API', async () => {
-      await expect(
-        CatalogItemService.updateItemPrice({
-          id: 'item-1',
-          price: 50,
-          originalPrice: 0
-        })
-      ).rejects.toThrow('O preço original deve ser maior que zero.');
+    it('should accept null originalPrice (remove promotion) and pass it to the API', async () => {
+      const item = catalogItemFactory.build({
+        price: 5000,
+        originalPrice: undefined
+      });
+      vi.mocked(CatalogApi.updateItemPrice).mockResolvedValue(item);
 
-      expect(CatalogApi.updateItemPrice).not.toHaveBeenCalled();
+      const result = await CatalogItemService.updateItemPrice({
+        id: 'item-1',
+        price: 5000,
+        originalPrice: null
+      });
+
+      expect(CatalogApi.updateItemPrice).toHaveBeenCalledWith({
+        id: 'item-1',
+        price: 5000,
+        originalPrice: null
+      });
+      expect(result).toEqual(item);
+    });
+  });
+
+  describe('updateItemsPrices', () => {
+    it('should delegate to CatalogApi.updateItemsPrices when all items have a positive price', async () => {
+      const items = catalogItemFactory.buildList(2);
+      vi.mocked(CatalogApi.updateItemsPrices).mockResolvedValue(items);
+
+      const payload = {
+        catalogId: 'cat-1',
+        items: [
+          { id: 'item-1', price: 8990 },
+          { id: 'item-2', price: 9990 }
+        ]
+      };
+      const result = await CatalogItemService.updateItemsPrices(payload);
+
+      expect(CatalogApi.updateItemsPrices).toHaveBeenCalledWith(payload);
+      expect(result).toEqual(items);
+    });
+
+    it('should reject without calling the API when there are no items', async () => {
+      await expect(
+        CatalogItemService.updateItemsPrices({ catalogId: 'cat-1', items: [] })
+      ).rejects.toThrow('Nenhum item para atualizar.');
+
+      expect(CatalogApi.updateItemsPrices).not.toHaveBeenCalled();
+    });
+
+    it('should reject without calling the API when any item has a non-positive price', async () => {
+      await expect(
+        CatalogItemService.updateItemsPrices({
+          catalogId: 'cat-1',
+          items: [
+            { id: 'item-1', price: 8990 },
+            { id: 'item-2', price: 0 }
+          ]
+        })
+      ).rejects.toThrow('Todos os itens devem ter preço maior que zero.');
+
+      expect(CatalogApi.updateItemsPrices).not.toHaveBeenCalled();
     });
   });
 

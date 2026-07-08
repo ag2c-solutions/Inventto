@@ -2,9 +2,9 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { catalogFactory } from '../../../tests/factories/catalog.factory';
+import { catalogFactory } from '@/features/catalogs/tests/factories/catalog.factory';
 
-import { EditCatalogSheet } from './index';
+import { EditCatalogSheet } from './';
 
 const {
   mockMutateAsync,
@@ -16,11 +16,11 @@ const {
   mockUseCatalogByIDQuery: vi.fn()
 }));
 
-vi.mock('../../hooks/use-mutations', () => ({
+vi.mock('../../../hooks/use-mutations', () => ({
   useUpdateCatalogMutation: mockUseUpdateCatalogMutation
 }));
 
-vi.mock('../../hooks/use-queries', () => ({
+vi.mock('../../../hooks/use-queries', () => ({
   useCatalogByIDQuery: mockUseCatalogByIDQuery
 }));
 

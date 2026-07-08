@@ -5,6 +5,7 @@ import type {
   CatalogItem,
   CreateCatalogPayload,
   UpdateCatalogItemPricePayload,
+  UpdateCatalogItemsPricesPayload,
   UpdateCatalogPayload
 } from '../entities';
 
@@ -38,7 +39,7 @@ export class CatalogItemService {
   static async addItems(
     params: AddCatalogItemsPayload
   ): Promise<CatalogItem[]> {
-    if (params.productIds.length === 0) {
+    if (params.items.length === 0) {
       throw new Error('Selecione ao menos um produto.');
     }
 
@@ -52,11 +53,22 @@ export class CatalogItemService {
       throw new Error('Defina um preço para incluir este item.');
     }
 
-    if (params.originalPrice !== undefined && params.originalPrice <= 0) {
-      throw new Error('O preço original deve ser maior que zero.');
+    return CatalogApi.updateItemPrice(params);
+  }
+
+  static async updateItemsPrices(
+    params: UpdateCatalogItemsPricesPayload
+  ): Promise<CatalogItem[]> {
+    if (params.items.length === 0) {
+      throw new Error('Nenhum item para atualizar.');
     }
 
-    return CatalogApi.updateItemPrice(params);
+    const invalid = params.items.find((i) => !i.price || i.price <= 0);
+    if (invalid) {
+      throw new Error('Todos os itens devem ter preço maior que zero.');
+    }
+
+    return CatalogApi.updateItemsPrices(params);
   }
 
   static async removeItem(id: string): Promise<void> {

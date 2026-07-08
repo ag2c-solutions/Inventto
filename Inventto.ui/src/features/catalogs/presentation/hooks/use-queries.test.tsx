@@ -117,13 +117,19 @@ describe('Catalogs Queries', () => {
         id: 'p1',
         name: 'Cadeira',
         sku: 'CAD-1',
-        allImages: [{ url: 'cadeira.jpg', isPrimary: true }]
+        allImages: [{ url: 'cadeira.jpg', isPrimary: true }],
+        hasVariants: false,
+        variants: [],
+        costPrice: 45.5
       },
       {
         id: 'p2',
         name: 'Mesa',
         sku: 'MES-1',
-        allImages: []
+        allImages: [],
+        hasVariants: false,
+        variants: [],
+        costPrice: undefined
       }
     ];
 
@@ -152,16 +158,35 @@ describe('Catalogs Queries', () => {
           name: 'Cadeira',
           sku: 'CAD-1',
           imageUrl: 'cadeira.jpg',
-          alreadyAdded: true
+          alreadyAdded: true,
+          hasVariants: false,
+          variants: [],
+          costPrice: 4550
         },
         {
           id: 'p2',
           name: 'Mesa',
           sku: 'MES-1',
           imageUrl: undefined,
-          alreadyAdded: false
+          alreadyAdded: false,
+          hasVariants: false,
+          variants: [],
+          costPrice: undefined
         }
       ]);
+    });
+
+    it('should convert costPrice from reais (Products) to cents (Smart Default)', async () => {
+      vi.mocked(CatalogApi.getItems).mockResolvedValue([]);
+
+      const { result } = renderHook(() => useAvailableProductsQuery('cat-1'), {
+        wrapper
+      });
+
+      await waitFor(() => expect(result.current.data).toBeDefined());
+
+      expect(result.current.data?.[0]?.costPrice).toBe(4550);
+      expect(result.current.data?.[1]?.costPrice).toBeUndefined();
     });
 
     it('should be loading while either products or items are loading', () => {

@@ -253,7 +253,7 @@ describe('CatalogApi', () => {
   });
 
   describe('addItems', () => {
-    it('should insert one pending row (price 0) per product id', async () => {
+    it('should insert items converting prices from cents (domain) to reais (DB) and preserving variant ids', async () => {
       const mockItemDTO = catalogItemDTOFactory.build();
       mockOverrideTypes.mockResolvedValue({
         data: [mockItemDTO],
@@ -262,19 +262,34 @@ describe('CatalogApi', () => {
 
       await CatalogApi.addItems({
         catalogId: 'cat-1',
-        productIds: ['p1', 'p2']
+        items: [
+          { productId: 'p1', price: 8990 },
+          { productId: 'p2', price: 9990, variantId: 'v1' }
+        ]
       });
       const insertCall = vi.mocked(mockSupabase.from().insert).mock.calls[0][0];
 
       expect(insertCall).toEqual([
-        { catalog_id: 'cat-1', product_id: 'p1', price: 0 },
-        { catalog_id: 'cat-1', product_id: 'p2', price: 0 }
+        {
+          catalog_id: 'cat-1',
+          product_id: 'p1',
+          variant_id: null,
+          price: 89.9,
+          original_price: null
+        },
+        {
+          catalog_id: 'cat-1',
+          product_id: 'p2',
+          variant_id: 'v1',
+          price: 99.9,
+          original_price: null
+        }
       ]);
     });
   });
 
   describe('updateItemPrice', () => {
-    it('should update price and original_price', async () => {
+    it('should update price and original_price converting cents (domain) to reais (DB)', async () => {
       const mockItemDTO = catalogItemDTOFactory.build();
       mockOverrideTypes.mockResolvedValue({
         data: mockItemDTO,
@@ -283,8 +298,8 @@ describe('CatalogApi', () => {
 
       await CatalogApi.updateItemPrice({
         id: mockItemDTO.id,
-        price: 99.9,
-        originalPrice: 129.9
+        price: 9990,
+        originalPrice: 12990
       });
       const updateCall = vi.mocked(mockSupabase.from().update).mock.calls[0][0];
 
@@ -298,7 +313,7 @@ describe('CatalogApi', () => {
         error: null
       });
 
-      await CatalogApi.updateItemPrice({ id: mockItemDTO.id, price: 50 });
+      await CatalogApi.updateItemPrice({ id: mockItemDTO.id, price: 5000 });
       const updateCall = vi.mocked(mockSupabase.from().update).mock.calls[0][0];
 
       expect(updateCall).toEqual({ price: 50, original_price: null });
@@ -318,7 +333,7 @@ describe('CatalogApi', () => {
   });
 
   describe('restoreItem', () => {
-    it('should re-insert the item preserving its price and product', async () => {
+    it('should re-insert the item converting price/original_price from cents (domain) to reais (DB)', async () => {
       const mockItemDTO = catalogItemDTOFactory.build();
       mockOverrideTypes.mockResolvedValue({
         data: mockItemDTO,
@@ -329,8 +344,8 @@ describe('CatalogApi', () => {
         id: 'old-id',
         catalogId: 'cat-1',
         productId: 'p1',
-        price: 50,
-        originalPrice: 70,
+        price: 5000,
+        originalPrice: 7000,
         product: { id: 'p1', name: 'Produto', sku: 'SKU-1' }
       });
       const insertCall = vi.mocked(mockSupabase.from().insert).mock.calls[0][0];

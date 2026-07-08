@@ -2,14 +2,14 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CreateCatalogDialog } from './index';
+import { CreateCatalogDialog } from './';
 
 const { mockMutateAsync, mockUseCreateCatalogMutation } = vi.hoisted(() => ({
   mockMutateAsync: vi.fn(),
   mockUseCreateCatalogMutation: vi.fn()
 }));
 
-vi.mock('../../hooks/use-mutations', () => ({
+vi.mock('../../../hooks/use-mutations', () => ({
   useCreateCatalogMutation: mockUseCreateCatalogMutation
 }));
 

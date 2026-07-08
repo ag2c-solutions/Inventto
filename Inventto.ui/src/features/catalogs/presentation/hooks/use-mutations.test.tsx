@@ -12,8 +12,9 @@ import {
   useAddCatalogItemsMutation,
   useCatalogRemoveMutation,
   useCreateCatalogMutation,
-  useRemoveCatalogItemMutation,
+  useRemoveCatalogProductMutation,
   useUpdateCatalogItemPriceMutation,
+  useUpdateCatalogItemsPricesMutation,
   useUpdateCatalogMutation
 } from './use-mutations';
 
@@ -26,6 +27,7 @@ vi.mock('../../domain/services', () => ({
   CatalogItemService: {
     addItems: vi.fn(),
     updateItemPrice: vi.fn(),
+    updateItemsPrices: vi.fn(),
     removeItem: vi.fn(),
     restoreItem: vi.fn()
   }
@@ -163,8 +165,8 @@ describe('Catalogs Mutations', () => {
 
   describe('useAddCatalogItemsMutation', () => {
     it('should add items and invalidate the catalog items and list queries', async () => {
-      const items = catalogItemFactory.buildList(2);
-      vi.mocked(CatalogItemService.addItems).mockResolvedValue(items);
+      const mockReturnItems = catalogItemFactory.buildList(2);
+      vi.mocked(CatalogItemService.addItems).mockResolvedValue(mockReturnItems);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -172,11 +174,15 @@ describe('Catalogs Mutations', () => {
         wrapper
       });
 
-      await result.current.mutateAsync(['p1', 'p2']);
+      const inputItems = [
+        { productId: 'p1', price: 8990 },
+        { productId: 'p2', price: 9990 }
+      ];
+      await result.current.mutateAsync(inputItems);
 
       expect(CatalogItemService.addItems).toHaveBeenCalledWith({
         catalogId: 'cat-1',
-        productIds: ['p1', 'p2']
+        items: inputItems
       });
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: ['catalogs', 'cat-1', 'items']
@@ -187,7 +193,7 @@ describe('Catalogs Mutations', () => {
 
   describe('useUpdateCatalogItemPriceMutation', () => {
     it('should auto-save the price and invalidate the catalog items query without a success toast', async () => {
-      const item = catalogItemFactory.build({ price: 50 });
+      const item = catalogItemFactory.build({ price: 5000 });
       vi.mocked(CatalogItemService.updateItemPrice).mockResolvedValue(item);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
@@ -197,11 +203,11 @@ describe('Catalogs Mutations', () => {
         { wrapper }
       );
 
-      await result.current.mutateAsync({ id: item.id, price: 50 });
+      await result.current.mutateAsync({ id: item.id, price: 5000 });
 
       expect(CatalogItemService.updateItemPrice).toHaveBeenCalledWith({
         id: item.id,
-        price: 50
+        price: 5000
       });
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: ['catalogs', 'cat-1', 'items']
@@ -210,25 +216,55 @@ describe('Catalogs Mutations', () => {
     });
   });
 
-  describe('useRemoveCatalogItemMutation', () => {
-    it('should remove the item, invalidate queries and show a reversible toast', async () => {
-      const item = catalogItemFactory.build();
+  describe('useUpdateCatalogItemsPricesMutation', () => {
+    it('should update prices in batch and invalidate the catalog items query with a success toast', async () => {
+      const items = catalogItemFactory.buildList(2);
+      vi.mocked(CatalogItemService.updateItemsPrices).mockResolvedValue(items);
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(
+        () => useUpdateCatalogItemsPricesMutation('cat-1'),
+        { wrapper }
+      );
+
+      const payload = {
+        catalogId: 'cat-1',
+        items: [{ id: 'item-1', price: 8990 }]
+      };
+      await result.current.mutateAsync(payload);
+
+      expect(CatalogItemService.updateItemsPrices).toHaveBeenCalledWith(
+        payload
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['catalogs', 'cat-1', 'items']
+      });
+    });
+  });
+
+  describe('useRemoveCatalogProductMutation', () => {
+    it('should remove every item of the product, invalidate queries and show a reversible toast', async () => {
+      const items = catalogItemFactory.buildList(2, { catalogId: 'cat-1' });
       vi.mocked(CatalogItemService.removeItem).mockResolvedValue(undefined);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useRemoveCatalogItemMutation(), {
+      const { result } = renderHook(() => useRemoveCatalogProductMutation(), {
         wrapper
       });
 
-      await result.current.mutateAsync(item);
+      await result.current.mutateAsync(items);
 
-      expect(CatalogItemService.removeItem).toHaveBeenCalledWith(item.id);
+      expect(CatalogItemService.removeItem).toHaveBeenCalledTimes(2);
+      items.forEach((item) => {
+        expect(CatalogItemService.removeItem).toHaveBeenCalledWith(item.id);
+      });
       expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ['catalogs', item.catalogId, 'items']
+        queryKey: ['catalogs', 'cat-1', 'items']
       });
       expect(mockToast).toHaveBeenCalledWith(
-        `${item.product.name} removido.`,
+        `${items[0].product.name} removido do catálogo.`,
         expect.objectContaining({
           duration: 5000,
           action: expect.objectContaining({ label: 'Desfazer' })
@@ -236,21 +272,23 @@ describe('Catalogs Mutations', () => {
       );
     });
 
-    it('should restore the item when "Desfazer" is triggered', async () => {
-      const item = catalogItemFactory.build();
+    it('should restore every item when "Desfazer" is triggered', async () => {
+      const items = catalogItemFactory.buildList(2, { catalogId: 'cat-1' });
       vi.mocked(CatalogItemService.removeItem).mockResolvedValue(undefined);
-      vi.mocked(CatalogItemService.restoreItem).mockResolvedValue(item);
+      vi.mocked(CatalogItemService.restoreItem).mockResolvedValue(items[0]);
 
-      const { result } = renderHook(() => useRemoveCatalogItemMutation(), {
+      const { result } = renderHook(() => useRemoveCatalogProductMutation(), {
         wrapper
       });
 
-      await result.current.mutateAsync(item);
+      await result.current.mutateAsync(items);
 
       const [, options] = mockToast.mock.calls[0];
       await options.action.onClick();
 
-      expect(CatalogItemService.restoreItem).toHaveBeenCalledWith(item);
+      items.forEach((item) => {
+        expect(CatalogItemService.restoreItem).toHaveBeenCalledWith(item);
+      });
     });
   });
 });

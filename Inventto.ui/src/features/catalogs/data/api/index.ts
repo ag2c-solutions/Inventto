@@ -1,6 +1,6 @@
 import { supabase } from '@/infra/supabase';
 
-import { stripUndefined } from '@/shared/utils';
+import { formatIntegerToDecimal, stripUndefined } from '@/shared/utils';
 
 import type {
   AddCatalogItemsPayload,
@@ -8,6 +8,7 @@ import type {
   CatalogItem,
   CreateCatalogPayload,
   UpdateCatalogItemPricePayload,
+  UpdateCatalogItemsPricesPayload,
   UpdateCatalogPayload
 } from '../../domain/entities';
 import type { CatalogDTO, CatalogItemDTO } from '../dtos';
@@ -35,6 +36,11 @@ const ITEM_SELECT_QUERY = `
     name,
     sku,
     product_images(url, is_primary)
+  ),
+  variant:product_variants(
+    id,
+    sku,
+    options
   )
 `;
 
@@ -147,10 +153,15 @@ export class CatalogApi {
     params: AddCatalogItemsPayload
   ): Promise<CatalogItem[]> {
     try {
-      const rows = params.productIds.map((productId) => ({
+      const rows = params.items.map((item) => ({
         catalog_id: params.catalogId,
-        product_id: productId,
-        price: 0
+        product_id: item.productId,
+        variant_id: item.variantId ?? null,
+        price: formatIntegerToDecimal(item.price),
+        original_price:
+          item.originalPrice != null
+            ? formatIntegerToDecimal(item.originalPrice)
+            : null
       }));
 
       const { data, error } = await supabase
@@ -175,7 +186,11 @@ export class CatalogApi {
 
       const { data, error } = await supabase
         .from('catalog_items')
-        .update({ price, original_price: originalPrice ?? null })
+        .update({
+          price: formatIntegerToDecimal(price),
+          original_price:
+            originalPrice != null ? formatIntegerToDecimal(originalPrice) : null
+        })
         .eq('id', id)
         .select(ITEM_SELECT_QUERY)
         .single()
@@ -186,6 +201,19 @@ export class CatalogApi {
       return CatalogItemMapper.toDomain(data);
     } catch (error) {
       handleCatalogError(error, 'updateItemPrice');
+    }
+  }
+
+  static async updateItemsPrices(
+    params: UpdateCatalogItemsPricesPayload
+  ): Promise<CatalogItem[]> {
+    try {
+      const results = await Promise.all(
+        params.items.map((item) => CatalogApi.updateItemPrice(item))
+      );
+      return results;
+    } catch (error) {
+      handleCatalogError(error, 'updateItemsPrices');
     }
   }
 
@@ -210,8 +238,11 @@ export class CatalogApi {
           catalog_id: item.catalogId,
           product_id: item.productId,
           variant_id: item.variantId ?? null,
-          price: item.price,
-          original_price: item.originalPrice ?? null
+          price: formatIntegerToDecimal(item.price),
+          original_price:
+            item.originalPrice != null
+              ? formatIntegerToDecimal(item.originalPrice)
+              : null
         })
         .select(ITEM_SELECT_QUERY)
         .single()

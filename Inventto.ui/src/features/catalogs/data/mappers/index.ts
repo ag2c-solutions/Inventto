@@ -1,3 +1,5 @@
+import { formatDecimalToInteger } from '@/shared/utils';
+
 import type {
   Catalog,
   CatalogItem,
@@ -40,14 +42,27 @@ export class CatalogItemMapper {
       catalogId: dto.catalog_id,
       productId: dto.product_id,
       variantId: dto.variant_id ?? undefined,
-      price: dto.price,
-      originalPrice: dto.original_price ?? undefined,
+      // O banco guarda o preço em reais (numeric); o domínio trabalha em
+      // centavos (inteiro) para evitar erros de ponto flutuante — mesma
+      // convenção do MoneyInput.
+      price: formatDecimalToInteger(dto.price),
+      originalPrice:
+        dto.original_price != null
+          ? formatDecimalToInteger(dto.original_price)
+          : undefined,
       product: {
         id: dto.product.id,
         name: dto.product.name,
         sku: dto.product.sku,
         imageUrl: primaryImage?.url
-      }
+      },
+      variant: dto.variant
+        ? {
+            id: dto.variant.id,
+            sku: dto.variant.sku,
+            options: dto.variant.options
+          }
+        : undefined
     };
   }
 }

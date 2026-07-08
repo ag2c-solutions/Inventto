@@ -5,7 +5,7 @@ import { Package, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 
 import type { Catalog } from '../../../../domain/entities';
-import { EditCatalogSheet } from '../../edit-catalog-sheet';
+import { EditCatalogSheet } from '../../actions/edit';
 
 interface GetCatalogsTableColumnsOptions {
   canManage: boolean;

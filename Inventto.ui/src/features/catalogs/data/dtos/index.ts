@@ -20,4 +20,9 @@ export interface CatalogItemDTO {
     sku: string;
     product_images: Array<{ url: string; is_primary: boolean }>;
   };
+  variant: {
+    id: string;
+    sku: string;
+    options: Array<{ name: string; value: string }>;
+  } | null;
 }

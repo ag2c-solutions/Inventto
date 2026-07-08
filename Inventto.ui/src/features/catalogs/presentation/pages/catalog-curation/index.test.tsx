@@ -8,25 +8,29 @@ import { catalogItemFactory } from '../../../tests/factories/catalog-item.factor
 
 import { CatalogCurationPage } from './index';
 
-const { mockUseCatalogByIDQuery, mockUseCatalogItemsQuery } = vi.hoisted(
-  () => ({
-    mockUseCatalogByIDQuery: vi.fn(),
-    mockUseCatalogItemsQuery: vi.fn()
-  })
-);
+const {
+  mockUseCatalogByIDQuery,
+  mockUseCatalogItemsQuery,
+  mockUseAvailableProductsQuery
+} = vi.hoisted(() => ({
+  mockUseCatalogByIDQuery: vi.fn(),
+  mockUseCatalogItemsQuery: vi.fn(),
+  mockUseAvailableProductsQuery: vi.fn()
+}));
 
 vi.mock('../../hooks/use-queries', () => ({
   useCatalogByIDQuery: mockUseCatalogByIDQuery,
-  useCatalogItemsQuery: mockUseCatalogItemsQuery
+  useCatalogItemsQuery: mockUseCatalogItemsQuery,
+  useAvailableProductsQuery: mockUseAvailableProductsQuery
 }));
 
-vi.mock('../../components/add-products-sheet', () => ({
+vi.mock('../../components/actions/add-products', () => ({
   AddProductsSheet: () => <button type="button">Adicionar produtos</button>
 }));
 
-vi.mock('../../components/curation-item', () => ({
-  CurationItem: ({ item }: { item: { product: { name: string } } }) => (
-    <div data-testid="curation-item">{item.product.name}</div>
+vi.mock('../../components/curation-product-group', () => ({
+  CurationProductGroup: ({ product }: { product: { name: string } }) => (
+    <div data-testid="curation-product-group">{product.name}</div>
   )
 }));
 
@@ -49,6 +53,7 @@ describe('CatalogCurationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseCatalogByIDQuery.mockReturnValue({ data: catalog });
+    mockUseAvailableProductsQuery.mockReturnValue({ data: [] });
   });
 
   it('should render the heading with the catalog name', () => {
@@ -84,16 +89,34 @@ describe('CatalogCurationPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render a CurationItem for each item', () => {
+  it('should render a CurationProductGroup for each distinct product', () => {
     const items = catalogItemFactory.buildList(2);
     mockUseCatalogItemsQuery.mockReturnValue({ data: items, isLoading: false });
 
     renderPage();
 
-    expect(screen.getAllByTestId('curation-item')).toHaveLength(2);
+    expect(screen.getAllByTestId('curation-product-group')).toHaveLength(2);
   });
 
-  it('should show the aggregated warning when items are pending a price', () => {
+  it('should group multiple items of the same product into a single card', () => {
+    const sharedProduct = {
+      id: 'p1',
+      name: 'Cadeira',
+      sku: 'CAD-1',
+      imageUrl: undefined
+    };
+    const items = [
+      catalogItemFactory.build({ productId: 'p1', product: sharedProduct }),
+      catalogItemFactory.build({ productId: 'p1', product: sharedProduct })
+    ];
+    mockUseCatalogItemsQuery.mockReturnValue({ data: items, isLoading: false });
+
+    renderPage();
+
+    expect(screen.getAllByTestId('curation-product-group')).toHaveLength(1);
+  });
+
+  it('should show the aggregated warning when products are pending a price', () => {
     const items = [
       catalogItemFactory.build({ price: 0 }),
       catalogItemFactory.build({ price: 50 })
@@ -106,14 +129,14 @@ describe('CatalogCurationPage', () => {
       screen.getByText((_, element) =>
         Boolean(
           element?.textContent?.startsWith(
-            '1 item recém-adicionado precisa de preço.'
+            '1 produto recém-adicionado precisa de preço.'
           )
         )
       )
     ).toBeInTheDocument();
   });
 
-  it('should filter items by search term', async () => {
+  it('should filter product groups by search term', async () => {
     const user = userEvent.setup();
     const items = [
       catalogItemFactory.build({
@@ -132,7 +155,7 @@ describe('CatalogCurationPage', () => {
       'Mesa'
     );
 
-    expect(screen.getAllByTestId('curation-item')).toHaveLength(1);
+    expect(screen.getAllByTestId('curation-product-group')).toHaveLength(1);
     expect(screen.getByText('Mesa')).toBeInTheDocument();
   });
 });

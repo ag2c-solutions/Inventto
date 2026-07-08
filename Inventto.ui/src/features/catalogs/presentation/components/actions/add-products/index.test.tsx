@@ -4,15 +4,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AddProductsSheet } from './index';
 
-const { mockUseAddProductsSheet, mockToggleProduct, mockConfirmSelection } =
-  vi.hoisted(() => ({
-    mockUseAddProductsSheet: vi.fn(),
-    mockToggleProduct: vi.fn(),
-    mockConfirmSelection: vi.fn()
-  }));
+const { mockUseAddProducts, mockToggleProduct } = vi.hoisted(() => ({
+  mockUseAddProducts: vi.fn(),
+  mockToggleProduct: vi.fn()
+}));
 
-vi.mock('./hooks/use-add-products-sheet', () => ({
-  useAddProductsSheet: mockUseAddProductsSheet
+vi.mock('./hooks/use-add-products', () => ({
+  useAddProducts: mockUseAddProducts
+}));
+
+// Isola o Dialog de configuração de preços para não precisar de QueryClientProvider
+vi.mock('../configure-prices', () => ({
+  ConfigurePricesDialog: () => null
 }));
 
 vi.mock('@/features/permissions', () => ({
@@ -28,8 +31,22 @@ vi.mock('@/features/permissions', () => ({
 }));
 
 const products = [
-  { id: 'p1', name: 'Cadeira', sku: 'CAD-1', alreadyAdded: false },
-  { id: 'p2', name: 'Mesa', sku: 'MES-1', alreadyAdded: true }
+  {
+    id: 'p1',
+    name: 'Cadeira',
+    sku: 'CAD-1',
+    alreadyAdded: false,
+    hasVariants: false,
+    variants: []
+  },
+  {
+    id: 'p2',
+    name: 'Mesa',
+    sku: 'MES-1',
+    alreadyAdded: true,
+    hasVariants: false,
+    variants: []
+  }
 ];
 
 describe('AddProductsSheet', () => {
@@ -37,16 +54,16 @@ describe('AddProductsSheet', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAddProductsSheet.mockReturnValue({
+    mockUseAddProducts.mockReturnValue({
       search: '',
       setSearch: vi.fn(),
       products,
       isLoading: false,
       selectedIds: new Set(),
+      selectedProducts: [],
       selectedCount: 0,
       toggleProduct: mockToggleProduct,
-      confirmSelection: mockConfirmSelection,
-      isConfirming: false
+      clearSelection: vi.fn()
     });
   });
 
@@ -81,16 +98,16 @@ describe('AddProductsSheet', () => {
   });
 
   it('should show the selected count', async () => {
-    mockUseAddProductsSheet.mockReturnValue({
+    mockUseAddProducts.mockReturnValue({
       search: '',
       setSearch: vi.fn(),
       products,
       isLoading: false,
       selectedIds: new Set(['p1']),
+      selectedProducts: [products[0]],
       selectedCount: 1,
       toggleProduct: mockToggleProduct,
-      confirmSelection: mockConfirmSelection,
-      isConfirming: false
+      clearSelection: vi.fn()
     });
 
     const sheet = await openSheet();
@@ -98,46 +115,43 @@ describe('AddProductsSheet', () => {
     expect(sheet.getByText('1 selecionados')).toBeInTheDocument();
   });
 
-  it('should disable the confirm button when nothing is selected', async () => {
+  it('should disable the "Configurar" button when nothing is selected', async () => {
     const sheet = await openSheet();
 
-    expect(
-      sheet.getByRole('button', { name: 'Adicionar ao catálogo' })
-    ).toBeDisabled();
+    expect(sheet.getByRole('button', { name: /Configurar/i })).toBeDisabled();
   });
 
-  it('should confirm the selection when clicking "Adicionar ao catálogo"', async () => {
-    mockUseAddProductsSheet.mockReturnValue({
+  it('should open the configure dialog when clicking "Configurar" with items selected', async () => {
+    mockUseAddProducts.mockReturnValue({
       search: '',
       setSearch: vi.fn(),
       products,
       isLoading: false,
       selectedIds: new Set(['p1']),
+      selectedProducts: [products[0]],
       selectedCount: 1,
       toggleProduct: mockToggleProduct,
-      confirmSelection: mockConfirmSelection,
-      isConfirming: false
+      clearSelection: vi.fn()
     });
 
     const sheet = await openSheet();
-    await user.click(
-      sheet.getByRole('button', { name: 'Adicionar ao catálogo' })
-    );
-
-    expect(mockConfirmSelection).toHaveBeenCalled();
+    const configureBtn = sheet.getByRole('button', { name: /Configurar 1/i });
+    expect(configureBtn).toBeEnabled();
+    // Clicar abre o Dialog (mockado como null, sem erro é suficiente)
+    await user.click(configureBtn);
   });
 
   it('should show the empty message when no products match the search', async () => {
-    mockUseAddProductsSheet.mockReturnValue({
+    mockUseAddProducts.mockReturnValue({
       search: 'inexistente',
       setSearch: vi.fn(),
       products: [],
       isLoading: false,
       selectedIds: new Set(),
+      selectedProducts: [],
       selectedCount: 0,
       toggleProduct: mockToggleProduct,
-      confirmSelection: mockConfirmSelection,
-      isConfirming: false
+      clearSelection: vi.fn()
     });
 
     const sheet = await openSheet();

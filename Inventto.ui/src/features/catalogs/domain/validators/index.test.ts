@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { catalogItemPriceSchema, catalogSchema } from './index';
+import {
+  catalogItemInputSchema,
+  catalogSchema,
+  configurePricesSchema,
+  variantPriceInputSchema
+} from './index';
 
 describe('catalogSchema', () => {
   it('should accept a valid name', () => {
@@ -28,36 +33,55 @@ describe('catalogSchema', () => {
   });
 });
 
-describe('catalogItemPriceSchema', () => {
-  it('should accept a positive price with no original price', () => {
-    const result = catalogItemPriceSchema.safeParse({ price: 49.9 });
-
-    expect(result.success).toBe(true);
-  });
-
-  it('should accept a positive price with a positive original price', () => {
-    const result = catalogItemPriceSchema.safeParse({
-      price: 49.9,
-      originalPrice: 69.9
+describe('variantPriceInputSchema', () => {
+  it('should accept an excluded variant without a price', () => {
+    const result = variantPriceInputSchema.safeParse({
+      variantId: 'v1',
+      included: false
     });
 
     expect(result.success).toBe(true);
   });
 
-  it('should reject a zero or negative price (RN063)', () => {
-    const zero = catalogItemPriceSchema.safeParse({ price: 0 });
-    const negative = catalogItemPriceSchema.safeParse({ price: -10 });
+  it('should accept a positive price in cents', () => {
+    const result = variantPriceInputSchema.safeParse({
+      variantId: 'v1',
+      included: true,
+      price: 4990
+    });
 
-    expect(zero.success).toBe(false);
-    expect(zero.error?.issues[0].message).toBe(
-      'Defina um preço para incluir este item.'
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject a zero or negative price when provided', () => {
+    const result = variantPriceInputSchema.safeParse({
+      variantId: 'v1',
+      included: true,
+      price: 0
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe(
+      'Defina um preço para esta variante.'
     );
-    expect(negative.success).toBe(false);
+  });
+
+  it('should accept a null original price (promotion cleared)', () => {
+    const result = variantPriceInputSchema.safeParse({
+      variantId: 'v1',
+      included: true,
+      price: 4990,
+      originalPrice: null
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it('should reject a zero or negative original price when provided', () => {
-    const result = catalogItemPriceSchema.safeParse({
-      price: 10,
+    const result = variantPriceInputSchema.safeParse({
+      variantId: 'v1',
+      included: true,
+      price: 4990,
       originalPrice: 0
     });
 
@@ -65,5 +89,57 @@ describe('catalogItemPriceSchema', () => {
     expect(result.error?.issues[0].message).toBe(
       'O preço original deve ser maior que zero.'
     );
+  });
+});
+
+describe('catalogItemInputSchema', () => {
+  it('should accept a single-price product with no variants', () => {
+    const result = catalogItemInputSchema.safeParse({
+      productId: 'p1',
+      priceMode: 'single',
+      price: 8990
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept a per-variant priced product', () => {
+    const result = catalogItemInputSchema.safeParse({
+      productId: 'p1',
+      priceMode: 'per_variant',
+      variants: [
+        { variantId: 'v1', included: true, price: 4990 },
+        { variantId: 'v2', included: false }
+      ]
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject a zero or negative price when provided', () => {
+    const result = catalogItemInputSchema.safeParse({
+      productId: 'p1',
+      priceMode: 'single',
+      price: 0
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe('Defina um preço de venda.');
+  });
+});
+
+describe('configurePricesSchema', () => {
+  it('should accept a list of valid items', () => {
+    const result = configurePricesSchema.safeParse({
+      items: [{ productId: 'p1', priceMode: 'single', price: 8990 }]
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept an empty items list', () => {
+    const result = configurePricesSchema.safeParse({ items: [] });
+
+    expect(result.success).toBe(true);
   });
 });

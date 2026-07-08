@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
 
-import { useAddCatalogItemsMutation } from '../../../hooks/use-mutations';
-import { useAvailableProductsQuery } from '../../../hooks/use-queries';
+import type { AvailableProduct } from '../../../../hooks/use-queries';
+import { useAvailableProductsQuery } from '../../../../hooks/use-queries';
 
-export function useAddProductsSheet(catalogId: string) {
+export function useAddProducts(catalogId: string) {
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { data: products, isLoading } = useAvailableProductsQuery(catalogId);
-  const { mutateAsync, isPending } = useAddCatalogItemsMutation(catalogId);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -21,6 +20,12 @@ export function useAddProductsSheet(catalogId: string) {
         product.sku.toLowerCase().includes(term)
     );
   }, [products, search]);
+
+  /** Objetos completos dos produtos selecionados (para o Dialog) */
+  const selectedProducts = useMemo((): AvailableProduct[] => {
+    if (!products) return [];
+    return products.filter((p) => selectedIds.has(p.id));
+  }, [products, selectedIds]);
 
   function toggleProduct(productId: string) {
     setSelectedIds((current) => {
@@ -36,8 +41,8 @@ export function useAddProductsSheet(catalogId: string) {
     });
   }
 
-  async function confirmSelection() {
-    await mutateAsync(Array.from(selectedIds));
+  /** Limpa a seleção após adição bem-sucedida */
+  function clearSelection() {
     setSelectedIds(new Set());
   }
 
@@ -47,9 +52,9 @@ export function useAddProductsSheet(catalogId: string) {
     products: filteredProducts,
     isLoading,
     selectedIds,
+    selectedProducts,
     selectedCount: selectedIds.size,
     toggleProduct,
-    confirmSelection,
-    isConfirming: isPending
+    clearSelection
   };
 }

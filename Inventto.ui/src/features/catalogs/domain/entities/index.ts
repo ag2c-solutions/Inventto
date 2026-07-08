@@ -32,15 +32,33 @@ export interface CatalogItem {
     sku: string;
     imageUrl?: string;
   };
+  variant?: {
+    id: string;
+    sku: string;
+    options: { name: string; value: string }[];
+  };
+}
+
+export interface CatalogItemInput {
+  productId: string;
+  variantId?: string;
+  price: number;
+  originalPrice?: number | null;
 }
 
 export interface AddCatalogItemsPayload {
   catalogId: string;
-  productIds: string[];
+  items: CatalogItemInput[];
 }
 
 export interface UpdateCatalogItemPricePayload {
   id: string;
   price: number;
-  originalPrice?: number;
+  originalPrice?: number | null;
+}
+
+/** Payload para atualizar preços de múltiplos itens em lote. */
+export interface UpdateCatalogItemsPricesPayload {
+  catalogId: string;
+  items: UpdateCatalogItemPricePayload[];
 }

@@ -58,8 +58,11 @@ describe('CatalogMapper', () => {
 
 describe('CatalogItemMapper', () => {
   describe('toDomain', () => {
-    it('should map a DTO with original_price to the domain model, with no is_featured field', () => {
-      const dto = catalogItemDTOFactory.build({ original_price: 89.9 });
+    it('should convert price and original_price from reais (DB) to cents (domain)', () => {
+      const dto = catalogItemDTOFactory.build({
+        price: 89.9,
+        original_price: 129.9
+      });
 
       const result = CatalogItemMapper.toDomain(dto);
 
@@ -68,14 +71,15 @@ describe('CatalogItemMapper', () => {
         catalogId: dto.catalog_id,
         productId: dto.product_id,
         variantId: undefined,
-        price: dto.price,
-        originalPrice: 89.9,
+        price: 8990,
+        originalPrice: 12990,
         product: {
           id: dto.product.id,
           name: dto.product.name,
           sku: dto.product.sku,
           imageUrl: dto.product.product_images[0].url
-        }
+        },
+        variant: undefined
       });
       expect(result).not.toHaveProperty('isFeatured');
     });
@@ -94,6 +98,25 @@ describe('CatalogItemMapper', () => {
       const result = CatalogItemMapper.toDomain(dto);
 
       expect(result.variantId).toBeUndefined();
+    });
+
+    it('should map the variant when present', () => {
+      const dto = catalogItemDTOFactory.build({
+        variant_id: 'v1',
+        variant: {
+          id: 'v1',
+          sku: 'SKU-V1',
+          options: [{ name: 'Cor', value: 'Azul' }]
+        }
+      });
+
+      const result = CatalogItemMapper.toDomain(dto);
+
+      expect(result.variant).toEqual({
+        id: 'v1',
+        sku: 'SKU-V1',
+        options: [{ name: 'Cor', value: 'Azul' }]
+      });
     });
 
     it('should prefer the primary image when multiple images exist', () => {

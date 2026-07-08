@@ -17,7 +17,7 @@ import {
 import { usePermission } from '@/features/permissions';
 
 import type { Catalog } from '../../../domain/entities';
-import { CreateCatalogDialog } from '../create-catalog-dialog';
+import { CreateCatalogDialog } from '../actions/create';
 
 import { CatalogsEmptyState } from './pieces/empty';
 import { CatalogsTableLoading } from './pieces/loading';
