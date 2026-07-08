@@ -6,3 +6,23 @@ export interface CatalogDTO {
   updated_at: string;
   catalog_items: Array<{ count: number }>;
 }
+
+export interface CatalogItemDTO {
+  id: string;
+  catalog_id: string;
+  product_id: string;
+  variant_id: string | null;
+  price: number;
+  original_price: number | null;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    product_images: Array<{ url: string; is_primary: boolean }>;
+  };
+  variant: {
+    id: string;
+    sku: string;
+    options: Array<{ name: string; value: string }>;
+  } | null;
+}

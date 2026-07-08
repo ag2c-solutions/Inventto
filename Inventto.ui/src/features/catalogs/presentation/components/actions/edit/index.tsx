@@ -24,10 +24,10 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 
 import { ActionButton } from '@/features/permissions';
 
-import type { CatalogFormValues } from '../../../domain/validators';
-import { useUpdateCatalogMutation } from '../../hooks/use-mutations';
-import { useCatalogByIDQuery } from '../../hooks/use-queries';
-import { LinkedChannels } from '../linked-channels';
+import type { CatalogFormValues } from '../../../../domain/validators';
+import { useUpdateCatalogMutation } from '../../../hooks/use-mutations';
+import { useCatalogByIDQuery } from '../../../hooks/use-queries';
+import { LinkedChannels } from '../../linked-channels';
 
 import { useEditCatalogForm } from './hooks/use-edit-catalog-form';
 

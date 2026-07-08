@@ -1,6 +1,6 @@
 import { BookOpen } from 'lucide-react';
 
-import { CreateCatalogDialog } from '../../../create-catalog-dialog';
+import { CreateCatalogDialog } from '../../../actions/create';
 
 export function CatalogsEmptyState() {
   return (

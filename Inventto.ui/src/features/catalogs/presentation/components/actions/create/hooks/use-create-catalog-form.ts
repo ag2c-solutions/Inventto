@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import {
   type CatalogFormValues,
   catalogSchema
-} from '../../../../domain/validators';
+} from '@/features/catalogs/domain/validators';
 
 export function useCreateCatalogForm() {
   return useForm<CatalogFormValues>({

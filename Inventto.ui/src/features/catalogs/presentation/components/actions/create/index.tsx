@@ -23,8 +23,8 @@ import { Input } from '@/shared/components/ui/input';
 
 import { ActionButton } from '@/features/permissions';
 
-import type { CatalogFormValues } from '../../../domain/validators';
-import { useCreateCatalogMutation } from '../../hooks/use-mutations';
+import type { CatalogFormValues } from '../../../../domain/validators';
+import { useCreateCatalogMutation } from '../../../hooks/use-mutations';
 
 import { useCreateCatalogForm } from './hooks/use-create-catalog-form';
 

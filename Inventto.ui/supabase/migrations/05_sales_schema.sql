@@ -32,11 +32,18 @@ CREATE TABLE public.catalog_items (
   catalog_id uuid NOT NULL REFERENCES public.catalogs(id) ON DELETE CASCADE,
   product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   variant_id uuid REFERENCES public.product_variants(id) ON DELETE CASCADE,
-  
+
   price numeric(10, 2) NOT NULL,
-  
+  original_price numeric(10, 2), -- CAT-03 · RN063: promoção opcional
+
   CONSTRAINT catalog_items_pkey PRIMARY KEY (id)
 );
+
+-- CAT-03 · impede duplicar o mesmo produto/variante no catálogo (trata variant_id nulo).
+CREATE UNIQUE INDEX catalog_items_unique_product_no_variant
+  ON public.catalog_items (catalog_id, product_id) WHERE variant_id IS NULL;
+CREATE UNIQUE INDEX catalog_items_unique_product_variant
+  ON public.catalog_items (catalog_id, product_id, variant_id) WHERE variant_id IS NOT NULL;
 
 -- ==============================================================================
 -- 3. TABELA ORDERS (Pedidos)
@@ -123,6 +130,21 @@ FOR DELETE USING (public.has_role(organization_id, 'manager'));
 CREATE POLICY "Members can view catalog items" ON public.catalog_items
 FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.catalogs WHERE id = catalog_items.catalog_id AND public.is_org_member(organization_id))
+);
+
+CREATE POLICY "Managers can create catalog items" ON public.catalog_items
+FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM public.catalogs WHERE id = catalog_items.catalog_id AND public.has_role(organization_id, 'manager'))
+);
+
+CREATE POLICY "Managers can update catalog items" ON public.catalog_items
+FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.catalogs WHERE id = catalog_items.catalog_id AND public.has_role(organization_id, 'manager'))
+);
+
+CREATE POLICY "Managers can delete catalog items" ON public.catalog_items
+FOR DELETE USING (
+  EXISTS (SELECT 1 FROM public.catalogs WHERE id = catalog_items.catalog_id AND public.has_role(organization_id, 'manager'))
 );
 
 -- 6.2. ORDERS (Regra Condicional V9.3: Manager vê tudo, Sales vê suas ou do site)

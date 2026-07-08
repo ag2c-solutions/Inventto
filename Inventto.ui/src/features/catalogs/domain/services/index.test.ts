@@ -6,14 +6,21 @@ import {
   catalogFactory,
   createCatalogPayloadFactory
 } from '../../tests/factories/catalog.factory';
+import { catalogItemFactory } from '../../tests/factories/catalog-item.factory';
 
-import { CatalogService } from './index';
+import { CatalogItemService, CatalogService } from './index';
 
 vi.mock('../../data/api', () => ({
   CatalogApi: {
     add: vi.fn(),
     update: vi.fn(),
-    remove: vi.fn()
+    remove: vi.fn(),
+    getItems: vi.fn(),
+    addItems: vi.fn(),
+    updateItemPrice: vi.fn(),
+    updateItemsPrices: vi.fn(),
+    removeItem: vi.fn(),
+    restoreItem: vi.fn()
   }
 }));
 
@@ -105,6 +112,164 @@ describe('CatalogService', () => {
       await expect(CatalogService.remove(faker.string.uuid())).rejects.toThrow(
         'Ocorreu um erro inesperado'
       );
+    });
+  });
+});
+
+describe('CatalogItemService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('getItems', () => {
+    it('should delegate to CatalogApi.getItems', async () => {
+      const items = catalogItemFactory.buildList(2);
+      vi.mocked(CatalogApi.getItems).mockResolvedValue(items);
+
+      const result = await CatalogItemService.getItems('cat-1');
+
+      expect(CatalogApi.getItems).toHaveBeenCalledWith('cat-1');
+      expect(result).toEqual(items);
+    });
+  });
+
+  describe('addItems', () => {
+    it('should delegate to CatalogApi.addItems when at least one product is selected', async () => {
+      const items = catalogItemFactory.buildList(2);
+      vi.mocked(CatalogApi.addItems).mockResolvedValue(items);
+
+      const payload = {
+        catalogId: 'cat-1',
+        items: [
+          { productId: 'p1', price: 8990 },
+          { productId: 'p2', price: 9990 }
+        ]
+      };
+      const result = await CatalogItemService.addItems(payload);
+
+      expect(CatalogApi.addItems).toHaveBeenCalledWith(payload);
+      expect(result).toEqual(items);
+    });
+
+    it('should reject without calling the API when no product is selected', async () => {
+      await expect(
+        CatalogItemService.addItems({ catalogId: 'cat-1', items: [] })
+      ).rejects.toThrow('Selecione ao menos um produto.');
+
+      expect(CatalogApi.addItems).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateItemPrice', () => {
+    it('should delegate to CatalogApi.updateItemPrice for a positive price', async () => {
+      const item = catalogItemFactory.build({ price: 9990 });
+      vi.mocked(CatalogApi.updateItemPrice).mockResolvedValue(item);
+
+      const payload = { id: item.id, price: 9990 };
+      const result = await CatalogItemService.updateItemPrice(payload);
+
+      expect(CatalogApi.updateItemPrice).toHaveBeenCalledWith(payload);
+      expect(result).toEqual(item);
+    });
+
+    it('should reject a missing price (RN063) without calling the API', async () => {
+      await expect(
+        CatalogItemService.updateItemPrice({ id: 'item-1', price: 0 })
+      ).rejects.toThrow('Defina um preço para incluir este item.');
+
+      expect(CatalogApi.updateItemPrice).not.toHaveBeenCalled();
+    });
+
+    it('should reject a negative price without calling the API', async () => {
+      await expect(
+        CatalogItemService.updateItemPrice({ id: 'item-1', price: -10 })
+      ).rejects.toThrow('Defina um preço para incluir este item.');
+
+      expect(CatalogApi.updateItemPrice).not.toHaveBeenCalled();
+    });
+
+    it('should accept null originalPrice (remove promotion) and pass it to the API', async () => {
+      const item = catalogItemFactory.build({
+        price: 5000,
+        originalPrice: undefined
+      });
+      vi.mocked(CatalogApi.updateItemPrice).mockResolvedValue(item);
+
+      const result = await CatalogItemService.updateItemPrice({
+        id: 'item-1',
+        price: 5000,
+        originalPrice: null
+      });
+
+      expect(CatalogApi.updateItemPrice).toHaveBeenCalledWith({
+        id: 'item-1',
+        price: 5000,
+        originalPrice: null
+      });
+      expect(result).toEqual(item);
+    });
+  });
+
+  describe('updateItemsPrices', () => {
+    it('should delegate to CatalogApi.updateItemsPrices when all items have a positive price', async () => {
+      const items = catalogItemFactory.buildList(2);
+      vi.mocked(CatalogApi.updateItemsPrices).mockResolvedValue(items);
+
+      const payload = {
+        catalogId: 'cat-1',
+        items: [
+          { id: 'item-1', price: 8990 },
+          { id: 'item-2', price: 9990 }
+        ]
+      };
+      const result = await CatalogItemService.updateItemsPrices(payload);
+
+      expect(CatalogApi.updateItemsPrices).toHaveBeenCalledWith(payload);
+      expect(result).toEqual(items);
+    });
+
+    it('should reject without calling the API when there are no items', async () => {
+      await expect(
+        CatalogItemService.updateItemsPrices({ catalogId: 'cat-1', items: [] })
+      ).rejects.toThrow('Nenhum item para atualizar.');
+
+      expect(CatalogApi.updateItemsPrices).not.toHaveBeenCalled();
+    });
+
+    it('should reject without calling the API when any item has a non-positive price', async () => {
+      await expect(
+        CatalogItemService.updateItemsPrices({
+          catalogId: 'cat-1',
+          items: [
+            { id: 'item-1', price: 8990 },
+            { id: 'item-2', price: 0 }
+          ]
+        })
+      ).rejects.toThrow('Todos os itens devem ter preço maior que zero.');
+
+      expect(CatalogApi.updateItemsPrices).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('removeItem', () => {
+    it('should delegate to CatalogApi.removeItem', async () => {
+      vi.mocked(CatalogApi.removeItem).mockResolvedValue(undefined);
+
+      await CatalogItemService.removeItem('item-1');
+
+      expect(CatalogApi.removeItem).toHaveBeenCalledWith('item-1');
+    });
+  });
+
+  describe('restoreItem', () => {
+    it('should delegate to CatalogApi.restoreItem', async () => {
+      const item = catalogItemFactory.build();
+      vi.mocked(CatalogApi.restoreItem).mockResolvedValue(item);
+
+      const result = await CatalogItemService.restoreItem(item);
+
+      expect(CatalogApi.restoreItem).toHaveBeenCalledWith(item);
+      expect(result).toEqual(item);
     });
   });
 });
