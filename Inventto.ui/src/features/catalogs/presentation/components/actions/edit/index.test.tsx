@@ -9,11 +9,17 @@ import { EditCatalogSheet } from './';
 const {
   mockMutateAsync,
   mockUseUpdateCatalogMutation,
-  mockUseCatalogByIDQuery
+  mockUseCatalogByIDQuery,
+  mockUseIsMobile
 } = vi.hoisted(() => ({
   mockMutateAsync: vi.fn(),
   mockUseUpdateCatalogMutation: vi.fn(),
-  mockUseCatalogByIDQuery: vi.fn()
+  mockUseCatalogByIDQuery: vi.fn(),
+  mockUseIsMobile: vi.fn()
+}));
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: mockUseIsMobile
 }));
 
 vi.mock('../../../hooks/use-mutations', () => ({
@@ -42,6 +48,7 @@ describe('EditCatalogSheet', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseIsMobile.mockReturnValue(false);
     mockUseUpdateCatalogMutation.mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false
@@ -69,6 +76,26 @@ describe('EditCatalogSheet', () => {
     await openSheet();
 
     expect(mockUseCatalogByIDQuery).toHaveBeenCalledWith(catalog.id);
+  });
+
+  it('should open as a side sheet (right) on desktop', async () => {
+    render(<EditCatalogSheet catalogId={catalog.id} />);
+
+    await openSheet();
+
+    expect(screen.getByRole('dialog').className).toContain('right-0');
+  });
+
+  it('should open as a bottom sheet on mobile', async () => {
+    mockUseIsMobile.mockReturnValue(true);
+
+    render(<EditCatalogSheet catalogId={catalog.id} />);
+
+    await openSheet();
+
+    const sheetContent = screen.getByRole('dialog');
+    expect(sheetContent.className).toContain('bottom-0');
+    expect(sheetContent.className).not.toContain('right-0');
   });
 
   it('should show the loading skeleton while the catalog loads', async () => {

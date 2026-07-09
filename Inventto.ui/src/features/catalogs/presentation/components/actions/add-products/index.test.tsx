@@ -4,9 +4,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AddProductsSheet } from './index';
 
-const { mockUseAddProducts, mockToggleProduct } = vi.hoisted(() => ({
-  mockUseAddProducts: vi.fn(),
-  mockToggleProduct: vi.fn()
+const { mockUseAddProducts, mockToggleProduct, mockUseIsMobile } = vi.hoisted(
+  () => ({
+    mockUseAddProducts: vi.fn(),
+    mockToggleProduct: vi.fn(),
+    mockUseIsMobile: vi.fn()
+  })
+);
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: mockUseIsMobile
 }));
 
 vi.mock('./hooks/use-add-products', () => ({
@@ -54,6 +61,7 @@ describe('AddProductsSheet', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseIsMobile.mockReturnValue(false);
     mockUseAddProducts.mockReturnValue({
       search: '',
       setSearch: vi.fn(),
@@ -67,13 +75,39 @@ describe('AddProductsSheet', () => {
     });
   });
 
-  async function openSheet() {
-    render(<AddProductsSheet catalogId="cat-1" />);
+  async function openSheet(props?: { iconOnly?: boolean }) {
+    render(<AddProductsSheet catalogId="cat-1" {...props} />);
     await user.click(
       screen.getByRole('button', { name: 'Adicionar produtos' })
     );
     return within(screen.getByRole('dialog'));
   }
+
+  it('should open as a side sheet (right) on desktop', async () => {
+    await openSheet();
+
+    expect(screen.getByRole('dialog').className).toContain('right-0');
+  });
+
+  it('should open as a bottom sheet on mobile', async () => {
+    mockUseIsMobile.mockReturnValue(true);
+
+    await openSheet();
+
+    const sheetContent = screen.getByRole('dialog');
+    expect(sheetContent.className).toContain('bottom-0');
+    expect(sheetContent.className).not.toContain('right-0');
+  });
+
+  it('should render an icon-only trigger when iconOnly is set', () => {
+    render(<AddProductsSheet catalogId="cat-1" iconOnly />);
+
+    const trigger = screen.getByRole('button', {
+      name: 'Adicionar produtos'
+    });
+    expect(trigger).toHaveAttribute('aria-label', 'Adicionar produtos');
+    expect(trigger).not.toHaveTextContent('Adicionar produtos');
+  });
 
   it('should disable the checkbox and show "Já adicionado" for products already in the catalog', async () => {
     const sheet = await openSheet();

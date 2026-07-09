@@ -8,9 +8,14 @@ import { catalogFactory } from '../../../tests/factories/catalog.factory';
 import { CatalogsTable } from './index';
 
 const mockUseUser = vi.fn();
+const mockUseIsMobile = vi.fn();
 
 vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
+}));
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: () => mockUseIsMobile()
 }));
 
 vi.mock('../actions/create', () => ({
@@ -70,6 +75,7 @@ describe('CatalogsTable', () => {
 
   beforeEach(() => {
     mockUseUser.mockReturnValue({ role: 'owner' });
+    mockUseIsMobile.mockReturnValue(false);
   });
 
   it('should render the loading skeleton when isLoading is true', () => {
@@ -165,5 +171,60 @@ describe('CatalogsTable', () => {
     expect(
       await screen.findByText("Nada encontrado para 'inexistente'.")
     ).toBeInTheDocument();
+  });
+
+  describe('mobile (~390px)', () => {
+    beforeEach(() => {
+      mockUseIsMobile.mockReturnValue(true);
+    });
+
+    it('should render cards instead of the table', () => {
+      render(<CatalogsTable data={catalogs} isLoading={false} />, { wrapper });
+
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.getByText('Catálogo Verão')).toBeInTheDocument();
+      expect(screen.getByText('Catálogo Atacado')).toBeInTheDocument();
+      expect(screen.getByText('12 produtos')).toBeInTheDocument();
+      expect(screen.getByText('2 canais vinculados')).toBeInTheDocument();
+      expect(screen.getByText('Nenhum canal')).toBeInTheDocument();
+    });
+
+    it('should keep edit/remove actions per card for manager/owner', () => {
+      render(<CatalogsTable data={catalogs} isLoading={false} />, { wrapper });
+
+      expect(screen.getAllByTitle('Editar catálogo')).toHaveLength(2);
+      expect(screen.getAllByTitle('Remover catálogo')).toHaveLength(2);
+    });
+
+    it('should hide card actions for sales', () => {
+      mockUseUser.mockReturnValue({ role: 'sales' });
+
+      render(<CatalogsTable data={catalogs} isLoading={false} />, { wrapper });
+
+      expect(screen.queryByTitle('Editar catálogo')).not.toBeInTheDocument();
+      expect(screen.queryByTitle('Remover catálogo')).not.toBeInTheDocument();
+    });
+
+    it('should filter cards by name with an inline empty message', async () => {
+      render(<CatalogsTable data={catalogs} isLoading={false} />, { wrapper });
+
+      await user.type(
+        screen.getByPlaceholderText('Buscar catálogo por nome'),
+        'Atacado'
+      );
+
+      expect(screen.getByText('Catálogo Atacado')).toBeInTheDocument();
+      expect(screen.queryByText('Catálogo Verão')).not.toBeInTheDocument();
+
+      await user.clear(screen.getByPlaceholderText('Buscar catálogo por nome'));
+      await user.type(
+        screen.getByPlaceholderText('Buscar catálogo por nome'),
+        'inexistente'
+      );
+
+      expect(
+        screen.getByText("Nada encontrado para 'inexistente'.")
+      ).toBeInTheDocument();
+    });
   });
 });

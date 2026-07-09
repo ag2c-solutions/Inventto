@@ -49,6 +49,14 @@ describe('CreateCatalogDialog', () => {
     expect(dialog.getByText('Novo catálogo')).toBeInTheDocument();
   });
 
+  it('should render an icon-only trigger when iconOnly is set (mobile header)', () => {
+    render(<CreateCatalogDialog iconOnly />);
+
+    const trigger = screen.getByRole('button', { name: 'Criar catálogo' });
+    expect(trigger).toHaveAttribute('aria-label', 'Criar catálogo');
+    expect(trigger).not.toHaveTextContent('Criar catálogo');
+  });
+
   it('should show an inline error when submitting with an empty name', async () => {
     render(<CreateCatalogDialog />);
 

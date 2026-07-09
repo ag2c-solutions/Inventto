@@ -21,6 +21,8 @@ import {
   SheetTrigger
 } from '@/shared/components/ui/sheet';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+import { cn } from '@/shared/utils';
 
 import { ActionButton } from '@/features/permissions';
 
@@ -37,6 +39,7 @@ interface EditCatalogSheetProps {
 
 export function EditCatalogSheet({ catalogId }: EditCatalogSheetProps) {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
   const { data: catalog, isLoading } = useCatalogByIDQuery(
     open ? catalogId : ''
   );
@@ -61,7 +64,13 @@ export function EditCatalogSheet({ catalogId }: EditCatalogSheetProps) {
           <span className="sr-only">Editar catálogo</span>
         </ActionButton>
       </SheetTrigger>
-      <SheetContent className="flex flex-col gap-0 overflow-y-auto">
+      <SheetContent
+        side={isMobile ? 'bottom' : 'right'}
+        className={cn(
+          'flex flex-col gap-0 overflow-y-auto',
+          isMobile && 'max-h-[85vh] rounded-t-lg'
+        )}
+      >
         <SheetHeader className="border-b">
           <SheetTitle>Editar catálogo</SheetTitle>
         </SheetHeader>

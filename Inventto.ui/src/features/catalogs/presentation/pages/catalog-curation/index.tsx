@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { Input } from '@/shared/components/ui/input';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 
 import { AddProductsSheet } from '../../components/actions/add-products';
 import { BackToCatalogsLink } from '../../components/actions/back-to-catalogs';
@@ -23,6 +24,7 @@ interface CatalogCurationParams {
 export function CatalogCurationPage() {
   const { catalogId: catalogIdParam } = useParams<CatalogCurationParams>();
   const catalogId = catalogIdParam ?? '';
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
 
   const { data: catalog } = useCatalogByIDQuery(catalogId);
@@ -89,7 +91,7 @@ export function CatalogCurationPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="max-w-[320px]"
             />
-            <AddProductsSheet catalogId={catalogId} />
+            <AddProductsSheet catalogId={catalogId} iconOnly={isMobile} />
           </div>
         )}
 

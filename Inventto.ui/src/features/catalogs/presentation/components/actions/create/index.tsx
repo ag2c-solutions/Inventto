@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import { Button } from '@/shared/components/ui/button';
@@ -28,7 +29,14 @@ import { useCreateCatalogMutation } from '../../../hooks/use-mutations';
 
 import { useCreateCatalogForm } from './hooks/use-create-catalog-form';
 
-export function CreateCatalogDialog() {
+interface CreateCatalogDialogProps {
+  /** Gatilho compacto (só o ícone Plus) — usado no cabeçalho mobile. */
+  iconOnly?: boolean;
+}
+
+export function CreateCatalogDialog({
+  iconOnly = false
+}: CreateCatalogDialogProps = {}) {
   const [open, setOpen] = useState(false);
   const { mutateAsync: createCatalog, isPending } = useCreateCatalogMutation();
   const form = useCreateCatalogForm();
@@ -48,9 +56,15 @@ export function CreateCatalogDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <ActionButton action="catalog:manage">Criar catálogo</ActionButton>
+        <ActionButton
+          action="catalog:manage"
+          aria-label="Criar catálogo"
+          className={iconOnly ? 'size-9 p-0' : undefined}
+        >
+          {iconOnly ? <Plus className="h-4 w-4" /> : 'Criar catálogo'}
+        </ActionButton>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md! p-6">
+      <DialogContent className="w-full sm:max-w-md! p-6">
         <DialogHeader>
           <DialogTitle>Novo catálogo</DialogTitle>
         </DialogHeader>
