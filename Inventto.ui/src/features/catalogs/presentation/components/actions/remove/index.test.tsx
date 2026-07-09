@@ -81,8 +81,7 @@ describe('RemoveCatalogDialog', () => {
       await waitFor(() =>
         expect(mockMutateAsync).toHaveBeenCalledWith(catalog.id)
       );
-      // Fecha explicitamente: a linha pode ser reaproveitada pelo React
-      // para outro catálogo após a remoção.
+
       await waitFor(() =>
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       );

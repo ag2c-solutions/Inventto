@@ -60,7 +60,7 @@ export function RemoveCatalogDialog({ catalog }: RemoveCatalogDialogProps) {
       <DialogContent className="w-full max-w-md! p-6">
         {isBlocked ? (
           <>
-            <DialogHeader>
+            <DialogHeader className="text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-950/40">
                 <TriangleAlert className="h-5 w-5 text-amber-600 dark:text-amber-500" />
               </div>
@@ -84,8 +84,8 @@ export function RemoveCatalogDialog({ catalog }: RemoveCatalogDialogProps) {
           </>
         ) : (
           <>
-            <DialogHeader>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+            <DialogHeader className="flex items-center gap-4 justify-center text-center">
+              <div className="flex h-15 w-15 items-center justify-center border border-destructive/70 rounded-full bg-destructive/10">
                 <Trash2 className="h-5 w-5 text-destructive" />
               </div>
               <DialogTitle>Remover {catalog.name}?</DialogTitle>

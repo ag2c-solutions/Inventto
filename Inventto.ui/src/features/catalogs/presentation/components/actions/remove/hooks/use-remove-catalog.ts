@@ -19,12 +19,7 @@ export function useRemoveCatalog(
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { mutateAsync: removeCatalog, isPending } = useRemoveCatalogMutation();
 
-  // Variante B (RN061): pré-checagem pela contagem de canais; o guard
-  // definitivo é o do servidor (RPC delete_catalog), que pode bloquear
-  // mesmo quando a contagem local estava zerada (serverBlocked).
   const isBlocked = serverBlocked || catalog.channelsCount > 0;
-
-  // Variante A: "Remover" só habilita no match exato do nome.
   const canConfirm = confirmation === catalog.name;
 
   function reset() {
