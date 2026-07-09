@@ -8,6 +8,7 @@ import {
   AvatarImage
 } from '@/shared/components/ui/avatar';
 import { Button } from '@/shared/components/ui/button';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 import { cn, formatIntegerToDecimal } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
 
@@ -30,6 +31,7 @@ export function CurationProductGroup({
   product,
   catalogId
 }: CurationProductGroupProps) {
+  const isMobile = useIsMobile();
   const { can } = usePermission();
   const readOnly = !can('catalog:manage');
 
@@ -96,8 +98,9 @@ export function CurationProductGroup({
             )}
           </div>
 
-          {/* Preço resumido quando não há variantes ou quando recolhido */}
-          {!hasVariants && representative && (
+          {/* Preço resumido inline (desktop); no mobile os preços ficam
+              empilhados abaixo do cabeçalho. */}
+          {!hasVariants && !isMobile && representative && (
             <span className="text-sm font-medium text-foreground shrink-0">
               {representative.price > 0
                 ? formatCurrency(formatIntegerToDecimal(representative.price))
@@ -143,13 +146,49 @@ export function CurationProductGroup({
             ))}
         </button>
 
+        {/* Mobile: preços de venda/original empilhados abaixo do cabeçalho */}
+        {isMobile && !hasVariants && representative && (
+          <div className="border-t px-3 py-2 flex flex-col gap-1 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Preço</span>
+              <span
+                className={cn(
+                  'font-medium',
+                  representative.price <= 0 && 'text-amber-600'
+                )}
+              >
+                {representative.price > 0
+                  ? formatCurrency(formatIntegerToDecimal(representative.price))
+                  : 'Sem preço'}
+              </span>
+            </div>
+            {representative.originalPrice != null &&
+              representative.originalPrice > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Original
+                  </span>
+                  <span className="text-muted-foreground line-through">
+                    {formatCurrency(
+                      formatIntegerToDecimal(representative.originalPrice)
+                    )}
+                  </span>
+                </div>
+              )}
+          </div>
+        )}
+
         {/* Lista de variantes — somente leitura */}
         {hasVariants && isOpen && (
           <div className="border-t divide-y">
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 px-3 py-2 text-sm"
+                data-testid="variant-row"
+                className={cn(
+                  'flex gap-3 px-3 py-2 text-sm',
+                  isMobile ? 'flex-col' : 'items-center'
+                )}
               >
                 {item.variant && (
                   <span className="pl-5 flex items-center gap-3 flex-1 text-muted-foreground">
@@ -176,8 +215,22 @@ export function CurationProductGroup({
                     </div>
                   </span>
                 )}
-                <div className="flex items-center gap-3 ml-auto shrink-0">
-                  <div className="flex flex-col items-end">
+                <div
+                  className={cn(
+                    'flex shrink-0',
+                    isMobile
+                      ? 'flex-col gap-1 pl-5'
+                      : 'items-center gap-3 ml-auto'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'flex',
+                      isMobile
+                        ? 'items-center justify-between'
+                        : 'flex-col items-end'
+                    )}
+                  >
                     <span className="text-xs text-muted-foreground">Preço</span>
                     <span
                       className={cn(
@@ -191,7 +244,14 @@ export function CurationProductGroup({
                     </span>
                   </div>
                   {item.originalPrice != null && item.originalPrice > 0 && (
-                    <div className="flex flex-col items-end">
+                    <div
+                      className={cn(
+                        'flex',
+                        isMobile
+                          ? 'items-center justify-between'
+                          : 'flex-col items-end'
+                      )}
+                    >
                       <span className="text-xs text-muted-foreground">
                         Original
                       </span>

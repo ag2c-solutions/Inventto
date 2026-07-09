@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -11,6 +12,8 @@ import {
   SheetTrigger
 } from '@/shared/components/ui/sheet';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+import { cn } from '@/shared/utils';
 
 import { ActionButton } from '@/features/permissions';
 
@@ -21,11 +24,17 @@ import { ProductSelectionItem } from './pieces/product-selection-item';
 
 interface AddProductsSheetProps {
   catalogId: string;
+  /** Gatilho compacto (só o ícone Plus) — usado no cabeçalho mobile. */
+  iconOnly?: boolean;
 }
 
-export function AddProductsSheet({ catalogId }: AddProductsSheetProps) {
+export function AddProductsSheet({
+  catalogId,
+  iconOnly = false
+}: AddProductsSheetProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [configureOpen, setConfigureOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const {
     search,
@@ -55,11 +64,21 @@ export function AddProductsSheet({ catalogId }: AddProductsSheetProps) {
     <>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetTrigger asChild>
-          <ActionButton action="catalog:manage">
-            Adicionar produtos
+          <ActionButton
+            action="catalog:manage"
+            aria-label="Adicionar produtos"
+            className={iconOnly ? 'size-9 p-0' : undefined}
+          >
+            {iconOnly ? <Plus className="h-4 w-4" /> : 'Adicionar produtos'}
           </ActionButton>
         </SheetTrigger>
-        <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-lg overflow-hidden">
+        <SheetContent
+          side={isMobile ? 'bottom' : 'right'}
+          className={cn(
+            'flex flex-col gap-0 p-0 overflow-hidden',
+            isMobile ? 'max-h-[85vh] rounded-t-lg' : 'sm:max-w-lg'
+          )}
+        >
           <SheetHeader className="border-b">
             <SheetTitle>Adicionar produtos</SheetTitle>
             <p className="text-sm text-muted-foreground px-6 pb-3">
@@ -75,7 +94,7 @@ export function AddProductsSheet({ catalogId }: AddProductsSheetProps) {
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 flex flex-col gap-2">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 flex flex-col gap-2">
             {isLoading ? (
               Array.from({ length: 4 }).map((_, index) => (
                 <Skeleton key={index} className="h-14 w-full rounded-md" />

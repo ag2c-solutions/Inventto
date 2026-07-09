@@ -57,7 +57,7 @@ export function RemoveCatalogDialog({ catalog }: RemoveCatalogDialogProps) {
         </ActionButton>
       </DialogTrigger>
 
-      <DialogContent className="w-full max-w-md! p-6">
+      <DialogContent className="w-full sm:max-w-md! p-6">
         {isBlocked ? (
           <>
             <DialogHeader className="text-center">

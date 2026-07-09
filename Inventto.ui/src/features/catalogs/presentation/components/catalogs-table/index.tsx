@@ -13,12 +13,14 @@ import {
   DataTableTextFilter,
   PaginationControllers
 } from '@/shared/components/common/data-table';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 
 import { usePermission } from '@/features/permissions';
 
 import type { Catalog } from '../../../domain/entities';
 import { CreateCatalogDialog } from '../actions/create';
 
+import { CatalogCardList } from './pieces/catalog-card-list';
 import { CatalogsEmptyState } from './pieces/empty';
 import { CatalogsTableLoading } from './pieces/loading';
 import { getCatalogsTableColumns } from './columns';
@@ -29,6 +31,7 @@ interface CatalogsTableProps {
 }
 
 export function CatalogsTable({ data, isLoading }: CatalogsTableProps) {
+  const isMobile = useIsMobile();
   const { can } = usePermission();
   const canManage = can('catalog:manage');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -55,6 +58,10 @@ export function CatalogsTable({ data, isLoading }: CatalogsTableProps) {
 
   if (data.length === 0) {
     return <CatalogsEmptyState />;
+  }
+
+  if (isMobile) {
+    return <CatalogCardList catalogs={data} />;
   }
 
   const nameFilter = columnFilters.find((filter) => filter.id === 'name')

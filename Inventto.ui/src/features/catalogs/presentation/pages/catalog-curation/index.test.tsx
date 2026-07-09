@@ -11,11 +11,13 @@ import { CatalogCurationPage } from './index';
 const {
   mockUseCatalogByIDQuery,
   mockUseCatalogItemsQuery,
-  mockUseAvailableProductsQuery
+  mockUseAvailableProductsQuery,
+  mockUseIsMobile
 } = vi.hoisted(() => ({
   mockUseCatalogByIDQuery: vi.fn(),
   mockUseCatalogItemsQuery: vi.fn(),
-  mockUseAvailableProductsQuery: vi.fn()
+  mockUseAvailableProductsQuery: vi.fn(),
+  mockUseIsMobile: vi.fn()
 }));
 
 vi.mock('../../hooks/use-queries', () => ({
@@ -24,8 +26,16 @@ vi.mock('../../hooks/use-queries', () => ({
   useAvailableProductsQuery: mockUseAvailableProductsQuery
 }));
 
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: () => mockUseIsMobile()
+}));
+
 vi.mock('../../components/actions/add-products', () => ({
-  AddProductsSheet: () => <button type="button">Adicionar produtos</button>
+  AddProductsSheet: ({ iconOnly }: { iconOnly?: boolean }) => (
+    <button type="button" data-icon-only={String(Boolean(iconOnly))}>
+      Adicionar produtos
+    </button>
+  )
 }));
 
 vi.mock('../../components/curation-product-group', () => ({
@@ -54,6 +64,7 @@ describe('CatalogCurationPage', () => {
     vi.clearAllMocks();
     mockUseCatalogByIDQuery.mockReturnValue({ data: catalog });
     mockUseAvailableProductsQuery.mockReturnValue({ data: [] });
+    mockUseIsMobile.mockReturnValue(false);
   });
 
   it('should render the heading with the catalog name', () => {
@@ -134,6 +145,18 @@ describe('CatalogCurationPage', () => {
         )
       )
     ).toBeInTheDocument();
+  });
+
+  it('should render the icon-only "Adicionar produtos" CTA on mobile', () => {
+    mockUseIsMobile.mockReturnValue(true);
+    const items = catalogItemFactory.buildList(1);
+    mockUseCatalogItemsQuery.mockReturnValue({ data: items, isLoading: false });
+
+    renderPage();
+
+    expect(
+      screen.getByRole('button', { name: 'Adicionar produtos' })
+    ).toHaveAttribute('data-icon-only', 'true');
   });
 
   it('should filter product groups by search term', async () => {
