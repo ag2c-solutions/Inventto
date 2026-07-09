@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { Input } from '@/shared/components/ui/input';
 
 import { AddProductsSheet } from '../../components/actions/add-products';
+import { BackToCatalogsLink } from '../../components/actions/back-to-catalogs';
 import { CurationProductGroup } from '../../components/curation-product-group';
 import {
   useAvailableProductsQuery,
@@ -69,6 +70,7 @@ export function CatalogCurationPage() {
   return (
     <div className="flex flex-col flex-1">
       <div className="flex flex-col gap-1.5 px-1 md:px-6 py-6">
+        <BackToCatalogsLink />
         <h1 className="text-2xl font-semibold tracking-tight">
           Produtos — {catalog?.name ?? ''}
         </h1>

@@ -62,3 +62,17 @@ export interface UpdateCatalogItemsPricesPayload {
   catalogId: string;
   items: UpdateCatalogItemPricePayload[];
 }
+
+/**
+ * Erro de domínio (RN061): o catálogo não pode ser removido enquanto houver
+ * canais (PDV/vitrines) usando-o. A UI mapeia este erro para a variante
+ * bloqueada do dialog de remoção.
+ */
+export class CatalogHasLinkedChannelsError extends Error {
+  constructor() {
+    super(
+      'Este catálogo está sendo usado por canais vinculados. Desvincule-os antes de remover.'
+    );
+    this.name = 'CatalogHasLinkedChannelsError';
+  }
+}

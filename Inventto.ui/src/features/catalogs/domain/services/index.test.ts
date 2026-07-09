@@ -7,6 +7,7 @@ import {
   createCatalogPayloadFactory
 } from '../../tests/factories/catalog.factory';
 import { catalogItemFactory } from '../../tests/factories/catalog-item.factory';
+import { CatalogHasLinkedChannelsError } from '../entities';
 
 import { CatalogItemService, CatalogService } from './index';
 
@@ -112,6 +113,16 @@ describe('CatalogService', () => {
       await expect(CatalogService.remove(faker.string.uuid())).rejects.toThrow(
         'Ocorreu um erro inesperado'
       );
+    });
+
+    it('should propagate CatalogHasLinkedChannelsError untouched (RN061 → variante B)', async () => {
+      vi.mocked(CatalogApi.remove).mockRejectedValue(
+        new CatalogHasLinkedChannelsError()
+      );
+
+      await expect(
+        CatalogService.remove(faker.string.uuid())
+      ).rejects.toBeInstanceOf(CatalogHasLinkedChannelsError);
     });
   });
 });

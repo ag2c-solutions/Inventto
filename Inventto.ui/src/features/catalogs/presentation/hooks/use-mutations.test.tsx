@@ -10,8 +10,8 @@ import { catalogItemFactory } from '../../tests/factories/catalog-item.factory';
 
 import {
   useAddCatalogItemsMutation,
-  useCatalogRemoveMutation,
   useCreateCatalogMutation,
+  useRemoveCatalogMutation,
   useRemoveCatalogProductMutation,
   useUpdateCatalogItemPriceMutation,
   useUpdateCatalogItemsPricesMutation,
@@ -145,14 +145,14 @@ describe('Catalogs Mutations', () => {
     });
   });
 
-  describe('useCatalogRemoveMutation', () => {
-    it('should remove catalog and invalidate "catalogs" query', async () => {
+  describe('useRemoveCatalogMutation', () => {
+    it('should remove catalog, invalidate "catalogs" and navigate back to the list', async () => {
       const catalogId = '123';
       vi.mocked(CatalogService.remove).mockResolvedValue(undefined);
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-      const { result } = renderHook(() => useCatalogRemoveMutation(), {
+      const { result } = renderHook(() => useRemoveCatalogMutation(), {
         wrapper
       });
 
@@ -160,6 +160,25 @@ describe('Catalogs Mutations', () => {
 
       expect(CatalogService.remove).toHaveBeenCalledWith(catalogId);
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['catalogs'] });
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith('/catalogos')
+      );
+    });
+
+    it('should not navigate when the removal fails', async () => {
+      vi.mocked(CatalogService.remove).mockRejectedValue(
+        new Error('Ocorreu um erro inesperado ao processar o catálogo.')
+      );
+
+      const { result } = renderHook(() => useRemoveCatalogMutation(), {
+        wrapper
+      });
+
+      await expect(result.current.mutateAsync('123')).rejects.toThrow(
+        'Ocorreu um erro inesperado'
+      );
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

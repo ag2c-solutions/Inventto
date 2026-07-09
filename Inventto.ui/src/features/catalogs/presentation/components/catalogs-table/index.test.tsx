@@ -33,6 +33,22 @@ vi.mock('../actions/edit', () => ({
   }
 }));
 
+vi.mock('../actions/remove', () => ({
+  RemoveCatalogDialog: ({ catalog }: { catalog: { id: string } }) => {
+    const { role } = mockUseUser();
+    if (role === 'sales') return null;
+    return (
+      <button
+        type="button"
+        title="Remover catálogo"
+        data-catalog-id={catalog.id}
+      >
+        Remover catálogo
+      </button>
+    );
+  }
+}));
+
 const catalogs = [
   catalogFactory.build({
     name: 'Catálogo Verão',

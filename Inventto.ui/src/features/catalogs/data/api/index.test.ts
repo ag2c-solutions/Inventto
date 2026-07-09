@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CatalogHasLinkedChannelsError } from '../../domain/entities';
 import {
   catalogDTOFactory,
   createCatalogPayloadFactory
@@ -8,49 +9,57 @@ import { catalogItemDTOFactory } from '../../tests/factories/catalog-item.factor
 
 import { CatalogApi } from './index';
 
-const { mockSupabase, mockSelect, mockOverrideTypes, mockEq, queryBuilder } =
-  vi.hoisted(() => {
-    const mockSelect = vi.fn();
-    const mockOrder = vi.fn();
-    const mockEq = vi.fn();
-    const mockSingle = vi.fn();
-    const mockOverrideTypes = vi.fn();
-    const mockInsert = vi.fn();
-    const mockUpdate = vi.fn();
-    const mockDelete = vi.fn();
+const {
+  mockSupabase,
+  mockSelect,
+  mockOverrideTypes,
+  mockEq,
+  mockRpc,
+  queryBuilder
+} = vi.hoisted(() => {
+  const mockSelect = vi.fn();
+  const mockOrder = vi.fn();
+  const mockEq = vi.fn();
+  const mockSingle = vi.fn();
+  const mockOverrideTypes = vi.fn();
+  const mockInsert = vi.fn();
+  const mockUpdate = vi.fn();
+  const mockDelete = vi.fn();
+  const mockRpc = vi.fn();
 
-    const queryBuilder = {
-      select: mockSelect,
-      order: mockOrder,
-      eq: mockEq,
-      single: mockSingle,
-      overrideTypes: mockOverrideTypes,
-      insert: mockInsert,
-      update: mockUpdate,
-      delete: mockDelete
-    };
+  const queryBuilder = {
+    select: mockSelect,
+    order: mockOrder,
+    eq: mockEq,
+    single: mockSingle,
+    overrideTypes: mockOverrideTypes,
+    insert: mockInsert,
+    update: mockUpdate,
+    delete: mockDelete
+  };
 
-    mockSelect.mockReturnValue(queryBuilder);
-    mockOrder.mockReturnValue(queryBuilder);
-    mockEq.mockReturnValue(queryBuilder);
-    mockSingle.mockReturnValue(queryBuilder);
-    mockInsert.mockReturnValue(queryBuilder);
-    mockUpdate.mockReturnValue(queryBuilder);
-    mockDelete.mockReturnValue(queryBuilder);
+  mockSelect.mockReturnValue(queryBuilder);
+  mockOrder.mockReturnValue(queryBuilder);
+  mockEq.mockReturnValue(queryBuilder);
+  mockSingle.mockReturnValue(queryBuilder);
+  mockInsert.mockReturnValue(queryBuilder);
+  mockUpdate.mockReturnValue(queryBuilder);
+  mockDelete.mockReturnValue(queryBuilder);
 
-    return {
-      mockSupabase: { from: vi.fn(() => queryBuilder) },
-      mockSelect,
-      mockOrder,
-      mockEq,
-      mockSingle,
-      mockOverrideTypes,
-      mockInsert,
-      mockUpdate,
-      mockDelete,
-      queryBuilder
-    };
-  });
+  return {
+    mockSupabase: { from: vi.fn(() => queryBuilder), rpc: mockRpc },
+    mockSelect,
+    mockOrder,
+    mockEq,
+    mockSingle,
+    mockOverrideTypes,
+    mockInsert,
+    mockUpdate,
+    mockDelete,
+    mockRpc,
+    queryBuilder
+  };
+});
 
 vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
@@ -212,23 +221,30 @@ describe('CatalogApi', () => {
   });
 
   describe('remove', () => {
-    it('should delete catalog by id successfully', async () => {
-      mockSupabase.from.mockReturnValue({
-        delete: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ error: null })
-        })
-      } as unknown as ReturnType<typeof mockSupabase.from>);
+    it('should remove the catalog through the delete_catalog RPC (RN061 server guard)', async () => {
+      mockRpc.mockResolvedValue({ error: null });
 
       await expect(CatalogApi.remove('cat-1')).resolves.not.toThrow();
+
+      expect(mockRpc).toHaveBeenCalledWith('delete_catalog', {
+        p_catalog_id: 'cat-1'
+      });
     });
 
-    it('should throw handled error when deletion fails', async () => {
+    it('should map the linked-channels marker to CatalogHasLinkedChannelsError', async () => {
       consoleErrorSpy.mockImplementation(() => {});
-      mockSupabase.from.mockReturnValue({
-        delete: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ error: { message: 'DB Error' } })
-        })
-      } as unknown as ReturnType<typeof mockSupabase.from>);
+      mockRpc.mockResolvedValue({
+        error: { message: 'CATALOG_HAS_LINKED_CHANNELS' }
+      });
+
+      await expect(CatalogApi.remove('cat-1')).rejects.toBeInstanceOf(
+        CatalogHasLinkedChannelsError
+      );
+    });
+
+    it('should throw handled error when the RPC fails for other reasons', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({ error: { message: 'DB Error' } });
 
       await expect(CatalogApi.remove('cat-1')).rejects.toThrow(
         'Ocorreu um erro inesperado'
