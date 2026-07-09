@@ -2,17 +2,21 @@ import { supabase } from '@/infra/supabase';
 
 import { formatIntegerToDecimal, stripUndefined } from '@/shared/utils';
 
-import type {
-  AddCatalogItemsPayload,
-  Catalog,
-  CatalogItem,
-  CreateCatalogPayload,
-  UpdateCatalogItemPricePayload,
-  UpdateCatalogItemsPricesPayload,
-  UpdateCatalogPayload
+import {
+  type AddCatalogItemsPayload,
+  type Catalog,
+  CatalogHasLinkedChannelsError,
+  type CatalogItem,
+  type CreateCatalogPayload,
+  type UpdateCatalogItemPricePayload,
+  type UpdateCatalogItemsPricesPayload,
+  type UpdateCatalogPayload
 } from '../../domain/entities';
 import type { CatalogDTO, CatalogItemDTO } from '../dtos';
-import { handleCatalogError } from '../handlers/error-handler';
+import {
+  handleCatalogError,
+  LINKED_CHANNELS_ERROR_MARKER
+} from '../handlers/error-handler';
 import { CatalogItemMapper, CatalogMapper } from '../mappers';
 
 const SELECT_QUERY = `
@@ -125,9 +129,17 @@ export class CatalogApi {
 
   static async remove(id: string): Promise<void> {
     try {
-      const { error } = await supabase.from('catalogs').delete().eq('id', id);
+      // RPC com o guard definitivo de RN061/RN062 no servidor.
+      const { error } = await supabase.rpc('delete_catalog', {
+        p_catalog_id: id
+      });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes(LINKED_CHANNELS_ERROR_MARKER)) {
+          throw new CatalogHasLinkedChannelsError();
+        }
+        throw error;
+      }
     } catch (error) {
       handleCatalogError(error, 'remove');
     }

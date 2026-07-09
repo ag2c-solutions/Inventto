@@ -1,11 +1,10 @@
 import { Link } from 'react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Package, Trash2 } from 'lucide-react';
-
-import { Button } from '@/shared/components/ui/button';
+import { Package } from 'lucide-react';
 
 import type { Catalog } from '../../../../domain/entities';
 import { EditCatalogSheet } from '../../actions/edit';
+import { RemoveCatalogDialog } from '../../actions/remove';
 
 interface GetCatalogsTableColumnsOptions {
   canManage: boolean;
@@ -57,16 +56,7 @@ export function getCatalogsTableColumns({
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-1">
           <EditCatalogSheet catalogId={row.original.id} />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            title="Remover catálogo"
-            className="hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Remover catálogo</span>
-          </Button>
+          <RemoveCatalogDialog catalog={row.original} />
         </div>
       )
     });

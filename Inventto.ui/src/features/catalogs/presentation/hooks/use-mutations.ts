@@ -52,14 +52,22 @@ export function useUpdateCatalogMutation() {
   });
 }
 
-export function useCatalogRemoveMutation() {
+export function useRemoveCatalogMutation() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (id: string) => CatalogService.remove(id),
-    meta: { successMessage: 'Catálogo removido com sucesso' },
+    meta: {
+      successMessage: 'Catálogo removido.',
+      // Erros são tratados inline no RemoveCatalogDialog: canais vinculados
+      // viram a variante B (RN061) e os demais aparecem como mensagem no
+      // próprio dialog — sem toast genérico duplicado.
+      suppressErrorToast: true
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CATALOG_KEYS.all });
+      navigate('/catalogos');
     }
   });
 }
