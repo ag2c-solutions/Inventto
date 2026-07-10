@@ -5,7 +5,8 @@ import { Badge } from '@/shared/components/ui/badge';
 
 import { useCategoriesQuery } from '@/features/categories';
 
-import type { CartItem, PdvProduct } from '../../../domain/entities';
+import type { PdvProduct } from '../../../domain/entities';
+import { AddProductDialog } from '../../components/add-product-dialog';
 import { CartFab } from '../../components/cart-fab';
 import { CatalogSearchBar } from '../../components/catalog-search-bar';
 import { NoCatalogBlock } from '../../components/no-catalog-block';
@@ -22,6 +23,9 @@ import { selectCartCount, useCartStore } from '../../stores/cart-store';
 export function NewSalePage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
+  const [selectedProduct, setSelectedProduct] = useState<PdvProduct | null>(
+    null
+  );
 
   const { data: catalog, isLoading: isCatalogLoading } = usePdvCatalogQuery();
   const { data: products, isLoading: isProductsLoading } = usePdvProductsQuery(
@@ -29,7 +33,6 @@ export function NewSalePage() {
   );
   const { data: categories = [] } = useCategoriesQuery();
 
-  const addItem = useCartStore((state) => state.addItem);
   const cartCount = useCartStore(selectCartCount);
 
   const filteredProducts = useMemo(() => {
@@ -51,21 +54,7 @@ export function NewSalePage() {
   }, [products, search, category]);
 
   function handleAddProduct(product: PdvProduct) {
-    // PDV-01: adiciona 1 unidade direto no carrinho. PDV-02 substitui este
-    // callback por um Dialog de quantidade/preço antes de confirmar o item.
-    const item: CartItem = {
-      productId: product.productId,
-      variantId: product.variantId,
-      name: product.name,
-      variantLabel: product.variantLabel,
-      sku: product.sku,
-      imageUrl: product.imageUrl,
-      unitPrice: product.price,
-      discount: 0,
-      quantity: 1
-    };
-
-    addItem(item);
+    setSelectedProduct(product);
   }
 
   function renderBody() {
@@ -134,6 +123,11 @@ export function NewSalePage() {
         onClick={() => {
           // PDV-03 abre o Sheet "Venda atual" aqui.
         }}
+      />
+
+      <AddProductDialog
+        product={selectedProduct}
+        onOpenChange={(open) => !open && setSelectedProduct(null)}
       />
     </div>
   );

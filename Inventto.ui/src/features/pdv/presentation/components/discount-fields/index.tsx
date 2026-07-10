@@ -4,6 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { ButtonGroup } from '@/shared/components/ui/button-group';
 import { Input } from '@/shared/components/ui/input';
 import { MoneyInput } from '@/shared/components/ui/money-input';
+import { Separator } from '@/shared/components/ui/separator';
 import { Switch } from '@/shared/components/ui/switch';
 import { cn, formatIntegerToDecimal } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
@@ -42,13 +43,9 @@ export function DiscountFields({
       {/* Toggle row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
-          <Tag className="h-4 w-4 shrink-0" />
-          <span>
-            Aplicar desconto{' '}
-            <span className="font-normal text-muted-foreground">
-              · opcional
-            </span>
-          </span>
+          <Tag className="h-4.5 w-4.5 shrink-0" />
+          Aplicar desconto{' '}
+          <span className="font-normal text-muted-foreground">· opcional</span>
         </div>
         <Switch
           checked={enabled}
@@ -110,19 +107,24 @@ export function DiscountFields({
           )}
 
           {/* Pricing summary — fundo muted */}
-          <div className="flex flex-col gap-1 rounded-md bg-muted/50 px-3 py-2.5 text-sm">
+          <div className="flex flex-col gap-1 rounded-md bg-sidebar/80 px-3 py-2.5 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Referência</span>
+              <span className="text-sidebar-foreground/80 font-medium">
+                Referência
+              </span>
               <span>
                 {formatCurrency(formatIntegerToDecimal(referencePrice))}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Desconto</span>
+              <span className="text-sidebar-foreground/80 font-medium">
+                Desconto
+              </span>
               <span className="text-destructive">
                 − {formatCurrency(formatIntegerToDecimal(discountAmount))}
               </span>
             </div>
+            <Separator className="bg-sidebar-foreground/50 my-1.5 " />
             <div className="flex items-center justify-between font-medium">
               <span>Preço final</span>
               <span>

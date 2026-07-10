@@ -30,6 +30,16 @@ vi.mock('../../components/no-catalog-block', () => ({
   NoCatalogBlock: () => <div data-testid="no-catalog-block" />
 }));
 
+vi.mock('../../components/add-product-dialog', () => ({
+  AddProductDialog: ({
+    product
+  }: {
+    product: { name: string } | null;
+    onOpenChange: (open: boolean) => void;
+  }) =>
+    product ? <div data-testid="add-product-dialog">{product.name}</div> : null
+}));
+
 describe('NewSalePage', () => {
   const user = userEvent.setup();
 
@@ -122,7 +132,7 @@ describe('NewSalePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('should hide the FAB when the cart is empty and show it after adding a product', async () => {
+  it('should hide the FAB when the cart is empty', () => {
     const products = pdvProductFactory.buildList(1, {
       name: 'Cadeira Gamer',
       stock: 5,
@@ -142,12 +152,55 @@ describe('NewSalePage', () => {
     expect(
       screen.queryByRole('button', { name: 'Ver venda atual' })
     ).not.toBeInTheDocument();
+  });
+
+  it('should show the FAB with the cart count once items are added', () => {
+    mockUsePdvCatalogQuery.mockReturnValue({
+      data: { id: 'cat-1', name: 'Loja Física' },
+      isLoading: false
+    });
+    mockUsePdvProductsQuery.mockReturnValue({
+      data: pdvProductFactory.buildList(1),
+      isLoading: false
+    });
+    useCartStore.getState().addItem({
+      productId: 'p1',
+      name: 'Cadeira Gamer',
+      unitPrice: 1000,
+      discount: 0,
+      quantity: 2
+    });
+
+    render(<NewSalePage />);
+
+    const fab = screen.getByRole('button', { name: 'Ver venda atual' });
+    expect(fab).toBeInTheDocument();
+    expect(fab).toHaveTextContent('2');
+  });
+
+  it('should open the add-product dialog for the clicked product', async () => {
+    const products = pdvProductFactory.buildList(1, {
+      name: 'Cadeira Gamer',
+      stock: 5,
+      isOut: false
+    });
+    mockUsePdvCatalogQuery.mockReturnValue({
+      data: { id: 'cat-1', name: 'Loja Física' },
+      isLoading: false
+    });
+    mockUsePdvProductsQuery.mockReturnValue({
+      data: products,
+      isLoading: false
+    });
+
+    render(<NewSalePage />);
+
+    expect(screen.queryByTestId('add-product-dialog')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Adicionar produto' }));
 
-    expect(
-      screen.getByRole('button', { name: 'Ver venda atual' })
-    ).toBeInTheDocument();
-    expect(useCartStore.getState().items).toHaveLength(1);
+    expect(screen.getByTestId('add-product-dialog')).toHaveTextContent(
+      'Cadeira Gamer'
+    );
   });
 });

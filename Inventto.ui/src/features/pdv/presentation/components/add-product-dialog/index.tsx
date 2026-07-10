@@ -1,4 +1,6 @@
+import { ColorBadge } from '@/shared/components/common/color-badge';
 import { ImageCard } from '@/shared/components/common/image-card';
+import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
@@ -12,6 +14,7 @@ import { formatIntegerToDecimal } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
 
 import type { PdvProduct } from '../../../domain/entities';
+import { parseVariantValues } from '../../utils/parse-variant-values';
 import { DiscountFields } from '../discount-fields';
 import { QtyStepper } from '../qty-stepper';
 
@@ -51,6 +54,10 @@ export function AddProductDialog({
     onOpenChange(false);
   }
 
+  const variantValues = product?.variantLabel
+    ? parseVariantValues(product.variantLabel)
+    : [];
+
   return (
     <Dialog open={!!product} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-0 p-0">
@@ -66,10 +73,26 @@ export function AddProductDialog({
                   <DialogTitle className="truncate text-base font-semibold">
                     {product.name}
                   </DialogTitle>
-                  {product.variantLabel && (
-                    <span className="truncate text-sm text-muted-foreground">
-                      {product.variantLabel}
-                    </span>
+                  {variantValues.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {variantValues.map((value, index) =>
+                        value.includes('#') ? (
+                          <ColorBadge
+                            key={index}
+                            color={value}
+                            className="h-5 font-normal bg-sidebar/80"
+                          />
+                        ) : (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="h-5 px-1.5 text-xs font-normal bg-sidebar/80 "
+                          >
+                            {value}
+                          </Badge>
+                        )
+                      )}
+                    </div>
                   )}
                   <span className="font-mono text-xs text-muted-foreground">
                     Preço de referência ·{' '}
@@ -79,43 +102,44 @@ export function AddProductDialog({
               </div>
             </DialogHeader>
 
-            <Separator />
+            <Separator className="opacity-60" />
+            <div className="px-4">
+              {/* ── Quantidade ── */}
+              <div className="flex flex-col gap-3 p-5">
+                <p className="text-sm font-semibold">Quantidade</p>
+                <QtyStepper
+                  value={qty}
+                  onIncrement={increment}
+                  onDecrement={decrement}
+                  decrementDisabled={atMin}
+                  incrementDisabled={atMax}
+                  helperText={
+                    lowBalance ? `Apenas ${available} disponíveis.` : undefined
+                  }
+                />
+              </div>
 
-            {/* ── Quantidade ── */}
-            <div className="flex flex-col gap-3 p-5">
-              <p className="text-sm font-semibold">Quantidade</p>
-              <QtyStepper
-                value={qty}
-                onIncrement={increment}
-                onDecrement={decrement}
-                decrementDisabled={atMin}
-                incrementDisabled={atMax}
-                helperText={
-                  lowBalance ? `Apenas ${available} disponíveis.` : undefined
-                }
-              />
+              <Separator className="opacity-60" />
+
+              {/* ── Desconto ── */}
+              <div className="p-5">
+                <DiscountFields
+                  enabled={discountOn}
+                  onToggle={setDiscountOn}
+                  mode={discountMode}
+                  onModeChange={setDiscountMode}
+                  value={discountValue}
+                  onValueChange={setDiscountValue}
+                  referencePrice={product.price}
+                  discountAmount={pricing.discountAmount}
+                  unitFinalPrice={pricing.unitFinalPrice}
+                  invalid={invalid}
+                  errorMessage={validationMessage}
+                />
+              </div>
             </div>
 
-            <Separator />
-
-            {/* ── Desconto ── */}
-            <div className="p-5">
-              <DiscountFields
-                enabled={discountOn}
-                onToggle={setDiscountOn}
-                mode={discountMode}
-                onModeChange={setDiscountMode}
-                value={discountValue}
-                onValueChange={setDiscountValue}
-                referencePrice={product.price}
-                discountAmount={pricing.discountAmount}
-                unitFinalPrice={pricing.unitFinalPrice}
-                invalid={invalid}
-                errorMessage={validationMessage}
-              />
-            </div>
-
-            <Separator />
+            <Separator className="opacity-60" />
 
             {/* ── Footer ── */}
             <DialogFooter className="grid grid-cols-2 gap-2 p-4">
