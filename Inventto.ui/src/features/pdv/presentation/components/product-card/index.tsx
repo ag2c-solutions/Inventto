@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 
+import { ColorBadge } from '@/shared/components/common/color-badge';
 import { ImageCard } from '@/shared/components/common/image-card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
@@ -7,6 +8,7 @@ import { formatIntegerToDecimal } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
 
 import type { PdvProduct } from '../../../domain/entities';
+import { parseVariantValues } from '../../utils/parse-variant-values';
 
 interface ProductCardProps {
   product: PdvProduct;
@@ -14,6 +16,10 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
+  const variantValues = product.variantLabel
+    ? parseVariantValues(product.variantLabel)
+    : [];
+
   return (
     <div
       data-slot="pdv-product-card"
@@ -29,14 +35,30 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         )}
       </div>
 
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-1">
         <span className="truncate text-sm font-medium text-foreground">
           {product.name}
         </span>
-        {product.variantLabel && (
-          <span className="truncate text-xs text-muted-foreground">
-            {product.variantLabel}
-          </span>
+        {variantValues.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {variantValues.map((value, index) =>
+              value.includes('#') ? (
+                <ColorBadge
+                  key={index}
+                  color={value}
+                  className="h-5 font-normal bg-sidebar/80"
+                />
+              ) : (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="h-5 px-1.5 text-xs font-normal bg-sidebar/80 "
+                >
+                  {value}
+                </Badge>
+              )
+            )}
+          </div>
         )}
       </div>
 
