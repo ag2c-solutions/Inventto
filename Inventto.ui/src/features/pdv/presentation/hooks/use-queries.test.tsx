@@ -3,16 +3,22 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PdvApi } from '../../data/api';
+import { pdvCustomerFactory } from '../../tests/factories/pdv-customer.factory';
 import { pdvProductFactory } from '../../tests/factories/pdv-product.factory';
 
-import { usePdvCatalogQuery, usePdvProductsQuery } from './use-queries';
+import {
+  useLookupCustomerQuery,
+  usePdvCatalogQuery,
+  usePdvProductsQuery
+} from './use-queries';
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
 vi.mock('../../data/api', () => ({
   PdvApi: {
     getPdvCatalog: vi.fn(),
-    getPdvProducts: vi.fn()
+    getPdvProducts: vi.fn(),
+    lookupCustomer: vi.fn()
   }
 }));
 
@@ -91,6 +97,48 @@ describe('PDV Queries', () => {
       });
 
       expect(PdvApi.getPdvProducts).not.toHaveBeenCalled();
+      expect(result.current.fetchStatus).toBe('idle');
+    });
+  });
+
+  describe('useLookupCustomerQuery', () => {
+    it('should return the matched customer when found', async () => {
+      const customer = pdvCustomerFactory.build();
+      vi.mocked(PdvApi.lookupCustomer).mockResolvedValue(customer);
+
+      const { result } = renderHook(
+        () => useLookupCustomerQuery('11999998888'),
+        { wrapper }
+      );
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(PdvApi.lookupCustomer).toHaveBeenCalledWith(
+        'org-1',
+        '11999998888'
+      );
+      expect(result.current.data).toEqual(customer);
+    });
+
+    it('should resolve to null when no customer matches the phone', async () => {
+      vi.mocked(PdvApi.lookupCustomer).mockResolvedValue(null);
+
+      const { result } = renderHook(
+        () => useLookupCustomerQuery('11999998888'),
+        { wrapper }
+      );
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(result.current.data).toBeNull();
+    });
+
+    it('should not fetch for an empty phone', () => {
+      const { result } = renderHook(() => useLookupCustomerQuery(''), {
+        wrapper
+      });
+
+      expect(PdvApi.lookupCustomer).not.toHaveBeenCalled();
       expect(result.current.fetchStatus).toBe('idle');
     });
   });

@@ -29,3 +29,35 @@ export interface CartItem {
   discount: number;
   quantity: number;
 }
+
+export interface PdvCustomer {
+  customerId: string;
+  name: string;
+  since: Date;
+}
+
+export interface SaleCustomerInput {
+  phone: string;
+  // Ausente quando o telefone já pertence a um cliente conhecido nesta org
+  // (a UI não pede nome de novo — só para cliente novo).
+  name?: string;
+}
+
+export interface SaleItemInput {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  // Em centavos.
+  referencePrice: number;
+  discountAmount: number;
+  // Saldo disponível no momento da confirmação — usado só para o guard
+  // (RN055), não é enviado ao backend (que revalida de qualquer forma).
+  availableStock: number;
+}
+
+export interface ConfirmSaleInput {
+  organizationId: string;
+  catalogId: string;
+  customer?: SaleCustomerInput;
+  items: SaleItemInput[];
+}

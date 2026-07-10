@@ -23,3 +23,16 @@ export function usePdvProductsQuery(catalogId: string | undefined) {
     enabled: !!catalogId
   });
 }
+
+// Recebe o telefone já normalizado/debounced pelo chamador
+// (customer-section/hooks/use-customer-lookup.ts) — esta query não debounce.
+export function useLookupCustomerQuery(phone: string) {
+  const { currentOrganization } = useUser();
+  const organizationId = currentOrganization?.id ?? '';
+
+  return useQuery({
+    queryKey: PDV_KEYS.customer(organizationId, phone),
+    queryFn: () => PdvApi.lookupCustomer(organizationId, phone),
+    enabled: !!organizationId && !!phone
+  });
+}

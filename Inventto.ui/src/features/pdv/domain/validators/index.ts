@@ -50,3 +50,49 @@ export function percentToAmount(
 ): number {
   return Math.round(referencePrice * (percent / 100));
 }
+
+export interface SaleGuardLine {
+  quantity: number;
+  availableStock: number;
+  // Preço de referência e desconto por unidade, em centavos.
+  referencePrice: number;
+  discountAmount: number;
+}
+
+export interface SaleGuardResult {
+  valid: boolean;
+  message?: string;
+}
+
+export const CART_EMPTY_MESSAGE = 'Adicione produtos para iniciar a venda.';
+export const STOCK_INSUFFICIENT_MESSAGE =
+  'Um ou mais itens excedem o estoque disponível.';
+export const CART_DISCOUNT_INVALID_MESSAGE =
+  'Um ou mais itens têm desconto inválido.';
+
+// RN055/RN066/RN069: carrinho só é confirmável se não estiver vazio, nenhum
+// item exceder o saldo disponível, e nenhum desconto for inválido (defesa
+// em profundidade — o Dialog PDV-02 já impede desconto inválido de entrar
+// no carrinho, mas o guard revalida no momento da confirmação).
+export function saleGuardValidator(lines: SaleGuardLine[]): SaleGuardResult {
+  if (lines.length === 0) {
+    return { valid: false, message: CART_EMPTY_MESSAGE };
+  }
+
+  const hasStockIssue = lines.some(
+    (line) => line.quantity > line.availableStock
+  );
+  if (hasStockIssue) {
+    return { valid: false, message: STOCK_INSUFFICIENT_MESSAGE };
+  }
+
+  const hasInvalidDiscount = lines.some(
+    (line) =>
+      line.discountAmount < 0 || line.discountAmount > line.referencePrice
+  );
+  if (hasInvalidDiscount) {
+    return { valid: false, message: CART_DISCOUNT_INVALID_MESSAGE };
+  }
+
+  return { valid: true };
+}

@@ -8,6 +8,7 @@ import { useCategoriesQuery } from '@/features/categories';
 import type { PdvProduct } from '../../../domain/entities';
 import { AddProductDialog } from '../../components/add-product-dialog';
 import { CartFab } from '../../components/cart-fab';
+import { CartSheet } from '../../components/cart-sheet';
 import { CatalogSearchBar } from '../../components/catalog-search-bar';
 import { NoCatalogBlock } from '../../components/no-catalog-block';
 import {
@@ -26,6 +27,7 @@ export function NewSalePage() {
   const [selectedProduct, setSelectedProduct] = useState<PdvProduct | null>(
     null
   );
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const { data: catalog, isLoading: isCatalogLoading } = usePdvCatalogQuery();
   const { data: products, isLoading: isProductsLoading } = usePdvProductsQuery(
@@ -118,16 +120,22 @@ export function NewSalePage() {
         {renderBody()}
       </div>
 
-      <CartFab
-        count={cartCount}
-        onClick={() => {
-          // PDV-03 abre o Sheet "Venda atual" aqui.
-        }}
-      />
+      <CartFab count={cartCount} onClick={() => setIsCartOpen(true)} />
 
       <AddProductDialog
         product={selectedProduct}
         onOpenChange={(open) => !open && setSelectedProduct(null)}
+      />
+
+      <CartSheet
+        open={isCartOpen}
+        onOpenChange={(open) => {
+          setIsCartOpen(open);
+          // Sucesso ou "Ver catálogo": foco volta à busca (wireframe §03).
+          if (!open) {
+            document.getElementById('pdv-search-input')?.focus();
+          }
+        }}
       />
     </div>
   );

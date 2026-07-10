@@ -1,9 +1,19 @@
-import { formatDecimalToInteger } from '@/shared/utils';
+import { formatDecimalToInteger, formatIntegerToDecimal } from '@/shared/utils';
 
 import { formatVariantOptions } from '@/features/products';
 
-import type { PdvCatalog, PdvProduct } from '../../domain/entities';
-import type { PdvCatalogItemDTO, PdvOrgCatalogDTO } from '../dtos';
+import type {
+  ConfirmSaleInput,
+  PdvCatalog,
+  PdvCustomer,
+  PdvProduct
+} from '../../domain/entities';
+import type {
+  CreatePosSaleDTO,
+  LookupPosCustomerDTO,
+  PdvCatalogItemDTO,
+  PdvOrgCatalogDTO
+} from '../dtos';
 
 export class PdvCatalogMapper {
   static toDomain(dto: PdvOrgCatalogDTO): PdvCatalog | null {
@@ -36,6 +46,38 @@ export class PdvProductMapper {
       isOut: stock === 0,
       imageUrl: primaryImage?.url,
       categoryId
+    };
+  }
+}
+
+export class PdvSaleMapper {
+  static toPersistence(input: ConfirmSaleInput): CreatePosSaleDTO {
+    return {
+      organization_id: input.organizationId,
+      catalog_id: input.catalogId,
+      customer: input.customer
+        ? { phone: input.customer.phone, name: input.customer.name }
+        : null,
+      items: input.items.map((item) => ({
+        product_id: item.productId,
+        variant_id: item.variantId ?? null,
+        quantity: item.quantity,
+        reference_price: formatIntegerToDecimal(item.referencePrice),
+        discount_amount: formatIntegerToDecimal(item.discountAmount),
+        unit_price: formatIntegerToDecimal(
+          item.referencePrice - item.discountAmount
+        )
+      }))
+    };
+  }
+}
+
+export class PdvCustomerMapper {
+  static toDomain(dto: LookupPosCustomerDTO): PdvCustomer {
+    return {
+      customerId: dto.customer_id,
+      name: dto.name,
+      since: new Date(dto.since)
     };
   }
 }
