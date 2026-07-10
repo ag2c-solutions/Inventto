@@ -1,30 +1,15 @@
 import { ShoppingCart } from 'lucide-react';
 
-import { Button } from '@/shared/components/ui/button';
-
-interface EmptyCartProps {
-  onGoToCatalog: () => void;
-}
-
-export function EmptyCart({ onGoToCatalog }: EmptyCartProps) {
+export function EmptyCart() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-sidebar/70">
-        <ShoppingCart className="h-6 w-6 text-muted-foreground/70" />
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/30 bg-muted/30">
+        <ShoppingCart className="h-7 w-7 text-muted-foreground/60" />
       </div>
 
       <p className="text-sm text-muted-foreground">
         Adicione produtos para iniciar a venda.
       </p>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={onGoToCatalog}
-      >
-        Ver catálogo
-      </Button>
     </div>
   );
 }

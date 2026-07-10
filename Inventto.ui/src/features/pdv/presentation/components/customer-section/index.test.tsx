@@ -30,12 +30,11 @@ describe('CustomerSection', () => {
     });
   });
 
-  it('should show the optional helper and no customer card by default', () => {
+  it('should show the optional header and no customer card by default', () => {
     render(<CustomerSection onChange={vi.fn()} />);
 
-    expect(
-      screen.getByText('Opcional — para registrar no histórico do cliente.')
-    ).toBeInTheDocument();
+    // O novo design usa '· opcional' no cabeçalho da seção, não mais o helper abaixo do input
+    expect(screen.getByText('· opcional')).toBeInTheDocument();
     expect(screen.queryByText(/cliente desde/)).not.toBeInTheDocument();
     expect(
       screen.queryByPlaceholderText('Nome do cliente')

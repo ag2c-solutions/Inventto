@@ -28,7 +28,8 @@ describe('CartItemRow', () => {
     );
 
     expect(screen.getByText('Cadeira Ergonômica')).toBeInTheDocument();
-    expect(screen.getByText('Cor: Azul')).toBeInTheDocument();
+    // parseVariantValues extrai só o valor após ':', portanto 'Cor: Azul' → badge 'Azul'
+    expect(screen.getByText('Azul')).toBeInTheDocument();
     expect(screen.getByText(/200,00/)).toBeInTheDocument();
     expect(screen.queryByText(/Desconto:/)).not.toBeInTheDocument();
   });

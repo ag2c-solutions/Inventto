@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, Phone, User } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar';
 import { Input } from '@/shared/components/ui/input';
@@ -32,27 +32,37 @@ export function CustomerSection({ onChange }: CustomerSectionProps) {
     useCustomerLookup(onChange);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="pdv-customer-phone" className="text-sm font-medium">
+    <div className="flex flex-col gap-3">
+      {/* Section header */}
+      <div className="flex items-center gap-1.5">
+        <User className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-semibold">Cliente</span>
+        <span className="text-sm text-muted-foreground">· opcional</span>
+      </div>
+
+      {/* Phone input with icon */}
+      <div className="relative">
+        <label htmlFor="pdv-customer-phone" className="sr-only">
           Telefone do cliente
         </label>
         <Input
           id="pdv-customer-phone"
           type="tel"
-          placeholder="Telefone do cliente"
+          placeholder="(00) 00000-0000"
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
+          className="pr-10"
         />
-        <span className="text-xs text-muted-foreground">
-          Opcional — para registrar no histórico do cliente.
-        </span>
+        <Phone className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
       </div>
 
+      {/* Found customer card */}
       {found && (
-        <div className="flex items-center gap-2 rounded-md border p-2">
-          <Avatar>
-            <AvatarFallback>{getInitials(found.name)}</AvatarFallback>
+        <div className="flex items-center gap-3 rounded-lg bg-sidebar/70 p-3">
+          <Avatar className="h-8 w-8 bg-sidebar-accent text-xs">
+            <AvatarFallback className="text-xs font-medium">
+              {getInitials(found.name)}
+            </AvatarFallback>
           </Avatar>
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-sm font-medium">{found.name}</span>
@@ -64,6 +74,7 @@ export function CustomerSection({ onChange }: CustomerSectionProps) {
         </div>
       )}
 
+      {/* New customer name input */}
       {isNew && (
         <div className="flex flex-col gap-1">
           <Input

@@ -13,7 +13,7 @@ export function SaleSummary({
   total
 }: SaleSummaryProps) {
   return (
-    <div className="flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
+    <div className="flex flex-col gap-2 px-5 py-4 text-sm">
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground">Subtotal</span>
         <span>{formatCurrency(formatIntegerToDecimal(subtotal))}</span>
@@ -28,9 +28,13 @@ export function SaleSummary({
         </div>
       )}
 
-      <div className="flex items-center justify-between font-bold">
-        <span>Total</span>
-        <span>{formatCurrency(formatIntegerToDecimal(total))}</span>
+      <div className="my-1 border-t" />
+
+      <div className="flex items-center justify-between">
+        <span className="text-base font-bold">Total</span>
+        <span className="text-xl font-bold">
+          {formatCurrency(formatIntegerToDecimal(total))}
+        </span>
       </div>
     </div>
   );

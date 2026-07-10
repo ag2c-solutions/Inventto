@@ -18,21 +18,20 @@ export function QtyStepper({
   helperText
 }: QtyStepperProps) {
   return (
-    <div className="flex items-center gap-3">
-      {/* Grupo unificado: borda única com divisores verticais internos */}
-      <div className="flex overflow-hidden rounded-md border">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex w-fit overflow-hidden rounded-md border">
         <button
           type="button"
           aria-label="Diminuir quantidade"
           disabled={decrementDisabled}
           onClick={onDecrement}
-          className="flex h-10 w-10 items-center justify-center border-r transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center border-r transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-3.5 w-3.5" />
         </button>
 
         <span
-          className="flex min-w-[3rem] items-center justify-center border-r px-3 text-sm font-medium"
+          className="flex min-w-[2.5rem] items-center justify-center border-r px-2 text-sm font-medium"
           aria-live="polite"
         >
           {value}
@@ -43,9 +42,9 @@ export function QtyStepper({
           aria-label="Aumentar quantidade"
           disabled={incrementDisabled}
           onClick={onIncrement}
-          className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
         </button>
       </div>
 
