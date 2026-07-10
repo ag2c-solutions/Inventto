@@ -28,10 +28,18 @@ export const useCartStore = create<CartState>((set) => ({
       );
 
       if (existing) {
+        // PDV-02: reabrir o Dialog para um item já no carrinho consolida a
+        // linha — soma a quantidade e adota o desconto/preço mais recentes
+        // (a linha não pode ter dois descontos simultâneos).
         return {
           items: state.items.map((i) =>
             sameLine(i, item.productId, item.variantId)
-              ? { ...i, quantity: i.quantity + item.quantity }
+              ? {
+                  ...i,
+                  quantity: i.quantity + item.quantity,
+                  unitPrice: item.unitPrice,
+                  discount: item.discount
+                }
               : i
           )
         };

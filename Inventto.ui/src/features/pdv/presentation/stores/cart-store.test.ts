@@ -47,6 +47,20 @@ describe('useCartStore', () => {
     expect(items[0].quantity).toBe(3);
   });
 
+  it('should adopt the discount/unitPrice from the latest addItem call when merging', () => {
+    useCartStore
+      .getState()
+      .addItem(makeItem({ quantity: 1, unitPrice: 1000, discount: 0 }));
+    useCartStore
+      .getState()
+      .addItem(makeItem({ quantity: 2, unitPrice: 1000, discount: 150 }));
+
+    const { items } = useCartStore.getState();
+    expect(items).toHaveLength(1);
+    expect(items[0].quantity).toBe(3);
+    expect(items[0].discount).toBe(150);
+  });
+
   it('should treat different variants of the same product as separate lines', () => {
     useCartStore.getState().addItem(makeItem({ variantId: 'v1' }));
     useCartStore.getState().addItem(makeItem({ variantId: 'v2' }));
