@@ -12,12 +12,14 @@ const {
   mockUsePdvCatalogQuery,
   mockUsePdvProductsQuery,
   mockUseConfirmPosSaleMutation,
-  mockConfirmSale
+  mockConfirmSale,
+  mockUseIsMobile
 } = vi.hoisted(() => ({
   mockUsePdvCatalogQuery: vi.fn(),
   mockUsePdvProductsQuery: vi.fn(),
   mockUseConfirmPosSaleMutation: vi.fn(),
-  mockConfirmSale: vi.fn()
+  mockConfirmSale: vi.fn(),
+  mockUseIsMobile: vi.fn()
 }));
 
 vi.mock('../../hooks/use-queries', () => ({
@@ -27,6 +29,10 @@ vi.mock('../../hooks/use-queries', () => ({
 
 vi.mock('../../hooks/use-mutations', () => ({
   useConfirmPosSaleMutation: mockUseConfirmPosSaleMutation
+}));
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: mockUseIsMobile
 }));
 
 vi.mock('../customer-section', () => ({
@@ -47,6 +53,23 @@ describe('CartSheet', () => {
       mutate: mockConfirmSale,
       isPending: false
     });
+    mockUseIsMobile.mockReturnValue(false);
+  });
+
+  it('should open as a side sheet (right) on desktop', () => {
+    render(<CartSheet open onOpenChange={vi.fn()} />);
+
+    expect(screen.getByRole('dialog').className).toContain('right-0');
+  });
+
+  it('should open as a bottom sheet on mobile', () => {
+    mockUseIsMobile.mockReturnValue(true);
+
+    render(<CartSheet open onOpenChange={vi.fn()} />);
+
+    const sheetContent = screen.getByRole('dialog');
+    expect(sheetContent.className).toContain('bottom-0');
+    expect(sheetContent.className).not.toContain('right-0');
   });
 
   it('should show the empty state with "Ver catálogo" when the cart is empty', async () => {
