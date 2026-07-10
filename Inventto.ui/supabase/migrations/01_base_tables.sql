@@ -81,6 +81,11 @@ CREATE TABLE public.organizations (
   status public.organization_status NOT NULL DEFAULT 'active',
   settings jsonb NOT NULL DEFAULT '{}'::jsonb,
 
+  -- PDV-01 · RN065: catálogo vinculado ao balcão (pré-requisito p/ vender).
+  -- Sem FK inline: public.catalogs só existe a partir de 05_sales_schema.sql;
+  -- a constraint é adicionada lá, logo após a tabela catalogs ser criada.
+  pdv_catalog_id uuid,
+
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
 

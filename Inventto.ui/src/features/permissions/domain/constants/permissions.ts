@@ -9,6 +9,7 @@ const SALES_PERMISSIONS: PermissionAction[] = [
   'movement:withdrawal',
   'customer:view',
   'order:view_own',
+  'order:create',
   'catalog:view'
 ];
 

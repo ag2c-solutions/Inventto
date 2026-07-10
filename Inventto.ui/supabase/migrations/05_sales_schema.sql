@@ -24,6 +24,13 @@ CREATE TRIGGER handle_updated_at_catalogs
 BEFORE UPDATE ON public.catalogs
 FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
+-- PDV-01 · RN065: vínculo do catálogo do PDV, coluna criada em 01_base_tables.sql.
+-- ON DELETE SET NULL: se o catálogo vinculado for removido, o PDV cai no bloqueio
+-- (mesma postura do guard RN061 de CAT-04) em vez de referenciar um catálogo morto.
+ALTER TABLE public.organizations
+  ADD CONSTRAINT organizations_pdv_catalog_id_fkey
+  FOREIGN KEY (pdv_catalog_id) REFERENCES public.catalogs(id) ON DELETE SET NULL;
+
 -- ==============================================================================
 -- 2. TABELA CATALOG_ITEMS (Preços Específicos por Catálogo)
 -- ==============================================================================

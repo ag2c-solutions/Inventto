@@ -34,7 +34,7 @@ export const navGroups: NavGroup[] = [
         href: '/pdv',
         icon: ShoppingCart,
         permission: 'order:view_own',
-        enabled: false
+        enabled: true
       }
     ]
   },
