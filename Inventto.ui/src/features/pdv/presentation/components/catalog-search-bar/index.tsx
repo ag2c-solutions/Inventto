@@ -29,6 +29,7 @@ export function CatalogSearchBar({
       <div className="relative flex-1">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
+          id="pdv-search-input"
           placeholder="Buscar produto ou SKU no catálogo…"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}

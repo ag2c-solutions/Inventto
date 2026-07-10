@@ -1,9 +1,23 @@
 import { supabase } from '@/infra/supabase';
 
-import type { PdvCatalog, PdvProduct } from '../../domain/entities';
-import type { PdvCatalogItemDTO, PdvOrgCatalogDTO } from '../dtos';
+import type {
+  ConfirmSaleInput,
+  PdvCatalog,
+  PdvCustomer,
+  PdvProduct
+} from '../../domain/entities';
+import type {
+  LookupPosCustomerDTO,
+  PdvCatalogItemDTO,
+  PdvOrgCatalogDTO
+} from '../dtos';
 import { handlePdvError } from '../handlers/error-handler';
-import { PdvCatalogMapper, PdvProductMapper } from '../mappers';
+import {
+  PdvCatalogMapper,
+  PdvCustomerMapper,
+  PdvProductMapper,
+  PdvSaleMapper
+} from '../mappers';
 
 const ITEM_SELECT_QUERY = `
   id,
@@ -75,6 +89,41 @@ export class PdvApi {
       if (error) throw error;
     } catch (error) {
       handlePdvError(error, 'setPdvCatalog');
+    }
+  }
+
+  static async createPosSale(input: ConfirmSaleInput): Promise<string> {
+    try {
+      const payload = PdvSaleMapper.toPersistence(input);
+
+      const { data, error } = await supabase.rpc('create_pos_sale', {
+        sale_data: payload
+      });
+
+      if (error) throw error;
+
+      return data as string;
+    } catch (error) {
+      handlePdvError(error, 'createPosSale');
+    }
+  }
+
+  static async lookupCustomer(
+    organizationId: string,
+    phone: string
+  ): Promise<PdvCustomer | null> {
+    try {
+      const { data, error } = await supabase.rpc('lookup_pos_customer', {
+        p_organization_id: organizationId,
+        p_phone: phone
+      });
+
+      if (error) throw error;
+
+      const row = (data as LookupPosCustomerDTO[] | null)?.[0];
+      return row ? PdvCustomerMapper.toDomain(row) : null;
+    } catch (error) {
+      handlePdvError(error, 'lookupCustomer');
     }
   }
 }

@@ -1,5 +1,10 @@
 import { PdvApi } from '../../data/api';
-import { type DiscountMode, percentToAmount } from '../validators';
+import type { CartItem, ConfirmSaleInput, PdvProduct } from '../entities';
+import {
+  type DiscountMode,
+  percentToAmount,
+  saleGuardValidator
+} from '../validators';
 
 export class PdvService {
   static async setPdvCatalog(catalogId: string): Promise<void> {
@@ -55,5 +60,46 @@ export class PdvCartService {
       unitFinalPrice,
       lineSubtotal: unitFinalPrice * qty
     };
+  }
+
+  // Saldo atual do catálogo para a linha do carrinho (produto/variante). Sem
+  // correspondência (produto saiu do catálogo) não bloqueia a confirmação —
+  // devolve a própria quantidade do carrinho.
+  static getAvailableStock(item: CartItem, products: PdvProduct[]): number {
+    const product = products.find(
+      (p) => p.productId === item.productId && p.variantId === item.variantId
+    );
+
+    return product ? product.stock : item.quantity;
+  }
+
+  // RN055/RN066: true quando algum item do carrinho excede o saldo atual —
+  // usado para desabilitar "Confirmar venda" (PDV-03).
+  static hasStockIssue(items: CartItem[], products: PdvProduct[]): boolean {
+    return items.some(
+      (item) => item.quantity > PdvCartService.getAvailableStock(item, products)
+    );
+  }
+}
+
+export class PdvSaleService {
+  // RN055/RN066/RN069: valida o carrinho (não vazio, saldo, desconto) antes
+  // de montar o payload e chamar a API — service protege o domínio, não faz
+  // HTTP direto nem mapper manual.
+  static async confirm(input: ConfirmSaleInput): Promise<string> {
+    const guard = saleGuardValidator(
+      input.items.map((item) => ({
+        quantity: item.quantity,
+        availableStock: item.availableStock,
+        referencePrice: item.referencePrice,
+        discountAmount: item.discountAmount
+      }))
+    );
+
+    if (!guard.valid) {
+      throw new Error(guard.message);
+    }
+
+    return PdvApi.createPosSale(input);
   }
 }

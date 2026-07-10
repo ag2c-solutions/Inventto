@@ -1,12 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CART_DISCOUNT_INVALID_MESSAGE,
+  CART_EMPTY_MESSAGE,
   DISCOUNT_EXCEEDS_REFERENCE_MESSAGE,
   DISCOUNT_NEGATIVE_MESSAGE,
   DISCOUNT_OVER_100_PERCENT_MESSAGE,
   percentToAmount,
+  type SaleGuardLine,
+  saleGuardValidator,
+  STOCK_INSUFFICIENT_MESSAGE,
   validateDiscount
 } from './index';
+
+function makeLine(overrides: Partial<SaleGuardLine> = {}): SaleGuardLine {
+  return {
+    quantity: 1,
+    availableStock: 10,
+    referencePrice: 5000,
+    discountAmount: 0,
+    ...overrides
+  };
+}
 
 describe('validateDiscount', () => {
   it('should reject a negative amount discount', () => {
@@ -101,5 +116,53 @@ describe('percentToAmount', () => {
 
   it('should return 0 for a 0% discount', () => {
     expect(percentToAmount(10000, 0)).toBe(0);
+  });
+});
+
+describe('saleGuardValidator', () => {
+  it('should reject an empty cart', () => {
+    const result = saleGuardValidator([]);
+
+    expect(result).toEqual({ valid: false, message: CART_EMPTY_MESSAGE });
+  });
+
+  it('should reject when an item exceeds the available stock', () => {
+    const result = saleGuardValidator([
+      makeLine({ quantity: 5, availableStock: 3 })
+    ]);
+
+    expect(result).toEqual({
+      valid: false,
+      message: STOCK_INSUFFICIENT_MESSAGE
+    });
+  });
+
+  it('should reject when a discount exceeds the reference price', () => {
+    const result = saleGuardValidator([
+      makeLine({ referencePrice: 1000, discountAmount: 1001 })
+    ]);
+
+    expect(result).toEqual({
+      valid: false,
+      message: CART_DISCOUNT_INVALID_MESSAGE
+    });
+  });
+
+  it('should reject a negative discount', () => {
+    const result = saleGuardValidator([makeLine({ discountAmount: -1 })]);
+
+    expect(result).toEqual({
+      valid: false,
+      message: CART_DISCOUNT_INVALID_MESSAGE
+    });
+  });
+
+  it('should accept a valid cart', () => {
+    const result = saleGuardValidator([
+      makeLine({ quantity: 2, availableStock: 5 }),
+      makeLine({ referencePrice: 2000, discountAmount: 500 })
+    ]);
+
+    expect(result).toEqual({ valid: true });
   });
 });

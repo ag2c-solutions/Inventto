@@ -58,7 +58,9 @@ CREATE UNIQUE INDEX catalog_items_unique_product_variant
 CREATE TABLE public.orders (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES public.organizations(id),
-  customer_id uuid NOT NULL REFERENCES public.customers(id),
+  -- PDV-03 · RN068: nullable — venda anônima (sem telefone) não tem customer_id;
+  -- os campos snapshot abaixo carregam o que foi informado no balcão.
+  customer_id uuid REFERENCES public.customers(id),
   seller_id uuid REFERENCES public.profiles(id),
   
   customer_name_snapshot text,
@@ -91,12 +93,17 @@ CREATE TABLE public.order_items (
   
   product_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
   variant_id uuid REFERENCES public.product_variants(id) ON DELETE SET NULL,
-  
+
   quantity integer NOT NULL,
+  -- PDV-02/03 · RN069: unit_price é o preço final praticado (referência − desconto,
+  -- por unidade); reference_price é o preço de catálogo; discount_amount é o
+  -- desconto por unidade — os três ficam registrados para a consulta (RF027).
   unit_price numeric(10, 2) NOT NULL,
-  
+  reference_price numeric(10, 2),
+  discount_amount numeric(10, 2) NOT NULL DEFAULT 0,
+
   product_name_snapshot text,
-  
+
   CONSTRAINT order_items_pkey PRIMARY KEY (id)
 );
 

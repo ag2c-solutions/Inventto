@@ -1365,3 +1365,161 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.set_pdv_catalog(UUID) TO authenticated;
+-- ==============================================================================
+-- CREATE_POS_SALE (PDV-03 · RF026/RN064/RN066/RN068/RN069/RN055)
+-- Registra uma venda de balcão: pedido pos confirmado + itens (referência/
+-- desconto/final) + cliente opcional + baixa de estoque — tudo numa única
+-- transação (a função é atômica; qualquer exceção desfaz a venda inteira).
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.create_pos_sale(sale_data JSONB)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_user_id UUID := auth.uid();
+  v_org_id UUID;
+  v_catalog_id UUID;
+  v_customer_phone TEXT;
+  v_customer_name TEXT;
+  v_customer_id UUID;
+  v_order_id UUID;
+  v_total_amount NUMERIC := 0;
+  v_item JSONB;
+  v_product_name TEXT;
+  v_movement_items JSONB := '[]'::jsonb;
+  v_movement_payload JSONB;
+BEGIN
+  v_org_id := (sale_data->>'organization_id')::UUID;
+  v_catalog_id := (sale_data->>'catalog_id')::UUID;
+
+  -- RN067: Sales/Manager/Owner registram venda — qualquer membro ativo da org.
+  IF NOT public.is_org_member(v_org_id) THEN
+    RAISE EXCEPTION 'Acesso negado.';
+  END IF;
+
+  IF sale_data->'items' IS NULL OR jsonb_array_length(sale_data->'items') = 0 THEN
+    RAISE EXCEPTION 'A venda precisa ter ao menos um item.';
+  END IF;
+
+  -- RN068: cliente opcional — telefone identifica/cria o cliente global
+  -- (identidade compartilhada entre lojas) + perfil nesta loja; sem
+  -- telefone, venda anônima (customer_id permanece NULL).
+  v_customer_phone := NULLIF(TRIM(sale_data->'customer'->>'phone'), '');
+  v_customer_name := NULLIF(TRIM(sale_data->'customer'->>'name'), '');
+
+  IF v_customer_phone IS NOT NULL THEN
+    INSERT INTO public.customers (phone)
+    VALUES (v_customer_phone)
+    ON CONFLICT (phone) DO UPDATE SET updated_at = now()
+    RETURNING id INTO v_customer_id;
+
+    -- Só cria o perfil se ainda não existir nesta org — cliente já conhecido
+    -- mantém o nome cadastrado (a UI só pede nome para cliente novo).
+    INSERT INTO public.customer_store_profiles (organization_id, customer_id, name)
+    VALUES (v_org_id, v_customer_id, COALESCE(v_customer_name, 'Cliente'))
+    ON CONFLICT (organization_id, customer_id) DO NOTHING;
+
+    SELECT name INTO v_customer_name
+    FROM public.customer_store_profiles
+    WHERE organization_id = v_org_id AND customer_id = v_customer_id;
+  END IF;
+
+  -- Total da venda: soma dos preços finais (referência − desconto) já
+  -- praticados por item — reference_price/discount_amount são por unidade.
+  SELECT COALESCE(SUM((item->>'unit_price')::NUMERIC * (item->>'quantity')::INTEGER), 0)
+  INTO v_total_amount
+  FROM jsonb_array_elements(sale_data->'items') AS item;
+
+  INSERT INTO public.orders (
+    organization_id, customer_id, seller_id,
+    customer_name_snapshot, customer_phone_snapshot,
+    channel, catalog_id, status, total_amount
+  )
+  VALUES (
+    v_org_id, v_customer_id, v_user_id,
+    v_customer_name, v_customer_phone,
+    'pos', v_catalog_id, 'confirmed', v_total_amount
+  )
+  RETURNING id INTO v_order_id;
+
+  FOR v_item IN SELECT * FROM jsonb_array_elements(sale_data->'items')
+  LOOP
+    SELECT name INTO v_product_name
+    FROM public.products WHERE id = (v_item->>'product_id')::UUID;
+
+    INSERT INTO public.order_items (
+      order_id, product_id, variant_id, quantity,
+      unit_price, reference_price, discount_amount, product_name_snapshot
+    )
+    VALUES (
+      v_order_id,
+      (v_item->>'product_id')::UUID,
+      (v_item->>'variant_id')::UUID,
+      (v_item->>'quantity')::INTEGER,
+      (v_item->>'unit_price')::NUMERIC,
+      (v_item->>'reference_price')::NUMERIC,
+      COALESCE((v_item->>'discount_amount')::NUMERIC, 0),
+      v_product_name
+    );
+
+    v_movement_items := v_movement_items || jsonb_build_object(
+      'product_id', v_item->>'product_id',
+      'variant_id', v_item->'variant_id',
+      'quantity', v_item->>'quantity',
+      'unit_price', v_item->>'unit_price'
+    );
+  END LOOP;
+
+  -- RN066/RN055: baixa de estoque reusa o motor existente de movimentações —
+  -- o bloqueio de saldo negativo e o custo médio já vêm de lá. Como é uma
+  -- chamada de função dentro da mesma transação, qualquer exceção (saldo
+  -- insuficiente) desfaz a venda inteira, pedido incluso.
+  v_movement_payload := jsonb_build_object(
+    'organization_id', v_org_id,
+    'type', 'withdrawal',
+    'reason', 'sale',
+    'order_id', v_order_id,
+    'items', v_movement_items
+  );
+  PERFORM public.create_stock_movement(v_movement_payload);
+
+  IF v_customer_id IS NOT NULL THEN
+    UPDATE public.customer_store_profiles
+    SET total_spent = total_spent + v_total_amount, last_purchase_at = now()
+    WHERE organization_id = v_org_id AND customer_id = v_customer_id;
+  END IF;
+
+  RETURN v_order_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_pos_sale(JSONB) TO authenticated;
+-- ==============================================================================
+-- LOOKUP_POS_CUSTOMER (PDV-03 · RN068)
+-- Busca cliente por telefone, restrito à organização informada. Assinatura
+-- inclui p_organization_id (além do p_phone da task) porque um usuário pode
+-- pertencer a mais de uma org — sem o parâmetro explícito não haveria como
+-- saber qual organização usar, e o restante das RPCs do projeto sempre
+-- recebe o escopo de forma explícita (nunca "a org atual" implícita).
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.lookup_pos_customer(
+  p_organization_id UUID,
+  p_phone TEXT
+)
+RETURNS TABLE (customer_id UUID, name TEXT, since TIMESTAMPTZ)
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT c.id, csp.name, csp.created_at
+  FROM public.customers c
+  JOIN public.customer_store_profiles csp ON csp.customer_id = c.id
+  WHERE c.phone = p_phone
+    AND csp.organization_id = p_organization_id
+    AND public.is_org_member(p_organization_id);
+$$;
+
+GRANT EXECUTE ON FUNCTION public.lookup_pos_customer(UUID, TEXT) TO authenticated;

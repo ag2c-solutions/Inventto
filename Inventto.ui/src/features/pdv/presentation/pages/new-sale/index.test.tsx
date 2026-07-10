@@ -40,6 +40,15 @@ vi.mock('../../components/add-product-dialog', () => ({
     product ? <div data-testid="add-product-dialog">{product.name}</div> : null
 }));
 
+vi.mock('../../components/cart-sheet', () => ({
+  CartSheet: ({
+    open
+  }: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+  }) => (open ? <div data-testid="cart-sheet" /> : null)
+}));
+
 describe('NewSalePage', () => {
   const user = userEvent.setup();
 
@@ -176,6 +185,32 @@ describe('NewSalePage', () => {
     const fab = screen.getByRole('button', { name: 'Ver venda atual' });
     expect(fab).toBeInTheDocument();
     expect(fab).toHaveTextContent('2');
+  });
+
+  it('should open the cart sheet when the FAB is clicked', async () => {
+    mockUsePdvCatalogQuery.mockReturnValue({
+      data: { id: 'cat-1', name: 'Loja Física' },
+      isLoading: false
+    });
+    mockUsePdvProductsQuery.mockReturnValue({
+      data: pdvProductFactory.buildList(1),
+      isLoading: false
+    });
+    useCartStore.getState().addItem({
+      productId: 'p1',
+      name: 'Cadeira Gamer',
+      unitPrice: 1000,
+      discount: 0,
+      quantity: 1
+    });
+
+    render(<NewSalePage />);
+
+    expect(screen.queryByTestId('cart-sheet')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ver venda atual' }));
+
+    expect(screen.getByTestId('cart-sheet')).toBeInTheDocument();
   });
 
   it('should open the add-product dialog for the clicked product', async () => {

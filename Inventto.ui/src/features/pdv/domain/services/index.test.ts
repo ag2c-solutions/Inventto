@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PdvApi } from '../../data/api';
+import { cartItemFactory } from '../../tests/factories/cart-item.factory';
+import { pdvProductFactory } from '../../tests/factories/pdv-product.factory';
 
-import { PdvCartService, PdvService } from './index';
+import { PdvCartService, PdvSaleService, PdvService } from './index';
 
 vi.mock('../../data/api', () => ({
   PdvApi: {
-    setPdvCatalog: vi.fn()
+    setPdvCatalog: vi.fn(),
+    createPosSale: vi.fn()
   }
 }));
 
@@ -117,6 +120,159 @@ describe('PdvCartService', () => {
 
       expect(result.discountAmount).toBe(0);
       expect(result.unitFinalPrice).toBe(5000);
+    });
+  });
+
+  describe('getAvailableStock', () => {
+    it("should return the matching product's current stock", () => {
+      const item = cartItemFactory.build({
+        productId: 'p1',
+        variantId: undefined
+      });
+      const products = [
+        pdvProductFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          stock: 7
+        })
+      ];
+
+      expect(PdvCartService.getAvailableStock(item, products)).toBe(7);
+    });
+
+    it("should fall back to the item's own quantity when the product is not found", () => {
+      const item = cartItemFactory.build({
+        productId: 'p1',
+        variantId: undefined,
+        quantity: 4
+      });
+
+      expect(PdvCartService.getAvailableStock(item, [])).toBe(4);
+    });
+  });
+
+  describe('hasStockIssue', () => {
+    it('should be false when every item is within its available stock', () => {
+      const items = [
+        cartItemFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          quantity: 2
+        })
+      ];
+      const products = [
+        pdvProductFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          stock: 5
+        })
+      ];
+
+      expect(PdvCartService.hasStockIssue(items, products)).toBe(false);
+    });
+
+    it('should be true when any item exceeds its available stock', () => {
+      const items = [
+        cartItemFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          quantity: 6
+        })
+      ];
+      const products = [
+        pdvProductFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          stock: 5
+        })
+      ];
+
+      expect(PdvCartService.hasStockIssue(items, products)).toBe(true);
+    });
+  });
+});
+
+describe('PdvSaleService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('confirm', () => {
+    it('should call PdvApi.createPosSale when the cart is valid', async () => {
+      vi.mocked(PdvApi.createPosSale).mockResolvedValue('order-1');
+
+      const input = {
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        items: [
+          {
+            productId: 'p1',
+            quantity: 2,
+            referencePrice: 5000,
+            discountAmount: 0,
+            availableStock: 5
+          }
+        ]
+      };
+
+      const result = await PdvSaleService.confirm(input);
+
+      expect(PdvApi.createPosSale).toHaveBeenCalledWith(input);
+      expect(result).toBe('order-1');
+    });
+
+    it('should reject an empty cart before calling the API', async () => {
+      await expect(
+        PdvSaleService.confirm({
+          organizationId: 'org-1',
+          catalogId: 'cat-1',
+          items: []
+        })
+      ).rejects.toThrow('Adicione produtos para iniciar a venda.');
+
+      expect(PdvApi.createPosSale).not.toHaveBeenCalled();
+    });
+
+    it('should reject when an item exceeds the available stock, without calling the API', async () => {
+      await expect(
+        PdvSaleService.confirm({
+          organizationId: 'org-1',
+          catalogId: 'cat-1',
+          items: [
+            {
+              productId: 'p1',
+              quantity: 5,
+              referencePrice: 5000,
+              discountAmount: 0,
+              availableStock: 2
+            }
+          ]
+        })
+      ).rejects.toThrow('Um ou mais itens excedem o estoque disponível.');
+
+      expect(PdvApi.createPosSale).not.toHaveBeenCalled();
+    });
+
+    it('should propagate errors from the API', async () => {
+      vi.mocked(PdvApi.createPosSale).mockRejectedValue(
+        new Error('Estoque insuficiente — há 1 disponível.')
+      );
+
+      await expect(
+        PdvSaleService.confirm({
+          organizationId: 'org-1',
+          catalogId: 'cat-1',
+          items: [
+            {
+              productId: 'p1',
+              quantity: 1,
+              referencePrice: 5000,
+              discountAmount: 0,
+              availableStock: 5
+            }
+          ]
+        })
+      ).rejects.toThrow('Estoque insuficiente — há 1 disponível.');
     });
   });
 });
