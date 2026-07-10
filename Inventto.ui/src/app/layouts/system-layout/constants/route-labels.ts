@@ -6,5 +6,6 @@ export const ROUTE_LABELS: Record<string, string> = {
   '/movements': 'Movimentação',
   '/catalogos': 'Catálogos',
   '/team': 'Equipe',
-  '/settings': 'Configurações'
+  '/settings': 'Configurações',
+  '/pdv': 'Venda no balcão'
 };

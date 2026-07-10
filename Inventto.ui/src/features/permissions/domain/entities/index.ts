@@ -19,6 +19,7 @@ export type PermissionAction =
   | 'customer:manage'
   | 'order:view_all'
   | 'order:view_own'
+  | 'order:create'
   | 'order:manage'
   | 'catalog:view'
   | 'catalog:manage'

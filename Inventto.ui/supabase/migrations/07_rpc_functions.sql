@@ -1305,11 +1305,13 @@ BEGIN
     RAISE EXCEPTION 'Acesso negado: apenas gerentes ou proprietários podem remover catálogos.';
   END IF;
 
-  -- RN061: canais vinculados bloqueiam a remoção. As fontes de vínculo
-  -- (storefronts.catalog_id — Módulo 8; config do PDV — Módulo 7) ainda não
-  -- existem; quando existirem, somar as contagens aqui. Ex.:
+  -- RN061: canais vinculados bloqueiam a remoção. Fonte do PDV (Módulo 7,
+  -- PDV-01) já existe; storefronts.catalog_id (Módulo 8) ainda não — quando
+  -- existir, somar aqui também. Ex.:
   --   v_linked_channels := v_linked_channels +
   --     (SELECT COUNT(*) FROM public.storefronts WHERE catalog_id = p_catalog_id);
+  v_linked_channels := v_linked_channels +
+    (SELECT COUNT(*) FROM public.organizations WHERE pdv_catalog_id = p_catalog_id);
 
   IF v_linked_channels > 0 THEN
     -- Marcador estável mapeado pela UI para a variante B do dialog.
@@ -1323,3 +1325,43 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.delete_catalog(UUID) TO authenticated;
+-- ==============================================================================
+-- SET_PDV_CATALOG (PDV-01 · RN065)
+-- Vincula um catálogo ao PDV da organização. O catálogo do vínculo é a fonte
+-- de verdade dos preços exibidos em /pdv.
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.set_pdv_catalog(p_catalog_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_is_active BOOLEAN;
+BEGIN
+  SELECT organization_id, is_active INTO v_org_id, v_is_active
+  FROM public.catalogs
+  WHERE id = p_catalog_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'Catálogo não encontrado.';
+  END IF;
+
+  IF NOT v_is_active THEN
+    RAISE EXCEPTION 'Este catálogo está inativo e não pode ser vinculado ao PDV.';
+  END IF;
+
+  -- RN065/RN067: vincular catálogo ao PDV é configuração da organização —
+  -- apenas Manager/Owner.
+  IF NOT public.has_role(v_org_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas gerentes ou proprietários podem vincular um catálogo ao PDV.';
+  END IF;
+
+  UPDATE public.organizations
+  SET pdv_catalog_id = p_catalog_id, updated_at = NOW()
+  WHERE id = v_org_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.set_pdv_catalog(UUID) TO authenticated;

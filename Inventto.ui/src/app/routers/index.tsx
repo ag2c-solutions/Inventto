@@ -171,6 +171,19 @@ export const router = createBrowserRouter([
         ]
       },
       {
+        path: 'pdv',
+        element: <CanNavigate required="order:view_own" />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { NewSalePage } = await import('@/features/pdv');
+              return { Component: NewSalePage };
+            }
+          }
+        ]
+      },
+      {
         path: 'catalogos',
         element: <CanNavigate required="catalog:view" />,
         children: [
