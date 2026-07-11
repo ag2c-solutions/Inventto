@@ -15,6 +15,9 @@ export interface CreatePosSaleDTO {
     discount_amount: number;
     unit_price: number;
   }>;
+  payment_method: 'cash' | 'card' | 'pix';
+  amount_paid?: number;
+  payment_proof_url?: string;
 }
 
 export interface LookupPosCustomerDTO {

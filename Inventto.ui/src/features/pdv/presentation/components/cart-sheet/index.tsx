@@ -13,6 +13,7 @@ import { cn } from '@/shared/utils';
 import { CartItemRow } from '../cart-item';
 import { CustomerSection } from '../customer-section';
 import { EmptyCart } from '../empty-cart';
+import { PaymentSection } from '../payment-section';
 import { SaleSummary } from '../sale-summary';
 
 import { useCartSheet } from './hooks/use-cart-sheet';
@@ -33,6 +34,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
     canConfirm,
     isPending,
     setCustomer,
+    setPayment,
     handleUpdateQty,
     handleRemove,
     handleGoToCatalog,
@@ -104,6 +106,11 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
               {/* Customer section */}
               <div className="border-t px-5 py-4">
                 <CustomerSection onChange={setCustomer} />
+              </div>
+
+              {/* Payment section */}
+              <div className="border-t px-5 py-4">
+                <PaymentSection total={total} onChange={setPayment} />
               </div>
             </div>
 

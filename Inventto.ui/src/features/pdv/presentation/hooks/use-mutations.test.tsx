@@ -38,6 +38,7 @@ describe('useConfirmPosSaleMutation', () => {
   const input = {
     catalogId: 'cat-1',
     customer: null,
+    paymentMethod: 'card' as const,
     items: [
       {
         productId: 'p1',
@@ -58,12 +59,33 @@ describe('useConfirmPosSaleMutation', () => {
 
     await result.current.mutateAsync(input);
 
-    expect(PdvSaleService.confirm).toHaveBeenCalledWith({
-      organizationId: 'org-1',
-      catalogId: 'cat-1',
-      customer: undefined,
-      items: input.items
+    expect(PdvSaleService.confirm).toHaveBeenCalledWith(
+      {
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        customer: undefined,
+        items: input.items,
+        paymentMethod: 'card',
+        amountPaid: undefined
+      },
+      undefined
+    );
+  });
+
+  it('should pass the proof file through as the second argument to PdvSaleService.confirm', async () => {
+    vi.mocked(PdvSaleService.confirm).mockResolvedValue('order-1');
+    const proofFile = new File(['x'], 'proof.jpg', { type: 'image/jpeg' });
+
+    const { result } = renderHook(() => useConfirmPosSaleMutation(), {
+      wrapper
     });
+
+    await result.current.mutateAsync({ ...input, proofFile });
+
+    expect(PdvSaleService.confirm).toHaveBeenCalledWith(
+      expect.objectContaining({ paymentMethod: 'card' }),
+      proofFile
+    );
   });
 
   it('should clear the cart and invalidate product/movement queries on success', async () => {

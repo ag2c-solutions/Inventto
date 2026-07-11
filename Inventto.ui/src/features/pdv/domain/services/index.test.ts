@@ -9,7 +9,8 @@ import { PdvCartService, PdvSaleService, PdvService } from './index';
 vi.mock('../../data/api', () => ({
   PdvApi: {
     setPdvCatalog: vi.fn(),
-    createPosSale: vi.fn()
+    createPosSale: vi.fn(),
+    uploadPaymentProof: vi.fn()
   }
 }));
 
@@ -204,6 +205,7 @@ describe('PdvSaleService', () => {
       const input = {
         organizationId: 'org-1',
         catalogId: 'cat-1',
+        paymentMethod: 'card' as const,
         items: [
           {
             productId: 'p1',
@@ -226,6 +228,7 @@ describe('PdvSaleService', () => {
         PdvSaleService.confirm({
           organizationId: 'org-1',
           catalogId: 'cat-1',
+          paymentMethod: 'card',
           items: []
         })
       ).rejects.toThrow('Adicione produtos para iniciar a venda.');
@@ -238,6 +241,7 @@ describe('PdvSaleService', () => {
         PdvSaleService.confirm({
           organizationId: 'org-1',
           catalogId: 'cat-1',
+          paymentMethod: 'card',
           items: [
             {
               productId: 'p1',
@@ -262,6 +266,7 @@ describe('PdvSaleService', () => {
         PdvSaleService.confirm({
           organizationId: 'org-1',
           catalogId: 'cat-1',
+          paymentMethod: 'card',
           items: [
             {
               productId: 'p1',
@@ -273,6 +278,127 @@ describe('PdvSaleService', () => {
           ]
         })
       ).rejects.toThrow('Estoque insuficiente — há 1 disponível.');
+    });
+
+    it('should reject when no payment method is selected, without calling the API', async () => {
+      await expect(
+        PdvSaleService.confirm({
+          organizationId: 'org-1',
+          catalogId: 'cat-1',
+          // @ts-expect-error — testando o guard contra ausência em runtime
+          paymentMethod: null,
+          items: [
+            {
+              productId: 'p1',
+              quantity: 1,
+              referencePrice: 5000,
+              discountAmount: 0,
+              availableStock: 5
+            }
+          ]
+        })
+      ).rejects.toThrow('Selecione a forma de pagamento.');
+
+      expect(PdvApi.createPosSale).not.toHaveBeenCalled();
+    });
+
+    it('should reject a cash sale when amountPaid is less than the total, without calling the API', async () => {
+      await expect(
+        PdvSaleService.confirm({
+          organizationId: 'org-1',
+          catalogId: 'cat-1',
+          paymentMethod: 'cash',
+          amountPaid: 100,
+          items: [
+            {
+              productId: 'p1',
+              quantity: 1,
+              referencePrice: 5000,
+              discountAmount: 0,
+              availableStock: 5
+            }
+          ]
+        })
+      ).rejects.toThrow('O valor recebido é menor que o total da venda.');
+
+      expect(PdvApi.createPosSale).not.toHaveBeenCalled();
+    });
+
+    it('should accept a cash sale when amountPaid covers the total', async () => {
+      vi.mocked(PdvApi.createPosSale).mockResolvedValue('order-1');
+
+      const result = await PdvSaleService.confirm({
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        paymentMethod: 'cash',
+        amountPaid: 5000,
+        items: [
+          {
+            productId: 'p1',
+            quantity: 1,
+            referencePrice: 5000,
+            discountAmount: 0,
+            availableStock: 5
+          }
+        ]
+      });
+
+      expect(PdvApi.createPosSale).toHaveBeenCalled();
+      expect(result).toBe('order-1');
+    });
+
+    it('should upload the proof file before calling createPosSale and send the resulting URL', async () => {
+      vi.mocked(PdvApi.uploadPaymentProof).mockResolvedValue(
+        'https://cloudinary.com/proof.jpg'
+      );
+      vi.mocked(PdvApi.createPosSale).mockResolvedValue('order-1');
+      const proofFile = new File(['x'], 'proof.jpg', { type: 'image/jpeg' });
+
+      await PdvSaleService.confirm(
+        {
+          organizationId: 'org-1',
+          catalogId: 'cat-1',
+          paymentMethod: 'pix',
+          items: [
+            {
+              productId: 'p1',
+              quantity: 1,
+              referencePrice: 5000,
+              discountAmount: 0,
+              availableStock: 5
+            }
+          ]
+        },
+        proofFile
+      );
+
+      expect(PdvApi.uploadPaymentProof).toHaveBeenCalledWith(proofFile);
+      expect(PdvApi.createPosSale).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentProofUrl: 'https://cloudinary.com/proof.jpg'
+        })
+      );
+    });
+
+    it('should not upload anything when there is no proof file', async () => {
+      vi.mocked(PdvApi.createPosSale).mockResolvedValue('order-1');
+
+      await PdvSaleService.confirm({
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        paymentMethod: 'pix',
+        items: [
+          {
+            productId: 'p1',
+            quantity: 1,
+            referencePrice: 5000,
+            discountAmount: 0,
+            availableStock: 5
+          }
+        ]
+      });
+
+      expect(PdvApi.uploadPaymentProof).not.toHaveBeenCalled();
     });
   });
 });

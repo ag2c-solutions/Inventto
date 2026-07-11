@@ -134,7 +134,7 @@ describe('CartSheet', () => {
     ).toBeDisabled();
   });
 
-  it('should enable "Confirmar venda" when every item is within stock', () => {
+  it('should keep "Confirmar venda" disabled until a payment method is chosen', () => {
     useCartStore.setState({
       items: [
         cartItemFactory.build({
@@ -155,6 +155,35 @@ describe('CartSheet', () => {
     });
 
     render(<CartSheet open onOpenChange={vi.fn()} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Confirmar venda' })
+    ).toBeDisabled();
+  });
+
+  it('should enable "Confirmar venda" once every item is within stock and a payment method is chosen', async () => {
+    useCartStore.setState({
+      items: [
+        cartItemFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          quantity: 1
+        })
+      ]
+    });
+    mockUsePdvProductsQuery.mockReturnValue({
+      data: [
+        pdvProductFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          stock: 5
+        })
+      ]
+    });
+
+    render(<CartSheet open onOpenChange={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Cartão' }));
 
     expect(
       screen.getByRole('button', { name: 'Confirmar venda' })
@@ -197,6 +226,7 @@ describe('CartSheet', () => {
 
     render(<CartSheet open onOpenChange={vi.fn()} />);
 
+    await user.click(screen.getByRole('button', { name: 'Cartão' }));
     await user.click(screen.getByRole('button', { name: 'Confirmar venda' }));
 
     expect(mockConfirmSale).toHaveBeenCalledWith(
@@ -212,7 +242,10 @@ describe('CartSheet', () => {
             discountAmount: 1000,
             availableStock: 5
           }
-        ]
+        ],
+        paymentMethod: 'card',
+        amountPaid: undefined,
+        proofFile: undefined
       },
       expect.objectContaining({ onSuccess: expect.any(Function) })
     );

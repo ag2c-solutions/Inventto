@@ -67,7 +67,14 @@ export class PdvSaleMapper {
         unit_price: formatIntegerToDecimal(
           item.referencePrice - item.discountAmount
         )
-      }))
+      })),
+      payment_method: input.paymentMethod,
+      // amount_paid só faz sentido em dinheiro — omitido nos demais.
+      amount_paid:
+        input.paymentMethod === 'cash' && input.amountPaid != null
+          ? formatIntegerToDecimal(input.amountPaid)
+          : undefined,
+      payment_proof_url: input.paymentProofUrl
     };
   }
 }

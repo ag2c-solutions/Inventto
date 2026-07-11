@@ -71,8 +71,16 @@ CREATE TABLE public.orders (
   
   status public.order_status DEFAULT 'pending',
   total_amount numeric(10, 2) DEFAULT 0,
-  
-  expires_at timestamp with time zone, 
+
+  -- PDV-05: forma de pagamento nullable (obrigatoriedade é regra de
+  -- aplicação, não de banco — não quebra pedidos que não passem por aqui).
+  -- amount_paid só é gravado em dinheiro; troco é derivado, não persistido.
+  -- payment_proof_url só existe quando o vendedor anexa (cartão/Pix, opcional).
+  payment_method public.payment_method,
+  amount_paid numeric(10, 2),
+  payment_proof_url text,
+
+  expires_at timestamp with time zone,
   
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),

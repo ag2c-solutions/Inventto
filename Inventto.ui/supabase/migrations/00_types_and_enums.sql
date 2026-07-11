@@ -13,6 +13,9 @@ CREATE TYPE public.order_status AS ENUM ('pending', 'confirmed', 'cancelled', 'e
 -- Canais de Venda (Origem do Pedido)
 CREATE TYPE public.sale_channel AS ENUM ('pos', 'whatsapp_direct', 'catalog_store', 'marketplace');
 
+-- PDV-05: Forma de Pagamento (criado aqui — Pedidos/PED-01 reusa em vez de recriar)
+CREATE TYPE public.payment_method AS ENUM ('cash', 'card', 'pix');
+
 -- Tipos de Atributos de Produto (Grade)
 CREATE TYPE public.attribute_type AS ENUM ('text', 'color', 'select', 'number');
 
