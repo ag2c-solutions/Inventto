@@ -31,9 +31,14 @@ export function useCustomerLookup(
     if (!isSettled) return;
 
     if (found) {
-      onChange({ phone: trimmedPhone });
+      onChange({ phone: trimmedPhone, displayName: found.name });
     } else {
-      onChange({ phone: trimmedPhone, name: name.trim() || undefined });
+      const trimmedName = name.trim() || undefined;
+      onChange({
+        phone: trimmedPhone,
+        name: trimmedName,
+        displayName: trimmedName
+      });
     }
   }, [trimmedPhone, isSettled, found, name, onChange]);
 

@@ -14,6 +14,7 @@ import { CartItemRow } from '../cart-item';
 import { CustomerSection } from '../customer-section';
 import { EmptyCart } from '../empty-cart';
 import { PaymentSection } from '../payment-section';
+import { SaleReceipt } from '../sale-receipt';
 import { SaleSummary } from '../sale-summary';
 
 import { useCartSheet } from './hooks/use-cart-sheet';
@@ -35,10 +36,13 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
     isPending,
     setCustomer,
     setPayment,
+    confirmedSale,
     handleUpdateQty,
     handleRemove,
     handleGoToCatalog,
-    handleConfirm
+    handleConfirm,
+    handleNewSale,
+    handleSheetOpenChange
   } = useCartSheet(onOpenChange);
 
   // PDV-04: mesmo Sheet do PDV-03 — só muda de lado por breakpoint (de baixo
@@ -49,7 +53,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
   const isMobile = useIsMobile();
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent
         side={isMobile ? 'bottom' : 'right'}
         className={cn(
@@ -57,89 +61,99 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
           isMobile ? 'max-h-[85vh] rounded-t-lg' : 'sm:max-w-md'
         )}
       >
-        {/* Header */}
-        <SheetHeader className="border-b px-5 py-4">
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            <SheetTitle className="text-lg">Venda atual</SheetTitle>
-          </div>
-          <p className="text-sm text-sidebar-foreground">
-            {items.length} {items.length === 1 ? 'item' : 'itens'} · revise
-            antes de confirmar.
-          </p>
-        </SheetHeader>
-
-        {isEmpty ? (
-          <>
-            {/* Empty state fills remaining space */}
-            <EmptyCart />
-
-            {/* Footer for empty state */}
-            <div className="border-t px-5 py-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 w-full rounded-lg"
-                onClick={handleGoToCatalog}
-              >
-                Ver catálogo
-              </Button>
-            </div>
-          </>
+        {confirmedSale ? (
+          // PDV-06: sucesso na confirmação substitui o fechamento automático
+          // da Sheet — mostra o comprovante em vez de só o toast.
+          <SaleReceipt sale={confirmedSale} onNewSale={handleNewSale} />
         ) : (
           <>
-            {/* Scrollable items + customer */}
-            <div className="flex flex-1 flex-col overflow-y-auto">
-              {/* Items list with dividers */}
-              <div className="flex flex-col divide-y px-5">
-                {items.map((item) => (
-                  <CartItemRow
-                    key={`${item.productId}-${item.variantId ?? 'base'}`}
-                    item={item}
-                    availableStock={availableStockFor(item)}
-                    onUpdateQty={(quantity) => handleUpdateQty(item, quantity)}
-                    onRemove={() => handleRemove(item)}
+            {/* Header */}
+            <SheetHeader className="border-b px-5 py-4">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                <SheetTitle className="text-lg">Venda atual</SheetTitle>
+              </div>
+              <p className="text-sm text-sidebar-foreground">
+                {items.length} {items.length === 1 ? 'item' : 'itens'} · revise
+                antes de confirmar.
+              </p>
+            </SheetHeader>
+
+            {isEmpty ? (
+              <>
+                {/* Empty state fills remaining space */}
+                <EmptyCart />
+
+                {/* Footer for empty state */}
+                <div className="border-t px-5 py-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 w-full rounded-lg"
+                    onClick={handleGoToCatalog}
+                  >
+                    Ver catálogo
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Scrollable items + customer */}
+                <div className="flex flex-1 flex-col overflow-y-auto">
+                  {/* Items list with dividers */}
+                  <div className="flex flex-col divide-y px-5">
+                    {items.map((item) => (
+                      <CartItemRow
+                        key={`${item.productId}-${item.variantId ?? 'base'}`}
+                        item={item}
+                        availableStock={availableStockFor(item)}
+                        onUpdateQty={(quantity) =>
+                          handleUpdateQty(item, quantity)
+                        }
+                        onRemove={() => handleRemove(item)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Customer section */}
+                  <div className="border-t px-5 py-4">
+                    <CustomerSection onChange={setCustomer} />
+                  </div>
+
+                  {/* Payment section */}
+                  <div className="border-t px-5 py-4">
+                    <PaymentSection total={total} onChange={setPayment} />
+                  </div>
+                </div>
+
+                {/* Summary + CTA — pinned at bottom */}
+                <div className="border-t">
+                  <SaleSummary
+                    subtotal={subtotal}
+                    discountTotal={discountTotal}
+                    total={total}
                   />
-                ))}
-              </div>
 
-              {/* Customer section */}
-              <div className="border-t px-5 py-4">
-                <CustomerSection onChange={setCustomer} />
-              </div>
-
-              {/* Payment section */}
-              <div className="border-t px-5 py-4">
-                <PaymentSection total={total} onChange={setPayment} />
-              </div>
-            </div>
-
-            {/* Summary + CTA — pinned at bottom */}
-            <div className="border-t">
-              <SaleSummary
-                subtotal={subtotal}
-                discountTotal={discountTotal}
-                total={total}
-              />
-
-              <div className="px-5 pb-5">
-                <Button
-                  type="button"
-                  className="h-12 w-full rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                  disabled={!canConfirm}
-                  onClick={handleConfirm}
-                >
-                  {isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Registrando…
-                    </>
-                  ) : (
-                    'Confirmar venda'
-                  )}
-                </Button>
-              </div>
-            </div>
+                  <div className="px-5 pb-5">
+                    <Button
+                      type="button"
+                      className="h-12 w-full rounded-lg bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                      disabled={!canConfirm}
+                      onClick={handleConfirm}
+                    >
+                      {isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Registrando…
+                        </>
+                      ) : (
+                        'Confirmar venda'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </SheetContent>

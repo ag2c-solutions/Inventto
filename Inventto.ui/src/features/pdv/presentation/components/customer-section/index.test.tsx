@@ -71,7 +71,10 @@ describe('CustomerSection', () => {
     expect(
       screen.queryByPlaceholderText('Nome do cliente')
     ).not.toBeInTheDocument();
-    expect(onChange).toHaveBeenLastCalledWith({ phone: '11999998888' });
+    expect(onChange).toHaveBeenLastCalledWith({
+      phone: '11999998888',
+      displayName: 'Maria Souza'
+    });
   });
 
   it('should show the new-customer name field and helper when no customer matches', async () => {
@@ -97,7 +100,8 @@ describe('CustomerSection', () => {
 
     expect(onChange).toHaveBeenLastCalledWith({
       phone: '11999998888',
-      name: 'Novo Cliente'
+      name: 'Novo Cliente',
+      displayName: 'Novo Cliente'
     });
   });
 

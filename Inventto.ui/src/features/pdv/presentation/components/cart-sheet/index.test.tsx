@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -13,13 +13,17 @@ const {
   mockUsePdvProductsQuery,
   mockUseConfirmPosSaleMutation,
   mockConfirmSale,
-  mockUseIsMobile
+  mockUseIsMobile,
+  mockUseUser,
+  mockUseOrganizationQuery
 } = vi.hoisted(() => ({
   mockUsePdvCatalogQuery: vi.fn(),
   mockUsePdvProductsQuery: vi.fn(),
   mockUseConfirmPosSaleMutation: vi.fn(),
   mockConfirmSale: vi.fn(),
-  mockUseIsMobile: vi.fn()
+  mockUseIsMobile: vi.fn(),
+  mockUseUser: vi.fn(),
+  mockUseOrganizationQuery: vi.fn()
 }));
 
 vi.mock('../../hooks/use-queries', () => ({
@@ -33,6 +37,14 @@ vi.mock('../../hooks/use-mutations', () => ({
 
 vi.mock('@/shared/hooks/use-is-mobile', () => ({
   useIsMobile: mockUseIsMobile
+}));
+
+vi.mock('@/features/users', () => ({
+  useUser: mockUseUser
+}));
+
+vi.mock('@/features/organizations', () => ({
+  useOrganizationQuery: mockUseOrganizationQuery
 }));
 
 vi.mock('../customer-section', () => ({
@@ -54,6 +66,12 @@ describe('CartSheet', () => {
       isPending: false
     });
     mockUseIsMobile.mockReturnValue(false);
+    mockUseUser.mockReturnValue({
+      currentOrganization: { id: 'org-1', name: 'Loja Física' }
+    });
+    mockUseOrganizationQuery.mockReturnValue({
+      data: { settings: { identity: { logoUrl: undefined } } }
+    });
   });
 
   it('should open as a side sheet (right) on desktop', () => {
@@ -249,5 +267,48 @@ describe('CartSheet', () => {
       },
       expect.objectContaining({ onSuccess: expect.any(Function) })
     );
+  });
+
+  it('should show the sale receipt once the mutation succeeds, and "Nova venda" clears it and closes the sheet', async () => {
+    useCartStore.setState({
+      items: [
+        cartItemFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          unitPrice: 10000,
+          discount: 0,
+          quantity: 1
+        })
+      ]
+    });
+    mockUsePdvProductsQuery.mockReturnValue({
+      data: [
+        pdvProductFactory.build({
+          productId: 'p1',
+          variantId: undefined,
+          stock: 5
+        })
+      ]
+    });
+    const onOpenChange = vi.fn();
+
+    render(<CartSheet open onOpenChange={onOpenChange} />);
+
+    await user.click(screen.getByRole('button', { name: 'Cartão' }));
+    await user.click(screen.getByRole('button', { name: 'Confirmar venda' }));
+
+    const [, { onSuccess }] = mockConfirmSale.mock.calls[0];
+    act(() => {
+      onSuccess('order-1');
+      // Reflete o que useConfirmPosSaleMutation faz de verdade no onSuccess
+      // do hook (limpa o carrinho) antes do onSuccess passado ao mutate.
+      useCartStore.setState({ items: [] });
+    });
+
+    expect(screen.getByText('Venda concluída')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Nova venda' }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

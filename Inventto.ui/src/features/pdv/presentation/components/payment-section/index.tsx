@@ -13,17 +13,16 @@ import { cn, formatIntegerToDecimal } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
 
 import type { PaymentMethod } from '../../../domain/entities';
+import { PAYMENT_METHOD_LABELS } from '../../constants';
 
 import {
   type PaymentSectionValue,
   usePaymentSection
 } from './hooks/use-payment-section';
 
-const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
-  { value: 'cash', label: 'Dinheiro' },
-  { value: 'card', label: 'Cartão' },
-  { value: 'pix', label: 'Pix' }
-];
+const PAYMENT_METHODS = (
+  Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]
+).map((value) => ({ value, label: PAYMENT_METHOD_LABELS[value] }));
 
 interface PaymentSectionProps {
   // Total da venda, em centavos — usado pro cálculo de troco/validação.
