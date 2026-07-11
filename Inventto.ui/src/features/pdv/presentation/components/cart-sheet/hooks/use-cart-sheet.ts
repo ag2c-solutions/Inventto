@@ -1,6 +1,13 @@
 import { useState } from 'react';
 
-import type { CartItem, SaleCustomerInput } from '../../../../domain/entities';
+import { useOrganizationQuery } from '@/features/organizations';
+import { useUser } from '@/features/users';
+
+import type {
+  CartItem,
+  ConfirmedSale,
+  SaleCustomerInput
+} from '../../../../domain/entities';
 import { PdvCartService } from '../../../../domain/services';
 import { useConfirmPosSaleMutation } from '../../../hooks/use-mutations';
 import {
@@ -25,11 +32,16 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
   const discountTotal = useCartStore(selectCartDiscountTotal);
   const total = useCartStore(selectCartTotal);
 
+  const { currentOrganization } = useUser();
+  const { data: organization } = useOrganizationQuery();
   const { data: catalog } = usePdvCatalogQuery();
   const { data: products = [] } = usePdvProductsQuery(catalog?.id);
 
   const [customer, setCustomer] = useState<SaleCustomerInput | null>(null);
   const [payment, setPayment] = useState<PaymentSectionValue>(EMPTY_PAYMENT);
+  const [confirmedSale, setConfirmedSale] = useState<ConfirmedSale | null>(
+    null
+  );
 
   const { mutate: confirmSale, isPending } = useConfirmPosSaleMutation();
 
@@ -57,11 +69,23 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
   function handleConfirm() {
     if (!catalog || !payment.method) return;
 
+    // Snapshot do carrinho/pagamento antes de disparar a mutation — o
+    // onSuccess de useConfirmPosSaleMutation já limpa o carrinho (PDV-03),
+    // então os dados para o comprovante (PDV-06) precisam ser capturados
+    // agora, não relidos da store depois.
+    const saleItems = items;
+    const paymentMethod = payment.method;
+    const amountPaid = payment.amountPaid;
+    const changeAmount =
+      paymentMethod === 'cash' && amountPaid != null
+        ? amountPaid - total
+        : undefined;
+
     confirmSale(
       {
         catalogId: catalog.id,
         customer,
-        items: items.map((item) => ({
+        items: saleItems.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
           quantity: item.quantity,
@@ -69,12 +93,41 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
           discountAmount: item.discount,
           availableStock: availableStockFor(item)
         })),
-        paymentMethod: payment.method,
-        amountPaid: payment.amountPaid,
+        paymentMethod,
+        amountPaid,
         proofFile: payment.proofFile
       },
-      { onSuccess: () => onOpenChange(false) }
+      {
+        onSuccess: (orderId) => {
+          setConfirmedSale({
+            orderId,
+            organizationName: currentOrganization?.name ?? '',
+            organizationLogoUrl: organization?.settings.identity.logoUrl,
+            confirmedAt: new Date(),
+            items: saleItems,
+            subtotal,
+            discountTotal,
+            total,
+            paymentMethod,
+            amountPaid,
+            changeAmount,
+            customer: customer ?? undefined
+          });
+        }
+      }
     );
+  }
+
+  function handleNewSale() {
+    setConfirmedSale(null);
+    onOpenChange(false);
+  }
+
+  function handleSheetOpenChange(next: boolean) {
+    // Fechar o Sheet por qualquer via (overlay, ESC, "Ver catálogo") também
+    // limpa o comprovante — reabrir não deve mostrar a venda anterior.
+    if (!next) setConfirmedSale(null);
+    onOpenChange(next);
   }
 
   return {
@@ -90,9 +143,12 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
     customer,
     setCustomer,
     setPayment,
+    confirmedSale,
     handleUpdateQty,
     handleRemove,
     handleGoToCatalog,
-    handleConfirm
+    handleConfirm,
+    handleNewSale,
+    handleSheetOpenChange
   };
 }
