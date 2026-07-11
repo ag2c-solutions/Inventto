@@ -1,3 +1,5 @@
+import type { PaymentMethod } from '../entities';
+
 export type DiscountMode = 'amount' | 'percent';
 
 export interface DiscountValidationInput {
@@ -92,6 +94,37 @@ export function saleGuardValidator(lines: SaleGuardLine[]): SaleGuardResult {
   );
   if (hasInvalidDiscount) {
     return { valid: false, message: CART_DISCOUNT_INVALID_MESSAGE };
+  }
+
+  return { valid: true };
+}
+
+export interface PaymentGuardInput {
+  paymentMethod: PaymentMethod | null;
+  // Em centavos.
+  amountPaid?: number;
+  total: number;
+}
+
+export const PAYMENT_METHOD_REQUIRED_MESSAGE =
+  'Selecione a forma de pagamento.';
+export const AMOUNT_PAID_INSUFFICIENT_MESSAGE =
+  'O valor recebido é menor que o total da venda.';
+
+// Forma de pagamento é obrigatória; em dinheiro, o valor recebido precisa
+// cobrir o total (troco é derivado, não validado aqui). Cartão/Pix não têm
+// requisito além da escolha do método — o comprovante é opcional.
+export function paymentGuardValidator({
+  paymentMethod,
+  amountPaid,
+  total
+}: PaymentGuardInput): SaleGuardResult {
+  if (!paymentMethod) {
+    return { valid: false, message: PAYMENT_METHOD_REQUIRED_MESSAGE };
+  }
+
+  if (paymentMethod === 'cash' && (amountPaid ?? 0) < total) {
+    return { valid: false, message: AMOUNT_PAID_INSUFFICIENT_MESSAGE };
   }
 
   return { valid: true };

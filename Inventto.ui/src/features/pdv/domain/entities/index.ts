@@ -55,9 +55,15 @@ export interface SaleItemInput {
   availableStock: number;
 }
 
+export type PaymentMethod = 'cash' | 'card' | 'pix';
+
 export interface ConfirmSaleInput {
   organizationId: string;
   catalogId: string;
   customer?: SaleCustomerInput;
   items: SaleItemInput[];
+  paymentMethod: PaymentMethod;
+  // Em centavos — só relevante quando paymentMethod === 'cash'.
+  amountPaid?: number;
+  paymentProofUrl?: string;
 }

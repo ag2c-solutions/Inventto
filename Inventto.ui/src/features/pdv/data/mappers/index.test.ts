@@ -121,6 +121,7 @@ describe('PdvSaleMapper', () => {
       const result = PdvSaleMapper.toPersistence({
         organizationId: 'org-1',
         catalogId: 'cat-1',
+        paymentMethod: 'card',
         items: [
           {
             productId: 'p1',
@@ -146,6 +147,7 @@ describe('PdvSaleMapper', () => {
       const result = PdvSaleMapper.toPersistence({
         organizationId: 'org-1',
         catalogId: 'cat-1',
+        paymentMethod: 'card',
         customer: { phone: '11999998888', name: 'Maria' },
         items: []
       });
@@ -157,6 +159,7 @@ describe('PdvSaleMapper', () => {
       const result = PdvSaleMapper.toPersistence({
         organizationId: 'org-1',
         catalogId: 'cat-1',
+        paymentMethod: 'card',
         items: []
       });
 
@@ -167,6 +170,7 @@ describe('PdvSaleMapper', () => {
       const result = PdvSaleMapper.toPersistence({
         organizationId: 'org-1',
         catalogId: 'cat-1',
+        paymentMethod: 'card',
         items: [
           {
             productId: 'p1',
@@ -179,6 +183,44 @@ describe('PdvSaleMapper', () => {
       });
 
       expect(result.items[0].variant_id).toBeNull();
+    });
+
+    it('should convert amount_paid from cents to reais for a cash sale', () => {
+      const result = PdvSaleMapper.toPersistence({
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        paymentMethod: 'cash',
+        amountPaid: 15000,
+        items: []
+      });
+
+      expect(result.payment_method).toBe('cash');
+      expect(result.amount_paid).toBe(150);
+    });
+
+    it('should omit amount_paid for card/pix even if present in the input', () => {
+      const result = PdvSaleMapper.toPersistence({
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        paymentMethod: 'pix',
+        amountPaid: 15000,
+        items: []
+      });
+
+      expect(result.payment_method).toBe('pix');
+      expect(result.amount_paid).toBeUndefined();
+    });
+
+    it('should pass through payment_proof_url when present', () => {
+      const result = PdvSaleMapper.toPersistence({
+        organizationId: 'org-1',
+        catalogId: 'cat-1',
+        paymentMethod: 'card',
+        paymentProofUrl: 'https://cloudinary.com/proof.jpg',
+        items: []
+      });
+
+      expect(result.payment_proof_url).toBe('https://cloudinary.com/proof.jpg');
     });
   });
 });

@@ -13,6 +13,9 @@ import {
   selectCartTotal,
   useCartStore
 } from '../../../stores/cart-store';
+import type { PaymentSectionValue } from '../../payment-section/hooks/use-payment-section';
+
+const EMPTY_PAYMENT: PaymentSectionValue = { method: null, isValid: false };
 
 export function useCartSheet(onOpenChange: (open: boolean) => void) {
   const items = useCartStore((state) => state.items);
@@ -26,6 +29,7 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
   const { data: products = [] } = usePdvProductsQuery(catalog?.id);
 
   const [customer, setCustomer] = useState<SaleCustomerInput | null>(null);
+  const [payment, setPayment] = useState<PaymentSectionValue>(EMPTY_PAYMENT);
 
   const { mutate: confirmSale, isPending } = useConfirmPosSaleMutation();
 
@@ -35,7 +39,8 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
 
   const hasStockIssue = PdvCartService.hasStockIssue(items, products);
   const isEmpty = items.length === 0;
-  const canConfirm = !isEmpty && !hasStockIssue && !isPending;
+  const canConfirm =
+    !isEmpty && !hasStockIssue && !isPending && payment.isValid;
 
   function handleUpdateQty(item: CartItem, quantity: number) {
     updateQty(item.productId, item.variantId, quantity);
@@ -50,7 +55,7 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
   }
 
   function handleConfirm() {
-    if (!catalog) return;
+    if (!catalog || !payment.method) return;
 
     confirmSale(
       {
@@ -63,7 +68,10 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
           referencePrice: item.unitPrice,
           discountAmount: item.discount,
           availableStock: availableStockFor(item)
-        }))
+        })),
+        paymentMethod: payment.method,
+        amountPaid: payment.amountPaid,
+        proofFile: payment.proofFile
       },
       { onSuccess: () => onOpenChange(false) }
     );
@@ -81,6 +89,7 @@ export function useCartSheet(onOpenChange: (open: boolean) => void) {
     isPending,
     customer,
     setCustomer,
+    setPayment,
     handleUpdateQty,
     handleRemove,
     handleGoToCatalog,

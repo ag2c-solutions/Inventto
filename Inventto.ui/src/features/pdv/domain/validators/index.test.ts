@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  AMOUNT_PAID_INSUFFICIENT_MESSAGE,
   CART_DISCOUNT_INVALID_MESSAGE,
   CART_EMPTY_MESSAGE,
   DISCOUNT_EXCEEDS_REFERENCE_MESSAGE,
   DISCOUNT_NEGATIVE_MESSAGE,
   DISCOUNT_OVER_100_PERCENT_MESSAGE,
+  PAYMENT_METHOD_REQUIRED_MESSAGE,
+  paymentGuardValidator,
   percentToAmount,
   type SaleGuardLine,
   saleGuardValidator,
@@ -162,6 +165,70 @@ describe('saleGuardValidator', () => {
       makeLine({ quantity: 2, availableStock: 5 }),
       makeLine({ referencePrice: 2000, discountAmount: 500 })
     ]);
+
+    expect(result).toEqual({ valid: true });
+  });
+});
+
+describe('paymentGuardValidator', () => {
+  it('should reject when no payment method is selected', () => {
+    const result = paymentGuardValidator({
+      paymentMethod: null,
+      total: 10000
+    });
+
+    expect(result).toEqual({
+      valid: false,
+      message: PAYMENT_METHOD_REQUIRED_MESSAGE
+    });
+  });
+
+  it('should reject cash when amountPaid is less than the total', () => {
+    const result = paymentGuardValidator({
+      paymentMethod: 'cash',
+      amountPaid: 5000,
+      total: 10000
+    });
+
+    expect(result).toEqual({
+      valid: false,
+      message: AMOUNT_PAID_INSUFFICIENT_MESSAGE
+    });
+  });
+
+  it('should reject cash when amountPaid is absent', () => {
+    const result = paymentGuardValidator({
+      paymentMethod: 'cash',
+      total: 10000
+    });
+
+    expect(result.valid).toBe(false);
+  });
+
+  it('should accept cash when amountPaid equals the total', () => {
+    const result = paymentGuardValidator({
+      paymentMethod: 'cash',
+      amountPaid: 10000,
+      total: 10000
+    });
+
+    expect(result).toEqual({ valid: true });
+  });
+
+  it('should accept card without an amountPaid', () => {
+    const result = paymentGuardValidator({
+      paymentMethod: 'card',
+      total: 10000
+    });
+
+    expect(result).toEqual({ valid: true });
+  });
+
+  it('should accept pix without an amountPaid', () => {
+    const result = paymentGuardValidator({
+      paymentMethod: 'pix',
+      total: 10000
+    });
 
     expect(result).toEqual({ valid: true });
   });

@@ -2,6 +2,7 @@ import { PdvApi } from '../../data/api';
 import type { CartItem, ConfirmSaleInput, PdvProduct } from '../entities';
 import {
   type DiscountMode,
+  paymentGuardValidator,
   percentToAmount,
   saleGuardValidator
 } from '../validators';
@@ -83,11 +84,16 @@ export class PdvCartService {
 }
 
 export class PdvSaleService {
-  // RN055/RN066/RN069: valida o carrinho (não vazio, saldo, desconto) antes
-  // de montar o payload e chamar a API — service protege o domínio, não faz
-  // HTTP direto nem mapper manual.
-  static async confirm(input: ConfirmSaleInput): Promise<string> {
-    const guard = saleGuardValidator(
+  // RN055/RN066/RN069: valida o carrinho (não vazio, saldo, desconto) e o
+  // pagamento (forma escolhida; dinheiro cobre o total) antes de montar o
+  // payload e chamar a API — service protege o domínio, não faz HTTP direto
+  // nem mapper manual. Se houver comprovante (cartão/Pix), o upload roda
+  // aqui — antes da RPC — e não a RPC diretamente com o arquivo.
+  static async confirm(
+    input: ConfirmSaleInput,
+    proofFile?: File
+  ): Promise<string> {
+    const cartGuard = saleGuardValidator(
       input.items.map((item) => ({
         quantity: item.quantity,
         availableStock: item.availableStock,
@@ -96,10 +102,30 @@ export class PdvSaleService {
       }))
     );
 
-    if (!guard.valid) {
-      throw new Error(guard.message);
+    if (!cartGuard.valid) {
+      throw new Error(cartGuard.message);
     }
 
-    return PdvApi.createPosSale(input);
+    const total = input.items.reduce(
+      (sum, item) =>
+        sum + (item.referencePrice - item.discountAmount) * item.quantity,
+      0
+    );
+
+    const paymentGuard = paymentGuardValidator({
+      paymentMethod: input.paymentMethod,
+      amountPaid: input.amountPaid,
+      total
+    });
+
+    if (!paymentGuard.valid) {
+      throw new Error(paymentGuard.message);
+    }
+
+    const paymentProofUrl = proofFile
+      ? await PdvApi.uploadPaymentProof(proofFile)
+      : input.paymentProofUrl;
+
+    return PdvApi.createPosSale({ ...input, paymentProofUrl });
   }
 }

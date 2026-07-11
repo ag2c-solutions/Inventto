@@ -24,9 +24,9 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
     <div
       data-slot="pdv-product-card"
       data-state={product.isOut ? 'is-out' : 'in-stock'}
-      className="flex flex-col gap-2 rounded-lg border bg-card p-3"
+      className="flex flex-col gap-2 rounded-lg border bg-card"
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-md">
+      <div className="relative aspect-square w-full overflow-hidden rounded-t-md">
         <ImageCard src={product.imageUrl ?? ''} alt={product.name} />
         {product.isOut && (
           <Badge variant="destructive" className="absolute right-2 top-2">
@@ -35,8 +35,8 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <span className="truncate text-sm font-medium text-foreground">
+      <div className="flex flex-col gap-1 px-3">
+        <span className="truncate text-base font-semibold text-sidebar-foreground">
           {product.name}
         </span>
         {variantValues.length > 0 && (
@@ -62,7 +62,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 px-3 pb-2">
         <span className="text-sm font-semibold text-foreground">
           {formatCurrency(formatIntegerToDecimal(product.price))}
         </span>

@@ -1390,6 +1390,9 @@ DECLARE
   v_product_name TEXT;
   v_movement_items JSONB := '[]'::jsonb;
   v_movement_payload JSONB;
+  v_payment_method public.payment_method;
+  v_amount_paid NUMERIC;
+  v_payment_proof_url TEXT;
 BEGIN
   v_org_id := (sale_data->>'organization_id')::UUID;
   v_catalog_id := (sale_data->>'catalog_id')::UUID;
@@ -1402,6 +1405,16 @@ BEGIN
   IF sale_data->'items' IS NULL OR jsonb_array_length(sale_data->'items') = 0 THEN
     RAISE EXCEPTION 'A venda precisa ter ao menos um item.';
   END IF;
+
+  -- PDV-05: forma de pagamento obrigatória; troco (dinheiro) revalidado no
+  -- servidor — não confiar só na checagem do client.
+  v_payment_method := NULLIF(sale_data->>'payment_method', '')::public.payment_method;
+  IF v_payment_method IS NULL THEN
+    RAISE EXCEPTION 'Selecione a forma de pagamento.';
+  END IF;
+
+  v_amount_paid := (sale_data->>'amount_paid')::NUMERIC;
+  v_payment_proof_url := NULLIF(sale_data->>'payment_proof_url', '');
 
   -- RN068: cliente opcional — telefone identifica/cria o cliente global
   -- (identidade compartilhada entre lojas) + perfil nesta loja; sem
@@ -1432,15 +1445,25 @@ BEGIN
   INTO v_total_amount
   FROM jsonb_array_elements(sale_data->'items') AS item;
 
+  -- PDV-05: em dinheiro, o valor recebido não pode ser menor que o total —
+  -- mesma regra já checada no client, revalidada aqui.
+  IF v_payment_method = 'cash' AND (v_amount_paid IS NULL OR v_amount_paid < v_total_amount) THEN
+    RAISE EXCEPTION 'O valor recebido é menor que o total da venda.';
+  END IF;
+
   INSERT INTO public.orders (
     organization_id, customer_id, seller_id,
     customer_name_snapshot, customer_phone_snapshot,
-    channel, catalog_id, status, total_amount
+    channel, catalog_id, status, total_amount,
+    payment_method, amount_paid, payment_proof_url
   )
   VALUES (
     v_org_id, v_customer_id, v_user_id,
     v_customer_name, v_customer_phone,
-    'pos', v_catalog_id, 'confirmed', v_total_amount
+    'pos', v_catalog_id, 'confirmed', v_total_amount,
+    v_payment_method,
+    CASE WHEN v_payment_method = 'cash' THEN v_amount_paid ELSE NULL END,
+    v_payment_proof_url
   )
   RETURNING id INTO v_order_id;
 

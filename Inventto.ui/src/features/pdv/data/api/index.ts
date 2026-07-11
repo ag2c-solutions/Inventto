@@ -1,3 +1,4 @@
+import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
 import type {
@@ -124,6 +125,15 @@ export class PdvApi {
       return row ? PdvCustomerMapper.toDomain(row) : null;
     } catch (error) {
       handlePdvError(error, 'lookupCustomer');
+    }
+  }
+
+  static async uploadPaymentProof(file: File): Promise<string> {
+    try {
+      const { url } = await CloudinaryService.uploadImage(file);
+      return url;
+    } catch (error) {
+      handlePdvError(error, 'uploadPaymentProof');
     }
   }
 }
