@@ -7,6 +7,8 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/shared/components/ui/sheet';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+import { cn } from '@/shared/utils';
 
 import { CartItemRow } from '../cart-item';
 import { CustomerSection } from '../customer-section';
@@ -37,9 +39,22 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
     handleConfirm
   } = useCartSheet(onOpenChange);
 
+  // PDV-04: mesmo Sheet do PDV-03 — só muda de lado por breakpoint (de baixo
+  // no mobile, à direita no desktop). O wireframe fala em "< lg", mas o
+  // projeto já padroniza esse corte em useIsMobile (768px, CAT-05); manter
+  // um segundo breakpoint só para o PDV criaria dois cortes "mobile"
+  // diferentes na mesma aplicação.
+  const isMobile = useIsMobile();
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col gap-0 p-0 sm:max-w-md">
+      <SheetContent
+        side={isMobile ? 'bottom' : 'right'}
+        className={cn(
+          'flex flex-col gap-0 p-0',
+          isMobile ? 'max-h-[85vh] rounded-t-lg' : 'sm:max-w-md'
+        )}
+      >
         {/* Header */}
         <SheetHeader className="border-b px-5 py-4">
           <div className="flex items-center gap-2">

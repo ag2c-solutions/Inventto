@@ -60,7 +60,11 @@ export function AddProductDialog({
 
   return (
     <Dialog open={!!product} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md gap-0 p-0">
+      {/* PDV-04: max-w-md sozinho substitui o max-w-[calc(100%-2rem)] padrão
+          do primitivo (mesma classe de max-width, tailwind-merge mantém só a
+          última) — sem o gutter mobile, o Dialog encostaria nas bordas em
+          ~390px. Reaplica o cap e só libera max-w-md a partir de sm. */}
+      <DialogContent className="max-w-[calc(100%-2rem)] gap-0 p-0 sm:max-w-md">
         {product && (
           <>
             {/* ── Header ── */}
