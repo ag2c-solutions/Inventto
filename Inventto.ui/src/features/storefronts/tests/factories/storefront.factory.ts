@@ -10,6 +10,7 @@ export const storefrontFactory = Factory.define<Storefront>(() => ({
   slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
   catalogId: faker.string.uuid(),
   catalogName: faker.commerce.productName(),
+  whatsapp: faker.phone.number(),
   state: 'live',
   publicUrl: `inventto.app/${faker.helpers.slugify(faker.company.name()).toLowerCase()}`
 }));
@@ -20,6 +21,7 @@ export const storefrontDTOFactory = Factory.define<StorefrontDTO>(() => ({
   name: faker.company.name(),
   slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
   catalog_id: faker.string.uuid(),
+  whatsapp: faker.phone.number(),
   status: 'active',
   catalog: { id: faker.string.uuid(), name: faker.commerce.productName() }
 }));

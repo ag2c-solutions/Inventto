@@ -6,7 +6,31 @@ export interface Storefront {
   slug?: string;
   catalogId?: string;
   catalogName?: string;
+  whatsapp?: string;
   state: StorefrontState;
   // inventto.app/{slug} — ausente quando não há slug definido.
   publicUrl?: string;
+}
+
+export type PublishPrereqKey = 'catalog' | 'whatsapp' | 'hours';
+
+export interface PublishStorefrontResult {
+  published: boolean;
+  // Presente só quando published=false — chaves faltantes (RN075).
+  missingPrereqs?: PublishPrereqKey[];
+}
+
+/**
+ * Erro de domínio (RN075): o servidor recusou publicar por faltar algum
+ * pré-requisito. A UI mapeia este erro para abrir o PublishDialog em vez
+ * de mostrar um toast genérico.
+ */
+export class StorefrontPrereqsMissingError extends Error {
+  readonly missing: PublishPrereqKey[];
+
+  constructor(missing: PublishPrereqKey[]) {
+    super('Faltam pré-requisitos para publicar esta vitrine.');
+    this.name = 'StorefrontPrereqsMissingError';
+    this.missing = missing;
+  }
 }

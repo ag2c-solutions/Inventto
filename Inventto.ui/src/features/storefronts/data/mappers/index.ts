@@ -9,6 +9,7 @@ export class StorefrontMapper {
       slug: dto.slug ?? undefined,
       catalogId: dto.catalog_id ?? undefined,
       catalogName: dto.catalog?.name ?? undefined,
+      whatsapp: dto.whatsapp ?? undefined,
       state: dto.status === 'active' ? 'live' : 'inactive',
       publicUrl: dto.slug ? `inventto.app/${dto.slug}` : undefined
     };

@@ -62,5 +62,21 @@ describe('StorefrontMapper', () => {
       expect(result.catalogId).toBeUndefined();
       expect(result.catalogName).toBeUndefined();
     });
+
+    it('should map the whatsapp number when present', () => {
+      const dto = storefrontDTOFactory.build({ whatsapp: '11999998888' });
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.whatsapp).toBe('11999998888');
+    });
+
+    it('should leave whatsapp undefined when absent', () => {
+      const dto = storefrontDTOFactory.build({ whatsapp: null });
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.whatsapp).toBeUndefined();
+    });
   });
 });

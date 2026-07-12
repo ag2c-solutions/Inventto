@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { StorefrontPrereqsMissingError } from '../../domain/entities';
 import { storefrontDTOFactory } from '../../tests/factories/storefront.factory';
 
 import { StorefrontApi } from './index';
@@ -99,6 +100,74 @@ describe('StorefrontApi', () => {
       mockRpc.mockResolvedValue({ error: { message: 'DB Error' } });
 
       await expect(StorefrontApi.setPublished('s1', true)).rejects.toThrow(
+        'Ocorreu um erro inesperado ao processar a vitrine.'
+      );
+    });
+  });
+
+  describe('publishStorefront', () => {
+    it('should call the publish_storefront RPC', async () => {
+      mockRpc.mockResolvedValue({ error: null });
+
+      await expect(
+        StorefrontApi.publishStorefront('s1')
+      ).resolves.not.toThrow();
+
+      expect(mockRpc).toHaveBeenCalledWith('publish_storefront', {
+        p_id: 's1'
+      });
+    });
+
+    it('should map the STOREFRONT_PREREQS_MISSING marker to StorefrontPrereqsMissingError with the missing keys', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        error: { message: 'STOREFRONT_PREREQS_MISSING:whatsapp,hours' }
+      });
+
+      await expect(StorefrontApi.publishStorefront('s1')).rejects.toSatisfy(
+        (error: unknown) => {
+          expect(error).toBeInstanceOf(StorefrontPrereqsMissingError);
+          expect((error as StorefrontPrereqsMissingError).missing).toEqual([
+            'whatsapp',
+            'hours'
+          ]);
+          return true;
+        }
+      );
+    });
+
+    it('should throw handled error when the RPC fails for other reasons', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        error: {
+          code: '42501',
+          message: 'Acesso negado: apenas gerentes ou proprietários.',
+          details: ''
+        }
+      });
+
+      await expect(StorefrontApi.publishStorefront('s1')).rejects.toThrow(
+        'Você não tem permissão para realizar alterações nas vitrines.'
+      );
+    });
+  });
+
+  describe('removeStorefront', () => {
+    it('should call the remove_storefront RPC', async () => {
+      mockRpc.mockResolvedValue({ error: null });
+
+      await expect(StorefrontApi.removeStorefront('s1')).resolves.not.toThrow();
+
+      expect(mockRpc).toHaveBeenCalledWith('remove_storefront', {
+        p_id: 's1'
+      });
+    });
+
+    it('should throw handled error when the RPC fails', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({ error: { message: 'DB Error' } });
+
+      await expect(StorefrontApi.removeStorefront('s1')).rejects.toThrow(
         'Ocorreu um erro inesperado ao processar a vitrine.'
       );
     });
