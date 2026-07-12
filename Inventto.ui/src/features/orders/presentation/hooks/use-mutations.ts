@@ -12,6 +12,13 @@ export function useClaimOrderMutation() {
     meta: { successMessage: 'Pedido assumido.' },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ORDER_KEYS.all });
+    },
+    // RN082: o RPC dá rollback ao recusar (sem commit, sem evento realtime
+    // próprio) — sem isso, o card ficaria preso no Pool na tela de quem
+    // perdeu a corrida até chegar algum outro evento. O toast de erro já
+    // sai do MutationCache global (mensagem exata em OrderAlreadyClaimedError).
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ORDER_KEYS.all });
     }
   });
 }

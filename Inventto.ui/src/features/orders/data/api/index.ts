@@ -14,6 +14,22 @@ import {
 } from '../handlers/error-handler';
 import { OrderMapper } from '../mappers';
 
+// Linha crua da tabela (payload de realtime não inclui os relacionamentos
+// de SELECT_QUERY — seller/order_items não vêm no INSERT/UPDATE do Postgres).
+// `type` (não `interface`): subscribeToTableChanges exige
+// Record<string, unknown>, que só bate estruturalmente com type aliases.
+export type OrderChangeRow = {
+  id: string;
+  status: OrderDTO['status'];
+  seller_id: string | null;
+};
+
+export interface OrderChangePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: OrderChangeRow | null;
+  old: Partial<OrderChangeRow> | null;
+}
+
 const SELECT_QUERY = `
   id,
   organization_id,
@@ -119,15 +135,20 @@ export class OrderApi {
   }
 
   // RF035: assinatura em tempo real do painel — a presentation não fala com
-  // o infra diretamente (boundaries), então o wrapper fica aqui.
+  // o infra diretamente (boundaries), então o wrapper fica aqui. Repassa
+  // eventType/new/old para a presentation diferenciar INSERT (novo pedido)
+  // de UPDATE (migração de coluna/reconciliação de concorrência RN082).
   static subscribeToChanges(
     organizationId: string,
-    onChange: () => void
+    onChange: (payload: OrderChangePayload) => void
   ): () => void {
-    return subscribeToTableChanges(`orders-board-${organizationId}`, {
-      table: 'orders',
-      filter: `organization_id=eq.${organizationId}`,
-      onChange
-    });
+    return subscribeToTableChanges<OrderChangeRow>(
+      `orders-board-${organizationId}`,
+      {
+        table: 'orders',
+        filter: `organization_id=eq.${organizationId}`,
+        onChange
+      }
+    );
   }
 }

@@ -90,6 +90,10 @@ CREATE TABLE public.orders (
   claimed_at timestamp with time zone,
   finalized_at timestamp with time zone,
 
+  -- PED-03: RN089 — quando o e-mail de "pool perto de expirar" foi enviado
+  -- (dedupe do cron, não reenvia a cada execução).
+  notified_at timestamp with time zone,
+
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
 

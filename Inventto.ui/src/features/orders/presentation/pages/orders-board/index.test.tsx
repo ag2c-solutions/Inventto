@@ -11,7 +11,7 @@ const {
   mockCancelMutate
 } = vi.hoisted(() => ({
   mockUseOrdersQuery: vi.fn(),
-  mockUseRealtimeOrders: vi.fn(),
+  mockUseRealtimeOrders: vi.fn(() => ({ newOrderIds: new Set<string>() })),
   mockUseMembersQuery: vi.fn(() => ({ data: [] })),
   mockCancelMutate: vi.fn()
 }));

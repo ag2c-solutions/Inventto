@@ -1789,3 +1789,133 @@ $$;
 GRANT EXECUTE ON FUNCTION public.cancel_order(UUID, TEXT) TO authenticated;
 
 GRANT EXECUTE ON FUNCTION public.lookup_pos_customer(UUID, TEXT) TO authenticated;
+
+-- ==============================================================================
+-- PED-03: EXPIRAÇÃO AUTOMÁTICA (RN085/RN086) + E-MAIL DE RESGATE (RN089)
+-- Ambas rodam via pg_cron, nunca chamadas pelo client — EXECUTE revogado de
+-- anon/authenticated para não ficarem expostas como RPC.
+-- ==============================================================================
+
+-- ------------------------------------------------------------------------------
+-- EXPIRE_STALE_ORDERS (RN085): pool não assumido com expires_at vencido →
+-- expired (topo de Cancelados) + libera a reserva de estoque (RN086).
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.expire_stale_orders()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.stock_reservations
+  SET status = 'released'
+  WHERE status = 'active'
+    AND order_id IN (
+      SELECT id FROM public.orders
+      WHERE status = 'pending'
+        AND seller_id IS NULL
+        AND expires_at IS NOT NULL
+        AND expires_at <= now()
+    );
+
+  UPDATE public.orders
+  SET status = 'expired', cancellation_reason = 'Expirou no Pool'
+  WHERE status = 'pending'
+    AND seller_id IS NULL
+    AND expires_at IS NOT NULL
+    AND expires_at <= now();
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.expire_stale_orders() FROM PUBLIC, anon, authenticated;
+
+-- ------------------------------------------------------------------------------
+-- NOTIFY_EXPIRING_ORDERS (RN089): pool a ≤ 30 min de expirar, ainda não
+-- assumido, ainda não notificado → e-mail (template order_expiring, Edge
+-- Function send-email) para Owner/Managers da organização. Limiar alinhado
+-- ao "perto de expirar" do Dashboard (RF036). Exige os secrets do Vault
+-- "project_url"/"service_role_key" (ver notify_expiring_orders.sql em
+-- supabase/snippets/ para o passo a passo manual) — sem eles, só WARNING.
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.notify_expiring_orders()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_order RECORD;
+  v_recipient RECORD;
+  v_project_url text;
+  v_service_role_key text;
+BEGIN
+  SELECT decrypted_secret INTO v_project_url
+  FROM vault.decrypted_secrets WHERE name = 'project_url';
+
+  SELECT decrypted_secret INTO v_service_role_key
+  FROM vault.decrypted_secrets WHERE name = 'service_role_key';
+
+  IF v_project_url IS NULL OR v_service_role_key IS NULL THEN
+    RAISE WARNING 'notify_expiring_orders: vault secrets "project_url"/"service_role_key" não configurados — envio pulado.';
+    RETURN;
+  END IF;
+
+  FOR v_order IN
+    SELECT id, organization_id
+    FROM public.orders
+    WHERE status = 'pending'
+      AND seller_id IS NULL
+      AND notified_at IS NULL
+      AND expires_at IS NOT NULL
+      AND expires_at > now()
+      AND expires_at <= now() + interval '30 minutes'
+  LOOP
+    FOR v_recipient IN
+      SELECT p.email
+      FROM public.organization_members om
+      JOIN public.profiles p ON p.id = om.profile_id
+      WHERE om.organization_id = v_order.organization_id
+        AND om.role IN ('owner', 'manager')
+        AND om.status = 'active'
+        AND p.email IS NOT NULL
+    LOOP
+      PERFORM net.http_post(
+        url := v_project_url || '/functions/v1/send-email',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer ' || v_service_role_key
+        ),
+        body := jsonb_build_object(
+          'template', 'order_expiring',
+          'to', v_recipient.email,
+          'data', jsonb_build_object('orderRef', left(v_order.id::text, 8))
+        )
+      );
+    END LOOP;
+
+    UPDATE public.orders SET notified_at = now() WHERE id = v_order.id;
+  END LOOP;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.notify_expiring_orders() FROM PUBLIC, anon, authenticated;
+
+-- ------------------------------------------------------------------------------
+-- Agendamento (pg_cron) — primeiro uso no projeto. Hospedada: habilitar a
+-- extensão em Database > Extensions antes de aplicar esta migration.
+-- ------------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname = 'expire-stale-orders';
+SELECT cron.schedule(
+  'expire-stale-orders',
+  '* * * * *',
+  $$ SELECT public.expire_stale_orders(); $$
+);
+
+SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname = 'notify-expiring-orders';
+SELECT cron.schedule(
+  'notify-expiring-orders',
+  '*/5 * * * *',
+  $$ SELECT public.notify_expiring_orders(); $$
+);
