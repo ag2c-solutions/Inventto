@@ -4,6 +4,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Form } from '@/shared/components/ui/form';
 import { Tabs, TabsContent } from '@/shared/components/ui/tabs';
 
+import { BackToStorefrontsLink } from '../../components/actions/back-to-storefronts';
 import { ConfigTabs } from '../../components/config-tabs';
 import { StorefrontPreview } from '../../components/storefront-preview';
 import { StateBadge } from '../../components/storefronts-table/pieces/state-badge';
@@ -45,6 +46,7 @@ export function StorefrontConfigPage() {
       >
         <header className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
+            <BackToStorefrontsLink />
             {isCreate ? (
               <h1 className="text-2xl leading-tight font-semibold text-foreground">
                 Nova vitrine
