@@ -193,6 +193,16 @@ export const router = createBrowserRouter([
               const { OrdersBoardPage } = await import('@/features/orders');
               return { Component: OrdersBoardPage };
             }
+          },
+          {
+            // PED-04: deep-link do Sheet de atendimento — mesma página do
+            // Kanban, que abre a Sheet a partir do :id (RLS decide 404 vs.
+            // sem permissão do lado do RPC/select).
+            path: ':id',
+            lazy: async () => {
+              const { OrdersBoardPage } = await import('@/features/orders');
+              return { Component: OrdersBoardPage };
+            }
           }
         ]
       },

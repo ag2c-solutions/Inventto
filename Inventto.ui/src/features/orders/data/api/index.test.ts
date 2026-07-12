@@ -8,44 +8,54 @@ import { orderDTOFactory } from '../../tests/factories/order.factory';
 
 import { OrderApi } from './index';
 
-const { mockSupabase, mockOverrideTypes, mockEq, mockRpc, queryBuilder } =
-  vi.hoisted(() => {
-    const mockSelect = vi.fn();
-    const mockOrder = vi.fn();
-    const mockEq = vi.fn();
-    const mockOverrideTypes = vi.fn();
-    const mockRpc = vi.fn();
+const {
+  mockSupabase,
+  mockOverrideTypes,
+  mockEq,
+  mockMaybeSingle,
+  mockRpc,
+  queryBuilder
+} = vi.hoisted(() => {
+  const mockSelect = vi.fn();
+  const mockOrder = vi.fn();
+  const mockEq = vi.fn();
+  const mockMaybeSingle = vi.fn();
+  const mockOverrideTypes = vi.fn();
+  const mockRpc = vi.fn();
 
-    const queryBuilder = {
-      select: mockSelect,
-      order: mockOrder,
-      eq: mockEq,
-      overrideTypes: mockOverrideTypes
-    };
+  const queryBuilder = {
+    select: mockSelect,
+    order: mockOrder,
+    eq: mockEq,
+    maybeSingle: mockMaybeSingle,
+    overrideTypes: mockOverrideTypes
+  };
 
-    mockSelect.mockReturnValue(queryBuilder);
-    mockOrder.mockReturnValue(queryBuilder);
-    mockEq.mockReturnValue(queryBuilder);
+  mockSelect.mockReturnValue(queryBuilder);
+  mockOrder.mockReturnValue(queryBuilder);
+  mockEq.mockReturnValue(queryBuilder);
+  mockMaybeSingle.mockReturnValue(queryBuilder);
 
-    const channelBuilder = { on: vi.fn(), subscribe: vi.fn() };
-    channelBuilder.on.mockReturnValue(channelBuilder);
-    channelBuilder.subscribe.mockReturnValue(channelBuilder);
+  const channelBuilder = { on: vi.fn(), subscribe: vi.fn() };
+  channelBuilder.on.mockReturnValue(channelBuilder);
+  channelBuilder.subscribe.mockReturnValue(channelBuilder);
 
-    return {
-      mockSupabase: {
-        from: vi.fn(() => queryBuilder),
-        rpc: mockRpc,
-        channel: vi.fn(() => channelBuilder),
-        removeChannel: vi.fn()
-      },
-      mockSelect,
-      mockOrder,
-      mockEq,
-      mockOverrideTypes,
-      mockRpc,
-      queryBuilder
-    };
-  });
+  return {
+    mockSupabase: {
+      from: vi.fn(() => queryBuilder),
+      rpc: mockRpc,
+      channel: vi.fn(() => channelBuilder),
+      removeChannel: vi.fn()
+    },
+    mockSelect,
+    mockOrder,
+    mockEq,
+    mockMaybeSingle,
+    mockOverrideTypes,
+    mockRpc,
+    queryBuilder
+  };
+});
 
 vi.mock('@/infra/supabase', () => ({
   supabase: mockSupabase
@@ -84,6 +94,40 @@ describe('OrderApi', () => {
       });
 
       await expect(OrderApi.getOrders('org-1')).rejects.toThrow(
+        'Ocorreu um erro inesperado ao processar o pedido.'
+      );
+    });
+  });
+
+  describe('getOrder', () => {
+    it('should query "orders" by id and return the mapped order', async () => {
+      const dto = orderDTOFactory.build({ id: 'o1' });
+      mockOverrideTypes.mockResolvedValue({ data: dto, error: null });
+
+      const result = await OrderApi.getOrder('o1');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('orders');
+      expect(mockEq).toHaveBeenCalledWith('id', 'o1');
+      expect(mockMaybeSingle).toHaveBeenCalled();
+      expect(result?.id).toBe('o1');
+    });
+
+    it('should return undefined when the order does not exist or is not visible to the role (404/sem permissão)', async () => {
+      mockOverrideTypes.mockResolvedValue({ data: null, error: null });
+
+      const result = await OrderApi.getOrder('missing');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw handled error on database failure', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockOverrideTypes.mockResolvedValue({
+        data: null,
+        error: { message: 'Erro DB', code: 'PGRST000' }
+      });
+
+      await expect(OrderApi.getOrder('o1')).rejects.toThrow(
         'Ocorreu um erro inesperado ao processar o pedido.'
       );
     });

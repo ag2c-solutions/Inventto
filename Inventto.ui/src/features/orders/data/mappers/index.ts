@@ -41,6 +41,7 @@ export class OrderMapper {
       address: this.toAddress(dto),
       paymentMethod: dto.payment_method ?? undefined,
       channel: dto.channel,
+      catalogName: dto.catalog?.name ?? undefined,
       cancellationReason: dto.cancellation_reason ?? undefined,
       receivedAt: new Date(dto.created_at),
       claimedAt: dto.claimed_at ? new Date(dto.claimed_at) : undefined,

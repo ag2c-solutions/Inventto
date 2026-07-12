@@ -47,4 +47,5 @@ export interface OrderDTO {
   updated_at: string;
   seller: { id: string; full_name: string } | null;
   order_items: OrderItemDTO[];
+  catalog: { name: string } | null;
 }

@@ -1,11 +1,13 @@
-import { Ban, Flag, type LucideIcon, Package, Truck } from 'lucide-react';
+import { Ban, type LucideIcon } from 'lucide-react';
 
-import type { Order, OrderMicroState } from '../../../../domain/entities';
+import type { Order } from '../../../../domain/entities';
+import { ESTEIRA_STEP_BY_MICRO_STATE } from '../../../constants';
 import {
   useAdvanceOrderMutation,
   useClaimOrderMutation,
   useFinalizeOrderMutation
 } from '../../../hooks/use-mutations';
+import { buildWhatsAppUrl } from '../../../utils/build-whatsapp-url';
 
 export interface OrderCardMenuAction {
   label: string;
@@ -20,40 +22,10 @@ export interface OrderCardChatAction {
   onClick?: () => void;
 }
 
-interface EsteiraStep {
-  label: string;
-  icon: LucideIcon;
-  kind: 'advance' | 'finalize';
-}
-
-// Esteira (RF034/§8): rótulo e RPC disparada por micro-estado. "Finalizar"
-// é sempre a etapa terminal (RN087 — consome a reserva e gera a saída).
-const ESTEIRA_STEP_BY_MICRO_STATE: Partial<
-  Record<OrderMicroState, EsteiraStep>
-> = {
-  confirming: { label: 'Iniciar separação', icon: Package, kind: 'advance' },
-  picking: { label: 'Despachar entrega', icon: Truck, kind: 'advance' },
-  delivering: { label: 'Finalizar pedido', icon: Flag, kind: 'finalize' }
-};
-
 interface UseOrderCardActionsOptions {
   order: Order;
   onOpenDetail: (order: Order) => void;
   onCancelRequest: (order: Order) => void;
-}
-
-// RN084/RF032: mensagem padrão do WhatsApp — a origem definitiva (storefront
-// de origem, whatsapp_message de VIT-05) ainda não está ligada ao pedido;
-// ver "Ponto de verificação" do PED-02.
-function buildWhatsAppUrl(order: Order): string | undefined {
-  if (!order.customerPhone) return undefined;
-
-  const digits = order.customerPhone.replace(/\D/g, '');
-  const message = encodeURIComponent(
-    `Olá, ${order.customerName ?? ''}! Sobre o seu pedido ${order.code}...`
-  );
-
-  return `https://wa.me/55${digits}?text=${message}`;
 }
 
 export function useOrderCardActions({

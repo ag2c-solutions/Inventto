@@ -108,6 +108,24 @@ describe('OrderMapper', () => {
       expect(result.sellerName).toBeUndefined();
     });
 
+    it('should map the linked catalog name to catalogName (RN083 · Origem)', () => {
+      const dto = orderDTOFactory.build({
+        catalog: { name: 'Coleção Inverno' }
+      });
+
+      const result = OrderMapper.toDomain(dto);
+
+      expect(result.catalogName).toBe('Coleção Inverno');
+    });
+
+    it('should leave catalogName undefined when there is no linked catalog', () => {
+      const dto = orderDTOFactory.build({ catalog: null });
+
+      const result = OrderMapper.toDomain(dto);
+
+      expect(result.catalogName).toBeUndefined();
+    });
+
     it('should derive a short code from the order id', () => {
       const dto = orderDTOFactory.build({ id: 'abcdef12-3456-7890' });
 

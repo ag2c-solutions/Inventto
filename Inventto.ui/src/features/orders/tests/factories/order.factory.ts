@@ -54,5 +54,6 @@ export const orderDTOFactory = Factory.define<OrderDTO>(() => ({
       unit_price: 100,
       product_name_snapshot: faker.commerce.productName()
     }
-  ]
+  ],
+  catalog: { name: faker.commerce.department() }
 }));
