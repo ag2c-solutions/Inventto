@@ -194,4 +194,124 @@ describe('StorefrontService', () => {
       expect(StorefrontApi.createStorefront).not.toHaveBeenCalled();
     });
   });
+
+  describe('uploadThemeAssets', () => {
+    const colors = {
+      primary: '#3A3631',
+      background: '#F7F5F2',
+      secondary: '#8B857D',
+      text: '#2C2A28'
+    };
+
+    it('should upload the logo/cover files when raw File objects are given', async () => {
+      const logoFile = new File(['logo'], 'logo.png', { type: 'image/png' });
+      const coverFile = new File(['cover'], 'cover.png', {
+        type: 'image/png'
+      });
+      vi.mocked(StorefrontApi.uploadLogo).mockResolvedValue(
+        'https://cdn.test/logo.png'
+      );
+      vi.mocked(StorefrontApi.uploadCover).mockResolvedValue(
+        'https://cdn.test/cover.png'
+      );
+
+      const result = await StorefrontService.uploadThemeAssets({
+        colors,
+        logoFile,
+        coverFile,
+        layout: 'grid',
+        cardStyle: 'minimal-large-image'
+      });
+
+      expect(StorefrontApi.uploadLogo).toHaveBeenCalledWith(logoFile);
+      expect(StorefrontApi.uploadCover).toHaveBeenCalledWith(coverFile);
+      expect(result).toEqual({
+        colors,
+        logoUrl: 'https://cdn.test/logo.png',
+        coverUrl: 'https://cdn.test/cover.png',
+        layout: 'grid',
+        cardStyle: 'minimal-large-image'
+      });
+    });
+
+    it('should keep the existing URLs and skip upload when no new file is given', async () => {
+      const result = await StorefrontService.uploadThemeAssets({
+        colors,
+        logoUrl: 'https://cdn.test/existing-logo.png',
+        coverUrl: 'https://cdn.test/existing-cover.png',
+        layout: 'list',
+        cardStyle: 'minimal-large-image'
+      });
+
+      expect(StorefrontApi.uploadLogo).not.toHaveBeenCalled();
+      expect(StorefrontApi.uploadCover).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        colors,
+        logoUrl: 'https://cdn.test/existing-logo.png',
+        coverUrl: 'https://cdn.test/existing-cover.png',
+        layout: 'list',
+        cardStyle: 'minimal-large-image'
+      });
+    });
+  });
+
+  describe('save with theme', () => {
+    const colors = {
+      primary: '#3A3631',
+      background: '#F7F5F2',
+      secondary: '#8B857D',
+      text: '#2C2A28'
+    };
+
+    it('should upload theme assets before updating the storefront', async () => {
+      const logoFile = new File(['logo'], 'logo.png', { type: 'image/png' });
+      vi.mocked(StorefrontApi.uploadLogo).mockResolvedValue(
+        'https://cdn.test/logo.png'
+      );
+      vi.mocked(StorefrontApi.updateStorefront).mockResolvedValue(undefined);
+
+      await StorefrontService.save(
+        {
+          organizationId: 'org-1',
+          name: 'Vitrine Ateliê Joana',
+          theme: {
+            colors,
+            logoFile,
+            layout: 'grid',
+            cardStyle: 'minimal-large-image'
+          }
+        },
+        's1'
+      );
+
+      expect(StorefrontApi.uploadLogo).toHaveBeenCalledWith(logoFile);
+      expect(StorefrontApi.updateStorefront).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 's1',
+          theme: {
+            colors,
+            logoUrl: 'https://cdn.test/logo.png',
+            coverUrl: undefined,
+            layout: 'grid',
+            cardStyle: 'minimal-large-image'
+          }
+        })
+      );
+    });
+
+    it('should save without a theme block when none is given', async () => {
+      vi.mocked(StorefrontApi.createStorefront).mockResolvedValue('new-id');
+
+      await StorefrontService.save({
+        organizationId: 'org-1',
+        name: 'Vitrine Ateliê Joana'
+      });
+
+      expect(StorefrontApi.uploadLogo).not.toHaveBeenCalled();
+      expect(StorefrontApi.uploadCover).not.toHaveBeenCalled();
+      expect(StorefrontApi.createStorefront).toHaveBeenCalledWith(
+        expect.objectContaining({ theme: undefined })
+      );
+    });
+  });
 });

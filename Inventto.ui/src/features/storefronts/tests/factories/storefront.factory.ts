@@ -15,7 +15,19 @@ export const storefrontFactory = Factory.define<Storefront>(() => ({
   facebook: `/${faker.internet.username()}`,
   website: faker.internet.url(),
   state: 'live',
-  publicUrl: `inventto.app/${faker.helpers.slugify(faker.company.name()).toLowerCase()}`
+  publicUrl: `inventto.app/${faker.helpers.slugify(faker.company.name()).toLowerCase()}`,
+  theme: {
+    colors: {
+      primary: '#3A3631',
+      background: '#F7F5F2',
+      secondary: '#8B857D',
+      text: '#2C2A28'
+    },
+    logoUrl: faker.image.url(),
+    coverUrl: faker.image.url(),
+    layout: 'grid',
+    cardStyle: 'minimal-large-image'
+  }
 }));
 
 export const storefrontDTOFactory = Factory.define<StorefrontDTO>(() => ({
@@ -29,5 +41,17 @@ export const storefrontDTOFactory = Factory.define<StorefrontDTO>(() => ({
   facebook: `/${faker.internet.username()}`,
   website: faker.internet.url(),
   status: 'active',
-  catalog: { id: faker.string.uuid(), name: faker.commerce.productName() }
+  catalog: { id: faker.string.uuid(), name: faker.commerce.productName() },
+  theme: {
+    colors: {
+      primary: '#3A3631',
+      background: '#F7F5F2',
+      secondary: '#8B857D',
+      text: '#2C2A28'
+    },
+    logo_url: faker.image.url(),
+    cover_url: faker.image.url(),
+    layout: 'grid',
+    card_style: 'minimal-large-image'
+  }
 }));

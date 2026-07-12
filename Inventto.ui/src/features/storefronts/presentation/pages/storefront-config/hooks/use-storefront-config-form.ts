@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 
 import {
-  type StorefrontGeneralFormValues,
-  storefrontGeneralSchema
+  type StorefrontConfigFormValues,
+  storefrontConfigSchema
 } from '../../../../domain/validators';
 import { useSaveStorefrontMutation } from '../../../hooks/use-mutations';
 import { useStorefrontQuery } from '../../../hooks/use-queries';
@@ -16,7 +16,7 @@ interface StorefrontParams {
 }
 
 interface UseStorefrontConfigFormReturn {
-  form: UseFormReturn<StorefrontGeneralFormValues>;
+  form: UseFormReturn<StorefrontConfigFormValues>;
   storefrontId?: string;
   isCreate: boolean;
   storefrontName: string;
@@ -30,14 +30,26 @@ interface UseStorefrontConfigFormReturn {
   setActiveTab: (tab: string) => void;
 }
 
-const DEFAULT_VALUES: StorefrontGeneralFormValues = {
+const DEFAULT_VALUES: StorefrontConfigFormValues = {
   name: '',
   catalogId: undefined,
   slug: '',
   whatsapp: '',
   instagram: '',
   facebook: '',
-  website: ''
+  website: '',
+  theme: {
+    colors: {
+      primary: '#3A3631',
+      background: '#F7F5F2',
+      secondary: '#8B857D',
+      text: '#2C2A28'
+    },
+    logoUrl: undefined,
+    coverUrl: undefined,
+    layout: 'grid',
+    cardStyle: 'minimal-large-image'
+  }
 };
 
 export function useStorefrontConfigForm(): UseStorefrontConfigFormReturn {
@@ -48,8 +60,8 @@ export function useStorefrontConfigForm(): UseStorefrontConfigFormReturn {
   const { mutateAsync: saveStorefront, isPending } =
     useSaveStorefrontMutation();
 
-  const form = useForm<StorefrontGeneralFormValues>({
-    resolver: zodResolver(storefrontGeneralSchema),
+  const form = useForm<StorefrontConfigFormValues>({
+    resolver: zodResolver(storefrontConfigSchema),
     defaultValues: DEFAULT_VALUES
   });
 
@@ -63,13 +75,20 @@ export function useStorefrontConfigForm(): UseStorefrontConfigFormReturn {
       whatsapp: storefront.whatsapp ?? '',
       instagram: storefront.instagram ?? '',
       facebook: storefront.facebook ?? '',
-      website: storefront.website ?? ''
+      website: storefront.website ?? '',
+      theme: {
+        colors: storefront.theme.colors,
+        logoUrl: storefront.theme.logoUrl,
+        coverUrl: storefront.theme.coverUrl,
+        layout: storefront.theme.layout,
+        cardStyle: storefront.theme.cardStyle
+      }
     });
   }, [storefront, form]);
 
   // Navegação para /storefronts/:id ao criar já é feita pelo
   // useSaveStorefrontMutation (mesma convenção de useCreateCatalogMutation).
-  const onSubmit = async (values: StorefrontGeneralFormValues) => {
+  const onSubmit = async (values: StorefrontConfigFormValues) => {
     await saveStorefront({ id: storefrontId, values });
   };
 

@@ -5,7 +5,10 @@ import { Form } from '@/shared/components/ui/form';
 import { Tabs, TabsContent } from '@/shared/components/ui/tabs';
 
 import { ConfigTabs } from '../../components/config-tabs';
+import { StorefrontPreview } from '../../components/storefront-preview';
 import { StateBadge } from '../../components/storefronts-table/pieces/state-badge';
+import { TabAppearance } from '../../components/tab-appearance';
+import { useThemeImageField } from '../../components/tab-appearance/hooks/use-theme-image-field';
 import { TabGeneral } from '../../components/tab-general';
 
 import { useStorefrontConfigForm } from './hooks/use-storefront-config-form';
@@ -25,6 +28,12 @@ export function StorefrontConfigPage() {
     activeTab,
     setActiveTab
   } = useStorefrontConfigForm();
+
+  const previewName = form.watch('name');
+  const previewSlug = form.watch('slug');
+  const previewTheme = form.watch('theme');
+  const logo = useThemeImageField(form, 'logoFile', 'logoUrl');
+  const cover = useThemeImageField(form, 'coverFile', 'coverUrl');
 
   return (
     <Form {...form}>
@@ -125,11 +134,22 @@ export function StorefrontConfigPage() {
 
           <TabsContent
             value="aparencia"
-            className="w-full space-y-6 rounded-2xl bg-background/20 py-4"
+            className="w-full rounded-2xl bg-background/20 py-4"
           >
-            <p className="text-sm text-muted-foreground">
-              Em breve: identidade visual, logo, capa e layout da vitrine.
-            </p>
+            <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+              <TabAppearance form={form} isSaving={isLoading} />
+              <StorefrontPreview
+                name={previewName}
+                slug={previewSlug}
+                theme={{
+                  colors: previewTheme.colors,
+                  logoUrl: logo.preview,
+                  coverUrl: cover.preview,
+                  layout: previewTheme.layout,
+                  cardStyle: previewTheme.cardStyle
+                }}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent

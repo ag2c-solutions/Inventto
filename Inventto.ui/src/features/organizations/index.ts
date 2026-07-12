@@ -4,6 +4,7 @@ export type {
   OrganizationWithDetails
 } from './domain/entities';
 export { getOrganizationId } from './domain/utils/get-organization-id';
+export { LogoChange } from './presentation/components/actions/logo-change';
 export { OrganizationSwitcher } from './presentation/components/actions/organization-switcher';
 export { useOrganizationQuery } from './presentation/hooks/use-queries';
 export { MembersListPage } from './presentation/pages/members-list';

@@ -340,7 +340,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.create_storefront(JSONB) TO authenticated;
 
 -- ==============================================================================
--- 9. UPDATE_STOREFRONT (VIT-03 · RN073)
+-- 9. UPDATE_STOREFRONT (VIT-03 · RN073 · tema estendido em VIT-04)
 -- Revalida o slug no servidor. Ao TROCAR o slug, o antigo entra em
 -- quarentena de 30 dias (mesmo mecanismo de remove_storefront).
 -- ==============================================================================
@@ -382,7 +382,10 @@ BEGIN
     whatsapp = NULLIF(payload->>'whatsapp', ''),
     instagram = NULLIF(payload->>'instagram', ''),
     facebook = NULLIF(payload->>'facebook', ''),
-    website = NULLIF(payload->>'website', '')
+    website = NULLIF(payload->>'website', ''),
+    -- VIT-04: bloco de tema (paleta/logo/capa/layout/estilo de card). '->'
+    -- (não '->>') porque o valor gravado é jsonb, não texto.
+    theme = COALESCE(payload->'theme', theme)
   WHERE id = p_id;
 
   IF v_old_slug IS NOT NULL AND v_new_slug IS NOT NULL AND v_new_slug IS DISTINCT FROM v_old_slug THEN

@@ -6,7 +6,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Form } from '@/shared/components/ui/form';
 
-import type { StorefrontGeneralFormValues } from '../../../domain/validators';
+import type { StorefrontConfigFormValues } from '../../../domain/validators';
 
 const { mockUseCatalogsQuery, mockCheckSlug } = vi.hoisted(() => ({
   mockUseCatalogsQuery: vi.fn(),
@@ -27,10 +27,10 @@ function Wrapper({
   defaultValues,
   storefrontId
 }: {
-  defaultValues: StorefrontGeneralFormValues;
+  defaultValues: StorefrontConfigFormValues;
   storefrontId?: string;
 }) {
-  const form = useForm<StorefrontGeneralFormValues>({ defaultValues });
+  const form = useForm<StorefrontConfigFormValues>({ defaultValues });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } }
   });
@@ -44,14 +44,24 @@ function Wrapper({
   );
 }
 
-const BASE_VALUES: StorefrontGeneralFormValues = {
+const BASE_VALUES: StorefrontConfigFormValues = {
   name: 'Vitrine Ateliê Joana',
   catalogId: 'cat-1',
   slug: 'atelie-joana',
   whatsapp: '11999998888',
   instagram: '@atelie.joana',
   facebook: '',
-  website: ''
+  website: '',
+  theme: {
+    colors: {
+      primary: '#3A3631',
+      background: '#F7F5F2',
+      secondary: '#8B857D',
+      text: '#2C2A28'
+    },
+    layout: 'grid',
+    cardStyle: 'minimal-large-image'
+  }
 };
 
 describe('TabGeneral', () => {
