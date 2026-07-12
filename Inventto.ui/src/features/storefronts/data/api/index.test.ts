@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { StorefrontPrereqsMissingError } from '../../domain/entities';
+import {
+  StorefrontPrereqsMissingError,
+  StorefrontSlugUnavailableError
+} from '../../domain/entities';
 import { storefrontDTOFactory } from '../../tests/factories/storefront.factory';
 
 import { StorefrontApi } from './index';
@@ -11,18 +14,21 @@ const { mockSupabase, mockOverrideTypes, mockEq, mockRpc, queryBuilder } =
     const mockOrder = vi.fn();
     const mockEq = vi.fn();
     const mockOverrideTypes = vi.fn();
+    const mockMaybeSingle = vi.fn();
     const mockRpc = vi.fn();
 
     const queryBuilder = {
       select: mockSelect,
       order: mockOrder,
       eq: mockEq,
-      overrideTypes: mockOverrideTypes
+      overrideTypes: mockOverrideTypes,
+      maybeSingle: mockMaybeSingle
     };
 
     mockSelect.mockReturnValue(queryBuilder);
     mockOrder.mockReturnValue(queryBuilder);
     mockEq.mockReturnValue(queryBuilder);
+    mockMaybeSingle.mockReturnValue(queryBuilder);
 
     return {
       mockSupabase: { from: vi.fn(() => queryBuilder), rpc: mockRpc },
@@ -30,6 +36,7 @@ const { mockSupabase, mockOverrideTypes, mockEq, mockRpc, queryBuilder } =
       mockOrder,
       mockEq,
       mockOverrideTypes,
+      mockMaybeSingle,
       mockRpc,
       queryBuilder
     };
@@ -169,6 +176,155 @@ describe('StorefrontApi', () => {
 
       await expect(StorefrontApi.removeStorefront('s1')).rejects.toThrow(
         'Ocorreu um erro inesperado ao processar a vitrine.'
+      );
+    });
+  });
+
+  describe('getStorefront', () => {
+    it('should query "storefronts" by id and return the mapped storefront', async () => {
+      const dto = storefrontDTOFactory.build({ id: 's1' });
+      mockOverrideTypes.mockResolvedValue({ data: dto, error: null });
+
+      const result = await StorefrontApi.getStorefront('s1');
+
+      expect(mockEq).toHaveBeenCalledWith('id', 's1');
+      expect(result?.id).toBe('s1');
+    });
+
+    it('should return undefined when no row is found', async () => {
+      mockOverrideTypes.mockResolvedValue({ data: null, error: null });
+
+      const result = await StorefrontApi.getStorefront('missing');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw handled error on database failure', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockOverrideTypes.mockResolvedValue({
+        data: null,
+        error: { message: 'Erro DB', code: 'PGRST000' }
+      });
+
+      await expect(StorefrontApi.getStorefront('s1')).rejects.toThrow(
+        'Ocorreu um erro inesperado ao processar a vitrine.'
+      );
+    });
+  });
+
+  describe('checkSlug', () => {
+    it('should call the check_slug_available RPC and return its payload', async () => {
+      mockRpc.mockResolvedValue({
+        data: { available: true, reason: 'ok' },
+        error: null
+      });
+
+      const result = await StorefrontApi.checkSlug('atelie-joana', 's1');
+
+      expect(mockRpc).toHaveBeenCalledWith('check_slug_available', {
+        p_slug: 'atelie-joana',
+        p_storefront_id: 's1'
+      });
+      expect(result).toEqual({ available: true, reason: 'ok' });
+    });
+
+    it('should throw handled error when the RPC fails', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({ error: { message: 'DB Error' } });
+
+      await expect(StorefrontApi.checkSlug('atelie-joana')).rejects.toThrow(
+        'Ocorreu um erro inesperado ao processar a vitrine.'
+      );
+    });
+  });
+
+  describe('createStorefront', () => {
+    const payload = {
+      organizationId: 'org-1',
+      name: 'Vitrine Ateliê Joana',
+      slug: 'atelie-joana'
+    };
+
+    it('should call the create_storefront RPC and return the new id', async () => {
+      mockRpc.mockResolvedValue({ data: 'new-id', error: null });
+
+      const result = await StorefrontApi.createStorefront(payload);
+
+      expect(mockRpc).toHaveBeenCalledWith('create_storefront', {
+        payload: {
+          organizationId: 'org-1',
+          name: 'Vitrine Ateliê Joana',
+          catalogId: null,
+          slug: 'atelie-joana',
+          whatsapp: null,
+          instagram: null,
+          facebook: null,
+          website: null
+        }
+      });
+      expect(result).toBe('new-id');
+    });
+
+    it('should map the STOREFRONT_SLUG_UNAVAILABLE marker to StorefrontSlugUnavailableError', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        error: { message: 'STOREFRONT_SLUG_UNAVAILABLE:taken' }
+      });
+
+      await expect(StorefrontApi.createStorefront(payload)).rejects.toSatisfy(
+        (error: unknown) => {
+          expect(error).toBeInstanceOf(StorefrontSlugUnavailableError);
+          expect((error as StorefrontSlugUnavailableError).reason).toBe(
+            'taken'
+          );
+          return true;
+        }
+      );
+    });
+  });
+
+  describe('updateStorefront', () => {
+    const payload = {
+      id: 's1',
+      name: 'Vitrine Ateliê Joana',
+      slug: 'atelie-joana'
+    };
+
+    it('should call the update_storefront RPC', async () => {
+      mockRpc.mockResolvedValue({ error: null });
+
+      await expect(
+        StorefrontApi.updateStorefront(payload)
+      ).resolves.not.toThrow();
+
+      expect(mockRpc).toHaveBeenCalledWith('update_storefront', {
+        p_id: 's1',
+        payload: {
+          name: 'Vitrine Ateliê Joana',
+          catalogId: null,
+          slug: 'atelie-joana',
+          whatsapp: null,
+          instagram: null,
+          facebook: null,
+          website: null
+        }
+      });
+    });
+
+    it('should map the STOREFRONT_SLUG_UNAVAILABLE marker to StorefrontSlugUnavailableError', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        error: { message: 'STOREFRONT_SLUG_UNAVAILABLE:reserved' }
+      });
+
+      await expect(StorefrontApi.updateStorefront(payload)).rejects.toSatisfy(
+        (error: unknown) => {
+          expect(error).toBeInstanceOf(StorefrontSlugUnavailableError);
+          expect((error as StorefrontSlugUnavailableError).reason).toBe(
+            'reserved'
+          );
+          return true;
+        }
       );
     });
   });

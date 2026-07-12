@@ -164,4 +164,34 @@ describe('StorefrontService', () => {
       expect(StorefrontApi.removeStorefront).not.toHaveBeenCalled();
     });
   });
+
+  describe('save', () => {
+    const payload = {
+      organizationId: 'org-1',
+      name: 'Vitrine Ateliê Joana',
+      slug: 'atelie-joana'
+    };
+
+    it('should call createStorefront when no id is given', async () => {
+      vi.mocked(StorefrontApi.createStorefront).mockResolvedValue('new-id');
+
+      const result = await StorefrontService.save(payload);
+
+      expect(StorefrontApi.createStorefront).toHaveBeenCalledWith(payload);
+      expect(result).toBe('new-id');
+    });
+
+    it('should call updateStorefront when an id is given', async () => {
+      vi.mocked(StorefrontApi.updateStorefront).mockResolvedValue(undefined);
+
+      const result = await StorefrontService.save(payload, 's1');
+
+      expect(StorefrontApi.updateStorefront).toHaveBeenCalledWith({
+        id: 's1',
+        ...payload
+      });
+      expect(result).toBe('s1');
+      expect(StorefrontApi.createStorefront).not.toHaveBeenCalled();
+    });
+  });
 });

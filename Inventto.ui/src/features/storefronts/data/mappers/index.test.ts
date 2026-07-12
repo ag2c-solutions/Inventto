@@ -78,5 +78,33 @@ describe('StorefrontMapper', () => {
 
       expect(result.whatsapp).toBeUndefined();
     });
+
+    it('should map instagram/facebook/website when present', () => {
+      const dto = storefrontDTOFactory.build({
+        instagram: '@atelie.joana',
+        facebook: '/atelie.joana',
+        website: 'https://atelie.com'
+      });
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.instagram).toBe('@atelie.joana');
+      expect(result.facebook).toBe('/atelie.joana');
+      expect(result.website).toBe('https://atelie.com');
+    });
+
+    it('should leave instagram/facebook/website undefined when absent', () => {
+      const dto = storefrontDTOFactory.build({
+        instagram: null,
+        facebook: null,
+        website: null
+      });
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.instagram).toBeUndefined();
+      expect(result.facebook).toBeUndefined();
+      expect(result.website).toBeUndefined();
+    });
   });
 });

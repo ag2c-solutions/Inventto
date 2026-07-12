@@ -1,6 +1,10 @@
+import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+import { useUser } from '@/features/users';
+
+import type { CreateStorefrontPayload } from '../../domain/entities';
 import { StorefrontService } from '../../domain/services';
 import { STOREFRONT_KEYS } from '../constants';
 
@@ -29,6 +33,35 @@ export function usePublishStorefrontMutation() {
 
       toast.success('Vitrine no ar.', { duration: 4000 });
       queryClient.invalidateQueries({ queryKey: STOREFRONT_KEYS.all });
+    }
+  });
+}
+
+interface SaveStorefrontVariables {
+  id?: string;
+  values: Omit<CreateStorefrontPayload, 'organizationId'>;
+}
+
+export function useSaveStorefrontMutation() {
+  const queryClient = useQueryClient();
+  const { currentOrganization } = useUser();
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: ({ id, values }: SaveStorefrontVariables) => {
+      if (!currentOrganization?.id) {
+        throw new Error('Organização não encontrada.');
+      }
+
+      return StorefrontService.save(
+        { ...values, organizationId: currentOrganization.id },
+        id
+      );
+    },
+    meta: { successMessage: 'Alterações salvas.' },
+    onSuccess: (id, variables) => {
+      queryClient.invalidateQueries({ queryKey: STOREFRONT_KEYS.all });
+      if (!variables.id) navigate(`/storefronts/${id}`);
     }
   });
 }

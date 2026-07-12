@@ -236,3 +236,161 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.remove_storefront(UUID) TO authenticated;
+
+-- ==============================================================================
+-- 7. CHECK_SLUG_AVAILABLE (VIT-03 · RN072/RN073)
+-- Formato, palavras reservadas (rotas do app), unicidade GLOBAL (não só na
+-- org) e quarentena (reserved_slugs, VIT-02). SECURITY DEFINER porque a
+-- unicidade global precisa enxergar vitrines de OUTRAS orgs, fora do
+-- alcance de RLS ("Members can view storefronts").
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.check_slug_available(
+  p_slug TEXT,
+  p_storefront_id UUID DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  -- Rotas do app (app/routers) + termos de sistema — mantido espelhado com
+  -- RESERVED_SLUGS em domain/validators no client.
+  v_reserved TEXT[] := ARRAY[
+    'auth', 'admin', 'api', 'app', 'login', 'signup', 'onboarding',
+    'storefronts', 'settings', 'team', 'products', 'movements', 'catalogos',
+    'pdv', 'dashboard', 'novo'
+  ];
+BEGIN
+  IF p_slug IS NULL
+    OR p_slug !~ '^[a-z0-9]+(-[a-z0-9]+)*$'
+    OR length(p_slug) < 3
+    OR length(p_slug) > 50
+    OR p_slug = ANY(v_reserved)
+  THEN
+    RETURN jsonb_build_object('available', false, 'reason', 'invalid');
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.storefronts
+    WHERE slug = p_slug AND (p_storefront_id IS NULL OR id != p_storefront_id)
+  ) THEN
+    RETURN jsonb_build_object('available', false, 'reason', 'taken');
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.reserved_slugs
+    WHERE slug = p_slug AND released_at > now()
+  ) THEN
+    RETURN jsonb_build_object('available', false, 'reason', 'reserved');
+  END IF;
+
+  RETURN jsonb_build_object('available', true, 'reason', 'ok');
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.check_slug_available(TEXT, UUID) TO authenticated;
+
+-- ==============================================================================
+-- 8. CREATE_STOREFRONT (VIT-03)
+-- Revalida o slug no servidor (não confia só no front). Aparência e
+-- Comportamento (VIT-04/05) estendem esta mesma RPC via payload jsonb.
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.create_storefront(payload JSONB)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID := (payload->>'organizationId')::uuid;
+  v_slug TEXT := NULLIF(trim(payload->>'slug'), '');
+  v_check JSONB;
+  v_id UUID;
+BEGIN
+  IF NOT public.has_role(v_org_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas gerentes ou proprietários podem criar vitrines.';
+  END IF;
+
+  IF v_slug IS NOT NULL THEN
+    v_check := public.check_slug_available(v_slug, NULL);
+    IF NOT (v_check->>'available')::boolean THEN
+      RAISE EXCEPTION 'STOREFRONT_SLUG_UNAVAILABLE:%', v_check->>'reason';
+    END IF;
+  END IF;
+
+  INSERT INTO public.storefronts (
+    organization_id, name, catalog_id, slug, whatsapp, instagram, facebook, website
+  ) VALUES (
+    v_org_id,
+    payload->>'name',
+    NULLIF(payload->>'catalogId', '')::uuid,
+    v_slug,
+    NULLIF(payload->>'whatsapp', ''),
+    NULLIF(payload->>'instagram', ''),
+    NULLIF(payload->>'facebook', ''),
+    NULLIF(payload->>'website', '')
+  )
+  RETURNING id INTO v_id;
+
+  RETURN v_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_storefront(JSONB) TO authenticated;
+
+-- ==============================================================================
+-- 9. UPDATE_STOREFRONT (VIT-03 · RN073)
+-- Revalida o slug no servidor. Ao TROCAR o slug, o antigo entra em
+-- quarentena de 30 dias (mesmo mecanismo de remove_storefront).
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.update_storefront(p_id UUID, payload JSONB)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_old_slug TEXT;
+  v_new_slug TEXT := NULLIF(trim(payload->>'slug'), '');
+  v_check JSONB;
+BEGIN
+  SELECT organization_id, slug INTO v_org_id, v_old_slug
+  FROM public.storefronts
+  WHERE id = p_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'Vitrine não encontrada.';
+  END IF;
+
+  IF NOT public.has_role(v_org_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas gerentes ou proprietários podem editar vitrines.';
+  END IF;
+
+  IF v_new_slug IS NOT NULL AND v_new_slug IS DISTINCT FROM v_old_slug THEN
+    v_check := public.check_slug_available(v_new_slug, p_id);
+    IF NOT (v_check->>'available')::boolean THEN
+      RAISE EXCEPTION 'STOREFRONT_SLUG_UNAVAILABLE:%', v_check->>'reason';
+    END IF;
+  END IF;
+
+  UPDATE public.storefronts SET
+    name = COALESCE(payload->>'name', name),
+    catalog_id = NULLIF(payload->>'catalogId', '')::uuid,
+    slug = COALESCE(v_new_slug, v_old_slug),
+    whatsapp = NULLIF(payload->>'whatsapp', ''),
+    instagram = NULLIF(payload->>'instagram', ''),
+    facebook = NULLIF(payload->>'facebook', ''),
+    website = NULLIF(payload->>'website', '')
+  WHERE id = p_id;
+
+  IF v_old_slug IS NOT NULL AND v_new_slug IS NOT NULL AND v_new_slug IS DISTINCT FROM v_old_slug THEN
+    INSERT INTO public.reserved_slugs (slug, organization_id, released_at)
+    VALUES (v_old_slug, v_org_id, now() + interval '30 days')
+    ON CONFLICT (slug) DO UPDATE SET released_at = EXCLUDED.released_at;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.update_storefront(UUID, JSONB) TO authenticated;
