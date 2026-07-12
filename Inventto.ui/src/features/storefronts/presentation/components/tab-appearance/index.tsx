@@ -90,7 +90,7 @@ export function TabAppearance({ form, isSaving }: TabAppearanceProps) {
           </div>
         </FormItem>
 
-        <FormItem className="w-full">
+        <FormItem className="w-full min-w-0 grid-cols-[minmax(0,1fr)]">
           <FormLabel>Imagem de capa</FormLabel>
           <CoverUploader
             coverSrc={cover.preview}

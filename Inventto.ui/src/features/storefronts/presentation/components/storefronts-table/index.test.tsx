@@ -11,6 +11,14 @@ vi.mock('./pieces/row-actions-menu', () => ({
   RowActionsMenu: () => <button type="button">Ações da vitrine</button>
 }));
 
+const { mockUseIsMobile } = vi.hoisted(() => ({
+  mockUseIsMobile: vi.fn(() => false)
+}));
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: mockUseIsMobile
+}));
+
 const storefronts = [
   storefrontFactory.build({
     name: 'Vitrine Ateliê Joana',
@@ -43,6 +51,7 @@ describe('StorefrontsTable', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseIsMobile.mockReturnValue(false);
   });
 
   it('should render the loading skeleton when isLoading is true', () => {
@@ -112,5 +121,43 @@ describe('StorefrontsTable', () => {
     expect(
       await screen.findByText("Nada encontrado para 'inexistente'.")
     ).toBeInTheDocument();
+  });
+
+  describe('on mobile (< lg)', () => {
+    beforeEach(() => {
+      mockUseIsMobile.mockReturnValue(true);
+    });
+
+    it('should render cards instead of a table', () => {
+      renderTable(storefronts);
+
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.getByText('Vitrine Ateliê Joana')).toBeInTheDocument();
+      expect(screen.getByText('Loja de Natal')).toBeInTheDocument();
+    });
+
+    it('should still show state, catalog and the "Criar vitrine" link', () => {
+      renderTable(storefronts);
+
+      expect(screen.getByText('No ar')).toBeInTheDocument();
+      expect(screen.getByText('Coleção Verão 2026')).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: 'Criar vitrine' })
+      ).toHaveAttribute('href', '/storefronts/novo');
+    });
+
+    it('should filter cards by name', async () => {
+      renderTable(storefronts);
+
+      await user.type(
+        screen.getByPlaceholderText('Buscar vitrine por nome'),
+        'Natal'
+      );
+
+      expect(screen.getByText('Loja de Natal')).toBeInTheDocument();
+      expect(
+        screen.queryByText('Vitrine Ateliê Joana')
+      ).not.toBeInTheDocument();
+    });
   });
 });

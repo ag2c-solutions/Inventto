@@ -41,7 +41,7 @@ export function CoverUploader({
         <ImageCard
           src={coverSrc}
           alt="Capa da vitrine"
-          className="aspect-[3/1] w-2xl rounded-md border"
+          className="aspect-[3/1] w-full rounded-md border"
         />
       ) : (
         <div className="flex aspect-[3/1] items-center justify-center gap-2 rounded-md border border-dashed bg-muted/20 text-sm text-muted-foreground">
