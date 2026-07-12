@@ -41,7 +41,11 @@ BEGIN
     website = NULLIF(payload->>'website', ''),
     -- VIT-04: bloco de tema (paleta/logo/capa/layout/estilo de card). '->'
     -- (não '->>') porque o valor gravado é jsonb, não texto.
-    theme = COALESCE(payload->'theme', theme)
+    theme = COALESCE(payload->'theme', theme),
+    -- VIT-05 · RN076: exibição de preços/esgotados + mensagem de WhatsApp.
+    show_prices = COALESCE((payload->>'showPrices')::boolean, show_prices),
+    show_sold_out = COALESCE((payload->>'showSoldOut')::boolean, show_sold_out),
+    whatsapp_message = NULLIF(payload->>'whatsappMessage', '')
   WHERE id = p_id;
 
   IF v_old_slug IS NOT NULL AND v_new_slug IS NOT NULL AND v_new_slug IS DISTINCT FROM v_old_slug THEN

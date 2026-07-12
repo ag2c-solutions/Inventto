@@ -9,6 +9,7 @@ import {
   usePublishStorefrontMutation,
   useRemoveStorefrontMutation,
   useSaveStorefrontMutation,
+  useToggleFeatureMutation,
   useUnpublishStorefrontMutation
 } from './use-mutations';
 
@@ -42,7 +43,8 @@ vi.mock('../../domain/services', () => ({
     unpublish: vi.fn(),
     publish: vi.fn(),
     remove: vi.fn(),
-    save: vi.fn()
+    save: vi.fn(),
+    setFeature: vi.fn()
   }
 }));
 
@@ -210,6 +212,38 @@ describe('storefronts mutations', () => {
         queryKey: ['storefronts']
       });
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useToggleFeatureMutation', () => {
+    it('should call StorefrontService.setFeature and invalidate the featured list', async () => {
+      vi.mocked(StorefrontService.setFeature).mockResolvedValue(undefined);
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useToggleFeatureMutation(), {
+        wrapper
+      });
+
+      result.current.mutate({
+        storefrontId: 's1',
+        productId: 'p1',
+        variantId: undefined,
+        on: true,
+        catalogProductIds: ['p1', 'p2']
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(StorefrontService.setFeature).toHaveBeenCalledWith(
+        's1',
+        'p1',
+        undefined,
+        true,
+        ['p1', 'p2']
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['storefronts', 'featured', 's1']
+      });
     });
   });
 });

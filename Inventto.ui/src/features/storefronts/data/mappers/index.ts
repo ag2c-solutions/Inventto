@@ -1,5 +1,9 @@
-import type { Storefront, StorefrontTheme } from '../../domain/entities';
-import type { StorefrontDTO } from '../dtos';
+import type {
+  FeaturedProduct,
+  Storefront,
+  StorefrontTheme
+} from '../../domain/entities';
+import type { FeaturableProductDTO, StorefrontDTO } from '../dtos';
 
 // Vitrines criadas antes do VIT-04 (ou sem tema definido ainda) têm
 // `theme = '{}'` no banco — a UI sempre trabalha com um tema completo.
@@ -43,7 +47,27 @@ export class StorefrontMapper {
         cardStyle:
           (dto.theme?.card_style as StorefrontTheme['cardStyle']) ??
           DEFAULT_THEME.cardStyle
-      }
+      },
+      showPrices: dto.show_prices,
+      showSoldOut: dto.show_sold_out,
+      whatsappMessage: dto.whatsapp_message ?? undefined
+    };
+  }
+
+  static toFeaturedProduct(
+    dto: FeaturableProductDTO,
+    isFeatured: boolean
+  ): FeaturedProduct {
+    const images = dto.product.product_images || [];
+    const primaryImage = images.find((image) => image.is_primary) ?? images[0];
+
+    return {
+      productId: dto.product_id,
+      variantId: dto.variant_id ?? undefined,
+      name: dto.product.name,
+      sku: dto.product.sku,
+      imageUrl: primaryImage?.url,
+      isFeatured
     };
   }
 }

@@ -90,3 +90,37 @@ export function useRemoveStorefrontMutation() {
     }
   });
 }
+
+interface ToggleFeatureVariables {
+  storefrontId: string;
+  productId: string;
+  variantId?: string;
+  on: boolean;
+  catalogProductIds: string[];
+}
+
+export function useToggleFeatureMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      storefrontId,
+      productId,
+      variantId,
+      on,
+      catalogProductIds
+    }: ToggleFeatureVariables) =>
+      StorefrontService.setFeature(
+        storefrontId,
+        productId,
+        variantId,
+        on,
+        catalogProductIds
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [...STOREFRONT_KEYS.all, 'featured', variables.storefrontId]
+      });
+    }
+  });
+}

@@ -114,4 +114,24 @@ export class StorefrontService {
 
     return StorefrontApi.createStorefront(payload);
   }
+
+  // RN077/RN059: só é possível destacar produto que está no catálogo
+  // vinculado a esta vitrine — a RPC também valida, mas falhar cedo aqui
+  // evita um round-trip pra um erro que a UI já sabe ser inválido (a lista
+  // de destacáveis já vem filtrada pelo catálogo).
+  static async setFeature(
+    storefrontId: string,
+    productId: string,
+    variantId: string | undefined,
+    on: boolean,
+    catalogProductIds: string[]
+  ): Promise<void> {
+    if (on && !catalogProductIds.includes(productId)) {
+      throw new Error(
+        'Este produto não pertence ao catálogo vinculado a esta vitrine.'
+      );
+    }
+
+    return StorefrontApi.setFeature(storefrontId, productId, variantId, on);
+  }
 }

@@ -27,7 +27,10 @@ export const storefrontFactory = Factory.define<Storefront>(() => ({
     coverUrl: faker.image.url(),
     layout: 'grid',
     cardStyle: 'minimal-large-image'
-  }
+  },
+  showPrices: true,
+  showSoldOut: true,
+  whatsappMessage: 'Olá! Vi sua vitrine e gostaria de fazer um pedido.'
 }));
 
 export const storefrontDTOFactory = Factory.define<StorefrontDTO>(() => ({
@@ -53,5 +56,8 @@ export const storefrontDTOFactory = Factory.define<StorefrontDTO>(() => ({
     cover_url: faker.image.url(),
     layout: 'grid',
     card_style: 'minimal-large-image'
-  }
+  },
+  show_prices: true,
+  show_sold_out: true,
+  whatsapp_message: 'Olá! Vi sua vitrine e gostaria de fazer um pedido.'
 }));

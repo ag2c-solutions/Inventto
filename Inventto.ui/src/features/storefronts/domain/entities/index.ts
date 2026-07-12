@@ -36,6 +36,10 @@ export interface Storefront {
   // inventto.app/{slug} — ausente quando não há slug definido.
   publicUrl?: string;
   theme: StorefrontTheme;
+  // RN076: preços ocultos → cliente vê "Consultar" e vai pro WhatsApp.
+  showPrices: boolean;
+  showSoldOut: boolean;
+  whatsappMessage?: string;
 }
 
 export interface UpdateStorefrontThemePayload {
@@ -56,6 +60,9 @@ export interface CreateStorefrontPayload {
   facebook?: string;
   website?: string;
   theme?: UpdateStorefrontThemePayload;
+  showPrices?: boolean;
+  showSoldOut?: boolean;
+  whatsappMessage?: string;
 }
 
 export interface UpdateStorefrontPayload {
@@ -68,6 +75,20 @@ export interface UpdateStorefrontPayload {
   facebook?: string;
   website?: string;
   theme?: UpdateStorefrontThemePayload;
+  showPrices?: boolean;
+  showSoldOut?: boolean;
+  whatsappMessage?: string;
+}
+
+// RN077: destaque é por storefront — o mesmo catálogo pode estar
+// vinculado a vitrines diferentes com destaques independentes.
+export interface FeaturedProduct {
+  productId: string;
+  variantId?: string;
+  name: string;
+  sku: string;
+  imageUrl?: string;
+  isFeatured: boolean;
 }
 
 export type SlugAvailabilityReason = 'ok' | 'taken' | 'invalid' | 'reserved';

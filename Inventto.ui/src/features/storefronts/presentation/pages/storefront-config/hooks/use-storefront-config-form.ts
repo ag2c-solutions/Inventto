@@ -49,6 +49,11 @@ const DEFAULT_VALUES: StorefrontConfigFormValues = {
     coverUrl: undefined,
     layout: 'grid',
     cardStyle: 'minimal-large-image'
+  },
+  behavior: {
+    showPrices: true,
+    showSoldOut: true,
+    whatsappMessage: ''
   }
 };
 
@@ -82,14 +87,25 @@ export function useStorefrontConfigForm(): UseStorefrontConfigFormReturn {
         coverUrl: storefront.theme.coverUrl,
         layout: storefront.theme.layout,
         cardStyle: storefront.theme.cardStyle
+      },
+      behavior: {
+        showPrices: storefront.showPrices,
+        showSoldOut: storefront.showSoldOut,
+        whatsappMessage: storefront.whatsappMessage ?? ''
       }
     });
   }, [storefront, form]);
 
   // Navegação para /storefronts/:id ao criar já é feita pelo
   // useSaveStorefrontMutation (mesma convenção de useCreateCatalogMutation).
-  const onSubmit = async (values: StorefrontConfigFormValues) => {
-    await saveStorefront({ id: storefrontId, values });
+  const onSubmit = async ({
+    behavior,
+    ...values
+  }: StorefrontConfigFormValues) => {
+    await saveStorefront({
+      id: storefrontId,
+      values: { ...values, ...behavior }
+    });
   };
 
   return {

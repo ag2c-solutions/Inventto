@@ -31,7 +31,10 @@ const { mockSupabase, mockOverrideTypes, mockEq, mockRpc, queryBuilder } =
     mockMaybeSingle.mockReturnValue(queryBuilder);
 
     return {
-      mockSupabase: { from: vi.fn(() => queryBuilder), rpc: mockRpc },
+      mockSupabase: {
+        from: vi.fn((_table?: string) => queryBuilder),
+        rpc: mockRpc
+      },
       mockSelect,
       mockOrder,
       mockEq,
@@ -259,7 +262,8 @@ describe('StorefrontApi', () => {
           whatsapp: null,
           instagram: null,
           facebook: null,
-          website: null
+          website: null,
+          whatsappMessage: null
         }
       });
       expect(result).toBe('new-id');
@@ -306,7 +310,8 @@ describe('StorefrontApi', () => {
           whatsapp: null,
           instagram: null,
           facebook: null,
-          website: null
+          website: null,
+          whatsappMessage: null
         }
       });
     });
@@ -326,6 +331,189 @@ describe('StorefrontApi', () => {
           return true;
         }
       );
+    });
+  });
+
+  describe('getFeaturableProducts', () => {
+    it('should merge catalog items with the featured flags from storefront_featured_products', async () => {
+      const catalogItemsBuilder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        overrideTypes: vi.fn().mockResolvedValue({
+          data: [
+            {
+              product_id: 'p1',
+              variant_id: null,
+              product: {
+                id: 'p1',
+                name: 'Vestido Linho',
+                sku: 'VL-01',
+                product_images: [
+                  { url: 'https://cdn.test/p1.png', is_primary: true }
+                ]
+              }
+            },
+            {
+              product_id: 'p2',
+              variant_id: null,
+              product: {
+                id: 'p2',
+                name: 'Camisa Social',
+                sku: 'CS-01',
+                product_images: []
+              }
+            }
+          ],
+          error: null
+        })
+      };
+      const featuredBuilder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({
+          data: [{ product_id: 'p1' }],
+          error: null
+        })
+      };
+      mockSupabase.from.mockImplementation(((table: string) => {
+        if (table === 'catalog_items') return catalogItemsBuilder;
+        if (table === 'storefront_featured_products') return featuredBuilder;
+        return queryBuilder;
+      }) as typeof mockSupabase.from);
+
+      const result = await StorefrontApi.getFeaturableProducts('s1', 'cat-1');
+
+      expect(catalogItemsBuilder.eq).toHaveBeenCalledWith(
+        'catalog_id',
+        'cat-1'
+      );
+      expect(featuredBuilder.eq).toHaveBeenCalledWith('storefront_id', 's1');
+      expect(result).toEqual([
+        {
+          productId: 'p1',
+          variantId: undefined,
+          name: 'Vestido Linho',
+          sku: 'VL-01',
+          imageUrl: 'https://cdn.test/p1.png',
+          isFeatured: true
+        },
+        {
+          productId: 'p2',
+          variantId: undefined,
+          name: 'Camisa Social',
+          sku: 'CS-01',
+          imageUrl: undefined,
+          isFeatured: false
+        }
+      ]);
+    });
+
+    it('should dedupe products that appear multiple times (one row per variant)', async () => {
+      const catalogItemsBuilder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        overrideTypes: vi.fn().mockResolvedValue({
+          data: [
+            {
+              product_id: 'p1',
+              variant_id: 'v1',
+              product: {
+                id: 'p1',
+                name: 'Camisa Social',
+                sku: 'CS-M',
+                product_images: []
+              }
+            },
+            {
+              product_id: 'p1',
+              variant_id: 'v2',
+              product: {
+                id: 'p1',
+                name: 'Camisa Social',
+                sku: 'CS-G',
+                product_images: []
+              }
+            }
+          ],
+          error: null
+        })
+      };
+      const featuredBuilder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: [], error: null })
+      };
+      mockSupabase.from.mockImplementation(((table: string) => {
+        if (table === 'catalog_items') return catalogItemsBuilder;
+        if (table === 'storefront_featured_products') return featuredBuilder;
+        return queryBuilder;
+      }) as typeof mockSupabase.from);
+
+      const result = await StorefrontApi.getFeaturableProducts('s1', 'cat-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].productId).toBe('p1');
+    });
+
+    it('should throw handled error when the catalog items query fails', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      const catalogItemsBuilder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        overrideTypes: vi
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'DB Error' } })
+      };
+      const featuredBuilder = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: [], error: null })
+      };
+      mockSupabase.from.mockImplementation(((table: string) => {
+        if (table === 'catalog_items') return catalogItemsBuilder;
+        if (table === 'storefront_featured_products') return featuredBuilder;
+        return queryBuilder;
+      }) as typeof mockSupabase.from);
+
+      await expect(
+        StorefrontApi.getFeaturableProducts('s1', 'cat-1')
+      ).rejects.toThrow('Ocorreu um erro inesperado ao processar a vitrine.');
+    });
+  });
+
+  describe('setFeature', () => {
+    it('should call the set_storefront_feature RPC to feature a product', async () => {
+      mockRpc.mockResolvedValue({ error: null });
+
+      await expect(
+        StorefrontApi.setFeature('s1', 'p1', undefined, true)
+      ).resolves.not.toThrow();
+
+      expect(mockRpc).toHaveBeenCalledWith('set_storefront_feature', {
+        p_storefront_id: 's1',
+        p_product_id: 'p1',
+        p_variant_id: null,
+        p_on: true
+      });
+    });
+
+    it('should call the set_storefront_feature RPC to unfeature a product', async () => {
+      mockRpc.mockResolvedValue({ error: null });
+
+      await StorefrontApi.setFeature('s1', 'p1', 'v1', false);
+
+      expect(mockRpc).toHaveBeenCalledWith('set_storefront_feature', {
+        p_storefront_id: 's1',
+        p_product_id: 'p1',
+        p_variant_id: 'v1',
+        p_on: false
+      });
+    });
+
+    it('should throw handled error when the RPC fails', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({ error: { message: 'DB Error' } });
+
+      await expect(
+        StorefrontApi.setFeature('s1', 'p1', undefined, true)
+      ).rejects.toThrow('Ocorreu um erro inesperado ao processar a vitrine.');
     });
   });
 });

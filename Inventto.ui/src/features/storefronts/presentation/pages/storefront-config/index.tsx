@@ -4,11 +4,13 @@ import { Button } from '@/shared/components/ui/button';
 import { Form } from '@/shared/components/ui/form';
 import { Tabs, TabsContent } from '@/shared/components/ui/tabs';
 
+import { BackToStorefrontsLink } from '../../components/actions/back-to-storefronts';
 import { ConfigTabs } from '../../components/config-tabs';
 import { StorefrontPreview } from '../../components/storefront-preview';
 import { StateBadge } from '../../components/storefronts-table/pieces/state-badge';
 import { TabAppearance } from '../../components/tab-appearance';
 import { useThemeImageField } from '../../components/tab-appearance/hooks/use-theme-image-field';
+import { TabBehavior } from '../../components/tab-behavior';
 import { TabGeneral } from '../../components/tab-general';
 
 import { useStorefrontConfigForm } from './hooks/use-storefront-config-form';
@@ -32,6 +34,7 @@ export function StorefrontConfigPage() {
   const previewName = form.watch('name');
   const previewSlug = form.watch('slug');
   const previewTheme = form.watch('theme');
+  const previewShowPrices = form.watch('behavior.showPrices');
   const logo = useThemeImageField(form, 'logoFile', 'logoUrl');
   const cover = useThemeImageField(form, 'coverFile', 'coverUrl');
 
@@ -43,6 +46,7 @@ export function StorefrontConfigPage() {
       >
         <header className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
+            <BackToStorefrontsLink />
             {isCreate ? (
               <h1 className="text-2xl leading-tight font-semibold text-foreground">
                 Nova vitrine
@@ -148,17 +152,20 @@ export function StorefrontConfigPage() {
                   layout: previewTheme.layout,
                   cardStyle: previewTheme.cardStyle
                 }}
+                showPrices={previewShowPrices}
               />
             </div>
           </TabsContent>
 
           <TabsContent
             value="comportamento"
-            className="w-full space-y-6 rounded-2xl bg-background/20 py-4"
+            className="w-full rounded-2xl bg-background/20 py-4"
           >
-            <p className="text-sm text-muted-foreground">
-              Em breve: exibição de preços, produtos esgotados e destaques.
-            </p>
+            <TabBehavior
+              form={form}
+              storefrontId={storefrontId}
+              isSaving={isLoading}
+            />
           </TabsContent>
         </Tabs>
       </form>

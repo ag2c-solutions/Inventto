@@ -24,7 +24,8 @@ BEGIN
   END IF;
 
   INSERT INTO public.storefronts (
-    organization_id, name, catalog_id, slug, whatsapp, instagram, facebook, website
+    organization_id, name, catalog_id, slug, whatsapp, instagram, facebook, website,
+    show_prices, show_sold_out, whatsapp_message
   ) VALUES (
     v_org_id,
     payload->>'name',
@@ -33,7 +34,10 @@ BEGIN
     NULLIF(payload->>'whatsapp', ''),
     NULLIF(payload->>'instagram', ''),
     NULLIF(payload->>'facebook', ''),
-    NULLIF(payload->>'website', '')
+    NULLIF(payload->>'website', ''),
+    COALESCE((payload->>'showPrices')::boolean, true),
+    COALESCE((payload->>'showSoldOut')::boolean, true),
+    NULLIF(payload->>'whatsappMessage', '')
   )
   RETURNING id INTO v_id;
 

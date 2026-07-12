@@ -320,7 +320,8 @@ BEGIN
   END IF;
 
   INSERT INTO public.storefronts (
-    organization_id, name, catalog_id, slug, whatsapp, instagram, facebook, website
+    organization_id, name, catalog_id, slug, whatsapp, instagram, facebook, website,
+    show_prices, show_sold_out, whatsapp_message
   ) VALUES (
     v_org_id,
     payload->>'name',
@@ -329,7 +330,10 @@ BEGIN
     NULLIF(payload->>'whatsapp', ''),
     NULLIF(payload->>'instagram', ''),
     NULLIF(payload->>'facebook', ''),
-    NULLIF(payload->>'website', '')
+    NULLIF(payload->>'website', ''),
+    COALESCE((payload->>'showPrices')::boolean, true),
+    COALESCE((payload->>'showSoldOut')::boolean, true),
+    NULLIF(payload->>'whatsappMessage', '')
   )
   RETURNING id INTO v_id;
 
@@ -340,7 +344,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.create_storefront(JSONB) TO authenticated;
 
 -- ==============================================================================
--- 9. UPDATE_STOREFRONT (VIT-03 · RN073 · tema estendido em VIT-04)
+-- 9. UPDATE_STOREFRONT (VIT-03 · RN073 · tema em VIT-04 · comportamento em VIT-05)
 -- Revalida o slug no servidor. Ao TROCAR o slug, o antigo entra em
 -- quarentena de 30 dias (mesmo mecanismo de remove_storefront).
 -- ==============================================================================
@@ -385,7 +389,11 @@ BEGIN
     website = NULLIF(payload->>'website', ''),
     -- VIT-04: bloco de tema (paleta/logo/capa/layout/estilo de card). '->'
     -- (não '->>') porque o valor gravado é jsonb, não texto.
-    theme = COALESCE(payload->'theme', theme)
+    theme = COALESCE(payload->'theme', theme),
+    -- VIT-05 · RN076: exibição de preços/esgotados + mensagem de WhatsApp.
+    show_prices = COALESCE((payload->>'showPrices')::boolean, show_prices),
+    show_sold_out = COALESCE((payload->>'showSoldOut')::boolean, show_sold_out),
+    whatsapp_message = NULLIF(payload->>'whatsappMessage', '')
   WHERE id = p_id;
 
   IF v_old_slug IS NOT NULL AND v_new_slug IS NOT NULL AND v_new_slug IS DISTINCT FROM v_old_slug THEN
@@ -397,3 +405,88 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.update_storefront(UUID, JSONB) TO authenticated;
+
+-- ==============================================================================
+-- 10. STOREFRONT_FEATURED_PRODUCTS (VIT-05 · RN077)
+-- Destaque é por storefront (não por catálogo): a mesma vitrine que
+-- compartilha catálogo com outra pode destacar produtos diferentes.
+-- Granularidade por produto (o wireframe lista por SKU, não por variante);
+-- variant_id fica disponível para uso futuro mas não é exposto na UI v1.
+-- ==============================================================================
+CREATE TABLE public.storefront_featured_products (
+  storefront_id uuid NOT NULL REFERENCES public.storefronts(id) ON DELETE CASCADE,
+  product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  variant_id uuid REFERENCES public.product_variants(id) ON DELETE CASCADE,
+  -- Ordem de destaque no topo da vitrine — sem UI de reordenar na v1
+  -- (fica pronta para quando existir), então cai na ordem de inserção.
+  position int,
+  created_at timestamp with time zone DEFAULT now(),
+
+  CONSTRAINT storefront_featured_products_pkey PRIMARY KEY (storefront_id, product_id)
+);
+
+ALTER TABLE public.storefront_featured_products ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Members can view featured products" ON public.storefront_featured_products
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.storefronts s
+    WHERE s.id = storefront_id AND public.is_org_member(s.organization_id)
+  )
+);
+-- Escrita só pela RPC SECURITY DEFINER abaixo — sem policy de INSERT/DELETE.
+
+-- ==============================================================================
+-- 11. SET_STOREFRONT_FEATURE (VIT-05 · RN077/RN059)
+-- Liga/desliga o destaque de um produto nesta vitrine. Ao ligar, exige que
+-- o produto esteja no catálogo vinculado ao storefront (RN059) — coerência
+-- entre o que a vitrine vende e o que ela pode destacar.
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION public.set_storefront_feature(
+  p_storefront_id UUID,
+  p_product_id UUID,
+  p_variant_id UUID DEFAULT NULL,
+  p_on BOOLEAN DEFAULT true
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_catalog_id UUID;
+BEGIN
+  SELECT organization_id, catalog_id INTO v_org_id, v_catalog_id
+  FROM public.storefronts
+  WHERE id = p_storefront_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'Vitrine não encontrada.';
+  END IF;
+
+  IF NOT public.has_role(v_org_id, 'manager') THEN
+    RAISE EXCEPTION 'Acesso negado: apenas gerentes ou proprietários podem destacar produtos.';
+  END IF;
+
+  IF p_on THEN
+    IF v_catalog_id IS NULL OR NOT EXISTS (
+      SELECT 1 FROM public.catalog_items
+      WHERE catalog_id = v_catalog_id
+        AND product_id = p_product_id
+        AND variant_id IS NOT DISTINCT FROM p_variant_id
+    ) THEN
+      RAISE EXCEPTION 'Este produto não pertence ao catálogo vinculado a esta vitrine.';
+    END IF;
+
+    INSERT INTO public.storefront_featured_products (storefront_id, product_id, variant_id)
+    VALUES (p_storefront_id, p_product_id, p_variant_id)
+    ON CONFLICT (storefront_id, product_id) DO NOTHING;
+  ELSE
+    DELETE FROM public.storefront_featured_products
+    WHERE storefront_id = p_storefront_id AND product_id = p_product_id;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.set_storefront_feature(UUID, UUID, UUID, BOOLEAN) TO authenticated;

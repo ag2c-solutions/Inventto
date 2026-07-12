@@ -3,6 +3,7 @@ import { supabase } from '@/infra/supabase';
 
 import {
   type CreateStorefrontPayload,
+  type FeaturedProduct,
   type PublishPrereqKey,
   type SlugAvailability,
   type SlugAvailabilityReason,
@@ -12,7 +13,7 @@ import {
   type UpdateStorefrontPayload,
   type UpdateStorefrontThemePayload
 } from '../../domain/entities';
-import type { StorefrontDTO } from '../dtos';
+import type { FeaturableProductDTO, StorefrontDTO } from '../dtos';
 import {
   handleStorefrontError,
   PREREQS_MISSING_ERROR_MARKER,
@@ -32,7 +33,21 @@ const SELECT_QUERY = `
   website,
   status,
   catalog:catalogs(id, name),
-  theme
+  theme,
+  show_prices,
+  show_sold_out,
+  whatsapp_message
+`;
+
+const FEATURABLE_SELECT_QUERY = `
+  product_id,
+  variant_id,
+  product:products(
+    id,
+    name,
+    sku,
+    product_images(url, is_primary)
+  )
 `;
 
 function parseMissingPrereqs(message: string): PublishPrereqKey[] {
@@ -71,7 +86,10 @@ function toStorefrontRpcPayload(
     instagram: payload.instagram ?? null,
     facebook: payload.facebook ?? null,
     website: payload.website ?? null,
-    theme: payload.theme ? toThemeRpcPayload(payload.theme) : undefined
+    theme: payload.theme ? toThemeRpcPayload(payload.theme) : undefined,
+    showPrices: payload.showPrices,
+    showSoldOut: payload.showSoldOut,
+    whatsappMessage: payload.whatsappMessage ?? null
   };
 }
 
@@ -214,6 +232,71 @@ export class StorefrontApi {
       return url;
     } catch (error) {
       handleStorefrontError(error, 'uploadCover');
+    }
+  }
+
+  static async getFeaturableProducts(
+    storefrontId: string,
+    catalogId: string
+  ): Promise<FeaturedProduct[]> {
+    try {
+      const [itemsResult, featuredResult] = await Promise.all([
+        supabase
+          .from('catalog_items')
+          .select(FEATURABLE_SELECT_QUERY)
+          .eq('catalog_id', catalogId)
+          .overrideTypes<FeaturableProductDTO[], { merge: false }>(),
+        supabase
+          .from('storefront_featured_products')
+          .select('product_id')
+          .eq('storefront_id', storefrontId)
+      ]);
+
+      if (itemsResult.error) throw itemsResult.error;
+      if (featuredResult.error) throw featuredResult.error;
+
+      const featuredIds = new Set(
+        (featuredResult.data ?? []).map((row) => row.product_id)
+      );
+
+      // RN077: destaque é por produto (PK de storefront_featured_products
+      // não inclui variant_id) — um produto com várias variantes aparece
+      // várias vezes em catalog_items, mas só uma vez na lista de destaques.
+      const uniqueByProduct = new Map<string, FeaturableProductDTO>();
+      for (const item of itemsResult.data) {
+        if (!uniqueByProduct.has(item.product_id)) {
+          uniqueByProduct.set(item.product_id, item);
+        }
+      }
+
+      return Array.from(uniqueByProduct.values()).map((item) =>
+        StorefrontMapper.toFeaturedProduct(
+          item,
+          featuredIds.has(item.product_id)
+        )
+      );
+    } catch (error) {
+      handleStorefrontError(error, 'getFeaturableProducts');
+    }
+  }
+
+  static async setFeature(
+    storefrontId: string,
+    productId: string,
+    variantId: string | undefined,
+    on: boolean
+  ): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('set_storefront_feature', {
+        p_storefront_id: storefrontId,
+        p_product_id: productId,
+        p_variant_id: variantId ?? null,
+        p_on: on
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      handleStorefrontError(error, 'setFeature');
     }
   }
 

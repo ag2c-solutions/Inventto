@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   isSlugFormatValid,
   MAX_THEME_IMAGE_SIZE_MB,
+  MAX_WHATSAPP_MESSAGE_LENGTH,
   removeConfirmationValidator,
+  storefrontBehaviorSchema,
   storefrontGeneralSchema,
   storefrontThemeSchema
 } from './index';
@@ -229,5 +231,51 @@ describe('storefrontThemeSchema', () => {
       coverFile: buildFile(1, 'application/pdf')
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('storefrontBehaviorSchema', () => {
+  const base = {
+    showPrices: true,
+    showSoldOut: true,
+    whatsappMessage: ''
+  };
+
+  it('should accept the default toggles and an empty message', () => {
+    const result = storefrontBehaviorSchema.safeParse(base);
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept both toggles off', () => {
+    const result = storefrontBehaviorSchema.safeParse({
+      ...base,
+      showPrices: false,
+      showSoldOut: false
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept a message within the limit', () => {
+    const result = storefrontBehaviorSchema.safeParse({
+      ...base,
+      whatsappMessage: 'Olá! Vi sua vitrine e gostaria de fazer um pedido.'
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject a message over the limit', () => {
+    const result = storefrontBehaviorSchema.safeParse({
+      ...base,
+      whatsappMessage: 'a'.repeat(MAX_WHATSAPP_MESSAGE_LENGTH + 1)
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should accept exactly the limit', () => {
+    const result = storefrontBehaviorSchema.safeParse({
+      ...base,
+      whatsappMessage: 'a'.repeat(MAX_WHATSAPP_MESSAGE_LENGTH)
+    });
+    expect(result.success).toBe(true);
   });
 });

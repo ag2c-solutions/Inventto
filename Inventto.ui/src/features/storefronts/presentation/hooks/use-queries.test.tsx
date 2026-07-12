@@ -7,6 +7,7 @@ import { storefrontFactory } from '../../tests/factories/storefront.factory';
 
 import {
   useCheckSlugQuery,
+  useFeaturableProductsQuery,
   useStorefrontQuery,
   useStorefrontsQuery
 } from './use-queries';
@@ -15,7 +16,8 @@ vi.mock('../../data/api', () => ({
   StorefrontApi: {
     getStorefronts: vi.fn(),
     getStorefront: vi.fn(),
-    checkSlug: vi.fn()
+    checkSlug: vi.fn(),
+    getFeaturableProducts: vi.fn()
   }
 }));
 
@@ -158,5 +160,67 @@ describe('useCheckSlugQuery', () => {
     await waitFor(() =>
       expect(StorefrontApi.checkSlug).toHaveBeenCalledWith('atelie-joana', 's1')
     );
+  });
+});
+
+describe('useFeaturableProductsQuery', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('should fetch featurable products for the storefront and catalog', async () => {
+    const products = [
+      {
+        productId: 'p1',
+        name: 'Vestido Linho',
+        sku: 'VL-01',
+        isFeatured: true
+      }
+    ];
+    vi.mocked(StorefrontApi.getFeaturableProducts).mockResolvedValue(products);
+
+    const { result } = renderHook(
+      () => useFeaturableProductsQuery('s1', 'cat-1'),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(StorefrontApi.getFeaturableProducts).toHaveBeenCalledWith(
+      's1',
+      'cat-1'
+    );
+    expect(result.current.data).toEqual(products);
+  });
+
+  it('should not execute the query without a storefrontId', async () => {
+    const { result } = renderHook(
+      () => useFeaturableProductsQuery(undefined, 'cat-1'),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'));
+
+    expect(StorefrontApi.getFeaturableProducts).not.toHaveBeenCalled();
+  });
+
+  it('should not execute the query without a catalogId', async () => {
+    const { result } = renderHook(
+      () => useFeaturableProductsQuery('s1', undefined),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'));
+
+    expect(StorefrontApi.getFeaturableProducts).not.toHaveBeenCalled();
   });
 });
