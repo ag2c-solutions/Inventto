@@ -61,6 +61,11 @@ const BASE_VALUES: StorefrontConfigFormValues = {
     },
     layout: 'grid',
     cardStyle: 'minimal-large-image'
+  },
+  behavior: {
+    showPrices: true,
+    showSoldOut: true,
+    whatsappMessage: ''
   }
 };
 

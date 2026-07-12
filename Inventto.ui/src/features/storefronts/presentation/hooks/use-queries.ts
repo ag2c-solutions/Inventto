@@ -41,3 +41,15 @@ export function useCheckSlugQuery(slug: string, storefrontId?: string) {
 
   return { ...query, isSettled: trimmed === debounced && !query.isFetching };
 }
+
+export function useFeaturableProductsQuery(
+  storefrontId?: string,
+  catalogId?: string
+) {
+  return useQuery({
+    queryKey: [...STOREFRONT_KEYS.all, 'featured', storefrontId, catalogId],
+    queryFn: () =>
+      StorefrontApi.getFeaturableProducts(storefrontId!, catalogId!),
+    enabled: !!storefrontId && !!catalogId
+  });
+}

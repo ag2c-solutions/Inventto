@@ -313,5 +313,69 @@ describe('StorefrontService', () => {
         expect.objectContaining({ theme: undefined })
       );
     });
+
+    it('should pass through showPrices/showSoldOut/whatsappMessage', async () => {
+      vi.mocked(StorefrontApi.createStorefront).mockResolvedValue('new-id');
+
+      await StorefrontService.save({
+        organizationId: 'org-1',
+        name: 'Vitrine Ateliê Joana',
+        showPrices: false,
+        showSoldOut: true,
+        whatsappMessage: 'Olá!'
+      });
+
+      expect(StorefrontApi.createStorefront).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showPrices: false,
+          showSoldOut: true,
+          whatsappMessage: 'Olá!'
+        })
+      );
+    });
+  });
+
+  describe('setFeature', () => {
+    it('should call the API when the product is in the linked catalog', async () => {
+      vi.mocked(StorefrontApi.setFeature).mockResolvedValue(undefined);
+
+      await StorefrontService.setFeature('s1', 'p1', undefined, true, [
+        'p1',
+        'p2'
+      ]);
+
+      expect(StorefrontApi.setFeature).toHaveBeenCalledWith(
+        's1',
+        'p1',
+        undefined,
+        true
+      );
+    });
+
+    it('should reject without calling the API when featuring a product outside the linked catalog', async () => {
+      await expect(
+        StorefrontService.setFeature('s1', 'p3', undefined, true, ['p1', 'p2'])
+      ).rejects.toThrow(
+        'Este produto não pertence ao catálogo vinculado a esta vitrine.'
+      );
+
+      expect(StorefrontApi.setFeature).not.toHaveBeenCalled();
+    });
+
+    it('should allow unfeaturing a product even if it is no longer in the catalog list', async () => {
+      vi.mocked(StorefrontApi.setFeature).mockResolvedValue(undefined);
+
+      await StorefrontService.setFeature('s1', 'p3', undefined, false, [
+        'p1',
+        'p2'
+      ]);
+
+      expect(StorefrontApi.setFeature).toHaveBeenCalledWith(
+        's1',
+        'p3',
+        undefined,
+        false
+      );
+    });
   });
 });

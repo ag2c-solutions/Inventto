@@ -102,8 +102,30 @@ export const storefrontThemeSchema = z.object({
 
 export type StorefrontThemeFormValues = z.infer<typeof storefrontThemeSchema>;
 
+// RN076/RN077: sem limite de negócio documentado para a mensagem — só um
+// teto razoável pra evitar textos absurdos no campo livre.
+export const MAX_WHATSAPP_MESSAGE_LENGTH = 500;
+
+export const storefrontBehaviorSchema = z.object({
+  showPrices: z.boolean(),
+  showSoldOut: z.boolean(),
+  whatsappMessage: z
+    .string()
+    .trim()
+    .max(
+      MAX_WHATSAPP_MESSAGE_LENGTH,
+      `A mensagem deve ter até ${MAX_WHATSAPP_MESSAGE_LENGTH} caracteres.`
+    )
+    .optional()
+});
+
+export type StorefrontBehaviorFormValues = z.infer<
+  typeof storefrontBehaviorSchema
+>;
+
 export const storefrontConfigSchema = storefrontGeneralSchema.extend({
-  theme: storefrontThemeSchema
+  theme: storefrontThemeSchema,
+  behavior: storefrontBehaviorSchema
 });
 
 export type StorefrontConfigFormValues = z.infer<typeof storefrontConfigSchema>;

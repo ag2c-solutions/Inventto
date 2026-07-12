@@ -24,4 +24,18 @@ export interface StorefrontDTO {
   status: 'active' | 'inactive';
   catalog: { id: string; name: string } | null;
   theme: StorefrontThemeDTO;
+  show_prices: boolean;
+  show_sold_out: boolean;
+  whatsapp_message: string | null;
+}
+
+export interface FeaturableProductDTO {
+  product_id: string;
+  variant_id: string | null;
+  product: {
+    id: string;
+    name: string;
+    sku: string;
+    product_images: Array<{ url: string; is_primary: boolean }>;
+  };
 }

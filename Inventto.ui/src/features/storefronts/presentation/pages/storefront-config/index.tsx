@@ -9,6 +9,7 @@ import { StorefrontPreview } from '../../components/storefront-preview';
 import { StateBadge } from '../../components/storefronts-table/pieces/state-badge';
 import { TabAppearance } from '../../components/tab-appearance';
 import { useThemeImageField } from '../../components/tab-appearance/hooks/use-theme-image-field';
+import { TabBehavior } from '../../components/tab-behavior';
 import { TabGeneral } from '../../components/tab-general';
 
 import { useStorefrontConfigForm } from './hooks/use-storefront-config-form';
@@ -32,6 +33,7 @@ export function StorefrontConfigPage() {
   const previewName = form.watch('name');
   const previewSlug = form.watch('slug');
   const previewTheme = form.watch('theme');
+  const previewShowPrices = form.watch('behavior.showPrices');
   const logo = useThemeImageField(form, 'logoFile', 'logoUrl');
   const cover = useThemeImageField(form, 'coverFile', 'coverUrl');
 
@@ -148,17 +150,20 @@ export function StorefrontConfigPage() {
                   layout: previewTheme.layout,
                   cardStyle: previewTheme.cardStyle
                 }}
+                showPrices={previewShowPrices}
               />
             </div>
           </TabsContent>
 
           <TabsContent
             value="comportamento"
-            className="w-full space-y-6 rounded-2xl bg-background/20 py-4"
+            className="w-full rounded-2xl bg-background/20 py-4"
           >
-            <p className="text-sm text-muted-foreground">
-              Em breve: exibição de preços, produtos esgotados e destaques.
-            </p>
+            <TabBehavior
+              form={form}
+              storefrontId={storefrontId}
+              isSaving={isLoading}
+            />
           </TabsContent>
         </Tabs>
       </form>

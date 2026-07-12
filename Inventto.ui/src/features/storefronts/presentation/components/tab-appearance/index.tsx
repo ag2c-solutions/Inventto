@@ -35,7 +35,7 @@ export function TabAppearance({ form, isSaving }: TabAppearanceProps) {
   return (
     <div className="space-y-8">
       <section className="space-y-4">
-        <h3 className="text-sm font-medium text-foreground">
+        <h3 className="text-base font-medium text-sidebar-foreground/70 uppercase">
           Identidade visual
         </h3>
 
@@ -90,7 +90,7 @@ export function TabAppearance({ form, isSaving }: TabAppearanceProps) {
           </div>
         </FormItem>
 
-        <FormItem>
+        <FormItem className="w-full">
           <FormLabel>Imagem de capa</FormLabel>
           <CoverUploader
             coverSrc={cover.preview}
@@ -101,7 +101,7 @@ export function TabAppearance({ form, isSaving }: TabAppearanceProps) {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-sm font-medium text-foreground">
+        <h3 className="text-base font-medium text-sidebar-foreground/70 uppercase">
           Layout da vitrine
         </h3>
 
