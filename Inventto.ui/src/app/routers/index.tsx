@@ -184,6 +184,19 @@ export const router = createBrowserRouter([
         ]
       },
       {
+        path: 'pedidos',
+        element: <CanNavigate required="order:view_own" />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { OrdersBoardPage } = await import('@/features/orders');
+              return { Component: OrdersBoardPage };
+            }
+          }
+        ]
+      },
+      {
         path: 'catalogos',
         element: <CanNavigate required="catalog:view" />,
         children: [

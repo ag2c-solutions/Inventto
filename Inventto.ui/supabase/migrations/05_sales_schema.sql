@@ -81,10 +81,18 @@ CREATE TABLE public.orders (
   payment_proof_url text,
 
   expires_at timestamp with time zone,
-  
+
+  -- PED-01: esteira de fulfillment (RN083/RN084/RN086/RN087).
+  -- delivery_address é snapshot estruturado (CEP/logradouro/número/bairro/cidade/estado/complemento)
+  -- capturado no checkout (RF032) — não referencia uma tabela de endereços.
+  delivery_address jsonb,
+  cancellation_reason text,
+  claimed_at timestamp with time zone,
+  finalized_at timestamp with time zone,
+
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  
+
   CONSTRAINT orders_pkey PRIMARY KEY (id)
 );
 
@@ -116,6 +124,24 @@ CREATE TABLE public.order_items (
 );
 
 -- ==============================================================================
+-- 4.1. TABELA STOCK_RESERVATIONS (Reserva de Estoque — PED-01 · RN080/RN086)
+-- Disponível para venda = stock − SUM(reservas ativas). Ver helper available_stock
+-- em 07_rpc_functions.sql. Liberada (released) no cancelamento, consumida (consumed)
+-- na finalização (vira saída via create_stock_movement).
+-- ==============================================================================
+CREATE TABLE public.stock_reservations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  product_id uuid NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
+  variant_id uuid REFERENCES public.product_variants(id) ON DELETE CASCADE,
+  quantity integer NOT NULL,
+  status text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'released', 'consumed')),
+  created_at timestamp with time zone DEFAULT now(),
+
+  CONSTRAINT stock_reservations_pkey PRIMARY KEY (id)
+);
+
+-- ==============================================================================
 -- 5. ÍNDICES DE PERFORMANCE
 -- ==============================================================================
 -- Orders
@@ -127,6 +153,10 @@ CREATE INDEX idx_orders_seller ON public.orders(seller_id);
 CREATE INDEX idx_order_items_order_id ON public.order_items(order_id);
 CREATE INDEX idx_order_items_product_id ON public.order_items(product_id);
 
+-- Stock Reservations
+CREATE INDEX idx_stock_reservations_order_id ON public.stock_reservations(order_id);
+CREATE INDEX idx_stock_reservations_product ON public.stock_reservations(product_id, variant_id) WHERE status = 'active';
+
 -- ==============================================================================
 -- 6. SEGURANÇA (RLS)
 -- ==============================================================================
@@ -135,6 +165,7 @@ ALTER TABLE public.catalogs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.catalog_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.stock_reservations ENABLE ROW LEVEL SECURITY;
 
 -- 6.1. CATÁLOGOS (Leitura para todos os membros; escrita restrita a Manager/Owner — RN062)
 CREATE POLICY "Members can view catalogs" ON public.catalogs
@@ -169,7 +200,9 @@ FOR DELETE USING (
   EXISTS (SELECT 1 FROM public.catalogs WHERE id = catalog_items.catalog_id AND public.has_role(organization_id, 'manager'))
 );
 
--- 6.2. ORDERS (Regra Condicional V9.3: Manager vê tudo, Sales vê suas ou do site)
+-- 6.2. ORDERS (PED-01 · RN082/RN088: Manager/Owner vê tudo; Sales vê as próprias
+-- + o pool não-atribuído (catalog_store com seller_id nulo) — corrige o vazamento
+-- da regra anterior, que expunha ao Sales pedidos catalog_store já assumidos por outros).
 CREATE POLICY "Access Control for Orders" ON public.orders
 FOR SELECT USING (
   public.is_org_member(organization_id)
@@ -178,7 +211,7 @@ FOR SELECT USING (
     OR
     seller_id = auth.uid()
     OR
-    channel = 'catalog_store' 
+    (channel = 'catalog_store' AND seller_id IS NULL)
   )
 );
 
@@ -186,10 +219,21 @@ FOR SELECT USING (
 CREATE POLICY "Inherit visibility from Orders" ON public.order_items
 FOR SELECT USING (
   EXISTS (
-    SELECT 1 FROM public.orders 
+    SELECT 1 FROM public.orders
     WHERE public.orders.id = public.order_items.order_id
   )
 );
 
--- 6.4. ESCRITA BLOQUEADA
--- Insert/Update deve ser feito via RPC (create_order) para garantir consistência de estoque.
+-- 6.4. STOCK_RESERVATIONS (Herança de Visibilidade do Pedido)
+CREATE POLICY "Inherit visibility from Orders" ON public.stock_reservations
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.orders
+    WHERE public.orders.id = public.stock_reservations.order_id
+  )
+);
+
+-- 6.5. ESCRITA BLOQUEADA
+-- Insert/Update de orders/order_items/stock_reservations deve ser feito via RPC
+-- (create_order, claim_order, advance_order, finalize_order, cancel_order) para
+-- garantir consistência de estoque e transição de estado.
