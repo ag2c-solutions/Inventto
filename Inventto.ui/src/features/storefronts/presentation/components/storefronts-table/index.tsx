@@ -15,11 +15,13 @@ import {
   PaginationControllers
 } from '@/shared/components/common/data-table';
 import { Button } from '@/shared/components/ui/button';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
 
 import type { Storefront } from '../../../domain/entities';
 import { StorefrontsEmptyState } from '../storefronts-empty';
 import { StorefrontsLoading } from '../storefronts-loading';
 
+import { StorefrontCardList } from './pieces/storefront-card-list';
 import { getStorefrontsTableColumns } from './columns';
 
 interface StorefrontsTableProps {
@@ -28,6 +30,7 @@ interface StorefrontsTableProps {
 }
 
 export function StorefrontsTable({ data, isLoading }: StorefrontsTableProps) {
+  const isMobile = useIsMobile();
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const columns = useMemo(() => getStorefrontsTableColumns(), []);
@@ -49,6 +52,10 @@ export function StorefrontsTable({ data, isLoading }: StorefrontsTableProps) {
 
   if (data.length === 0) {
     return <StorefrontsEmptyState />;
+  }
+
+  if (isMobile) {
+    return <StorefrontCardList storefronts={data} />;
   }
 
   const nameFilter = columnFilters.find((filter) => filter.id === 'name')

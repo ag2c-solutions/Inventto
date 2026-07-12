@@ -22,13 +22,17 @@ const TAB_TRIGGER_CLASS =
 
 export function ConfigTabs() {
   return (
-    <TabsList className="h-auto flex-wrap gap-1 rounded-xl border text-sidebar-accent p-1">
-      {CONFIG_TAB_ITEMS.map(({ value, label, icon: Icon }) => (
-        <TabsTrigger key={value} value={value} className={TAB_TRIGGER_CLASS}>
-          <Icon className="size-4" />
-          {label}
-        </TabsTrigger>
-      ))}
-    </TabsList>
+    // < lg: rolagem horizontal (sem quebrar linha) — no wireframe mobile as
+    // tabs são "roláveis"; a partir de lg, volta a quebrar linha normalmente.
+    <div className="max-w-full overflow-x-auto lg:overflow-visible">
+      <TabsList className="h-auto w-max flex-nowrap gap-1 rounded-xl border text-sidebar-accent p-1 lg:w-fit lg:flex-wrap">
+        {CONFIG_TAB_ITEMS.map(({ value, label, icon: Icon }) => (
+          <TabsTrigger key={value} value={value} className={TAB_TRIGGER_CLASS}>
+            <Icon className="size-4 hidden sm:flex" />
+            {label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </div>
   );
 }

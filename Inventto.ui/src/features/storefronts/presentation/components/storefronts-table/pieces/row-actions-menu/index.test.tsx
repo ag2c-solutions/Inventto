@@ -32,6 +32,14 @@ vi.mock('../../../remove-storefront-dialog', () => ({
     open ? <div data-testid="remove-dialog" /> : null
 }));
 
+const { mockUseIsMobile } = vi.hoisted(() => ({
+  mockUseIsMobile: vi.fn(() => false)
+}));
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: mockUseIsMobile
+}));
+
 function renderMenu(storefront: ReturnType<typeof storefrontFactory.build>) {
   render(
     <MemoryRouter>
@@ -45,6 +53,7 @@ describe('RowActionsMenu', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseIsMobile.mockReturnValue(false);
   });
 
   it('should show Despublicar and Copiar link for a live storefront, plus Configurar/Remover', async () => {
@@ -145,5 +154,77 @@ describe('RowActionsMenu', () => {
     await user.click(screen.getByText('Remover vitrine'));
 
     expect(await screen.findByTestId('remove-dialog')).toBeInTheDocument();
+  });
+
+  describe('on mobile (< lg)', () => {
+    beforeEach(() => {
+      mockUseIsMobile.mockReturnValue(true);
+    });
+
+    it('should open a bottom sheet with the storefront name and state as the title', async () => {
+      const storefront = storefrontFactory.build({
+        name: 'Vitrine Ateliê Joana',
+        state: 'live'
+      });
+      renderMenu(storefront);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Ações da vitrine' })
+      );
+
+      expect(
+        await screen.findByText('Vitrine Ateliê Joana · No ar')
+      ).toBeInTheDocument();
+    });
+
+    it('should show Despublicar/Copiar link for a live storefront and hide Publicar', async () => {
+      const storefront = storefrontFactory.build({ state: 'live' });
+      renderMenu(storefront);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Ações da vitrine' })
+      );
+
+      expect(await screen.findByText('Despublicar')).toBeInTheDocument();
+      expect(screen.getByText('Copiar link')).toBeInTheDocument();
+      expect(screen.queryByText('Publicar')).not.toBeInTheDocument();
+    });
+
+    it('should show Publicar for an inactive storefront and hide Despublicar/Copiar link', async () => {
+      const storefront = storefrontFactory.build({ state: 'inactive' });
+      renderMenu(storefront);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Ações da vitrine' })
+      );
+
+      expect(await screen.findByText('Publicar')).toBeInTheDocument();
+      expect(screen.queryByText('Despublicar')).not.toBeInTheDocument();
+      expect(screen.queryByText('Copiar link')).not.toBeInTheDocument();
+    });
+
+    it('should close the sheet and call the unpublish mutation when "Despublicar" is tapped', async () => {
+      const storefront = storefrontFactory.build({ state: 'live' });
+      renderMenu(storefront);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Ações da vitrine' })
+      );
+      await user.click(await screen.findByText('Despublicar'));
+
+      expect(mockUnpublish).toHaveBeenCalledWith(storefront.id);
+    });
+
+    it('should open the RemoveStorefrontDialog when "Remover vitrine" is tapped', async () => {
+      const storefront = storefrontFactory.build();
+      renderMenu(storefront);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Ações da vitrine' })
+      );
+      await user.click(await screen.findByText('Remover vitrine'));
+
+      expect(await screen.findByTestId('remove-dialog')).toBeInTheDocument();
+    });
   });
 });
