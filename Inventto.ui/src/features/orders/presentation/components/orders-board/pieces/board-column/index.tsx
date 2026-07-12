@@ -2,7 +2,7 @@ import type { LucideProps } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 import type { Order } from '../../../../../domain/entities';
-import { OrderCardPlaceholder } from '../order-card-placeholder';
+import { OrderCard } from '../../../order-card';
 
 // Pool e Cancelados dividem o mesmo tom neutro no wireframe (ambos "fora do
 // ciclo ativo") — só Em atendimento (alerta) e Finalizados (sucesso) ganham
@@ -36,6 +36,8 @@ interface BoardColumnProps {
   orders: Order[];
   emptyText: string;
   emptyIcon: ComponentType<LucideProps>;
+  onOpenDetail: (order: Order) => void;
+  onCancelRequest: (order: Order) => void;
 }
 
 export function BoardColumn({
@@ -43,7 +45,9 @@ export function BoardColumn({
   tone,
   orders,
   emptyText,
-  emptyIcon: EmptyIcon
+  emptyIcon: EmptyIcon,
+  onOpenDetail,
+  onCancelRequest
 }: BoardColumnProps) {
   const toneClasses = TONE_CLASSES[tone];
 
@@ -73,7 +77,12 @@ export function BoardColumn({
           </div>
         ) : (
           orders.map((order) => (
-            <OrderCardPlaceholder key={order.id} order={order} />
+            <OrderCard
+              key={order.id}
+              order={order}
+              onOpenDetail={onOpenDetail}
+              onCancelRequest={onCancelRequest}
+            />
           ))
         )}
       </div>

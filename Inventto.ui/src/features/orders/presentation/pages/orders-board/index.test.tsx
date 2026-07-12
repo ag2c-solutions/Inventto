@@ -1,14 +1,20 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { Order } from '../../../domain/entities';
 import { orderFactory } from '../../../tests/factories/order.factory';
 
-const { mockUseOrdersQuery, mockUseRealtimeOrders, mockUseMembersQuery } =
-  vi.hoisted(() => ({
-    mockUseOrdersQuery: vi.fn(),
-    mockUseRealtimeOrders: vi.fn(),
-    mockUseMembersQuery: vi.fn(() => ({ data: [] }))
-  }));
+const {
+  mockUseOrdersQuery,
+  mockUseRealtimeOrders,
+  mockUseMembersQuery,
+  mockCancelMutate
+} = vi.hoisted(() => ({
+  mockUseOrdersQuery: vi.fn(),
+  mockUseRealtimeOrders: vi.fn(),
+  mockUseMembersQuery: vi.fn(() => ({ data: [] })),
+  mockCancelMutate: vi.fn()
+}));
 
 vi.mock('../../hooks/use-queries', () => ({
   useOrdersQuery: mockUseOrdersQuery
@@ -16,6 +22,10 @@ vi.mock('../../hooks/use-queries', () => ({
 
 vi.mock('../../hooks/use-realtime-orders', () => ({
   useRealtimeOrders: mockUseRealtimeOrders
+}));
+
+vi.mock('../../hooks/use-mutations', () => ({
+  useCancelOrderMutation: () => ({ mutate: mockCancelMutate })
 }));
 
 vi.mock('@/features/organizations', () => ({
@@ -32,8 +42,17 @@ vi.mock('../../components/orders-filters', () => ({
   OrdersFilters: () => <div data-testid="orders-filters" />
 }));
 
+let capturedOnCancelRequest: ((order: Order) => void) | undefined;
+
 vi.mock('../../components/orders-board', () => ({
-  OrdersBoard: () => <div data-testid="orders-board" />
+  OrdersBoard: ({
+    onCancelRequest
+  }: {
+    onCancelRequest: (order: Order) => void;
+  }) => {
+    capturedOnCancelRequest = onCancelRequest;
+    return <div data-testid="orders-board" />;
+  }
 }));
 
 import { OrdersBoardPage } from '.';
@@ -84,5 +103,37 @@ describe('OrdersBoardPage', () => {
     render(<OrdersBoardPage />);
 
     expect(mockUseRealtimeOrders).toHaveBeenCalled();
+  });
+
+  it('should cancel the order with the prompted reason', () => {
+    mockUseOrdersQuery.mockReturnValue({ data: [], isLoading: false });
+    const promptSpy = vi
+      .spyOn(window, 'prompt')
+      .mockReturnValue('Cliente desistiu');
+    const order = orderFactory.build({ id: 'o1', microState: 'picking' });
+
+    render(<OrdersBoardPage />);
+    capturedOnCancelRequest?.(order);
+
+    expect(mockCancelMutate).toHaveBeenCalledWith({
+      id: 'o1',
+      microState: 'picking',
+      reason: 'Cliente desistiu'
+    });
+
+    promptSpy.mockRestore();
+  });
+
+  it('should not cancel when the prompt is dismissed without a reason', () => {
+    mockUseOrdersQuery.mockReturnValue({ data: [], isLoading: false });
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue(null);
+    const order = orderFactory.build({ id: 'o1', microState: 'picking' });
+
+    render(<OrdersBoardPage />);
+    capturedOnCancelRequest?.(order);
+
+    expect(mockCancelMutate).not.toHaveBeenCalled();
+
+    promptSpy.mockRestore();
   });
 });

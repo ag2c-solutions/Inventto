@@ -1,9 +1,14 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import type { Order } from '../../../domain/entities';
 import { orderFactory } from '../../../tests/factories/order.factory';
 
 import { OrdersBoard } from './index';
+
+vi.mock('../order-card', () => ({
+  OrderCard: ({ order }: { order: Order }) => <div>{order.customerName}</div>
+}));
 
 describe('OrdersBoard', () => {
   it('should render the 4 macro-state columns with counters', () => {
@@ -15,7 +20,13 @@ describe('OrdersBoard', () => {
       orderFactory.build({ macroState: 'cancelled' })
     ];
 
-    render(<OrdersBoard orders={orders} />);
+    render(
+      <OrdersBoard
+        orders={orders}
+        onOpenDetail={vi.fn()}
+        onCancelRequest={vi.fn()}
+      />
+    );
 
     expect(screen.getByText('Pool')).toBeInTheDocument();
     expect(screen.getByText('Em atendimento')).toBeInTheDocument();
@@ -35,7 +46,13 @@ describe('OrdersBoard', () => {
       })
     ];
 
-    render(<OrdersBoard orders={orders} />);
+    render(
+      <OrdersBoard
+        orders={orders}
+        onOpenDetail={vi.fn()}
+        onCancelRequest={vi.fn()}
+      />
+    );
 
     expect(screen.getByText('Pedido do Pool')).toBeInTheDocument();
     expect(screen.getByText('Pedido Finalizado')).toBeInTheDocument();
@@ -53,7 +70,13 @@ describe('OrdersBoard', () => {
       lastActionAt: new Date('2026-07-05T10:00:00Z')
     });
 
-    render(<OrdersBoard orders={[older, newer]} />);
+    render(
+      <OrdersBoard
+        orders={[older, newer]}
+        onOpenDetail={vi.fn()}
+        onCancelRequest={vi.fn()}
+      />
+    );
 
     const names = screen
       .getAllByText(/Pedido (Antigo|Recente)/)
@@ -63,7 +86,13 @@ describe('OrdersBoard', () => {
   });
 
   it('should show the wireframe microcopy for each empty column', () => {
-    render(<OrdersBoard orders={[]} />);
+    render(
+      <OrdersBoard
+        orders={[]}
+        onOpenDetail={vi.fn()}
+        onCancelRequest={vi.fn()}
+      />
+    );
 
     expect(
       screen.getByText(
