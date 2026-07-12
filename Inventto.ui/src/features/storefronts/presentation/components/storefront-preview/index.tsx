@@ -1,5 +1,3 @@
-import { ImageIcon } from 'lucide-react';
-
 import { cn } from '@/shared/utils';
 
 import type { StorefrontTheme } from '../../../domain/entities';
@@ -21,46 +19,68 @@ export function StorefrontPreview({
   theme,
   showPrices = true
 }: StorefrontPreviewProps) {
+  const isList = theme.layout === 'list';
+
+  const withAlpha = (hex: string, percent: number): string =>
+    `color-mix(in srgb, ${hex} ${percent}%, transparent)`;
+
   return (
     <div className="flex flex-col gap-2">
-      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <p className="flex items-center gap-1.5 text-sm font-medium uppercase tracking-wide text-muted-foreground">
         <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
         Preview ao vivo
       </p>
 
       <div
-        className="overflow-hidden rounded-lg border"
+        className="overflow-hidden rounded-xl border"
         style={{
           background: theme.colors.background,
           color: theme.colors.text
         }}
       >
-        <div className="flex items-center gap-1.5 border-b bg-muted/40 px-3 py-2">
-          <span className="size-2 rounded-full bg-muted-foreground/30" />
-          <span className="size-2 rounded-full bg-muted-foreground/30" />
-          <span className="size-2 rounded-full bg-muted-foreground/30" />
-          <span className="ml-2 truncate text-xs text-muted-foreground">
+        {/* Barra do browser */}
+        <div
+          className="flex items-center gap-1.5 border-b px-3 py-2"
+          style={{ background: withAlpha(theme.colors.secondary, 15) }}
+        >
+          <span
+            className="size-2 rounded-full"
+            style={{ background: withAlpha(theme.colors.text, 20) }}
+          />
+          <span
+            className="size-2 rounded-full"
+            style={{ background: withAlpha(theme.colors.text, 20) }}
+          />
+          <span
+            className="size-2 rounded-full"
+            style={{ background: withAlpha(theme.colors.text, 20) }}
+          />
+          <span
+            className="ml-2 truncate text-[11px]"
+            style={{ color: withAlpha(theme.colors.text, 50) }}
+          >
             inventto.app/{slug || 'sua-loja'}
           </span>
         </div>
 
+        {/* Capa */}
         <div
-          className="flex h-24 items-center justify-center bg-cover bg-center"
+          className="h-32 bg-cover bg-center"
           style={
             theme.coverUrl
               ? { backgroundImage: `url(${theme.coverUrl})` }
-              : { background: theme.colors.secondary }
+              : { background: withAlpha(theme.colors.secondary, 30) }
           }
-        >
-          {!theme.coverUrl && (
-            <ImageIcon className="size-6 text-background/60" />
-          )}
-        </div>
+        />
 
-        <div className="flex items-center gap-3 px-4 pt-3">
+        {/* Header: logo sobreposto na borda da capa + nome abaixo */}
+        <div className="flex flex-col gap-0.5 px-4 pb-2">
           <div
-            className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2"
-            style={{ borderColor: theme.colors.background }}
+            className="-mt-7 mb-1 flex size-15 shrink-0 items-center justify-center overflow-hidden rounded-full border-2"
+            style={{
+              borderColor: theme.colors.background,
+              background: withAlpha(theme.colors.secondary, 80)
+            }}
           >
             {theme.logoUrl ? (
               <img
@@ -70,85 +90,93 @@ export function StorefrontPreview({
               />
             ) : (
               <span
-                className="flex size-full items-center justify-center text-xs font-semibold"
-                style={{
-                  background: theme.colors.primary,
-                  color: theme.colors.background
-                }}
-              >
-                {name.slice(0, 1).toUpperCase() || 'V'}
-              </span>
+                className="size-full rounded-full"
+                style={{ background: withAlpha(theme.colors.secondary, 40) }}
+              />
             )}
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {name || 'Nome da vitrine'}
-            </p>
-            <p className="truncate text-xs opacity-70">
-              Aberto agora · responde no WhatsApp
-            </p>
-          </div>
+
+          <p
+            className="truncate text-sm font-bold"
+            style={{ color: theme.colors.text }}
+          >
+            {name || 'Nome da vitrine'}
+          </p>
+          <p
+            className="truncate text-[11px]"
+            style={{ color: withAlpha(theme.colors.text, 55) }}
+          >
+            Aberto agora · responde no WhatsApp
+          </p>
         </div>
 
+        {/* Grid / Lista de produtos */}
         <div
           className={cn(
-            'grid gap-3 p-4',
-            theme.layout === 'list' ? 'grid-cols-1' : 'grid-cols-2'
+            'grid gap-2.5 px-4 pb-4',
+            isList ? 'grid-cols-1' : 'grid-cols-2'
           )}
         >
-          {PLACEHOLDER_CARDS.map((i) => (
-            <div
-              key={i}
-              className={cn(
-                'flex gap-2 overflow-hidden rounded-md border',
-                theme.layout === 'list' && 'items-center'
-              )}
-              style={{ borderColor: `${theme.colors.secondary}40` }}
-            >
+          {PLACEHOLDER_CARDS.map((i) =>
+            isList ? (
+              /* Card modo LISTA */
               <div
-                className={cn(
-                  'shrink-0 bg-muted/40',
-                  theme.layout === 'list' ? 'size-12' : 'aspect-square w-full'
-                )}
-              />
-              {theme.layout === 'list' && (
-                <div className="flex flex-1 flex-col gap-1 py-1 pr-2">
-                  <span className="h-2 w-3/4 rounded-full bg-muted/60" />
+                key={i}
+                className="flex flex-row items-center overflow-hidden rounded-lg border"
+                style={{ borderColor: withAlpha(theme.colors.text, 12) }}
+              >
+                {/* Thumbnail */}
+                <div
+                  className="h-[52px] w-[68px] shrink-0"
+                  style={{ background: withAlpha(theme.colors.secondary, 25) }}
+                />
+                {/* Texto */}
+                <div className="flex flex-1 flex-col gap-1.5 px-3 py-2">
+                  <span
+                    className="h-2 w-4/5 rounded-full"
+                    style={{ background: withAlpha(theme.colors.text, 25) }}
+                  />
+                  <span
+                    className="h-2 w-3/5 rounded-full"
+                    style={{ background: withAlpha(theme.colors.text, 18) }}
+                  />
+                </div>
+              </div>
+            ) : (
+              /* Card modo GRADE */
+              <div
+                key={i}
+                className="flex flex-col overflow-hidden rounded-lg border"
+                style={{ borderColor: withAlpha(theme.colors.text, 12) }}
+              >
+                {/* Imagem — portrait, tall */}
+                <div
+                  className="aspect-[3/4] w-full"
+                  style={{ background: withAlpha(theme.colors.secondary, 20) }}
+                />
+                {/* Texto + CTA */}
+                <div className="flex flex-col gap-1.5 p-2.5">
+                  <span
+                    className="h-2 w-3/5 rounded-full"
+                    style={{ background: withAlpha(theme.colors.text, 25) }}
+                  />
                   {showPrices ? (
                     <span
-                      className="h-2 w-1/3 rounded-full"
-                      style={{ background: theme.colors.primary }}
+                      className="h-2 w-2/5 rounded-full"
+                      style={{ background: withAlpha(theme.colors.text, 18) }}
                     />
                   ) : (
                     <span
                       className="text-[10px] font-medium"
-                      style={{ color: theme.colors.primary }}
+                      style={{ color: theme.colors.text }}
                     >
                       Consultar →
                     </span>
                   )}
                 </div>
-              )}
-              {theme.layout === 'grid' && (
-                <div className="flex w-full flex-col gap-1 p-2">
-                  <span className="h-2 w-3/4 rounded-full bg-muted/60" />
-                  {showPrices ? (
-                    <span
-                      className="h-2 w-1/3 rounded-full"
-                      style={{ background: theme.colors.primary }}
-                    />
-                  ) : (
-                    <span
-                      className="text-[10px] font-medium"
-                      style={{ color: theme.colors.primary }}
-                    >
-                      Consultar →
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+              </div>
+            )
+          )}
         </div>
       </div>
     </div>
