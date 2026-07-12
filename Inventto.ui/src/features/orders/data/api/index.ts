@@ -50,7 +50,8 @@ const SELECT_QUERY = `
   created_at,
   updated_at,
   seller:profiles(id, full_name),
-  order_items(id, product_id, variant_id, quantity, unit_price, product_name_snapshot)
+  order_items(id, product_id, variant_id, quantity, unit_price, product_name_snapshot),
+  catalog:catalogs(name)
 `;
 
 export class OrderApi {
@@ -68,6 +69,28 @@ export class OrderApi {
       return data.map((dto) => OrderMapper.toDomain(dto));
     } catch (error) {
       handleOrderError(error, 'getOrders');
+    }
+  }
+
+  // PED-04: Sheet de atendimento (/pedidos/:id). RLS já recorta por papel
+  // (RN081/RN088) — pedido inexistente e sem permissão retornam a mesma
+  // ausência de linha, então "não encontrado" e "sem permissão" convergem
+  // no mesmo `undefined` (a UI trata os dois com o mesmo feedback 404).
+  static async getOrder(id: string): Promise<Order | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(SELECT_QUERY)
+        .eq('id', id)
+        .maybeSingle()
+        .overrideTypes<OrderDTO, { merge: false }>();
+
+      if (error) throw error;
+      if (!data) return undefined;
+
+      return OrderMapper.toDomain(data);
+    } catch (error) {
+      handleOrderError(error, 'getOrder');
     }
   }
 

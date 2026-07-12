@@ -5,11 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderApi } from '../../data/api';
 import { orderFactory } from '../../tests/factories/order.factory';
 
-import { useOrdersQuery } from './use-queries';
+import { useOrderQuery, useOrdersQuery } from './use-queries';
 
 vi.mock('../../data/api', () => ({
   OrderApi: {
-    getOrders: vi.fn()
+    getOrders: vi.fn(),
+    getOrder: vi.fn()
   }
 }));
 
@@ -89,5 +90,54 @@ describe('useOrdersQuery', () => {
 
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data[0].sellerId).toBe('seller-1');
+  });
+});
+
+describe('useOrderQuery', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('should fetch the order by id', async () => {
+    const order = orderFactory.build({ id: 'o1' });
+    vi.mocked(OrderApi.getOrder).mockResolvedValue(order);
+
+    const { result } = renderHook(() => useOrderQuery('o1'), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(OrderApi.getOrder).toHaveBeenCalledWith('o1');
+    expect(result.current.data).toEqual(order);
+  });
+
+  it('should not execute the query without an id', async () => {
+    const { result } = renderHook(() => useOrderQuery(undefined), {
+      wrapper
+    });
+
+    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'));
+
+    expect(OrderApi.getOrder).not.toHaveBeenCalled();
+  });
+
+  it('should resolve to null for 404/sem permissão (no toast, treated as data)', async () => {
+    vi.mocked(OrderApi.getOrder).mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useOrderQuery('missing'), {
+      wrapper
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data).toBeNull();
   });
 });

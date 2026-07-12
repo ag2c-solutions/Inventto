@@ -47,6 +47,10 @@ export interface Order {
   address?: OrderAddress;
   paymentMethod?: OrderPaymentMethod;
   channel: string;
+  // RN083: "Origem" na Sheet ("Vitrine online · {catálogo}") — só pedidos
+  // channel="catalog_store" passam pelo painel, então o prefixo é fixo na
+  // UI; aqui só o nome do catálogo de origem.
+  catalogName?: string;
   cancellationReason?: string;
   receivedAt: Date;
   claimedAt?: Date;

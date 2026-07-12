@@ -26,3 +26,17 @@ export function useOrdersQuery(filters: OrderFilters = {}) {
 
   return { ...query, data };
 }
+
+// PED-04: Sheet de atendimento (/pedidos/:id). Não há erro dedicado de
+// 404/sem permissão — getOrder já converge as duas situações no mesmo
+// "sem linha" (RLS filtra silenciosamente), então a Sheet trata
+// !isLoading && !data como o estado "não encontrado" (sem toast).
+// queryFn coage undefined -> null: o React Query v5 trata um retorno
+// undefined como estado inválido (a query nunca chega a "success").
+export function useOrderQuery(id?: string) {
+  return useQuery({
+    queryKey: ORDER_KEYS.detail(id),
+    queryFn: async () => (await OrderApi.getOrder(id!)) ?? null,
+    enabled: !!id
+  });
+}
