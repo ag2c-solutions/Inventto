@@ -212,6 +212,21 @@ export const router = createBrowserRouter([
         ]
       },
       {
+        path: 'storefronts',
+        element: <CanNavigate required="storefront:manage" />,
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { StorefrontsListPage } = await import(
+                '@/features/storefronts'
+              );
+              return { Component: StorefrontsListPage };
+            }
+          }
+        ]
+      },
+      {
         path: 'team',
         element: <CanNavigate required="team:manage" />,
         children: [

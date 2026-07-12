@@ -1305,13 +1305,13 @@ BEGIN
     RAISE EXCEPTION 'Acesso negado: apenas gerentes ou proprietários podem remover catálogos.';
   END IF;
 
-  -- RN061: canais vinculados bloqueiam a remoção. Fonte do PDV (Módulo 7,
-  -- PDV-01) já existe; storefronts.catalog_id (Módulo 8) ainda não — quando
-  -- existir, somar aqui também. Ex.:
-  --   v_linked_channels := v_linked_channels +
-  --     (SELECT COUNT(*) FROM public.storefronts WHERE catalog_id = p_catalog_id);
+  -- RN061: canais vinculados bloqueiam a remoção — soma PDV (Módulo 7,
+  -- PDV-01) e storefronts (Módulo 8, VIT-01).
   v_linked_channels := v_linked_channels +
     (SELECT COUNT(*) FROM public.organizations WHERE pdv_catalog_id = p_catalog_id);
+
+  v_linked_channels := v_linked_channels +
+    (SELECT COUNT(*) FROM public.storefronts WHERE catalog_id = p_catalog_id);
 
   IF v_linked_channels > 0 THEN
     -- Marcador estável mapeado pela UI para a variante B do dialog.
