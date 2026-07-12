@@ -67,7 +67,7 @@ export const navGroups: NavGroup[] = [
         href: '/storefronts',
         icon: Store,
         permission: 'storefront:manage',
-        enabled: false
+        enabled: true
       }
     ]
   },

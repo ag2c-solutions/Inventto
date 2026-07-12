@@ -33,3 +33,6 @@ CREATE TYPE public.business_area_code AS ENUM ('clothing', 'petshop', 'other');
 
 -- Status da Organização
 CREATE TYPE public.organization_status AS ENUM ('active', 'inactive', 'deleted');
+
+-- VIT-01 · RN074: estados do storefront ("removido" = linha excluída, sem enum).
+CREATE TYPE public.storefront_status AS ENUM ('active', 'inactive');
