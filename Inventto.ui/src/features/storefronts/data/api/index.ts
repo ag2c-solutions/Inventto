@@ -1,3 +1,4 @@
+import { CloudinaryService } from '@/infra/cloudinary';
 import { supabase } from '@/infra/supabase';
 
 import {
@@ -8,7 +9,8 @@ import {
   type Storefront,
   StorefrontPrereqsMissingError,
   StorefrontSlugUnavailableError,
-  type UpdateStorefrontPayload
+  type UpdateStorefrontPayload,
+  type UpdateStorefrontThemePayload
 } from '../../domain/entities';
 import type { StorefrontDTO } from '../dtos';
 import {
@@ -29,7 +31,8 @@ const SELECT_QUERY = `
   facebook,
   website,
   status,
-  catalog:catalogs(id, name)
+  catalog:catalogs(id, name),
+  theme
 `;
 
 function parseMissingPrereqs(message: string): PublishPrereqKey[] {
@@ -47,6 +50,16 @@ function parseSlugUnavailableReason(message: string): SlugAvailabilityReason {
   return (reason?.trim() || 'invalid') as SlugAvailabilityReason;
 }
 
+function toThemeRpcPayload(theme: UpdateStorefrontThemePayload) {
+  return {
+    colors: theme.colors,
+    logo_url: theme.logoUrl ?? null,
+    cover_url: theme.coverUrl ?? null,
+    layout: theme.layout,
+    card_style: theme.cardStyle
+  };
+}
+
 function toStorefrontRpcPayload(
   payload: CreateStorefrontPayload | UpdateStorefrontPayload
 ) {
@@ -57,7 +70,8 @@ function toStorefrontRpcPayload(
     whatsapp: payload.whatsapp ?? null,
     instagram: payload.instagram ?? null,
     facebook: payload.facebook ?? null,
-    website: payload.website ?? null
+    website: payload.website ?? null,
+    theme: payload.theme ? toThemeRpcPayload(payload.theme) : undefined
   };
 }
 
@@ -182,6 +196,24 @@ export class StorefrontApi {
       return data as string;
     } catch (error) {
       handleStorefrontError(error, 'createStorefront');
+    }
+  }
+
+  static async uploadLogo(file: File): Promise<string> {
+    try {
+      const { url } = await CloudinaryService.uploadImage(file);
+      return url;
+    } catch (error) {
+      handleStorefrontError(error, 'uploadLogo');
+    }
+  }
+
+  static async uploadCover(file: File): Promise<string> {
+    try {
+      const { url } = await CloudinaryService.uploadImage(file);
+      return url;
+    } catch (error) {
+      handleStorefrontError(error, 'uploadCover');
     }
   }
 

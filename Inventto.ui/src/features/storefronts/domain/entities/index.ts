@@ -1,5 +1,27 @@
 export type StorefrontState = 'live' | 'inactive';
 
+export type StorefrontLayout = 'grid' | 'list';
+
+// v1: um único estilo de card (wireframe só mostra esta opção) — o Select
+// já fica pronto para receber mais valores sem quebrar a UI.
+export const CARD_STYLES = ['minimal-large-image'] as const;
+export type CardStyle = (typeof CARD_STYLES)[number];
+
+export interface StorefrontThemeColors {
+  primary: string;
+  background: string;
+  secondary: string;
+  text: string;
+}
+
+export interface StorefrontTheme {
+  colors: StorefrontThemeColors;
+  logoUrl?: string;
+  coverUrl?: string;
+  layout: StorefrontLayout;
+  cardStyle: CardStyle;
+}
+
 export interface Storefront {
   id: string;
   name: string;
@@ -13,6 +35,15 @@ export interface Storefront {
   state: StorefrontState;
   // inventto.app/{slug} — ausente quando não há slug definido.
   publicUrl?: string;
+  theme: StorefrontTheme;
+}
+
+export interface UpdateStorefrontThemePayload {
+  colors: StorefrontThemeColors;
+  logoUrl?: string;
+  coverUrl?: string;
+  layout: StorefrontLayout;
+  cardStyle: CardStyle;
 }
 
 export interface CreateStorefrontPayload {
@@ -24,6 +55,7 @@ export interface CreateStorefrontPayload {
   instagram?: string;
   facebook?: string;
   website?: string;
+  theme?: UpdateStorefrontThemePayload;
 }
 
 export interface UpdateStorefrontPayload {
@@ -35,6 +67,7 @@ export interface UpdateStorefrontPayload {
   instagram?: string;
   facebook?: string;
   website?: string;
+  theme?: UpdateStorefrontThemePayload;
 }
 
 export type SlugAvailabilityReason = 'ok' | 'taken' | 'invalid' | 'reserved';

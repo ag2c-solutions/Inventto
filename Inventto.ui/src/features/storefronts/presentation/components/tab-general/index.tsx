@@ -20,12 +20,12 @@ import {
 
 import { useCatalogsQuery } from '@/features/catalogs';
 
-import type { StorefrontGeneralFormValues } from '../../../domain/validators';
+import type { StorefrontConfigFormValues } from '../../../domain/validators';
 import { SlugField } from '../slug-field';
 import { useSlugAvailability } from '../slug-field/hooks/use-slug-availability';
 
 interface TabGeneralProps {
-  form: UseFormReturn<StorefrontGeneralFormValues>;
+  form: UseFormReturn<StorefrontConfigFormValues>;
   storefrontId?: string;
   isSaving: boolean;
 }

@@ -6,14 +6,23 @@ import {
   type PublishPrereqKey,
   type PublishStorefrontResult,
   StorefrontPrereqsMissingError,
-  type UpdateStorefrontPayload
+  type UpdateStorefrontPayload,
+  type UpdateStorefrontThemePayload
 } from '../entities';
+import type { StorefrontThemeFormValues } from '../validators';
 import { removeConfirmationValidator } from '../validators';
 
 export interface PublishPrereqCheckInput {
   catalogId?: string;
   whatsapp?: string;
   organizationSettings?: OrganizationSettings;
+}
+
+// Payload de save: o tema chega do form com File cru (logoFile/coverFile)
+// em vez de URL — StorefrontService.save faz o upload antes de persistir.
+export interface SaveStorefrontInput
+  extends Omit<CreateStorefrontPayload, 'theme'> {
+  theme?: StorefrontThemeFormValues;
 }
 
 export class StorefrontService {
@@ -67,12 +76,36 @@ export class StorefrontService {
     return StorefrontApi.removeStorefront(id);
   }
 
+  // ORG-02: se houver File cru (logo/capa recém-selecionados), sobe pro
+  // Cloudinary antes de persistir; URLs já existentes passam direto.
+  static async uploadThemeAssets(
+    theme: StorefrontThemeFormValues
+  ): Promise<UpdateStorefrontThemePayload> {
+    const logoUrl = theme.logoFile
+      ? await StorefrontApi.uploadLogo(theme.logoFile)
+      : theme.logoUrl;
+    const coverUrl = theme.coverFile
+      ? await StorefrontApi.uploadCover(theme.coverFile)
+      : theme.coverUrl;
+
+    return {
+      colors: theme.colors,
+      logoUrl,
+      coverUrl,
+      layout: theme.layout,
+      cardStyle: theme.cardStyle
+    };
+  }
+
   // Rascunho sem catálogo/WhatsApp é permitido — publicar é que exige
   // pré-requisitos completos (RN075, getMissingPrereqs acima).
-  static async save(
-    payload: CreateStorefrontPayload,
-    id?: string
-  ): Promise<string> {
+  static async save(input: SaveStorefrontInput, id?: string): Promise<string> {
+    const { theme: themeForm, ...rest } = input;
+    const theme = themeForm
+      ? await this.uploadThemeAssets(themeForm)
+      : undefined;
+    const payload: CreateStorefrontPayload = { ...rest, theme };
+
     if (id) {
       const updatePayload: UpdateStorefrontPayload = { id, ...payload };
       await StorefrontApi.updateStorefront(updatePayload);

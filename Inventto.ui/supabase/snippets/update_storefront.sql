@@ -1,4 +1,4 @@
--- VIT-03 · RN073: reflete a RPC update_storefront em 11_storefronts_schema.sql.
+-- VIT-03/VIT-04 · RN073: reflete a RPC update_storefront em 11_storefronts_schema.sql.
 -- Depende de storefronts_table.sql, reserved_slugs.sql e check_slug_available.sql.
 CREATE OR REPLACE FUNCTION public.update_storefront(p_id UUID, payload JSONB)
 RETURNS VOID
@@ -38,7 +38,10 @@ BEGIN
     whatsapp = NULLIF(payload->>'whatsapp', ''),
     instagram = NULLIF(payload->>'instagram', ''),
     facebook = NULLIF(payload->>'facebook', ''),
-    website = NULLIF(payload->>'website', '')
+    website = NULLIF(payload->>'website', ''),
+    -- VIT-04: bloco de tema (paleta/logo/capa/layout/estilo de card). '->'
+    -- (não '->>') porque o valor gravado é jsonb, não texto.
+    theme = COALESCE(payload->'theme', theme)
   WHERE id = p_id;
 
   IF v_old_slug IS NOT NULL AND v_new_slug IS NOT NULL AND v_new_slug IS DISTINCT FROM v_old_slug THEN

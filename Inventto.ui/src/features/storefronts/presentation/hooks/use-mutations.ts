@@ -4,8 +4,10 @@ import { toast } from 'sonner';
 
 import { useUser } from '@/features/users';
 
-import type { CreateStorefrontPayload } from '../../domain/entities';
-import { StorefrontService } from '../../domain/services';
+import {
+  type SaveStorefrontInput,
+  StorefrontService
+} from '../../domain/services';
 import { STOREFRONT_KEYS } from '../constants';
 
 export function useUnpublishStorefrontMutation() {
@@ -39,7 +41,7 @@ export function usePublishStorefrontMutation() {
 
 interface SaveStorefrontVariables {
   id?: string;
-  values: Omit<CreateStorefrontPayload, 'organizationId'>;
+  values: Omit<SaveStorefrontInput, 'organizationId'>;
 }
 
 export function useSaveStorefrontMutation() {

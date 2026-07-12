@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { CARD_STYLES } from '../entities';
+
 // RN073-adjacent UI guard: confirmação de remoção por digitação do nome
 // exato (tolerando espaços nas pontas) — a RPC não depende disso.
 export function removeConfirmationValidator(
@@ -63,3 +65,45 @@ export const storefrontGeneralSchema = z.object({
 export type StorefrontGeneralFormValues = z.infer<
   typeof storefrontGeneralSchema
 >;
+
+// RN da identidade visual: hex de 3 ou 6 dígitos (com #), espelhando o
+// formato que <input type="color"> produz.
+export const HEX_COLOR_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+const hexColorSchema = z.string().regex(HEX_COLOR_REGEX, 'Cor inválida.');
+
+export const MAX_THEME_IMAGE_SIZE_MB = 5;
+const themeImageFileSchema = z
+  .instanceof(File)
+  .refine((file) => file.size <= MAX_THEME_IMAGE_SIZE_MB * 1024 * 1024, {
+    message: `A imagem deve ter até ${MAX_THEME_IMAGE_SIZE_MB}MB.`
+  })
+  .refine(
+    (file) => ['image/png', 'image/jpeg', 'image/webp'].includes(file.type),
+    {
+      message: 'Use uma imagem PNG, JPG ou WEBP.'
+    }
+  )
+  .optional();
+
+export const storefrontThemeSchema = z.object({
+  colors: z.object({
+    primary: hexColorSchema,
+    background: hexColorSchema,
+    secondary: hexColorSchema,
+    text: hexColorSchema
+  }),
+  logoUrl: z.string().optional(),
+  logoFile: themeImageFileSchema,
+  coverUrl: z.string().optional(),
+  coverFile: themeImageFileSchema,
+  layout: z.enum(['grid', 'list']),
+  cardStyle: z.enum(CARD_STYLES)
+});
+
+export type StorefrontThemeFormValues = z.infer<typeof storefrontThemeSchema>;
+
+export const storefrontConfigSchema = storefrontGeneralSchema.extend({
+  theme: storefrontThemeSchema
+});
+
+export type StorefrontConfigFormValues = z.infer<typeof storefrontConfigSchema>;

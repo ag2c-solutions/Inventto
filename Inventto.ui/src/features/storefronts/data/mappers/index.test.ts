@@ -106,5 +106,71 @@ describe('StorefrontMapper', () => {
       expect(result.facebook).toBeUndefined();
       expect(result.website).toBeUndefined();
     });
+
+    it('should map a fully populated theme', () => {
+      const dto = storefrontDTOFactory.build({
+        theme: {
+          colors: {
+            primary: '#111111',
+            background: '#222222',
+            secondary: '#333333',
+            text: '#444444'
+          },
+          logo_url: 'https://cdn.test/logo.png',
+          cover_url: 'https://cdn.test/cover.png',
+          layout: 'list',
+          card_style: 'minimal-large-image'
+        }
+      });
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.theme).toEqual({
+        colors: {
+          primary: '#111111',
+          background: '#222222',
+          secondary: '#333333',
+          text: '#444444'
+        },
+        logoUrl: 'https://cdn.test/logo.png',
+        coverUrl: 'https://cdn.test/cover.png',
+        layout: 'list',
+        cardStyle: 'minimal-large-image'
+      });
+    });
+
+    it('should fall back to default theme values when theme is empty (pre-VIT-04 storefronts)', () => {
+      const dto = storefrontDTOFactory.build();
+      // fishery faz deep-merge de overrides — sobrescreve direto no objeto
+      // pra simular o `theme = '{}'` (default do banco) sem herdar valores
+      // gerados pela factory.
+      dto.theme = {};
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.theme).toEqual({
+        colors: {
+          primary: '#3A3631',
+          background: '#F7F5F2',
+          secondary: '#8B857D',
+          text: '#2C2A28'
+        },
+        logoUrl: undefined,
+        coverUrl: undefined,
+        layout: 'grid',
+        cardStyle: 'minimal-large-image'
+      });
+    });
+
+    it('should fall back to default colors only for missing individual keys', () => {
+      const dto = storefrontDTOFactory.build({
+        theme: { colors: { primary: '#ABCDEF' } }
+      });
+
+      const result = StorefrontMapper.toDomain(dto);
+
+      expect(result.theme.colors.primary).toBe('#ABCDEF');
+      expect(result.theme.colors.background).toBe('#F7F5F2');
+    });
   });
 });
