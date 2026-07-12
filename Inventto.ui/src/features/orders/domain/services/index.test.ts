@@ -48,11 +48,12 @@ describe('OrderService', () => {
       expect(OrderApi.advanceOrder).toHaveBeenCalledWith('o1');
     });
 
-    it('should call finalize_order for delivering → confirmed (RN087)', async () => {
-      await OrderService.advance('o1', 'delivering');
-
-      expect(OrderApi.finalizeOrder).toHaveBeenCalledWith('o1');
+    it('should reject a transition from delivering (must use finalize)', async () => {
+      await expect(OrderService.advance('o1', 'delivering')).rejects.toThrow(
+        OrderInvalidTransitionError
+      );
       expect(OrderApi.advanceOrder).not.toHaveBeenCalled();
+      expect(OrderApi.finalizeOrder).not.toHaveBeenCalled();
     });
 
     it('should reject a transition from a terminal state', async () => {
@@ -62,6 +63,21 @@ describe('OrderService', () => {
       await expect(OrderService.advance('o1', 'pending')).rejects.toThrow(
         OrderInvalidTransitionError
       );
+    });
+  });
+
+  describe('finalize', () => {
+    it('should call finalize_order for delivering → confirmed (RN087)', async () => {
+      await OrderService.finalize('o1', 'delivering');
+
+      expect(OrderApi.finalizeOrder).toHaveBeenCalledWith('o1');
+    });
+
+    it('should reject finalizing from any state other than delivering', async () => {
+      await expect(OrderService.finalize('o1', 'picking')).rejects.toThrow(
+        OrderInvalidTransitionError
+      );
+      expect(OrderApi.finalizeOrder).not.toHaveBeenCalled();
     });
   });
 

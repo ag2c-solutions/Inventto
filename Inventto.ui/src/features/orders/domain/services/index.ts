@@ -24,12 +24,12 @@ const MACRO_STATE_BY_MICRO_STATE: Record<OrderMicroState, OrderMacroState> = {
   expired: 'cancelled'
 };
 
-// Esteira: de cada micro-estado só cabe avançar para o próximo (RN087 —
-// baixa de estoque só no passo terminal "Finalizar").
+// Esteira: advance_order só cobre confirming→picking e picking→delivering
+// (espelha o RPC — advance_order rejeita "delivering", RN087 exige o passo
+// terminal dedicado). delivering→confirmed é sempre via finalize().
 const NEXT_MICRO_STATE: Partial<Record<OrderMicroState, OrderMicroState>> = {
   confirming: 'picking',
-  picking: 'delivering',
-  delivering: 'confirmed'
+  picking: 'delivering'
 };
 
 const CANCELLABLE_STATES: OrderMicroState[] = [
@@ -58,9 +58,8 @@ export class OrderService {
     return OrderApi.claimOrder(id);
   }
 
-  // Avança para o estágio seguinte; finalize_order (RN087) é chamado
-  // separadamente quando o pedido já está em "delivering" (último passo
-  // consome a reserva e gera a saída — ver finalize abaixo).
+  // Avança um estágio da esteira (confirming→picking, picking→delivering).
+  // Não cobre a finalização — ver finalize() abaixo (RN087).
   static async advance(id: string, microState: OrderMicroState): Promise<void> {
     const next = this.getNextMicroState(microState);
 
@@ -68,11 +67,20 @@ export class OrderService {
       throw new OrderInvalidTransitionError();
     }
 
-    if (next === 'confirmed') {
-      return OrderApi.finalizeOrder(id);
+    return OrderApi.advanceOrder(id);
+  }
+
+  // Último passo da esteira (delivering→confirmed): consome a reserva e
+  // gera a saída de estoque de forma atômica (RN087).
+  static async finalize(
+    id: string,
+    microState: OrderMicroState
+  ): Promise<void> {
+    if (microState !== 'delivering') {
+      throw new OrderInvalidTransitionError();
     }
 
-    return OrderApi.advanceOrder(id);
+    return OrderApi.finalizeOrder(id);
   }
 
   static async cancel(

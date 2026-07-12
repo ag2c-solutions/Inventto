@@ -34,6 +34,24 @@ export function useAdvanceOrderMutation() {
   });
 }
 
+interface FinalizeOrderVariables {
+  id: string;
+  microState: OrderMicroState;
+}
+
+export function useFinalizeOrderMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, microState }: FinalizeOrderVariables) =>
+      OrderService.finalize(id, microState),
+    meta: { successMessage: 'Pedido finalizado e estoque baixado.' },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ORDER_KEYS.all });
+    }
+  });
+}
+
 interface CancelOrderVariables {
   id: string;
   microState: OrderMicroState;

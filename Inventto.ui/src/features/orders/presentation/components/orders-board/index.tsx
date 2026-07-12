@@ -8,6 +8,8 @@ import { BoardColumn } from './pieces/board-column';
 
 interface OrdersBoardProps {
   orders: Order[];
+  onOpenDetail: (order: Order) => void;
+  onCancelRequest: (order: Order) => void;
 }
 
 // Microcopy por coluna (§4 do wireframe) — cada macro-estado tem seu texto
@@ -21,7 +23,11 @@ const EMPTY_TEXT = {
 
 // RF034: 4 colunas por macro-estado — Pool · Em atendimento · Finalizados ·
 // Cancelados. "Em atendimento" ordenada pela última ação (RN082/RF034).
-export function OrdersBoard({ orders }: OrdersBoardProps) {
+export function OrdersBoard({
+  orders,
+  onOpenDetail,
+  onCancelRequest
+}: OrdersBoardProps) {
   const columns = useMemo(() => {
     const byMacro = (macro: Order['macroState']) =>
       orders.filter((order) => order.macroState === macro);
@@ -42,6 +48,8 @@ export function OrdersBoard({ orders }: OrdersBoardProps) {
         orders={columns.pool}
         emptyText={EMPTY_TEXT.pool}
         emptyIcon={Inbox}
+        onOpenDetail={onOpenDetail}
+        onCancelRequest={onCancelRequest}
       />
       <BoardColumn
         title="Em atendimento"
@@ -49,6 +57,8 @@ export function OrdersBoard({ orders }: OrdersBoardProps) {
         orders={columns.attending}
         emptyText={EMPTY_TEXT.attending}
         emptyIcon={Archive}
+        onOpenDetail={onOpenDetail}
+        onCancelRequest={onCancelRequest}
       />
       <BoardColumn
         title="Finalizados"
@@ -56,6 +66,8 @@ export function OrdersBoard({ orders }: OrdersBoardProps) {
         orders={columns.done}
         emptyText={EMPTY_TEXT.done}
         emptyIcon={Archive}
+        onOpenDetail={onOpenDetail}
+        onCancelRequest={onCancelRequest}
       />
       <BoardColumn
         title="Cancelados"
@@ -63,6 +75,8 @@ export function OrdersBoard({ orders }: OrdersBoardProps) {
         orders={columns.cancelled}
         emptyText={EMPTY_TEXT.cancelled}
         emptyIcon={Archive}
+        onOpenDetail={onOpenDetail}
+        onCancelRequest={onCancelRequest}
       />
     </div>
   );
