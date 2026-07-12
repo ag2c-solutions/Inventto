@@ -4,6 +4,7 @@ export interface StorefrontDTO {
   name: string;
   slug: string | null;
   catalog_id: string | null;
+  whatsapp: string | null;
   status: 'active' | 'inactive';
   catalog: { id: string; name: string } | null;
 }

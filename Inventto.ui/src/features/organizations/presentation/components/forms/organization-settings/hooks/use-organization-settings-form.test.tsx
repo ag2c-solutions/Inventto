@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -40,6 +41,14 @@ const organization = organizationWithDetailsFactory.build({
   }
 });
 
+function renderSettingsForm(initialEntry = '/settings') {
+  return renderHook(() => useOrganizationSettingsForm(), {
+    wrapper: ({ children }) => (
+      <MemoryRouter initialEntries={[initialEntry]}>{children}</MemoryRouter>
+    )
+  });
+}
+
 const makeDirty = (result: {
   current: ReturnType<typeof useOrganizationSettingsForm>;
 }) => {
@@ -64,14 +73,14 @@ describe('useOrganizationSettingsForm', () => {
   });
 
   it('não exibe a barra de ações sem alterações pendentes (RN025)', () => {
-    const { result } = renderHook(() => useOrganizationSettingsForm());
+    const { result } = renderSettingsForm();
 
     expect(result.current.isDirty).toBe(false);
     expect(result.current.showActionBar).toBe(false);
   });
 
   it('exibe a barra de ações com alterações pendentes fora da Danger Zone', () => {
-    const { result } = renderHook(() => useOrganizationSettingsForm());
+    const { result } = renderSettingsForm();
 
     makeDirty(result);
 
@@ -80,7 +89,7 @@ describe('useOrganizationSettingsForm', () => {
   });
 
   it('oculta a barra de ações na aba Danger Zone mesmo com alterações', () => {
-    const { result } = renderHook(() => useOrganizationSettingsForm());
+    const { result } = renderSettingsForm();
 
     makeDirty(result);
     act(() => {
@@ -92,7 +101,7 @@ describe('useOrganizationSettingsForm', () => {
   });
 
   it('Descartar reverte as alterações e oculta a barra de ações', () => {
-    const { result } = renderHook(() => useOrganizationSettingsForm());
+    const { result } = renderSettingsForm();
 
     makeDirty(result);
     expect(result.current.showActionBar).toBe(true);
@@ -106,13 +115,25 @@ describe('useOrganizationSettingsForm', () => {
   });
 
   it('expõe o nome da organização ativa', () => {
-    const { result } = renderHook(() => useOrganizationSettingsForm());
+    const { result } = renderSettingsForm();
 
     expect(result.current.organizationName).toBe('Ateliê Joana');
   });
 
   it('expõe cepLoading como false por padrão', () => {
-    const { result } = renderHook(() => useOrganizationSettingsForm());
+    const { result } = renderSettingsForm();
     expect(result.current.cepLoading).toBe(false);
+  });
+
+  it('inicia na aba "general" quando não há ?tab= na URL', () => {
+    const { result } = renderSettingsForm('/settings');
+
+    expect(result.current.activeTab).toBe('general');
+  });
+
+  it('inicia na aba indicada por ?tab= (atalho VIT-02 · RN075)', () => {
+    const { result } = renderSettingsForm('/settings?tab=schedule');
+
+    expect(result.current.activeTab).toBe('schedule');
   });
 });

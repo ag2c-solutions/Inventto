@@ -7,17 +7,29 @@ import { storefrontFactory } from '../../../../../tests/factories/storefront.fac
 
 import { RowActionsMenu } from './index';
 
-const { mockMutate, mockCopyLink } = vi.hoisted(() => ({
-  mockMutate: vi.fn(),
+const { mockUnpublish, mockPublish, mockCopyLink } = vi.hoisted(() => ({
+  mockUnpublish: vi.fn(),
+  mockPublish: vi.fn(),
   mockCopyLink: vi.fn()
 }));
 
 vi.mock('../../../../hooks/use-mutations', () => ({
-  useUnpublishStorefrontMutation: () => ({ mutate: mockMutate })
+  useUnpublishStorefrontMutation: () => ({ mutate: mockUnpublish }),
+  usePublishStorefrontMutation: () => ({ mutate: mockPublish })
 }));
 
 vi.mock('./hooks/use-copy-storefront-link', () => ({
   useCopyStorefrontLink: () => ({ copyLink: mockCopyLink })
+}));
+
+vi.mock('../../../publish-dialog', () => ({
+  PublishDialog: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="publish-dialog" /> : null
+}));
+
+vi.mock('../../../remove-storefront-dialog', () => ({
+  RemoveStorefrontDialog: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="remove-dialog" /> : null
 }));
 
 function renderMenu(storefront: ReturnType<typeof storefrontFactory.build>) {
@@ -68,7 +80,7 @@ describe('RowActionsMenu', () => {
     await user.click(screen.getByRole('button', { name: 'Ações da vitrine' }));
     await user.click(screen.getByText('Despublicar'));
 
-    expect(mockMutate).toHaveBeenCalledWith(storefront.id);
+    expect(mockUnpublish).toHaveBeenCalledWith(storefront.id);
   });
 
   it('should copy the public link when "Copiar link" is clicked', async () => {
@@ -93,5 +105,45 @@ describe('RowActionsMenu', () => {
     expect(
       screen.getByRole('menuitem', { name: /configurar/i })
     ).toHaveAttribute('href', `/storefronts/${storefront.id}`);
+  });
+
+  it('should call the publish mutation when "Publicar" is clicked, and open the PublishDialog when prereqs are missing', async () => {
+    const storefront = storefrontFactory.build({ state: 'inactive' });
+    mockPublish.mockImplementation((_id, { onSuccess }) => {
+      onSuccess({ published: false, missingPrereqs: ['whatsapp'] });
+    });
+    renderMenu(storefront);
+
+    await user.click(screen.getByRole('button', { name: 'Ações da vitrine' }));
+    await user.click(screen.getByText('Publicar'));
+
+    expect(mockPublish).toHaveBeenCalledWith(
+      storefront.id,
+      expect.objectContaining({ onSuccess: expect.any(Function) })
+    );
+    expect(await screen.findByTestId('publish-dialog')).toBeInTheDocument();
+  });
+
+  it('should not open the PublishDialog when publishing succeeds', async () => {
+    const storefront = storefrontFactory.build({ state: 'inactive' });
+    mockPublish.mockImplementation((_id, { onSuccess }) => {
+      onSuccess({ published: true });
+    });
+    renderMenu(storefront);
+
+    await user.click(screen.getByRole('button', { name: 'Ações da vitrine' }));
+    await user.click(screen.getByText('Publicar'));
+
+    expect(screen.queryByTestId('publish-dialog')).not.toBeInTheDocument();
+  });
+
+  it('should open the RemoveStorefrontDialog when "Remover vitrine" is clicked', async () => {
+    const storefront = storefrontFactory.build();
+    renderMenu(storefront);
+
+    await user.click(screen.getByRole('button', { name: 'Ações da vitrine' }));
+    await user.click(screen.getByText('Remover vitrine'));
+
+    expect(await screen.findByTestId('remove-dialog')).toBeInTheDocument();
   });
 });

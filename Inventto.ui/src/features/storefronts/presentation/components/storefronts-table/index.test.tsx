@@ -7,12 +7,8 @@ import { storefrontFactory } from '../../../tests/factories/storefront.factory';
 
 import { StorefrontsTable } from './index';
 
-vi.mock('../../hooks/use-mutations', () => ({
-  useUnpublishStorefrontMutation: () => ({ mutate: vi.fn() })
-}));
-
-vi.mock('./pieces/row-actions-menu/hooks/use-copy-storefront-link', () => ({
-  useCopyStorefrontLink: () => ({ copyLink: vi.fn() })
+vi.mock('./pieces/row-actions-menu', () => ({
+  RowActionsMenu: () => <button type="button">Ações da vitrine</button>
 }));
 
 const storefronts = [

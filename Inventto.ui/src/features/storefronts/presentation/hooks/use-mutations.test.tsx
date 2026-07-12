@@ -4,15 +4,32 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StorefrontService } from '../../domain/services';
 
-import { useUnpublishStorefrontMutation } from './use-mutations';
+import {
+  usePublishStorefrontMutation,
+  useRemoveStorefrontMutation,
+  useUnpublishStorefrontMutation
+} from './use-mutations';
+
+const { mockToast } = vi.hoisted(() => ({
+  mockToast: Object.assign(vi.fn(), {
+    success: vi.fn(),
+    error: vi.fn()
+  })
+}));
+
+vi.mock('sonner', () => ({
+  toast: mockToast
+}));
 
 vi.mock('../../domain/services', () => ({
   StorefrontService: {
-    unpublish: vi.fn()
+    unpublish: vi.fn(),
+    publish: vi.fn(),
+    remove: vi.fn()
   }
 }));
 
-describe('useUnpublishStorefrontMutation', () => {
+describe('storefronts mutations', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -26,21 +43,104 @@ describe('useUnpublishStorefrontMutation', () => {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  it('should call StorefrontService.unpublish and invalidate the storefronts list', async () => {
-    vi.mocked(StorefrontService.unpublish).mockResolvedValue(undefined);
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+  describe('useUnpublishStorefrontMutation', () => {
+    it('should call StorefrontService.unpublish and invalidate the storefronts list', async () => {
+      vi.mocked(StorefrontService.unpublish).mockResolvedValue(undefined);
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-    const { result } = renderHook(() => useUnpublishStorefrontMutation(), {
-      wrapper
+      const { result } = renderHook(() => useUnpublishStorefrontMutation(), {
+        wrapper
+      });
+
+      result.current.mutate('s1');
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(StorefrontService.unpublish).toHaveBeenCalledWith('s1');
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['storefronts']
+      });
+    });
+  });
+
+  describe('usePublishStorefrontMutation', () => {
+    it('should show the success toast and invalidate the list when published', async () => {
+      vi.mocked(StorefrontService.publish).mockResolvedValue({
+        published: true
+      });
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => usePublishStorefrontMutation(), {
+        wrapper
+      });
+
+      result.current.mutate('s1');
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(mockToast.success).toHaveBeenCalledWith(
+        'Vitrine no ar.',
+        expect.objectContaining({ duration: 4000 })
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['storefronts']
+      });
     });
 
-    result.current.mutate('s1');
+    it('should not show a toast or invalidate the list when prereqs are missing', async () => {
+      vi.mocked(StorefrontService.publish).mockResolvedValue({
+        published: false,
+        missingPrereqs: ['whatsapp']
+      });
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      const { result } = renderHook(() => usePublishStorefrontMutation(), {
+        wrapper
+      });
 
-    expect(StorefrontService.unpublish).toHaveBeenCalledWith('s1');
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ['storefronts']
+      let mutationResult: unknown;
+      result.current.mutate('s1', {
+        onSuccess: (data) => {
+          mutationResult = data;
+        }
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(mutationResult).toEqual({
+        published: false,
+        missingPrereqs: ['whatsapp']
+      });
+      expect(mockToast.success).not.toHaveBeenCalled();
+      expect(invalidateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useRemoveStorefrontMutation', () => {
+    it('should call StorefrontService.remove, show the success toast and invalidate the list', async () => {
+      vi.mocked(StorefrontService.remove).mockResolvedValue(undefined);
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useRemoveStorefrontMutation(), {
+        wrapper
+      });
+
+      result.current.mutate({
+        id: 's1',
+        confirmation: 'Vitrine Ateliê',
+        expectedName: 'Vitrine Ateliê'
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(StorefrontService.remove).toHaveBeenCalledWith(
+        's1',
+        'Vitrine Ateliê',
+        'Vitrine Ateliê'
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['storefronts']
+      });
     });
   });
 });

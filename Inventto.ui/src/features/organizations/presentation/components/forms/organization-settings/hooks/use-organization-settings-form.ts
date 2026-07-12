@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type FieldErrors, useForm, type UseFormReturn } from 'react-hook-form';
 
@@ -39,7 +40,12 @@ export const useOrganizationSettingsForm =
     const { data: organization } = useOrganizationQuery();
     const { mutateAsync: updateOrganization, isPending } =
       useUpdateOrganizationMutation();
-    const [activeTab, setActiveTab] = useState('general');
+    const [searchParams] = useSearchParams();
+    // Atalho de pré-requisitos (VIT-02 · RN075: "Defina fuso e horários")
+    // linka direto pra aba certa via ?tab= — sem isso, cai na aba padrão.
+    const [activeTab, setActiveTab] = useState(
+      () => searchParams.get('tab') ?? 'general'
+    );
 
     const form = useForm<OrganizationSettingsFormData>({
       resolver: zodResolver(organizationSettingsSchema),
