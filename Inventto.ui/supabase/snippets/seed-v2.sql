@@ -68,6 +68,60 @@ DECLARE
   r_prod RECORD;
   r_variant RECORD;
 
+  -- -------------------------------------------------------------------------
+  -- 2. CATÁLOGO · VITRINE · PEDIDOS (PED-01)
+  -- -------------------------------------------------------------------------
+  v_catalog_id UUID;
+  v_storefront_id UUID;
+  v_order_id UUID;
+
+  v_order_statuses public.order_status[] := ARRAY[
+    'pending','pending','pending','pending','pending',
+    'confirming','confirming','confirming',
+    'picking','picking','picking',
+    'delivering','delivering','delivering',
+    'confirmed','confirmed','confirmed','confirmed','confirmed',
+    'cancelled','cancelled','cancelled',
+    'expired','expired'
+  ]::public.order_status[];
+  v_order_status public.order_status;
+
+  v_cancel_reasons TEXT[] := ARRAY[
+    'Falta de estoque', 'Cliente desistiu', 'Endereço fora da área de entrega', 'Pedido duplicado'
+  ];
+  v_addresses TEXT[] := ARRAY[
+    '{"zip_code":"01310-100","street":"Av. Paulista","number":"1000","neighborhood":"Bela Vista","city":"São Paulo","state":"SP"}',
+    '{"zip_code":"88015-200","street":"Av. Beira-Mar Norte","number":"1040","neighborhood":"Centro","city":"Florianópolis","state":"SC"}',
+    '{"zip_code":"51020-090","street":"Travessa do Carmo","number":"47","neighborhood":"Boa Viagem","city":"Recife","state":"PE"}',
+    '{"zip_code":"01410-001","street":"Rua das Acácias","number":"218","complement":"Apto 52","neighborhood":"Jardim Paulista","city":"São Paulo","state":"SP"}'
+  ];
+  v_cust_names TEXT[] := ARRAY[
+    'Mariana Costa','Rafael Souza','Beatriz Lima','Paulo Mendes','Carla Dias',
+    'Lucas Antunes','Helena Rocha','Diego Farias','Tânia Melo','André Pinto',
+    'Fernanda Alves','Bruno Cardoso','Camila Torres','Eduardo Ramos','Juliana Prado',
+    'Marcelo Nunes','Patrícia Gomes','Rodrigo Silva','Vanessa Cruz','Igor Barbosa',
+    'Larissa Freitas','Thiago Moraes','Renata Vieira','Gustavo Pires'
+  ];
+
+  v_seller_id UUID;
+  v_claimed_at TIMESTAMPTZ;
+  v_expires_at TIMESTAMPTZ;
+  v_finalized_at TIMESTAMPTZ;
+  v_cancellation_reason TEXT;
+  v_payment_method public.payment_method;
+  v_delivery_address JSONB;
+  v_age_minutes NUMERIC;
+  v_order_created_at TIMESTAMPTZ;
+
+  v_item_product_id UUID;
+  v_item_variant_id UUID;
+  v_item_price NUMERIC;
+  v_item_name TEXT;
+  v_item_qty INT;
+  v_order_total NUMERIC;
+  v_reservation_status TEXT;
+  k INT;
+
 BEGIN
   v_org_ids := ARRAY[v_org_id];
 
@@ -346,6 +400,156 @@ BEGIN
   END LOOP;
 
   -- -------------------------------------------------------------------------
+  -- 9.4 CATÁLOGO "Loja Virtual" (org principal — CAT-0x)
+  -- Reusa os produtos já gerados no passo 8: os 10 primeiros por SKU entram
+  -- no catálogo (todas as variantes, quando houver).
+  -- -------------------------------------------------------------------------
+  RAISE NOTICE '🗂️  Criando catálogo "Loja Virtual"...';
+
+  INSERT INTO public.catalogs (organization_id, name, is_active)
+  VALUES (v_org_id, 'Loja Virtual', true)
+  RETURNING id INTO v_catalog_id;
+
+  FOR r_prod IN
+    SELECT id, has_variants, cost_price
+    FROM public.products
+    WHERE organization_id = v_org_id
+    ORDER BY sku
+    LIMIT 10
+  LOOP
+    IF r_prod.has_variants THEN
+      FOR r_variant IN
+        SELECT id FROM public.product_variants WHERE product_id = r_prod.id
+      LOOP
+        INSERT INTO public.catalog_items (catalog_id, product_id, variant_id, price)
+        VALUES (v_catalog_id, r_prod.id, r_variant.id, GREATEST(COALESCE(r_prod.cost_price, 25) * 2.5, 39.9));
+      END LOOP;
+    ELSE
+      INSERT INTO public.catalog_items (catalog_id, product_id, variant_id, price)
+      VALUES (v_catalog_id, r_prod.id, NULL, GREATEST(COALESCE(r_prod.cost_price, 25) * 2.5, 39.9));
+    END IF;
+  END LOOP;
+
+  -- -------------------------------------------------------------------------
+  -- 9.5 VITRINE "Inventto Store" vinculada ao catálogo acima (VIT-0x)
+  -- Publicada direto (bypassa publish_storefront — é gravação de seed, não
+  -- fluxo de usuário) para já servir de origem (channel=catalog_store) dos
+  -- pedidos simulados abaixo.
+  -- -------------------------------------------------------------------------
+  RAISE NOTICE '🛍️  Criando vitrine "Inventto Store"...';
+
+  INSERT INTO public.storefronts (
+    organization_id, catalog_id, name, slug, whatsapp, theme,
+    show_prices, show_sold_out, whatsapp_message, status, published_at
+  ) VALUES (
+    v_org_id, v_catalog_id, 'Inventto Store', 'inventto-store', '11987654321',
+    '{"colors":{"primary":"#3A3631","background":"#F7F5F2","secondary":"#8B857D","text":"#2C2A28"},"layout":"grid","card_style":"minimal-large-image"}'::jsonb,
+    true, true, 'Olá! Vi sua vitrine e gostaria de fazer um pedido.',
+    'active', now()
+  )
+  RETURNING id INTO v_storefront_id;
+
+  -- -------------------------------------------------------------------------
+  -- 9.6 PEDIDOS SIMULADOS (PED-01) — 24 pedidos cobrindo as 4 colunas do
+  -- Kanban: 5 Pool (pending) · 9 Em atendimento (confirming/picking/
+  -- delivering) · 5 Finalizados (confirmed) · 5 Cancelados (cancelled ·
+  -- expired). Reserva de estoque (RN080/RN086) acompanha o estado: ativa
+  -- durante o ciclo, consumida ao finalizar, liberada ao cancelar/expirar.
+  -- -------------------------------------------------------------------------
+  RAISE NOTICE '📥 Simulando % pedidos na esteira de fulfillment...', array_length(v_order_statuses, 1);
+
+  FOR i IN 1..array_length(v_order_statuses, 1) LOOP
+    v_order_status := v_order_statuses[i];
+
+    -- Responsável: pool e expirados nunca foram assumidos.
+    v_seller_id := CASE WHEN v_order_status IN ('pending', 'expired') THEN NULL ELSE v_user_id END;
+
+    v_age_minutes := CASE v_order_status
+      WHEN 'pending'     THEN random() * 25 + 2
+      WHEN 'confirming'  THEN random() * 30 + 15
+      WHEN 'picking'     THEN random() * 40 + 20
+      WHEN 'delivering'  THEN random() * 60 + 30
+      WHEN 'confirmed'   THEN random() * 2880 + 60
+      WHEN 'cancelled'   THEN random() * 180 + 20
+      WHEN 'expired'     THEN random() * 240 + 30
+    END;
+    v_order_created_at := now() - (v_age_minutes * INTERVAL '1 minute');
+
+    v_claimed_at := CASE WHEN v_seller_id IS NOT NULL
+      THEN v_order_created_at + (random() * (v_age_minutes * 0.3) * INTERVAL '1 minute')
+      ELSE NULL END;
+
+    v_expires_at := CASE
+      WHEN v_order_status = 'pending' THEN now() + (random() * 28 + 2) * INTERVAL '1 minute'
+      WHEN v_order_status = 'expired' THEN v_order_created_at + (random() * 15 + 5) * INTERVAL '1 minute'
+      ELSE NULL END;
+
+    v_finalized_at := CASE WHEN v_order_status = 'confirmed'
+      THEN v_order_created_at + (random() * 90 + 30) * INTERVAL '1 minute'
+      ELSE NULL END;
+
+    v_cancellation_reason := CASE
+      WHEN v_order_status = 'cancelled' THEN v_cancel_reasons[1 + floor(random() * array_length(v_cancel_reasons, 1))::int]
+      WHEN v_order_status = 'expired' THEN 'Expirou no Pool'
+      ELSE NULL END;
+
+    v_payment_method := (ARRAY['pix', 'card'])[1 + floor(random() * 2)::int]::public.payment_method;
+    v_delivery_address := (v_addresses[1 + floor(random() * array_length(v_addresses, 1))::int])::jsonb;
+
+    INSERT INTO public.orders (
+      organization_id, seller_id, customer_name_snapshot, customer_phone_snapshot,
+      channel, catalog_id, status, total_amount, payment_method, delivery_address,
+      cancellation_reason, claimed_at, finalized_at, expires_at, created_at
+    ) VALUES (
+      v_org_id, v_seller_id, v_cust_names[i],
+      '(11) 9' || lpad((8000 + i * 137)::text, 4, '0') || '-' || lpad((1000 + i * 53)::text, 4, '0'),
+      'catalog_store', v_catalog_id, v_order_status, 0, v_payment_method, v_delivery_address,
+      v_cancellation_reason, v_claimed_at, v_finalized_at, v_expires_at, v_order_created_at
+    )
+    RETURNING id INTO v_order_id;
+
+    v_reservation_status := CASE v_order_status
+      WHEN 'confirmed' THEN 'consumed'
+      WHEN 'cancelled' THEN 'released'
+      WHEN 'expired' THEN 'released'
+      ELSE 'active'
+    END;
+
+    v_order_total := 0;
+
+    FOR k IN 1..(1 + floor(random() * 3)::int) LOOP
+      SELECT p.id, v.id, GREATEST(COALESCE(v.cost_price, p.cost_price, 25) * 2.5, 39.9), p.name
+      INTO v_item_product_id, v_item_variant_id, v_item_price, v_item_name
+      FROM public.products p
+      LEFT JOIN public.product_variants v ON v.product_id = p.id
+      WHERE p.organization_id = v_org_id
+      ORDER BY random()
+      LIMIT 1;
+
+      v_item_qty := 1 + floor(random() * 3)::int;
+
+      INSERT INTO public.order_items (order_id, product_id, variant_id, quantity, unit_price, product_name_snapshot)
+      VALUES (v_order_id, v_item_product_id, v_item_variant_id, v_item_qty, v_item_price, v_item_name);
+
+      INSERT INTO public.stock_reservations (order_id, product_id, variant_id, quantity, status)
+      VALUES (v_order_id, v_item_product_id, v_item_variant_id, v_item_qty, v_reservation_status);
+
+      -- RN087: finalizado já baixou o estoque (consumed vira saída).
+      IF v_order_status = 'confirmed' THEN
+        IF v_item_variant_id IS NOT NULL THEN
+          UPDATE public.product_variants SET stock = GREATEST(stock - v_item_qty, 0) WHERE id = v_item_variant_id;
+        ELSE
+          UPDATE public.products SET stock = GREATEST(stock - v_item_qty, 0) WHERE id = v_item_product_id;
+        END IF;
+      END IF;
+
+      v_order_total := v_order_total + (v_item_price * v_item_qty);
+    END LOOP;
+
+    UPDATE public.orders SET total_amount = v_order_total WHERE id = v_order_id;
+  END LOOP;
+
+  -- -------------------------------------------------------------------------
   -- 10. PRÉ-IMPORTAÇÃO (DEMO DO RF021)
   -- Copia 2 produtos da Filial (origem) para a Demo Store, propagando
   -- product_family_id e ESTOQUE ZERO (RN039/RN047). Assim a tela de Importar
@@ -397,5 +601,5 @@ BEGIN
     END LOOP;
   END LOOP;
 
-  RAISE NOTICE '✅ SEED FINALIZADA COM SUCESSO! (2 orgs + pré-importação)';
+  RAISE NOTICE '✅ SEED FINALIZADA COM SUCESSO! (2 orgs + catálogo + vitrine + % pedidos + pré-importação)', array_length(v_order_statuses, 1);
 END $$;

@@ -27,7 +27,7 @@ export const navGroups: NavGroup[] = [
         href: '/pedidos',
         icon: ClipboardList,
         permission: 'order:view_own',
-        enabled: false
+        enabled: true
       },
       {
         label: 'Venda no balcão',

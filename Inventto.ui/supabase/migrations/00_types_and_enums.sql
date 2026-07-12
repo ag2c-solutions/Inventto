@@ -8,7 +8,8 @@
 CREATE TYPE public.app_role AS ENUM ('owner', 'manager', 'sales'); 
 
 -- Status do Pedido
-CREATE TYPE public.order_status AS ENUM ('pending', 'confirmed', 'cancelled', 'expired');
+-- PED-01: esteira de fulfillment (wireframe) — confirming/picking/delivering entre pending e confirmed (finalizado).
+CREATE TYPE public.order_status AS ENUM ('pending', 'confirming', 'picking', 'delivering', 'confirmed', 'cancelled', 'expired');
 
 -- Canais de Venda (Origem do Pedido)
 CREATE TYPE public.sale_channel AS ENUM ('pos', 'whatsapp_direct', 'catalog_store', 'marketplace');
