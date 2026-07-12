@@ -223,6 +223,36 @@ export const router = createBrowserRouter([
               );
               return { Component: StorefrontsListPage };
             }
+          },
+          {
+            path: 'novo',
+            element: <CanNavigate required="storefront:manage" />,
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { StorefrontConfigPage } = await import(
+                    '@/features/storefronts'
+                  );
+                  return { Component: StorefrontConfigPage };
+                }
+              }
+            ]
+          },
+          {
+            path: ':storefrontId',
+            element: <CanNavigate required="storefront:manage" />,
+            children: [
+              {
+                index: true,
+                lazy: async () => {
+                  const { StorefrontConfigPage } = await import(
+                    '@/features/storefronts'
+                  );
+                  return { Component: StorefrontConfigPage };
+                }
+              }
+            ]
           }
         ]
       },

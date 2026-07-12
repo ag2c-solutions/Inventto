@@ -2,9 +2,11 @@ import type { OrganizationSettings } from '@/features/organizations';
 
 import { StorefrontApi } from '../../data/api';
 import {
+  type CreateStorefrontPayload,
   type PublishPrereqKey,
   type PublishStorefrontResult,
-  StorefrontPrereqsMissingError
+  StorefrontPrereqsMissingError,
+  type UpdateStorefrontPayload
 } from '../entities';
 import { removeConfirmationValidator } from '../validators';
 
@@ -63,5 +65,20 @@ export class StorefrontService {
     }
 
     return StorefrontApi.removeStorefront(id);
+  }
+
+  // Rascunho sem catálogo/WhatsApp é permitido — publicar é que exige
+  // pré-requisitos completos (RN075, getMissingPrereqs acima).
+  static async save(
+    payload: CreateStorefrontPayload,
+    id?: string
+  ): Promise<string> {
+    if (id) {
+      const updatePayload: UpdateStorefrontPayload = { id, ...payload };
+      await StorefrontApi.updateStorefront(updatePayload);
+      return id;
+    }
+
+    return StorefrontApi.createStorefront(payload);
   }
 }

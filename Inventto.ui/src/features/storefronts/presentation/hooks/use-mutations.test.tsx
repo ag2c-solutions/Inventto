@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,25 +8,41 @@ import { StorefrontService } from '../../domain/services';
 import {
   usePublishStorefrontMutation,
   useRemoveStorefrontMutation,
+  useSaveStorefrontMutation,
   useUnpublishStorefrontMutation
 } from './use-mutations';
 
-const { mockToast } = vi.hoisted(() => ({
+const { mockToast, mockUseUser, mockNavigate } = vi.hoisted(() => ({
   mockToast: Object.assign(vi.fn(), {
     success: vi.fn(),
     error: vi.fn()
-  })
+  }),
+  mockUseUser: vi.fn(),
+  mockNavigate: vi.fn()
 }));
 
 vi.mock('sonner', () => ({
   toast: mockToast
 }));
 
+vi.mock('@/features/users', () => ({
+  useUser: mockUseUser
+}));
+
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate
+  };
+});
+
 vi.mock('../../domain/services', () => ({
   StorefrontService: {
     unpublish: vi.fn(),
     publish: vi.fn(),
-    remove: vi.fn()
+    remove: vi.fn(),
+    save: vi.fn()
   }
 }));
 
@@ -34,13 +51,16 @@ describe('storefronts mutations', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
     queryClient = new QueryClient({
       defaultOptions: { mutations: { retry: false } }
     });
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
   );
 
   describe('useUnpublishStorefrontMutation', () => {
@@ -141,6 +161,55 @@ describe('storefronts mutations', () => {
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: ['storefronts']
       });
+    });
+  });
+
+  describe('useSaveStorefrontMutation', () => {
+    it('should create with the injected organizationId, invalidate the list and navigate on create', async () => {
+      vi.mocked(StorefrontService.save).mockResolvedValue('new-id');
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useSaveStorefrontMutation(), {
+        wrapper
+      });
+
+      result.current.mutate({ values: { name: 'Vitrine Ateliê' } });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(StorefrontService.save).toHaveBeenCalledWith(
+        { name: 'Vitrine Ateliê', organizationId: 'org-1' },
+        undefined
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['storefronts']
+      });
+      expect(mockNavigate).toHaveBeenCalledWith('/storefronts/new-id');
+    });
+
+    it('should update without navigating when an id is given', async () => {
+      vi.mocked(StorefrontService.save).mockResolvedValue('s1');
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useSaveStorefrontMutation(), {
+        wrapper
+      });
+
+      result.current.mutate({
+        id: 's1',
+        values: { name: 'Vitrine Ateliê' }
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(StorefrontService.save).toHaveBeenCalledWith(
+        { name: 'Vitrine Ateliê', organizationId: 'org-1' },
+        's1'
+      );
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['storefronts']
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

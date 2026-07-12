@@ -1,14 +1,20 @@
 import { supabase } from '@/infra/supabase';
 
 import {
+  type CreateStorefrontPayload,
   type PublishPrereqKey,
+  type SlugAvailability,
+  type SlugAvailabilityReason,
   type Storefront,
-  StorefrontPrereqsMissingError
+  StorefrontPrereqsMissingError,
+  StorefrontSlugUnavailableError,
+  type UpdateStorefrontPayload
 } from '../../domain/entities';
 import type { StorefrontDTO } from '../dtos';
 import {
   handleStorefrontError,
-  PREREQS_MISSING_ERROR_MARKER
+  PREREQS_MISSING_ERROR_MARKER,
+  SLUG_UNAVAILABLE_ERROR_MARKER
 } from '../handlers/error-handler';
 import { StorefrontMapper } from '../mappers';
 
@@ -19,6 +25,9 @@ const SELECT_QUERY = `
   slug,
   catalog_id,
   whatsapp,
+  instagram,
+  facebook,
+  website,
   status,
   catalog:catalogs(id, name)
 `;
@@ -30,6 +39,26 @@ function parseMissingPrereqs(message: string): PublishPrereqKey[] {
     .split(',')
     .map((key) => key.trim())
     .filter(Boolean) as PublishPrereqKey[];
+}
+
+function parseSlugUnavailableReason(message: string): SlugAvailabilityReason {
+  const [, reason] = message.split(`${SLUG_UNAVAILABLE_ERROR_MARKER}:`);
+
+  return (reason?.trim() || 'invalid') as SlugAvailabilityReason;
+}
+
+function toStorefrontRpcPayload(
+  payload: CreateStorefrontPayload | UpdateStorefrontPayload
+) {
+  return {
+    name: payload.name,
+    catalogId: payload.catalogId ?? null,
+    slug: payload.slug ?? null,
+    whatsapp: payload.whatsapp ?? null,
+    instagram: payload.instagram ?? null,
+    facebook: payload.facebook ?? null,
+    website: payload.website ?? null
+  };
 }
 
 export class StorefrontApi {
@@ -91,6 +120,90 @@ export class StorefrontApi {
       if (error) throw error;
     } catch (error) {
       handleStorefrontError(error, 'removeStorefront');
+    }
+  }
+
+  static async getStorefront(id: string): Promise<Storefront | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('storefronts')
+        .select(SELECT_QUERY)
+        .eq('id', id)
+        .maybeSingle()
+        .overrideTypes<StorefrontDTO, { merge: false }>();
+
+      if (error) throw error;
+      if (!data) return undefined;
+
+      return StorefrontMapper.toDomain(data);
+    } catch (error) {
+      handleStorefrontError(error, 'getStorefront');
+    }
+  }
+
+  static async checkSlug(
+    slug: string,
+    storefrontId?: string
+  ): Promise<SlugAvailability> {
+    try {
+      const { data, error } = await supabase.rpc('check_slug_available', {
+        p_slug: slug,
+        p_storefront_id: storefrontId ?? null
+      });
+
+      if (error) throw error;
+
+      return data as SlugAvailability;
+    } catch (error) {
+      handleStorefrontError(error, 'checkSlug');
+    }
+  }
+
+  static async createStorefront(
+    payload: CreateStorefrontPayload
+  ): Promise<string> {
+    try {
+      const { data, error } = await supabase.rpc('create_storefront', {
+        payload: {
+          organizationId: payload.organizationId,
+          ...toStorefrontRpcPayload(payload)
+        }
+      });
+
+      if (error) {
+        if (error.message.includes(SLUG_UNAVAILABLE_ERROR_MARKER)) {
+          throw new StorefrontSlugUnavailableError(
+            parseSlugUnavailableReason(error.message)
+          );
+        }
+        throw error;
+      }
+
+      return data as string;
+    } catch (error) {
+      handleStorefrontError(error, 'createStorefront');
+    }
+  }
+
+  static async updateStorefront(
+    payload: UpdateStorefrontPayload
+  ): Promise<void> {
+    try {
+      const { error } = await supabase.rpc('update_storefront', {
+        p_id: payload.id,
+        payload: toStorefrontRpcPayload(payload)
+      });
+
+      if (error) {
+        if (error.message.includes(SLUG_UNAVAILABLE_ERROR_MARKER)) {
+          throw new StorefrontSlugUnavailableError(
+            parseSlugUnavailableReason(error.message)
+          );
+        }
+        throw error;
+      }
+    } catch (error) {
+      handleStorefrontError(error, 'updateStorefront');
     }
   }
 }
