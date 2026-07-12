@@ -16,11 +16,13 @@ import { OrderMapper } from '../mappers';
 
 // Linha crua da tabela (payload de realtime não inclui os relacionamentos
 // de SELECT_QUERY — seller/order_items não vêm no INSERT/UPDATE do Postgres).
-export interface OrderChangeRow {
+// `type` (não `interface`): subscribeToTableChanges exige
+// Record<string, unknown>, que só bate estruturalmente com type aliases.
+export type OrderChangeRow = {
   id: string;
   status: OrderDTO['status'];
   seller_id: string | null;
-}
+};
 
 export interface OrderChangePayload {
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
