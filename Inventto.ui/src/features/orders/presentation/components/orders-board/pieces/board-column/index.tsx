@@ -36,6 +36,7 @@ interface BoardColumnProps {
   orders: Order[];
   emptyText: string;
   emptyIcon: ComponentType<LucideProps>;
+  newOrderIds?: Set<string>;
   onOpenDetail: (order: Order) => void;
   onCancelRequest: (order: Order) => void;
 }
@@ -46,6 +47,7 @@ export function BoardColumn({
   orders,
   emptyText,
   emptyIcon: EmptyIcon,
+  newOrderIds,
   onOpenDetail,
   onCancelRequest
 }: BoardColumnProps) {
@@ -80,6 +82,7 @@ export function BoardColumn({
             <OrderCard
               key={order.id}
               order={order}
+              isNew={newOrderIds?.has(order.id)}
               onOpenDetail={onOpenDetail}
               onCancelRequest={onCancelRequest}
             />

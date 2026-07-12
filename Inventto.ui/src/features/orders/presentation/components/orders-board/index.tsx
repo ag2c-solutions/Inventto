@@ -8,6 +8,7 @@ import { BoardColumn } from './pieces/board-column';
 
 interface OrdersBoardProps {
   orders: Order[];
+  newOrderIds?: Set<string>;
   onOpenDetail: (order: Order) => void;
   onCancelRequest: (order: Order) => void;
 }
@@ -25,6 +26,7 @@ const EMPTY_TEXT = {
 // Cancelados. "Em atendimento" ordenada pela última ação (RN082/RF034).
 export function OrdersBoard({
   orders,
+  newOrderIds,
   onOpenDetail,
   onCancelRequest
 }: OrdersBoardProps) {
@@ -48,6 +50,7 @@ export function OrdersBoard({
         orders={columns.pool}
         emptyText={EMPTY_TEXT.pool}
         emptyIcon={Inbox}
+        newOrderIds={newOrderIds}
         onOpenDetail={onOpenDetail}
         onCancelRequest={onCancelRequest}
       />

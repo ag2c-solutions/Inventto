@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Skeleton } from '@/shared/components/ui/skeleton';
-
 import { useOrganizationMembersQuery } from '@/features/organizations';
 
 import type { Order, OrderFilters } from '../../../domain/entities';
 import { OrdersBoard } from '../../components/orders-board';
+import { OrdersBoardSkeleton } from '../../components/orders-board-skeleton';
 import { OrdersFilters } from '../../components/orders-filters';
 import { OrdersHeader } from '../../components/orders-header';
 import { useCancelOrderMutation } from '../../hooks/use-mutations';
@@ -19,7 +18,7 @@ export function OrdersBoardPage() {
   const { data: members = [] } = useOrganizationMembersQuery();
   const cancelMutation = useCancelOrderMutation();
 
-  useRealtimeOrders();
+  const { newOrderIds } = useRealtimeOrders();
 
   const inProgressCount = orders.filter(
     (order) => order.macroState === 'pool' || order.macroState === 'attending'
@@ -54,14 +53,11 @@ export function OrdersBoardPage() {
       />
 
       {isLoading ? (
-        <div className="flex flex-col gap-3 lg:flex-row">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-64 flex-1 rounded-xl" />
-          ))}
-        </div>
+        <OrdersBoardSkeleton />
       ) : (
         <OrdersBoard
           orders={orders}
+          newOrderIds={newOrderIds}
           onOpenDetail={handleOpenDetail}
           onCancelRequest={handleCancelRequest}
         />

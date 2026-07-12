@@ -50,6 +50,23 @@ describe('orders mutations', () => {
       expect(OrderService.claim).toHaveBeenCalledWith('o1');
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['orders'] });
     });
+
+    it('should reconcile the board (invalidate the list) when another seller already claimed it (RN082)', async () => {
+      vi.mocked(OrderService.claim).mockRejectedValue(
+        new Error('Este pedido já foi assumido por outro vendedor.')
+      );
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useClaimOrderMutation(), {
+        wrapper
+      });
+
+      result.current.mutate('o1');
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['orders'] });
+    });
   });
 
   describe('useAdvanceOrderMutation', () => {
