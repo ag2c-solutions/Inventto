@@ -56,3 +56,10 @@ export interface RecentActivityDTO {
   recent_orders?: RecentOrderDTO[];
   own_recent_sales?: OwnRecentSaleDTO[];
 }
+
+export interface OnboardingStatusDTO {
+  has_products: boolean;
+  has_catalog: boolean;
+  has_published_storefront: boolean;
+  has_sales: boolean;
+}

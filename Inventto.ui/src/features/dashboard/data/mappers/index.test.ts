@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { attentionSummaryDTOFactory } from '../../tests/factories/attention-summary.factory';
+import { onboardingStatusDTOFactory } from '../../tests/factories/onboarding-status.factory';
 import {
   recentActivityDTOFactory,
   recentMovementDTOFactory,
@@ -10,6 +11,7 @@ import { salesSummaryDTOFactory } from '../../tests/factories/sales-summary.fact
 
 import {
   AttentionSummaryMapper,
+  OnboardingStatusMapper,
   RecentActivityMapper,
   SalesSummaryMapper
 } from '.';
@@ -194,5 +196,25 @@ describe('RecentActivityMapper', () => {
         updatedAt: new Date('2026-07-13T10:00:00.000Z')
       }
     ]);
+  });
+});
+
+describe('OnboardingStatusMapper', () => {
+  it('should map the DTO snake_case fields to domain camelCase', () => {
+    const dto = onboardingStatusDTOFactory.build({
+      has_products: true,
+      has_catalog: true,
+      has_published_storefront: false,
+      has_sales: false
+    });
+
+    const status = OnboardingStatusMapper.toDomain(dto);
+
+    expect(status).toEqual({
+      hasProducts: true,
+      hasCatalog: true,
+      hasPublishedStorefront: false,
+      hasSales: false
+    });
   });
 });

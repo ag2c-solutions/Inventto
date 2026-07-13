@@ -2,18 +2,21 @@ import { supabase } from '@/infra/supabase';
 
 import type {
   AttentionSummary,
+  OnboardingStatus,
   RecentActivity,
   SalesPeriod,
   SalesSummary
 } from '../../domain/entities';
 import type {
   AttentionSummaryDTO,
+  OnboardingStatusDTO,
   RecentActivityDTO,
   SalesSummaryDTO
 } from '../dtos';
 import { handleDashboardError } from '../handlers/error-handler';
 import {
   AttentionSummaryMapper,
+  OnboardingStatusMapper,
   RecentActivityMapper,
   SalesSummaryMapper
 } from '../mappers';
@@ -66,6 +69,22 @@ export class DashboardAPI {
       return RecentActivityMapper.toDomain(data as RecentActivityDTO);
     } catch (error) {
       handleDashboardError(error, 'getRecentActivity');
+    }
+  }
+
+  static async getOnboardingStatus(
+    organizationId: string
+  ): Promise<OnboardingStatus> {
+    try {
+      const { data, error } = await supabase.rpc('get_onboarding_status', {
+        p_organization_id: organizationId
+      });
+
+      if (error) throw error;
+
+      return OnboardingStatusMapper.toDomain(data as OnboardingStatusDTO);
+    } catch (error) {
+      handleDashboardError(error, 'getOnboardingStatus');
     }
   }
 }

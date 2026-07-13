@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DashboardAPI } from '../../../data/api';
+import { onboardingStatusFactory } from '../../../tests/factories/onboarding-status.factory';
 import { salesSummaryFactory } from '../../../tests/factories/sales-summary.factory';
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
@@ -35,12 +36,15 @@ function renderWithProviders(ui: React.ReactElement) {
 }
 
 describe('DashboardPage', () => {
-  it('should render the greeting and the three blocks for the current role', async () => {
+  it('should render the greeting and the three blocks when there is operational activity', async () => {
     mockUseUser.mockReturnValue({
       user: { fullName: 'Joana Silva' },
       currentOrganization: { id: 'org-1', name: 'Ateliê Joana' },
       role: 'owner'
     });
+    vi.mocked(DashboardAPI.getOnboardingStatus).mockResolvedValue(
+      onboardingStatusFactory.build({ hasSales: true })
+    );
     vi.mocked(DashboardAPI.getSalesSummary).mockResolvedValue(
       salesSummaryFactory.build()
     );
@@ -48,12 +52,35 @@ describe('DashboardPage', () => {
 
     renderWithProviders(<DashboardPage />);
 
-    expect(screen.getByText('Bom dia, Joana')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('Bom dia, Joana')).toBeInTheDocument()
+    );
     expect(screen.getByText('Attention block for owner')).toBeInTheDocument();
 
     await waitFor(() =>
       expect(screen.getByText('Resumo de vendas')).toBeInTheDocument()
     );
+  });
+
+  it('should render the onboarding instead of the blocks on first use (no products, catalog, storefront or sales)', async () => {
+    mockUseUser.mockReturnValue({
+      user: { fullName: 'Joana Silva' },
+      currentOrganization: { id: 'org-1', name: 'Ateliê Joana' },
+      role: 'owner'
+    });
+    vi.mocked(DashboardAPI.getOnboardingStatus).mockResolvedValue(
+      onboardingStatusFactory.build()
+    );
+
+    renderWithProviders(<DashboardPage />);
+
+    await waitFor(() =>
+      expect(screen.getByText('Vamos preparar sua loja.')).toBeInTheDocument()
+    );
+    expect(screen.queryByText('Bom dia, Joana')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Attention block for owner')
+    ).not.toBeInTheDocument();
   });
 
   it('should render nothing while the user/organization is not resolved yet', () => {
