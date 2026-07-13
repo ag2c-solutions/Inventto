@@ -39,9 +39,6 @@ export function SalesBlock({ role }: SalesBlockProps) {
             <h2 className="text-[13px] font-bold tracking-wide uppercase">
               Suas vendas hoje
             </h2>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              RF037
-            </span>
           </div>
           <SalesSimple ownSalesToday={data?.ownSalesToday} />
         </Card>

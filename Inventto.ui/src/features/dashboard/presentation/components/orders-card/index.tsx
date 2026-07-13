@@ -9,6 +9,7 @@ import {
   Info,
   type LucideIcon,
   Package,
+  ShoppingBag,
   Truck
 } from 'lucide-react';
 
@@ -110,25 +111,37 @@ export function OrdersCard({ orders }: OrdersCardProps) {
                 key={order.id}
                 className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
               >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
-                    {order.customerName ?? 'Cliente não identificado'}
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
-                    <span className="font-mono">#{order.code}</span> ·{' '}
-                    {formatDistanceToNow(order.updatedAt, {
-                      addSuffix: true,
-                      locale: ptBR
-                    })}
-                  </span>
+                <span className="min-w-0 flex gap-2 flex-1">
+                  <figure className="rounded-md bg-sidebar/80 border size-8 flex items-center justify-center">
+                    <ShoppingBag className="size-4 text-sidebar-foreground" />
+                  </figure>
+                  <div>
+                    <span className="block truncate text-sm font-medium">
+                      {order.customerName ?? 'Cliente não identificado'}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      <span className="font-mono">#{order.code}</span> ·{' '}
+                      {formatDistanceToNow(order.updatedAt, {
+                        addSuffix: true,
+                        locale: ptBR
+                      })}
+                    </span>
+                  </div>
                 </span>
-                <Badge className={cn('gap-1 font-medium', meta.className)}>
-                  <Icon className="size-3" />
-                  {meta.label}
-                </Badge>
-                <span className="shrink-0 font-mono text-sm font-bold">
-                  {formatCurrency(order.total) ?? 'R$ 0,00'}
-                </span>
+                <div className="flex flex-col gap-1 items-end">
+                  <Badge
+                    className={cn(
+                      'gap-1 font-medium text-[10px]',
+                      meta.className
+                    )}
+                  >
+                    <Icon className="size-2" />
+                    {meta.label}
+                  </Badge>
+                  <span className="shrink-0 font-mono text-sm font-bold mr-1">
+                    {formatCurrency(order.total) ?? 'R$ 0,00'}
+                  </span>
+                </div>
               </li>
             );
           })}

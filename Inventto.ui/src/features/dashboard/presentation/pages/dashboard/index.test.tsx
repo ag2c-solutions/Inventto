@@ -49,8 +49,7 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />);
 
     expect(screen.getByText('Bom dia, Joana')).toBeInTheDocument();
-    expect(screen.getByText('Atenção imediata')).toBeInTheDocument();
-    expect(screen.getByText('Atividade e atalhos')).toBeInTheDocument();
+    expect(screen.getByText('Attention block for owner')).toBeInTheDocument();
 
     await waitFor(() =>
       expect(screen.getByText('Resumo de vendas')).toBeInTheDocument()

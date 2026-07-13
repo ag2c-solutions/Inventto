@@ -22,7 +22,7 @@ describe('MovesCard', () => {
     renderWithRouter(<MovesCard movements={[movement]} />);
 
     expect(screen.getByText('Entrada · Compra')).toBeInTheDocument();
-    expect(screen.getByText('+12')).toBeInTheDocument();
+    expect(screen.getByText('+12 unidades')).toBeInTheDocument();
   });
 
   it('should show a withdrawal movement with the − sign and reason', () => {
@@ -36,7 +36,7 @@ describe('MovesCard', () => {
     renderWithRouter(<MovesCard movements={[movement]} />);
 
     expect(screen.getByText('Saída · Venda')).toBeInTheDocument();
-    expect(screen.getByText('−2')).toBeInTheDocument();
+    expect(screen.getByText('−2 unidades')).toBeInTheDocument();
   });
 
   it('should show the link to the full history', () => {

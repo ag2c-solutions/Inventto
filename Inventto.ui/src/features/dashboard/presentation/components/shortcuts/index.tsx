@@ -34,24 +34,36 @@ export function Shortcuts({ role, variant = 'compact' }: ShortcutsProps) {
   const isLarge = variant === 'large';
 
   return (
-    <div className={cn('flex flex-wrap gap-2', isLarge && 'w-full')}>
-      {shortcuts.map((shortcut) => (
-        <Button
-          key={shortcut.href}
-          asChild
-          variant={shortcut.primary ? 'default' : 'outline'}
-          className={cn(
-            isLarge
-              ? 'h-12 min-w-[150px] flex-1 gap-2 rounded-xl text-sm'
-              : 'h-8 gap-1.5 rounded-lg px-3 text-xs'
-          )}
-        >
-          <Link to={shortcut.href}>
-            <Plus className={isLarge ? 'size-4' : 'size-3.5'} />
-            {shortcut.label}
-          </Link>
-        </Button>
-      ))}
+    <div
+      className={cn(
+        'flex flex-wrap gap-2 justify-between',
+        isLarge && 'w-full'
+      )}
+    >
+      <div className="flex items-center gap-2 px-2">
+        <h2 className="text-md text-sidebar-foreground/75 font-bold tracking-wide uppercase">
+          Atividade & Atalhos
+        </h2>
+      </div>
+      <div className="flex items-center gap-2">
+        {shortcuts.map((shortcut) => (
+          <Button
+            key={shortcut.href}
+            asChild
+            variant={shortcut.primary ? 'default' : 'outline'}
+            className={cn(
+              isLarge
+                ? 'h-12 min-w-[150px] flex-1 gap-2 rounded-xl text-sm'
+                : 'h-8 gap-1.5 rounded-lg px-3 text-xs'
+            )}
+          >
+            <Link to={shortcut.href}>
+              <Plus className={isLarge ? 'size-4' : 'size-3.5'} />
+              {shortcut.label}
+            </Link>
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }

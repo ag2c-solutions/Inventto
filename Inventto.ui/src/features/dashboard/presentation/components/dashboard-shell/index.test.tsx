@@ -23,15 +23,8 @@ describe('DashboardShell', () => {
   it('should compose the three blocks in order: Atenção, Vendas, Atividade', () => {
     render(<DashboardShell role="owner" />);
 
-    // SalesBlock agora é dono do próprio título (varia por papel — RF037
-    // não tem heading fixo no shell), então só Atenção/Atividade aparecem
-    // como heading nível 2 aqui; a ordem geral é verificada pela posição
-    // no texto renderizado.
-    const headings = screen
-      .getAllByRole('heading', { level: 2 })
-      .map((heading) => heading.textContent);
-
-    expect(headings).toEqual(['Atenção imediata', 'Atividade e atalhos']);
+    // Os componentes de bloco agora renderizam seus próprios títulos.
+    // A ordem geral continua sendo verificada pela posição no texto renderizado.
 
     const text = document.body.textContent ?? '';
     expect(text.indexOf('Attention block for owner')).toBeLessThan(

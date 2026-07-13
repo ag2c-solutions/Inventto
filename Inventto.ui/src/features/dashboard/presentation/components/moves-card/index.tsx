@@ -44,7 +44,7 @@ export function MovesCard({ movements }: MovesCardProps) {
             return (
               <li
                 key={movement.id}
-                className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
+                className="flex items-center gap-3 border-b px-4 py-3.5 last:border-b-0"
               >
                 <span
                   className={cn(
@@ -63,23 +63,28 @@ export function MovesCard({ movements }: MovesCardProps) {
                   <span className="block text-xs text-muted-foreground">
                     {movement.itemsCount}{' '}
                     {movement.itemsCount === 1 ? 'item' : 'itens'} ·{' '}
+                  </span>
+                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span
+                    className={cn(
+                      'shrink-0 font-mono text-sm font-bold',
+                      isEntry
+                        ? 'text-[var(--status-healthy)]'
+                        : 'text-[var(--status-critical)]'
+                    )}
+                  >
+                    {isEntry ? '+' : '−'}
+                    {movement.totalQuantity} unidades
+                  </span>
+
+                  <span className="block text-xs text-muted-foreground">
                     {formatDistanceToNow(movement.executedAt, {
                       addSuffix: true,
                       locale: ptBR
                     })}
                   </span>
-                </span>
-                <span
-                  className={cn(
-                    'shrink-0 font-mono text-sm font-bold',
-                    isEntry
-                      ? 'text-[var(--status-healthy)]'
-                      : 'text-[var(--status-critical)]'
-                  )}
-                >
-                  {isEntry ? '+' : '−'}
-                  {movement.totalQuantity}
-                </span>
+                </div>
               </li>
             );
           })}
