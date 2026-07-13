@@ -64,7 +64,7 @@ export function CancelOrderDialog({
             {ORDER_CANCEL_REASONS.map((option) => (
               <div
                 key={option}
-                className="flex items-center gap-3 rounded-lg border py-3 pl-2 font-semibold transition-colors has-[:checked]:bg-sidebar/70"
+                className="flex items-center gap-3 rounded-lg border py-3 pl-2 font-semibold transition-colors has-[[data-state=checked]]:bg-sidebar/80"
               >
                 <RadioGroupItem value={option} id={`cancel-reason-${option}`} />
                 <Label
