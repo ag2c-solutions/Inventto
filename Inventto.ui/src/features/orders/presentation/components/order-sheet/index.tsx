@@ -7,6 +7,8 @@ import {
   SheetDescription,
   SheetTitle
 } from '@/shared/components/ui/sheet';
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+import { cn } from '@/shared/utils';
 
 import type { Order } from '../../../domain/entities';
 import { useOrderQuery } from '../../hooks/use-queries';
@@ -31,12 +33,25 @@ interface OrderSheetProps {
 export function OrderSheet({ onCancelRequest }: OrderSheetProps) {
   const orderId = useOrderSheetStore((state) => state.orderId);
   const close = useOrderSheetStore((state) => state.close);
+  // PED-06: no mobile a Sheet vira painel inferior ocupando 80% da tela
+  // (grab handle incluído); no desktop segue lateral como no PED-04. Mesmo
+  // corte único de CAT-05/PDV-04 (useIsMobile, 768px).
+  const isMobile = useIsMobile();
 
   const { data: order, isLoading } = useOrderQuery(orderId ?? undefined);
 
   return (
     <Sheet open={!!orderId} onOpenChange={(open) => !open && close()}>
-      <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[420px]">
+      <SheetContent
+        side={isMobile ? 'bottom' : 'right'}
+        className={cn(
+          'flex w-full flex-col gap-0 overflow-hidden p-0',
+          isMobile ? 'h-[80vh] rounded-t-lg' : 'sm:max-w-[420px]'
+        )}
+      >
+        {isMobile && (
+          <span className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-muted-foreground/30" />
+        )}
         <SheetTitle className="sr-only">Atendimento do pedido</SheetTitle>
         <SheetDescription className="sr-only">
           Dados do pedido e ações da esteira de atendimento.

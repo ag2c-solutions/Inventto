@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
 import { Archive, Inbox } from 'lucide-react';
 
+import { useIsMobile } from '@/shared/hooks/use-is-mobile';
+
 import type { Order } from '../../../domain/entities';
-import { OrderService } from '../../../domain/services';
+import { useOrderColumns } from '../../hooks/use-order-columns';
+import { OrderTabs } from '../order-tabs';
 
 import { BoardColumn } from './pieces/board-column';
 
@@ -24,26 +26,31 @@ const EMPTY_TEXT = {
 
 // RF034: 4 colunas por macro-estado — Pool · Em atendimento · Finalizados ·
 // Cancelados. "Em atendimento" ordenada pela última ação (RN082/RF034).
+// PED-06: no mobile (<768px — mesmo corte de CAT-05/PDV-04, useIsMobile) o
+// Kanban vira Tabs (OrderTabs); a troca de árvore precisa ser em JS porque
+// só uma coluna fica visível por vez, não dá pra resolver só com `lg:`.
 export function OrdersBoard({
   orders,
   newOrderIds,
   onOpenDetail,
   onCancelRequest
 }: OrdersBoardProps) {
-  const columns = useMemo(() => {
-    const byMacro = (macro: Order['macroState']) =>
-      orders.filter((order) => order.macroState === macro);
+  const isMobile = useIsMobile();
+  const columns = useOrderColumns(orders);
 
-    return {
-      pool: byMacro('pool'),
-      attending: OrderService.sortByLastAction(byMacro('attending')),
-      done: byMacro('done'),
-      cancelled: byMacro('cancelled')
-    };
-  }, [orders]);
+  if (isMobile) {
+    return (
+      <OrderTabs
+        orders={orders}
+        newOrderIds={newOrderIds}
+        onOpenDetail={onOpenDetail}
+        onCancelRequest={onCancelRequest}
+      />
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:gap-3.5 lg:overflow-x-auto lg:pb-2">
+    <div className="flex gap-3.5 overflow-x-auto pb-2">
       <BoardColumn
         title="Pool"
         tone="neutral"
