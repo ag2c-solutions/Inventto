@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DashboardAPI } from '../../data/api';
 import { attentionSummaryFactory } from '../../tests/factories/attention-summary.factory';
+import { salesSummaryFactory } from '../../tests/factories/sales-summary.factory';
 
 const mockUseUser = vi.fn();
 
@@ -13,7 +14,7 @@ vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
-import { useAttentionSummaryQuery } from './use-queries';
+import { useAttentionSummaryQuery, useSalesSummaryQuery } from './use-queries';
 
 describe('useAttentionSummaryQuery', () => {
   let queryClient: QueryClient;
@@ -50,5 +51,63 @@ describe('useAttentionSummaryQuery', () => {
 
     expect(DashboardAPI.getAttentionSummary).toHaveBeenCalledWith('org-1');
     expect(result.current.data).toEqual(summary);
+  });
+});
+
+describe('useSalesSummaryQuery', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('should not run the query when there is no current organization', () => {
+    mockUseUser.mockReturnValue({ currentOrganization: null });
+
+    renderHook(() => useSalesSummaryQuery('30d'), { wrapper });
+
+    expect(DashboardAPI.getSalesSummary).not.toHaveBeenCalled();
+  });
+
+  it('should fetch the sales summary for the current organization and period', async () => {
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
+    const summary = salesSummaryFactory.build();
+    vi.mocked(DashboardAPI.getSalesSummary).mockResolvedValue(summary);
+
+    const { result } = renderHook(() => useSalesSummaryQuery('7d'), {
+      wrapper
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(DashboardAPI.getSalesSummary).toHaveBeenCalledWith('org-1', '7d');
+    expect(result.current.data).toEqual(summary);
+  });
+
+  it('should refetch when the period changes (cache key includes period)', async () => {
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
+    vi.mocked(DashboardAPI.getSalesSummary).mockResolvedValue(
+      salesSummaryFactory.build()
+    );
+
+    const { result, rerender } = renderHook(
+      ({ period }: { period: '30d' | '90d' }) => useSalesSummaryQuery(period),
+      { wrapper, initialProps: { period: '30d' } }
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    rerender({ period: '90d' });
+
+    await waitFor(() =>
+      expect(DashboardAPI.getSalesSummary).toHaveBeenCalledWith('org-1', '90d')
+    );
   });
 });
