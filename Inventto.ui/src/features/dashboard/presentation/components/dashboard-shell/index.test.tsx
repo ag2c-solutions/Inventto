@@ -7,6 +7,10 @@ vi.mock('../attention-block', () => ({
   )
 }));
 
+vi.mock('../sales-block', () => ({
+  SalesBlock: ({ role }: { role: string }) => <div>Sales block for {role}</div>
+}));
+
 import { DashboardShell } from '.';
 
 describe('DashboardShell', () => {
@@ -24,31 +28,29 @@ describe('DashboardShell', () => {
     ]);
   });
 
-  it('should render the attention block for the current role', () => {
+  it('should render the attention block and sales block for the current role', () => {
     render(<DashboardShell role="sales" />);
 
     expect(screen.getByText('Attention block for sales')).toBeInTheDocument();
+    expect(screen.getByText('Sales block for sales')).toBeInTheDocument();
   });
 
-  it('should show the full activity cards and the owner-only extras for the owner', () => {
+  it('should show the full activity cards for the owner', () => {
     render(<DashboardShell role="owner" />);
 
     expect(screen.getByText('Últimos pedidos')).toBeInTheDocument();
-    expect(screen.getByText(/exclusivo do Dono/)).toBeInTheDocument();
   });
 
-  it('should show the full activity cards for the manager without owner extras', () => {
+  it('should show the full activity cards for the manager', () => {
     render(<DashboardShell role="manager" />);
 
     expect(screen.getByText('Últimos pedidos')).toBeInTheDocument();
-    expect(screen.queryByText(/exclusivo do Dono/)).not.toBeInTheDocument();
   });
 
-  it('should show the reduced activity cards and own-sales copy for sales', () => {
+  it('should show the reduced activity cards for sales', () => {
     render(<DashboardShell role="sales" />);
 
     expect(screen.queryByText('Últimos pedidos')).not.toBeInTheDocument();
     expect(screen.getByText('Suas últimas vendas')).toBeInTheDocument();
-    expect(screen.getByText('Suas vendas hoje')).toBeInTheDocument();
   });
 });

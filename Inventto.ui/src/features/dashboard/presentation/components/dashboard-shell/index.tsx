@@ -4,6 +4,7 @@ import type { Role } from '@/features/permissions';
 
 import { DashboardService } from '../../../domain/services';
 import { AttentionBlock } from '../attention-block';
+import { SalesBlock } from '../sales-block';
 
 import { BlockHeading } from './pieces/block-heading';
 
@@ -23,18 +24,7 @@ export function DashboardShell({ role }: DashboardShellProps) {
 
       <section aria-label="Resumo de vendas" className="flex flex-col gap-3">
         <BlockHeading title="Resumo de vendas" rf="RF037" />
-        <div className="rounded-lg border p-4 text-sm text-muted-foreground">
-          <p>
-            {view.showSalesChart
-              ? 'Faturamento do período'
-              : 'Suas vendas hoje'}
-          </p>
-          {view.showOwnerExtras && (
-            <p className="mt-1 text-xs">
-              Margem média e inventário a custo — exclusivo do Dono
-            </p>
-          )}
-        </div>
+        <SalesBlock role={role} />
       </section>
 
       <section aria-label="Atividade e atalhos" className="flex flex-col gap-3">
