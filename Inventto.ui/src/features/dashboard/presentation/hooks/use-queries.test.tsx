@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DashboardAPI } from '../../data/api';
 import { attentionSummaryFactory } from '../../tests/factories/attention-summary.factory';
+import { recentActivityFactory } from '../../tests/factories/recent-activity.factory';
 import { salesSummaryFactory } from '../../tests/factories/sales-summary.factory';
 
 const mockUseUser = vi.fn();
@@ -14,7 +15,11 @@ vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
-import { useAttentionSummaryQuery, useSalesSummaryQuery } from './use-queries';
+import {
+  useAttentionSummaryQuery,
+  useRecentActivityQuery,
+  useSalesSummaryQuery
+} from './use-queries';
 
 describe('useAttentionSummaryQuery', () => {
   let queryClient: QueryClient;
@@ -109,5 +114,43 @@ describe('useSalesSummaryQuery', () => {
     await waitFor(() =>
       expect(DashboardAPI.getSalesSummary).toHaveBeenCalledWith('org-1', '90d')
     );
+  });
+});
+
+describe('useRecentActivityQuery', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('should not run the query when there is no current organization', () => {
+    mockUseUser.mockReturnValue({ currentOrganization: null });
+
+    renderHook(() => useRecentActivityQuery(), { wrapper });
+
+    expect(DashboardAPI.getRecentActivity).not.toHaveBeenCalled();
+  });
+
+  it('should fetch the recent activity for the current organization', async () => {
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
+    const activity = recentActivityFactory.build();
+    vi.mocked(DashboardAPI.getRecentActivity).mockResolvedValue(activity);
+
+    const { result } = renderHook(() => useRecentActivityQuery(), {
+      wrapper
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(DashboardAPI.getRecentActivity).toHaveBeenCalledWith('org-1');
+    expect(result.current.data).toEqual(activity);
   });
 });

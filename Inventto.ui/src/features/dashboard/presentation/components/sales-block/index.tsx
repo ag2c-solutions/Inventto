@@ -1,5 +1,6 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
 
@@ -33,7 +34,17 @@ export function SalesBlock({ role }: SalesBlockProps) {
         onRetry={refetch}
         skeleton={<SalesBlockSkeleton variant="simple" />}
       >
-        <SalesSimple ownSalesToday={data?.ownSalesToday} />
+        <Card className="gap-4 p-[18px]">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[13px] font-bold tracking-wide uppercase">
+              Suas vendas hoje
+            </h2>
+            <span className="font-mono text-[10px] text-muted-foreground">
+              RF037
+            </span>
+          </div>
+          <SalesSimple ownSalesToday={data?.ownSalesToday} />
+        </Card>
       </BlockBoundary>
     );
   }
@@ -48,26 +59,30 @@ export function SalesBlock({ role }: SalesBlockProps) {
       onRetry={refetch}
       skeleton={<SalesBlockSkeleton variant="chart" />}
     >
-      <div className="flex flex-col gap-4">
+      <Card className="gap-4 p-[18px]">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold">
-              {formatCurrency(data?.revenueTotal) ?? 'R$ 0,00'}
-            </span>
-            <span
-              className={cn(
-                'flex items-center gap-1 text-sm font-medium',
-                trend < 0
-                  ? 'text-[var(--status-critical)]'
-                  : 'text-[var(--status-healthy)]'
-              )}
-            >
-              <TrendIcon className="size-4" />
-              {trend > 0 ? '+' : ''}
-              {trend}%
-            </span>
-          </div>
+          <h2 className="text-[13px] font-bold tracking-wide uppercase">
+            Resumo de vendas
+          </h2>
           <PeriodSegmented value={period} onChange={setPeriod} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold">
+            {formatCurrency(data?.revenueTotal) ?? 'R$ 0,00'}
+          </span>
+          <span
+            className={cn(
+              'flex items-center gap-1 text-sm font-medium',
+              trend < 0
+                ? 'text-[var(--status-critical)]'
+                : 'text-[var(--status-healthy)]'
+            )}
+          >
+            <TrendIcon className="size-4" />
+            {trend > 0 ? '+' : ''}
+            {trend}%
+          </span>
         </div>
 
         <p className="text-sm text-muted-foreground">
@@ -85,7 +100,7 @@ export function SalesBlock({ role }: SalesBlockProps) {
           inventoryAtCost={data?.inventoryAtCost}
           avgMargin={data?.avgMargin}
         />
-      </div>
+      </Card>
     </BlockBoundary>
   );
 }

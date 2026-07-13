@@ -11,46 +11,42 @@ vi.mock('../sales-block', () => ({
   SalesBlock: ({ role }: { role: string }) => <div>Sales block for {role}</div>
 }));
 
+vi.mock('../activity-block', () => ({
+  ActivityBlock: ({ role }: { role: string }) => (
+    <div>Activity block for {role}</div>
+  )
+}));
+
 import { DashboardShell } from '.';
 
 describe('DashboardShell', () => {
   it('should compose the three blocks in order: Atenção, Vendas, Atividade', () => {
     render(<DashboardShell role="owner" />);
 
+    // SalesBlock agora é dono do próprio título (varia por papel — RF037
+    // não tem heading fixo no shell), então só Atenção/Atividade aparecem
+    // como heading nível 2 aqui; a ordem geral é verificada pela posição
+    // no texto renderizado.
     const headings = screen
       .getAllByRole('heading', { level: 2 })
       .map((heading) => heading.textContent);
 
-    expect(headings).toEqual([
-      'Atenção imediata',
-      'Resumo de vendas',
-      'Atividade e atalhos'
-    ]);
+    expect(headings).toEqual(['Atenção imediata', 'Atividade e atalhos']);
+
+    const text = document.body.textContent ?? '';
+    expect(text.indexOf('Attention block for owner')).toBeLessThan(
+      text.indexOf('Sales block for owner')
+    );
+    expect(text.indexOf('Sales block for owner')).toBeLessThan(
+      text.indexOf('Activity block for owner')
+    );
   });
 
-  it('should render the attention block and sales block for the current role', () => {
+  it('should render the attention, sales and activity blocks for the current role', () => {
     render(<DashboardShell role="sales" />);
 
     expect(screen.getByText('Attention block for sales')).toBeInTheDocument();
     expect(screen.getByText('Sales block for sales')).toBeInTheDocument();
-  });
-
-  it('should show the full activity cards for the owner', () => {
-    render(<DashboardShell role="owner" />);
-
-    expect(screen.getByText('Últimos pedidos')).toBeInTheDocument();
-  });
-
-  it('should show the full activity cards for the manager', () => {
-    render(<DashboardShell role="manager" />);
-
-    expect(screen.getByText('Últimos pedidos')).toBeInTheDocument();
-  });
-
-  it('should show the reduced activity cards for sales', () => {
-    render(<DashboardShell role="sales" />);
-
-    expect(screen.queryByText('Últimos pedidos')).not.toBeInTheDocument();
-    expect(screen.getByText('Suas últimas vendas')).toBeInTheDocument();
+    expect(screen.getByText('Activity block for sales')).toBeInTheDocument();
   });
 });

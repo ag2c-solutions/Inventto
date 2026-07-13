@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { attentionSummaryDTOFactory } from '../../tests/factories/attention-summary.factory';
+import { recentActivityDTOFactory } from '../../tests/factories/recent-activity.factory';
 import { salesSummaryDTOFactory } from '../../tests/factories/sales-summary.factory';
 
 import { DashboardAPI } from '.';
@@ -80,6 +81,32 @@ describe('DashboardAPI', () => {
         DashboardAPI.getSalesSummary('org-1', '30d')
       ).rejects.toThrow(
         'Erro ao executar getSalesSummary: Ocorreu um erro inesperado ao carregar o dashboard.'
+      );
+    });
+  });
+
+  describe('getRecentActivity', () => {
+    it('should call the rpc with the organization id and return the mapped activity', async () => {
+      const dto = recentActivityDTOFactory.build();
+      mockRpc.mockResolvedValue({ data: dto, error: null });
+
+      const result = await DashboardAPI.getRecentActivity('org-1');
+
+      expect(mockRpc).toHaveBeenCalledWith('get_recent_activity', {
+        p_organization_id: 'org-1'
+      });
+      expect(result.recentMovements).toHaveLength(3);
+      expect(result.recentOrders).toHaveLength(3);
+    });
+
+    it('should throw a handled error when the rpc fails', async () => {
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: '500', message: 'boom', details: '' }
+      });
+
+      await expect(DashboardAPI.getRecentActivity('org-1')).rejects.toThrow(
+        'Erro ao executar getRecentActivity: Ocorreu um erro inesperado ao carregar o dashboard.'
       );
     });
   });

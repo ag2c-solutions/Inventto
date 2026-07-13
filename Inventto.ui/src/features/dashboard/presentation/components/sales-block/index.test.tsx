@@ -36,6 +36,7 @@ describe('SalesBlock', () => {
 
     render(<SalesBlock role="owner" />);
 
+    expect(screen.getByText('Resumo de vendas')).toBeInTheDocument();
     expect(screen.getByTestId('sales-chart')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: '30 dias' })).toBeInTheDocument();
     expect(screen.getByText(/R\$\s*1\.198,20/)).toBeInTheDocument();
@@ -61,6 +62,8 @@ describe('SalesBlock', () => {
 
     render(<SalesBlock role="sales" />);
 
+    expect(screen.getByText('Suas vendas hoje')).toBeInTheDocument();
+    expect(screen.queryByText('Resumo de vendas')).not.toBeInTheDocument();
     expect(screen.queryByTestId('sales-chart')).not.toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
