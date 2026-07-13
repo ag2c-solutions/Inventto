@@ -11,10 +11,7 @@ export function SalesBlockSkeleton({ variant }: SalesBlockSkeletonProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-9 w-64" />
-      </div>
+      <Skeleton className="h-8 w-40" />
       <Skeleton className="h-[220px] w-full rounded-lg" />
     </div>
   );

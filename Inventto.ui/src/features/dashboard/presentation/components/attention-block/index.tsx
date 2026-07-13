@@ -78,22 +78,27 @@ export function AttentionBlock({ role }: AttentionBlockProps) {
   const cards = data ? buildCards(data, role) : [];
 
   return (
-    <BlockBoundary
-      isLoading={isLoading}
-      isError={isError}
-      onRetry={refetch}
-      skeleton={<AttentionBlockSkeleton count={role === 'sales' ? 1 : 3} />}
-    >
-      <div
-        className={cn(
-          'grid gap-3',
-          cards.length > 1 ? 'sm:grid-cols-3' : 'grid-cols-1'
-        )}
+    <>
+      <h2 className="text-[13px] font-bold tracking-wide uppercase">
+        Atenção imediata
+      </h2>
+      <BlockBoundary
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={refetch}
+        skeleton={<AttentionBlockSkeleton count={role === 'sales' ? 1 : 3} />}
       >
-        {cards.map(({ key, ...card }) => (
-          <AttentionCard key={key} {...card} />
-        ))}
-      </div>
-    </BlockBoundary>
+        <div
+          className={cn(
+            'grid gap-3',
+            cards.length > 1 ? 'sm:grid-cols-3' : 'grid-cols-1'
+          )}
+        >
+          {cards.map(({ key, ...card }) => (
+            <AttentionCard key={key} {...card} />
+          ))}
+        </div>
+      </BlockBoundary>
+    </>
   );
 }
