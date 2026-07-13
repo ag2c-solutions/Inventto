@@ -1,5 +1,5 @@
 import { BrowserRouter } from 'react-router';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Order } from '../../../domain/entities';
@@ -9,7 +9,6 @@ const {
   mockUseOrdersQuery,
   mockUseRealtimeOrders,
   mockUseMembersQuery,
-  mockCancelMutate,
   mockNavigate,
   mockUseParams,
   mockOpenOrderSheet
@@ -17,7 +16,6 @@ const {
   mockUseOrdersQuery: vi.fn(),
   mockUseRealtimeOrders: vi.fn(() => ({ newOrderIds: new Set<string>() })),
   mockUseMembersQuery: vi.fn(() => ({ data: [] })),
-  mockCancelMutate: vi.fn(),
   mockNavigate: vi.fn(),
   mockUseParams: vi.fn(() => ({})),
   mockOpenOrderSheet: vi.fn()
@@ -40,10 +38,6 @@ vi.mock('../../hooks/use-realtime-orders', () => ({
   useRealtimeOrders: mockUseRealtimeOrders
 }));
 
-vi.mock('../../hooks/use-mutations', () => ({
-  useCancelOrderMutation: () => ({ mutate: mockCancelMutate })
-}));
-
 vi.mock('../../hooks/use-open-order-sheet', () => ({
   useOpenOrderSheet: () => mockOpenOrderSheet
 }));
@@ -64,6 +58,21 @@ vi.mock('../../components/orders-filters', () => ({
 
 vi.mock('../../components/order-sheet', () => ({
   OrderSheet: () => <div data-testid="order-sheet" />
+}));
+
+let capturedCancelDialogProps:
+  | { order?: Order; open: boolean; onOpenChange: (open: boolean) => void }
+  | undefined;
+
+vi.mock('../../components/cancel-order-dialog', () => ({
+  CancelOrderDialog: (props: {
+    order?: Order;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+  }) => {
+    capturedCancelDialogProps = props;
+    return <div data-testid="cancel-order-dialog" />;
+  }
 }));
 
 let capturedOnCancelRequest: ((order: Order) => void) | undefined;
@@ -162,35 +171,30 @@ describe('OrdersBoardPage', () => {
     expect(mockOpenOrderSheet).toHaveBeenCalledWith('o1');
   });
 
-  it('should cancel the order with the prompted reason', () => {
+  it('should open the CancelOrderDialog with the requested order (PED-05)', () => {
     mockUseOrdersQuery.mockReturnValue({ data: [], isLoading: false });
-    const promptSpy = vi
-      .spyOn(window, 'prompt')
-      .mockReturnValue('Cliente desistiu');
     const order = orderFactory.build({ id: 'o1', microState: 'picking' });
 
     renderPage();
-    capturedOnCancelRequest?.(order);
+    expect(capturedCancelDialogProps?.open).toBe(false);
 
-    expect(mockCancelMutate).toHaveBeenCalledWith({
-      id: 'o1',
-      microState: 'picking',
-      reason: 'Cliente desistiu'
-    });
+    act(() => capturedOnCancelRequest?.(order));
 
-    promptSpy.mockRestore();
+    expect(capturedCancelDialogProps?.order).toEqual(order);
+    expect(capturedCancelDialogProps?.open).toBe(true);
   });
 
-  it('should not cancel when the prompt is dismissed without a reason', () => {
+  it('should close the CancelOrderDialog when it reports onOpenChange(false)', () => {
     mockUseOrdersQuery.mockReturnValue({ data: [], isLoading: false });
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue(null);
     const order = orderFactory.build({ id: 'o1', microState: 'picking' });
 
     renderPage();
-    capturedOnCancelRequest?.(order);
+    act(() => capturedOnCancelRequest?.(order));
+    expect(capturedCancelDialogProps?.open).toBe(true);
 
-    expect(mockCancelMutate).not.toHaveBeenCalled();
+    act(() => capturedCancelDialogProps?.onOpenChange(false));
 
-    promptSpy.mockRestore();
+    expect(capturedCancelDialogProps?.order).toBeUndefined();
+    expect(capturedCancelDialogProps?.open).toBe(false);
   });
 });
