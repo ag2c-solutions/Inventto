@@ -1,6 +1,6 @@
 import { MemoryRouter } from 'react-router';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   ownRecentSaleFactory,
@@ -11,7 +11,13 @@ import { useRecentActivityQuery } from '../../hooks/use-queries';
 
 import { ActivityBlock } from '.';
 
+const mockUseIsMobile = vi.fn();
+
 vi.mock('../../hooks/use-queries');
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: () => mockUseIsMobile()
+}));
 
 const mockUseRecentActivityQuery = vi.mocked(useRecentActivityQuery);
 
@@ -32,6 +38,10 @@ function renderWithRouter(ui: React.ReactElement) {
 }
 
 describe('ActivityBlock', () => {
+  beforeEach(() => {
+    mockUseIsMobile.mockReturnValue(false);
+  });
+
   it('should show movements, orders and the three shortcuts for the owner', () => {
     mockQuery({
       data: {
@@ -85,5 +95,44 @@ describe('ActivityBlock', () => {
     renderWithRouter(<ActivityBlock role="owner" />);
 
     expect(screen.getByText('Não foi possível carregar.')).toBeInTheDocument();
+  });
+
+  // DASH-06: mesmo hook de breakpoint usado em CatalogsTable etc. — não
+  // recriado. Movimentações/pedidos ficam lado a lado só quando não é
+  // mobile; empilham (mesma coluna) no mobile.
+  it('should show movements and orders side by side when not mobile', () => {
+    mockUseIsMobile.mockReturnValue(false);
+    mockQuery({
+      data: {
+        recentMovements: [recentMovementFactory.build()],
+        recentOrders: [recentOrderFactory.build()]
+      }
+    });
+
+    renderWithRouter(<ActivityBlock role="owner" />);
+
+    const grid = screen
+      .getByText('Movimentações recentes')
+      .closest('[class*="grid"]');
+
+    expect(grid).toHaveClass('grid-cols-2');
+  });
+
+  it('should stack movements and orders in a single column on mobile', () => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockQuery({
+      data: {
+        recentMovements: [recentMovementFactory.build()],
+        recentOrders: [recentOrderFactory.build()]
+      }
+    });
+
+    renderWithRouter(<ActivityBlock role="owner" />);
+
+    const grid = screen
+      .getByText('Movimentações recentes')
+      .closest('[class*="grid"]');
+
+    expect(grid).not.toHaveClass('grid-cols-2');
   });
 });

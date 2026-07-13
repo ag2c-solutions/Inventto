@@ -26,8 +26,8 @@ export function OnboardingStepCard({ step, index }: OnboardingStepCardProps) {
         className={cn(
           'flex size-9 shrink-0 items-center justify-center rounded-full border font-bold',
           done &&
-            'border-[var(--status-healthy)] bg-[var(--status-healthy)] text-white',
-          active && 'border-foreground bg-foreground text-background',
+            'border-[var(--status-healthy)] bg-[var(--status-healthy)] text-border-foreground',
+          active && 'border bg-border text-border-foreground',
           !done && !active && 'text-muted-foreground'
         )}
       >
@@ -37,7 +37,7 @@ export function OnboardingStepCard({ step, index }: OnboardingStepCardProps) {
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            'text-sm font-bold',
+            'text-sm text-border-foreground',
             done && 'text-[var(--status-healthy)]'
           )}
         >
@@ -54,7 +54,7 @@ export function OnboardingStepCard({ step, index }: OnboardingStepCardProps) {
       ) : (
         <Link
           to={href}
-          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-background"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-border px-4 py-2 text-xs font-semibold text-border-foreground"
         >
           Começar
           <ChevronRight className="size-3.5" />

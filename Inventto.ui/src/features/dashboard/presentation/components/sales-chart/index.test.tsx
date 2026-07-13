@@ -102,4 +102,18 @@ describe('SalesChart', () => {
 
     expect(screen.getByTestId('area-chart').dataset.points).toBe('0');
   });
+
+  // DASH-06: largura fluida (`w-full`, sem px fixo) é o que garante que o
+  // gráfico não force overflow horizontal em ~390px — o ResponsiveContainer
+  // real do recharts (mockado acima) é quem faz a medição de fato.
+  it('should render with a fluid width (no fixed px width that could overflow on mobile)', () => {
+    const { container } = render(
+      <SalesChart series={[FAKE_POINT]} period="30d" />
+    );
+
+    const chart = container.querySelector('[data-slot="chart"]');
+
+    expect(chart).toHaveClass('w-full');
+    expect(chart?.className).not.toMatch(/\bw-\[\d/);
+  });
 });
