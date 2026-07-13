@@ -4,12 +4,12 @@ import { useNavigate, useParams } from 'react-router';
 import { useOrganizationMembersQuery } from '@/features/organizations';
 
 import type { Order, OrderFilters } from '../../../domain/entities';
+import { CancelOrderDialog } from '../../components/cancel-order-dialog';
 import { OrderSheet } from '../../components/order-sheet';
 import { OrdersBoard } from '../../components/orders-board';
 import { OrdersBoardSkeleton } from '../../components/orders-board-skeleton';
 import { OrdersFilters } from '../../components/orders-filters';
 import { OrdersHeader } from '../../components/orders-header';
-import { useCancelOrderMutation } from '../../hooks/use-mutations';
 import { useOpenOrderSheet } from '../../hooks/use-open-order-sheet';
 import { useOrdersQuery } from '../../hooks/use-queries';
 import { useRealtimeOrders } from '../../hooks/use-realtime-orders';
@@ -19,7 +19,7 @@ export function OrdersBoardPage() {
   const [filters, setFilters] = useState<OrderFilters>({});
   const { data: orders = [], isLoading } = useOrdersQuery(filters);
   const { data: members = [] } = useOrganizationMembersQuery();
-  const cancelMutation = useCancelOrderMutation();
+  const [orderToCancel, setOrderToCancel] = useState<Order>();
 
   const { newOrderIds } = useRealtimeOrders();
 
@@ -64,17 +64,8 @@ export function OrdersBoardPage() {
     openOrderSheet(order.id);
   }
 
-  // Modal com motivo obrigatório é escopo do PED-05. Interinamente, colhe o
-  // motivo via prompt para manter "Cancelar" funcional ponta a ponta.
   function handleCancelRequest(order: Order) {
-    const reason = window.prompt('Motivo do cancelamento:')?.trim();
-    if (!reason) return;
-
-    cancelMutation.mutate({
-      id: order.id,
-      microState: order.microState,
-      reason
-    });
+    setOrderToCancel(order);
   }
 
   return (
@@ -99,6 +90,14 @@ export function OrdersBoardPage() {
       )}
 
       <OrderSheet onCancelRequest={handleCancelRequest} />
+
+      <CancelOrderDialog
+        order={orderToCancel}
+        open={!!orderToCancel}
+        onOpenChange={(open) => {
+          if (!open) setOrderToCancel(undefined);
+        }}
+      />
     </div>
   );
 }
