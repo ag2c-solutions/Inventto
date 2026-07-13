@@ -1,13 +1,30 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-
-import { DashboardPage } from '.';
 
 const { mockUseUser } = vi.hoisted(() => ({ mockUseUser: vi.fn() }));
 
 vi.mock('@/features/users', () => ({
   useUser: mockUseUser
 }));
+
+vi.mock('../../components/attention-block', () => ({
+  AttentionBlock: ({ role }: { role: string }) => (
+    <div>Attention block for {role}</div>
+  )
+}));
+
+import { DashboardPage } from '.';
+
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+}
 
 describe('DashboardPage', () => {
   it('should render the greeting and the three blocks for the current role', () => {
@@ -17,7 +34,7 @@ describe('DashboardPage', () => {
       role: 'owner'
     });
 
-    render(<DashboardPage />);
+    renderWithProviders(<DashboardPage />);
 
     expect(screen.getByText('Bom dia, Joana')).toBeInTheDocument();
     expect(screen.getByText('Atenção imediata')).toBeInTheDocument();
@@ -32,7 +49,7 @@ describe('DashboardPage', () => {
       role: undefined
     });
 
-    const { container } = render(<DashboardPage />);
+    const { container } = renderWithProviders(<DashboardPage />);
 
     expect(container).toBeEmptyDOMElement();
   });

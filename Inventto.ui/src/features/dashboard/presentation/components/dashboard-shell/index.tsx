@@ -3,6 +3,7 @@ import { cn } from '@/shared/utils';
 import type { Role } from '@/features/permissions';
 
 import { DashboardService } from '../../../domain/services';
+import { AttentionBlock } from '../attention-block';
 
 import { BlockHeading } from './pieces/block-heading';
 
@@ -17,21 +18,7 @@ export function DashboardShell({ role }: DashboardShellProps) {
     <div className="flex flex-col gap-6">
       <section aria-label="Atenção imediata" className="flex flex-col gap-3">
         <BlockHeading title="Atenção imediata" rf="RF036" />
-        <div
-          className={cn(
-            'grid gap-3',
-            view.attentionCards.length > 1 ? 'sm:grid-cols-3' : 'grid-cols-1'
-          )}
-        >
-          {view.attentionCards.map((label) => (
-            <div
-              key={label}
-              className="rounded-lg border p-4 text-sm text-muted-foreground"
-            >
-              {label}
-            </div>
-          ))}
-        </div>
+        <AttentionBlock role={role} />
       </section>
 
       <section aria-label="Resumo de vendas" className="flex flex-col gap-3">
