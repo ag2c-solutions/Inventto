@@ -10,6 +10,7 @@ export const SELECT_QUERY = `
   created_at,
   executed_at,
   profiles ( full_name, avatar_url ),
+  orders ( status ),
   movement_items!inner (
     id,
     quantity,

@@ -189,4 +189,59 @@ describe('MovementApi', () => {
       );
     });
   });
+
+  describe('cancelConfirmedSale', () => {
+    it('should call RPC "cancel_confirmed_sale" with the order id and reason', async () => {
+      mockRpc.mockResolvedValue({ data: 'new-movement-id', error: null });
+
+      const result = await MovementApi.cancelConfirmedSale({
+        orderId: 'order-1',
+        reason: 'Cliente desistiu'
+      });
+
+      expect(mockRpc).toHaveBeenCalledWith('cancel_confirmed_sale', {
+        p_order_id: 'order-1',
+        p_reason: 'Cliente desistiu'
+      });
+      expect(result).toBe('new-movement-id');
+    });
+
+    it('should throw a friendly message when the order is no longer confirmed', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: {
+          code: 'P0001',
+          message: 'ORDER_INVALID_TRANSITION',
+          details: ''
+        }
+      });
+
+      await expect(
+        MovementApi.cancelConfirmedSale({
+          orderId: 'order-1',
+          reason: 'motivo'
+        })
+      ).rejects.toThrow(
+        'Esta venda já foi estornada ou não está mais confirmada.'
+      );
+    });
+
+    it('should throw handled error for permission denied', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: '42501', message: 'Permission denied', details: '' }
+      });
+
+      await expect(
+        MovementApi.cancelConfirmedSale({
+          orderId: 'order-1',
+          reason: 'motivo'
+        })
+      ).rejects.toThrow(
+        'Você não tem permissão para realizar movimentações de estoque.'
+      );
+    });
+  });
 });

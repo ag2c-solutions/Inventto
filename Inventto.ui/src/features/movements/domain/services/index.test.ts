@@ -8,7 +8,8 @@ import { MovementService } from './index';
 
 vi.mock('../../data/api', () => ({
   MovementApi: {
-    create: vi.fn()
+    create: vi.fn(),
+    cancelConfirmedSale: vi.fn()
   }
 }));
 
@@ -59,6 +60,59 @@ describe('MovementService', () => {
         })
       ).rejects.toThrow(
         'A operação resultaria em estoque negativo (não permitido).'
+      );
+    });
+  });
+
+  describe('cancelConfirmedSale', () => {
+    it('should delegate to MovementApi.cancelConfirmedSale with orderId and trimmed reason', async () => {
+      vi.mocked(MovementApi.cancelConfirmedSale).mockResolvedValue(
+        'new-movement-id'
+      );
+
+      const result = await MovementService.cancelConfirmedSale({
+        orderId: 'order-1',
+        reason: '  Cliente desistiu  '
+      });
+
+      expect(MovementApi.cancelConfirmedSale).toHaveBeenCalledWith({
+        orderId: 'order-1',
+        reason: 'Cliente desistiu'
+      });
+      expect(result).toBe('new-movement-id');
+    });
+
+    it('should throw when orderId is missing', async () => {
+      await expect(
+        MovementService.cancelConfirmedSale({ orderId: '', reason: 'motivo' })
+      ).rejects.toThrow('Nenhuma venda selecionada para estornar.');
+
+      expect(MovementApi.cancelConfirmedSale).not.toHaveBeenCalled();
+    });
+
+    it('should throw when reason is empty or only whitespace', async () => {
+      await expect(
+        MovementService.cancelConfirmedSale({
+          orderId: 'order-1',
+          reason: '   '
+        })
+      ).rejects.toThrow('Informe o motivo do estorno.');
+
+      expect(MovementApi.cancelConfirmedSale).not.toHaveBeenCalled();
+    });
+
+    it('should propagate errors thrown by MovementApi.cancelConfirmedSale', async () => {
+      vi.mocked(MovementApi.cancelConfirmedSale).mockRejectedValue(
+        new Error('Esta venda já foi estornada ou não está mais confirmada.')
+      );
+
+      await expect(
+        MovementService.cancelConfirmedSale({
+          orderId: 'order-1',
+          reason: 'motivo'
+        })
+      ).rejects.toThrow(
+        'Esta venda já foi estornada ou não está mais confirmada.'
       );
     });
   });

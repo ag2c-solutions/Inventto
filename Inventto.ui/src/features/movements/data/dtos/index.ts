@@ -66,6 +66,22 @@ export interface MovementItemDTO {
   product_variants?: VariantSummaryDTO | null;
 }
 
+// MOV-06: só o suficiente pra decidir se a ação "Estornar venda" aparece —
+// não é o mesmo conceito de OrderMacroState/OrderMicroState (features/orders),
+// que a feature movements não importa (mantém o cross-feature só via texto cru).
+export type MovementOrderStatusDTO =
+  | 'pending'
+  | 'confirming'
+  | 'picking'
+  | 'delivering'
+  | 'confirmed'
+  | 'cancelled'
+  | 'expired';
+
+export interface MovementOrderDTO {
+  status: MovementOrderStatusDTO;
+}
+
 export interface MovementDTO {
   id: string;
   organization_id: string;
@@ -78,6 +94,7 @@ export interface MovementDTO {
   created_at: string;
   executed_at: string;
   profiles?: ProfileDTO | null;
+  orders?: MovementOrderDTO | null;
   movement_items?: MovementItemDTO[];
 }
 

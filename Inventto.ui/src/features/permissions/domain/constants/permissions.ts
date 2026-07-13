@@ -22,6 +22,7 @@ const MANAGER_PERMISSIONS: PermissionAction[] = [
   'movement:details',
   'movement:withdrawal',
   'movement:view_costs',
+  'movement:cancel_sale',
   'order:view_all',
   'order:manage',
   'catalog:manage',

@@ -61,4 +61,25 @@ export class MovementApi {
       handleMovementError(error, 'create');
     }
   }
+
+  static async cancelConfirmedSale({
+    orderId,
+    reason
+  }: {
+    orderId: string;
+    reason: string;
+  }): Promise<string> {
+    try {
+      const { data, error } = await supabase.rpc('cancel_confirmed_sale', {
+        p_order_id: orderId,
+        p_reason: reason
+      });
+
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      handleMovementError(error, 'cancelConfirmedSale');
+    }
+  }
 }

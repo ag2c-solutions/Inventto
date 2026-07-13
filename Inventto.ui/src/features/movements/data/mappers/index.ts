@@ -67,6 +67,7 @@ export class MovementMapper {
       reason: MOVEMENT_REASONS[dto.reason],
       documentNumber: dto.document_number ?? undefined,
       orderId: dto.order_id ?? undefined,
+      orderStatus: dto.orders?.status ?? undefined,
       description: dto.description ?? undefined,
       createdAt: new Date(dto.created_at),
       executedAt: new Date(dto.executed_at ?? dto.created_at),

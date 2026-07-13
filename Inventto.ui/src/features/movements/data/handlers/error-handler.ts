@@ -36,6 +36,14 @@ export function handleMovementError(error: unknown, operation: string): never {
         );
       }
 
+      // Marcador do cancel_confirmed_sale (MOV-06): venda já foi estornada
+      // ou o pedido não está mais confirmado.
+      if (message.includes('order_invalid_transition')) {
+        throw new Error(
+          'Esta venda já foi estornada ou não está mais confirmada.'
+        );
+      }
+
       throw new Error(
         error.message || 'Erro de regra de negócio no banco de dados.'
       );

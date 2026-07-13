@@ -72,6 +72,18 @@ describe('handleMovementError', () => {
     );
   });
 
+  it('should throw a friendly message for P0001 with ORDER_INVALID_TRANSITION (MOV-06)', () => {
+    const error = {
+      code: 'P0001',
+      message: 'ORDER_INVALID_TRANSITION',
+      details: ''
+    } as PostgrestError;
+
+    expect(() => handleMovementError(error, 'test')).toThrow(
+      'Esta venda já foi estornada ou não está mais confirmada.'
+    );
+  });
+
   it('should throw the raw message for P0001 with other business rule messages', () => {
     const error = {
       code: 'P0001',
