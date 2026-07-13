@@ -80,4 +80,29 @@ describe('AttentionBlock', () => {
       expect(screen.getByText('Não foi possível carregar.')).toBeInTheDocument()
     );
   });
+
+  // DASH-06: cards empilham (1 coluna) no mobile por padrão do Tailwind
+  // mobile-first — `sm:grid-cols-3` só entra a partir de 640px.
+  it('should stack the cards in a single column by default (mobile), expanding at sm+', async () => {
+    vi.mocked(DashboardAPI.getAttentionSummary).mockResolvedValue(
+      attentionSummaryFactory.build({
+        pendingOrders: 5,
+        lowStock: 3,
+        expiringSoon: 2
+      })
+    );
+
+    renderWithProviders(<AttentionBlock role="owner" />);
+
+    await waitFor(() =>
+      expect(screen.getByText('Pedidos pendentes')).toBeInTheDocument()
+    );
+
+    const grid = screen
+      .getByText('Pedidos pendentes')
+      .closest('a')?.parentElement;
+
+    expect(grid).toHaveClass('grid-cols-1');
+    expect(grid).toHaveClass('sm:grid-cols-3');
+  });
 });

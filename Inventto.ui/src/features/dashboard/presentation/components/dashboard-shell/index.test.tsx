@@ -42,4 +42,14 @@ describe('DashboardShell', () => {
     expect(screen.getByText('Sales block for sales')).toBeInTheDocument();
     expect(screen.getByText('Activity block for sales')).toBeInTheDocument();
   });
+
+  // DASH-06: guarda de regressão — o wireframe base é coluna única em
+  // qualquer largura (o grid 2 colunas do bloco de Atividade é interno,
+  // não do shell). Não usa breakpoint nenhum: sempre flex-col.
+  it('should always stack the three blocks in a single column (no responsive grid at the shell level)', () => {
+    const { container } = render(<DashboardShell role="owner" />);
+
+    expect(container.firstElementChild).toHaveClass('flex-col');
+    expect(container.firstElementChild?.className).not.toMatch(/\bgrid\b/);
+  });
 });

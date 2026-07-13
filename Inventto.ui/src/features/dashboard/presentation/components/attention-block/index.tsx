@@ -90,8 +90,8 @@ export function AttentionBlock({ role }: AttentionBlockProps) {
       >
         <div
           className={cn(
-            'grid gap-3',
-            cards.length > 1 ? 'sm:grid-cols-3' : 'grid-cols-1'
+            'grid grid-cols-1 gap-3',
+            cards.length > 1 && 'sm:grid-cols-3'
           )}
         >
           {cards.map(({ key, ...card }) => (
