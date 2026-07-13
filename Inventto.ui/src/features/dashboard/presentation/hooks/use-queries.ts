@@ -27,3 +27,14 @@ export const useSalesSummaryQuery = (period: SalesPeriod) => {
     enabled: !!organizationId
   });
 };
+
+export const useRecentActivityQuery = () => {
+  const { currentOrganization } = useUser();
+  const organizationId = currentOrganization?.id;
+
+  return useQuery({
+    queryKey: ['dashboard', 'recent-activity', organizationId],
+    queryFn: () => DashboardAPI.getRecentActivity(organizationId as string),
+    enabled: !!organizationId
+  });
+};

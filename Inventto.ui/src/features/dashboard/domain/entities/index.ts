@@ -2,7 +2,6 @@ import type { Role } from '@/features/permissions';
 
 export interface DashboardRoleView {
   role: Role;
-  activityCards: string[];
   showSalesChart: boolean;
   showOwnerExtras: boolean;
 }
@@ -42,4 +41,41 @@ export interface SalesSummary {
   inventoryAtCost?: number;
   avgMargin?: number;
   ownSalesToday?: OwnSalesToday;
+}
+
+// RF038/DASH-04 · bloco "Atividade e atalhos" — mini-listas independentes
+// das entidades públicas de movements/orders (evita acoplar o dashboard ao
+// shape completo dessas features; só o necessário para a mini-lista).
+export interface RecentMovement {
+  id: string;
+  type: 'entry' | 'withdrawal';
+  reason: string;
+  totalQuantity: number;
+  itemsCount: number;
+  executedAt: Date;
+}
+
+export interface RecentOrder {
+  id: string;
+  code: string;
+  customerName?: string;
+  status: string;
+  total: number;
+  updatedAt: Date;
+}
+
+export interface OwnRecentSale {
+  id: string;
+  code: string;
+  itemsCount: number;
+  total: number;
+  updatedAt: Date;
+}
+
+// Campos ausentes = recorte por papel (RN091), reforçado no servidor
+// (get_recent_activity): Sales recebe só `ownRecentSales`.
+export interface RecentActivity {
+  recentMovements?: RecentMovement[];
+  recentOrders?: RecentOrder[];
+  ownRecentSales?: OwnRecentSale[];
 }

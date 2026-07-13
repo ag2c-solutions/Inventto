@@ -1,5 +1,13 @@
-import type { AttentionSummary, SalesSummary } from '../../domain/entities';
-import type { AttentionSummaryDTO, SalesSummaryDTO } from '../dtos';
+import type {
+  AttentionSummary,
+  RecentActivity,
+  SalesSummary
+} from '../../domain/entities';
+import type {
+  AttentionSummaryDTO,
+  RecentActivityDTO,
+  SalesSummaryDTO
+} from '../dtos';
 
 export class AttentionSummaryMapper {
   static toDomain(dto: AttentionSummaryDTO): AttentionSummary {
@@ -30,6 +38,36 @@ export class SalesSummaryMapper {
             total: dto.own_sales_today.total
           }
         : undefined
+    };
+  }
+}
+
+export class RecentActivityMapper {
+  static toDomain(dto: RecentActivityDTO): RecentActivity {
+    return {
+      recentMovements: dto.recent_movements?.map((movement) => ({
+        id: movement.id,
+        type: movement.type,
+        reason: movement.reason ?? 'Sem motivo',
+        totalQuantity: movement.total_quantity,
+        itemsCount: movement.items_count,
+        executedAt: new Date(movement.executed_at)
+      })),
+      recentOrders: dto.recent_orders?.map((order) => ({
+        id: order.id,
+        code: order.code,
+        customerName: order.customer_name ?? undefined,
+        status: order.status,
+        total: order.total,
+        updatedAt: new Date(order.updated_at)
+      })),
+      ownRecentSales: dto.own_recent_sales?.map((sale) => ({
+        id: sale.id,
+        code: sale.code,
+        itemsCount: sale.items_count,
+        total: sale.total,
+        updatedAt: new Date(sale.updated_at)
+      }))
     };
   }
 }

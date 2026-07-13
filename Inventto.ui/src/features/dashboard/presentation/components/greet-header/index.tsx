@@ -24,8 +24,11 @@ export function GreetHeader({
         </h1>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-        <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden />
+      <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/40 py-1 pr-3 pl-2 text-[11.5px] font-semibold text-foreground">
+        <span
+          className="size-1.5 rounded-full bg-[var(--status-healthy)]"
+          aria-hidden
+        />
         Atualizado agora
       </span>
     </div>

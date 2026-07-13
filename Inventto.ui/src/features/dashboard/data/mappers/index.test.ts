@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
 import { attentionSummaryDTOFactory } from '../../tests/factories/attention-summary.factory';
+import {
+  recentActivityDTOFactory,
+  recentMovementDTOFactory,
+  recentOrderDTOFactory
+} from '../../tests/factories/recent-activity.factory';
 import { salesSummaryDTOFactory } from '../../tests/factories/sales-summary.factory';
 
-import { AttentionSummaryMapper, SalesSummaryMapper } from '.';
+import {
+  AttentionSummaryMapper,
+  RecentActivityMapper,
+  SalesSummaryMapper
+} from '.';
 
 describe('AttentionSummaryMapper', () => {
   it('should map the full DTO to domain for owner/manager', () => {
@@ -95,5 +104,95 @@ describe('SalesSummaryMapper', () => {
       avgMargin: undefined,
       ownSalesToday: { count: 3, total: 318.8 }
     });
+  });
+});
+
+describe('RecentActivityMapper', () => {
+  it('should map recent movements and orders to domain for the manager/owner cut', () => {
+    const movementDTO = recentMovementDTOFactory.build({
+      type: 'withdrawal',
+      reason: 'Venda',
+      total_quantity: 6,
+      items_count: 1,
+      executed_at: '2026-07-13T11:53:07.639Z'
+    });
+    const orderDTO = recentOrderDTOFactory.build({
+      code: '408A2517',
+      customer_name: 'Rafael da Conceição',
+      status: 'confirmed',
+      total: 239.4,
+      updated_at: '2026-07-13T11:53:07.639Z'
+    });
+    const dto = recentActivityDTOFactory.build({
+      recent_movements: [movementDTO],
+      recent_orders: [orderDTO],
+      own_recent_sales: undefined
+    });
+
+    const activity = RecentActivityMapper.toDomain(dto);
+
+    expect(activity.recentMovements).toEqual([
+      {
+        id: movementDTO.id,
+        type: 'withdrawal',
+        reason: 'Venda',
+        totalQuantity: 6,
+        itemsCount: 1,
+        executedAt: new Date('2026-07-13T11:53:07.639Z')
+      }
+    ]);
+    expect(activity.recentOrders).toEqual([
+      {
+        id: orderDTO.id,
+        code: '408A2517',
+        customerName: 'Rafael da Conceição',
+        status: 'confirmed',
+        total: 239.4,
+        updatedAt: new Date('2026-07-13T11:53:07.639Z')
+      }
+    ]);
+    expect(activity.ownRecentSales).toBeUndefined();
+  });
+
+  it('should fall back reason to "Sem motivo" and customerName to undefined when absent', () => {
+    const dto = recentActivityDTOFactory.build({
+      recent_movements: [recentMovementDTOFactory.build({ reason: null })],
+      recent_orders: [recentOrderDTOFactory.build({ customer_name: null })]
+    });
+
+    const activity = RecentActivityMapper.toDomain(dto);
+
+    expect(activity.recentMovements?.[0].reason).toBe('Sem motivo');
+    expect(activity.recentOrders?.[0].customerName).toBeUndefined();
+  });
+
+  it('should map only ownRecentSales for the sales cut', () => {
+    const dto = recentActivityDTOFactory.build({
+      recent_movements: undefined,
+      recent_orders: undefined,
+      own_recent_sales: [
+        {
+          id: 'o-1',
+          code: 'B-204',
+          items_count: 3,
+          total: 318.8,
+          updated_at: '2026-07-13T10:00:00.000Z'
+        }
+      ]
+    });
+
+    const activity = RecentActivityMapper.toDomain(dto);
+
+    expect(activity.recentMovements).toBeUndefined();
+    expect(activity.recentOrders).toBeUndefined();
+    expect(activity.ownRecentSales).toEqual([
+      {
+        id: 'o-1',
+        code: 'B-204',
+        itemsCount: 3,
+        total: 318.8,
+        updatedAt: new Date('2026-07-13T10:00:00.000Z')
+      }
+    ]);
   });
 });

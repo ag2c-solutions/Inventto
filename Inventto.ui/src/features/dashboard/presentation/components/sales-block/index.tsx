@@ -1,5 +1,6 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
+import { Card } from '@/shared/components/ui/card';
 import { cn } from '@/shared/utils';
 import { formatCurrency } from '@/shared/utils/formatters/format-currency';
 
@@ -27,14 +28,19 @@ export function SalesBlock({ role }: SalesBlockProps) {
 
   if (!view.showSalesChart) {
     return (
-      <BlockBoundary
-        isLoading={isLoading}
-        isError={isError}
-        onRetry={refetch}
-        skeleton={<SalesBlockSkeleton variant="simple" />}
-      >
-        <SalesSimple ownSalesToday={data?.ownSalesToday} />
-      </BlockBoundary>
+      <Card className="gap-4 p-[18px]">
+        <h2 className="text-[13px] font-bold tracking-wide uppercase">
+          Suas vendas hoje
+        </h2>
+        <BlockBoundary
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={refetch}
+          skeleton={<SalesBlockSkeleton variant="simple" />}
+        >
+          <SalesSimple ownSalesToday={data?.ownSalesToday} />
+        </BlockBoundary>
+      </Card>
     );
   }
 
@@ -42,14 +48,21 @@ export function SalesBlock({ role }: SalesBlockProps) {
   const TrendIcon = trend < 0 ? TrendingDown : TrendingUp;
 
   return (
-    <BlockBoundary
-      isLoading={isLoading}
-      isError={isError}
-      onRetry={refetch}
-      skeleton={<SalesBlockSkeleton variant="chart" />}
-    >
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <Card className="gap-4 p-[18px]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[13px] font-bold tracking-wide uppercase">
+          Resumo de vendas
+        </h2>
+        <PeriodSegmented value={period} onChange={setPeriod} />
+      </div>
+
+      <BlockBoundary
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={refetch}
+        skeleton={<SalesBlockSkeleton variant="chart" />}
+      >
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold">
               {formatCurrency(data?.revenueTotal) ?? 'R$ 0,00'}
@@ -67,25 +80,24 @@ export function SalesBlock({ role }: SalesBlockProps) {
               {trend}%
             </span>
           </div>
-          <PeriodSegmented value={period} onChange={setPeriod} />
+
+          <p className="text-sm text-muted-foreground">
+            Faturamento total do período ·{' '}
+            <strong className="font-semibold text-foreground">
+              {data?.salesCount ?? 0}
+            </strong>{' '}
+            vendas (balcão + pedidos confirmados)
+          </p>
+
+          <SalesChart series={data?.series ?? []} period={period} />
+
+          <OwnerExtras
+            role={role}
+            inventoryAtCost={data?.inventoryAtCost}
+            avgMargin={data?.avgMargin}
+          />
         </div>
-
-        <p className="text-sm text-muted-foreground">
-          Faturamento total do período ·{' '}
-          <strong className="font-semibold text-foreground">
-            {data?.salesCount ?? 0}
-          </strong>{' '}
-          vendas (balcão + pedidos confirmados)
-        </p>
-
-        <SalesChart series={data?.series ?? []} period={period} />
-
-        <OwnerExtras
-          role={role}
-          inventoryAtCost={data?.inventoryAtCost}
-          avgMargin={data?.avgMargin}
-        />
-      </div>
-    </BlockBoundary>
+      </BlockBoundary>
+    </Card>
   );
 }
