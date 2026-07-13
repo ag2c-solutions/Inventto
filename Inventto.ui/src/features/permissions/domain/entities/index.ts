@@ -13,6 +13,7 @@ export type PermissionAction =
   | 'movement:withdrawal'
   | 'movement:view_costs'
   | 'movement:details'
+  | 'movement:cancel_sale'
   | 'stock:view_costs'
   | 'team:manage'
   | 'customer:view'

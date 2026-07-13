@@ -86,8 +86,11 @@ DECLARE
   ]::public.order_status[];
   v_order_status public.order_status;
 
+  -- Precisa bater exatamente com ORDER_CANCEL_REASONS (features/orders/
+  -- domain/validators) — cancellation_reason agora é enum real (MOV-06),
+  -- não aceita mais sinônimos improvisados.
   v_cancel_reasons TEXT[] := ARRAY[
-    'Falta de estoque', 'Cliente desistiu', 'Endereço fora da área de entrega', 'Pedido duplicado'
+    'Falta de estoque', 'Cliente solicitou', 'Dados inválidos', 'Área não atendida'
   ];
   v_addresses TEXT[] := ARRAY[
     '{"zip_code":"01310-100","street":"Av. Paulista","number":"1000","neighborhood":"Bela Vista","city":"São Paulo","state":"SP"}',

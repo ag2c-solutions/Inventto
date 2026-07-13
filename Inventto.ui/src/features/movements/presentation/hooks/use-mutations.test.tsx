@@ -9,7 +9,8 @@ const mockUseUser = vi.fn();
 
 vi.mock('../../domain/services', () => ({
   MovementService: {
-    create: vi.fn()
+    create: vi.fn(),
+    cancelConfirmedSale: vi.fn()
   }
 }));
 
@@ -17,7 +18,10 @@ vi.mock('@/features/users', () => ({
   useUser: () => mockUseUser()
 }));
 
-import { useMovementCreateMutation } from './use-mutations';
+import {
+  useCancelConfirmedSaleMutation,
+  useMovementCreateMutation
+} from './use-mutations';
 
 describe('useMovementCreateMutation', () => {
   let queryClient: QueryClient;
@@ -83,5 +87,66 @@ describe('useMovementCreateMutation', () => {
       input,
       organization: null
     });
+  });
+});
+
+describe('useCancelConfirmedSaleMutation', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('should call MovementService.cancelConfirmedSale and invalidate movements, products and orders', async () => {
+    vi.mocked(MovementService.cancelConfirmedSale).mockResolvedValue(
+      'new-mov-id'
+    );
+
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useCancelConfirmedSaleMutation(), {
+      wrapper
+    });
+
+    await result.current.mutateAsync({
+      orderId: 'order-1',
+      reason: 'Cliente desistiu'
+    });
+
+    expect(MovementService.cancelConfirmedSale).toHaveBeenCalledWith({
+      orderId: 'order-1',
+      reason: 'Cliente desistiu'
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['movements'] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['products'] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['orders'] });
+  });
+
+  it('should not invalidate any query when the mutation fails', async () => {
+    vi.mocked(MovementService.cancelConfirmedSale).mockRejectedValue(
+      new Error('Esta venda já foi estornada ou não está mais confirmada.')
+    );
+
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useCancelConfirmedSaleMutation(), {
+      wrapper
+    });
+
+    await expect(
+      result.current.mutateAsync({ orderId: 'order-1', reason: 'motivo' })
+    ).rejects.toThrow(
+      'Esta venda já foi estornada ou não está mais confirmada.'
+    );
+
+    expect(invalidateSpy).not.toHaveBeenCalled();
   });
 });

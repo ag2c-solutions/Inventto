@@ -48,6 +48,18 @@ export interface MovementItem {
   product: MovementProductInfo;
 }
 
+// MOV-06 · status do pedido vinculado (quando order_id existe) — usado só
+// pra decidir se a ação "Estornar venda" aparece (reason='Venda' + pedido
+// ainda 'confirmed', evita estorno duplicado).
+export type MovementOrderStatus =
+  | 'pending'
+  | 'confirming'
+  | 'picking'
+  | 'delivering'
+  | 'confirmed'
+  | 'cancelled'
+  | 'expired';
+
 export interface Movement {
   id: string;
   organizationId: string;
@@ -55,6 +67,7 @@ export interface Movement {
   reason: MovementReason;
   documentNumber?: string;
   orderId?: string;
+  orderStatus?: MovementOrderStatus;
   description?: string;
   createdAt: Date;
   executedAt: Date;
@@ -84,4 +97,9 @@ export interface CreateMovementInput {
 export interface CreateMovementPayload {
   input: CreateMovementInput;
   organization: Organization | null;
+}
+
+export interface CancelConfirmedSaleInput {
+  orderId: string;
+  reason: string;
 }

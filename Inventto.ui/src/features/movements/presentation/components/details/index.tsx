@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import type { Movement } from '../../../domain/entities';
+import { CancelSaleAction } from '../cancel-sale-action';
 import { ItemsList } from '../items-list';
 
 interface Props {
@@ -14,16 +15,19 @@ export const MovementDetails = ({ movement }: Props) => {
   return (
     <div className="p-4 bg-muted/30">
       <div className="overflow-hidden">
-        <div className="flex items-center justify-between pb-2 px-1">
+        <div className="flex items-center justify-between gap-3 pb-2 px-1">
           <div className="flex items-center gap-3">
             <h4 className="font-bold uppercase tracking-wide text-xs text-muted-foreground">
               Detalhes da movimentação
             </h4>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {format(date, "dd/MM/yyyy '·' HH:mm", {
-              locale: ptBR
-            })}
+          <div className="flex items-center gap-3">
+            <CancelSaleAction movement={movement} />
+            <span className="text-sm text-muted-foreground">
+              {format(date, "dd/MM/yyyy '·' HH:mm", {
+                locale: ptBR
+              })}
+            </span>
           </div>
         </div>
         {movement.reason === 'Outro' && movement.description && (

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -6,8 +7,25 @@ import { movementFactory } from '../../../tests/factories/movement.factory';
 import { MovementDetails } from '.';
 
 vi.mock('@/features/permissions', () => ({
-  VisibleTo: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  VisibleTo: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  ActionButton: ({
+    action: _action,
+    children,
+    ...props
+  }: React.ComponentProps<'button'> & { action: string }) => (
+    <button {...props}>{children}</button>
+  )
 }));
+
+function renderWithProviders(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+}
 
 describe('MovementDetails', () => {
   it('should render the formatted executedAt date', () => {
@@ -17,7 +35,7 @@ describe('MovementDetails', () => {
       description: undefined
     });
 
-    render(<MovementDetails movement={movement} />);
+    renderWithProviders(<MovementDetails movement={movement} />);
 
     expect(screen.getByText('15/03/2024 · 10:30')).toBeInTheDocument();
   });
@@ -28,7 +46,7 @@ describe('MovementDetails', () => {
       description: 'Ajuste manual de estoque'
     });
 
-    render(<MovementDetails movement={movement} />);
+    renderWithProviders(<MovementDetails movement={movement} />);
 
     expect(screen.getByText('“Ajuste manual de estoque”')).toBeInTheDocument();
   });
@@ -39,10 +57,34 @@ describe('MovementDetails', () => {
       description: 'Texto que não deveria aparecer'
     });
 
-    render(<MovementDetails movement={movement} />);
+    renderWithProviders(<MovementDetails movement={movement} />);
 
     expect(
       screen.queryByText('“Texto que não deveria aparecer”')
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show the "Estornar venda" action for a confirmed sale linked to an order', () => {
+    const movement = movementFactory.build({
+      reason: 'Venda',
+      orderId: 'order-1',
+      orderStatus: 'confirmed'
+    });
+
+    renderWithProviders(<MovementDetails movement={movement} />);
+
+    expect(
+      screen.getByRole('button', { name: /Estornar venda/ })
+    ).toBeInTheDocument();
+  });
+
+  it('should not show the "Estornar venda" action for a non-sale movement', () => {
+    const movement = movementFactory.build({ reason: 'Compra' });
+
+    renderWithProviders(<MovementDetails movement={movement} />);
+
+    expect(
+      screen.queryByRole('button', { name: /Estornar venda/ })
     ).not.toBeInTheDocument();
   });
 });

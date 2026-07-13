@@ -31,6 +31,7 @@ export const movementFactory = Factory.define<Movement>(() => ({
   reason: 'Compra',
   documentNumber: undefined,
   orderId: undefined,
+  orderStatus: undefined,
   description: undefined,
   createdAt: faker.date.recent(),
   executedAt: faker.date.recent(),
@@ -68,6 +69,7 @@ export const movementDTOFactory = Factory.define<MovementDTO>(() => ({
   created_at: faker.date.past().toISOString(),
   executed_at: faker.date.recent().toISOString(),
   profiles: { full_name: faker.person.fullName(), avatar_url: null },
+  orders: null,
   movement_items: [movementItemDTOFactory.build()]
 }));
 

@@ -111,6 +111,26 @@ describe('MovementMapper', () => {
 
       expect(result.user?.fullName).toBe('Sistema');
     });
+
+    it('should map the linked order status when present', () => {
+      const dto = movementDTOFactory.build({
+        order_id: 'order-1',
+        orders: { status: 'confirmed' }
+      });
+
+      const result = MovementMapper.toDomain(dto);
+
+      expect(result.orderId).toBe('order-1');
+      expect(result.orderStatus).toBe('confirmed');
+    });
+
+    it('should leave orderStatus undefined when there is no linked order', () => {
+      const dto = movementDTOFactory.build({ order_id: null, orders: null });
+
+      const result = MovementMapper.toDomain(dto);
+
+      expect(result.orderStatus).toBeUndefined();
+    });
   });
 
   describe('toPersistence', () => {
