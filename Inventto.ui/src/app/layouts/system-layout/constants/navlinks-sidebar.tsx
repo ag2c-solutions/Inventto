@@ -20,7 +20,7 @@ export const navGroups: NavGroup[] = [
         label: 'Dashboard',
         href: '/',
         icon: LayoutDashboard,
-        enabled: false
+        enabled: true
       },
       {
         label: 'Pedidos',

@@ -18,7 +18,7 @@ const PageLoader = () => (
   </div>
 );
 
-export const router = createBrowserRouter([
+export const routeConfig = [
   {
     path: '/auth',
     element: (
@@ -80,7 +80,10 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/products" replace />
+        lazy: async () => {
+          const { DashboardPage } = await import('@/features/dashboard');
+          return { Component: DashboardPage };
+        }
       },
       {
         path: 'products',
@@ -313,7 +316,9 @@ export const router = createBrowserRouter([
       }
     ]
   }
-]);
+];
+
+export const router = createBrowserRouter(routeConfig);
 
 export function AppRouters() {
   return <RouterProvider router={router} />;
