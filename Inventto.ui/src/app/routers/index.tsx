@@ -1,5 +1,10 @@
 import { Suspense } from 'react';
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
+import {
+  createBrowserRouter,
+  Navigate,
+  type RouteObject,
+  RouterProvider
+} from 'react-router';
 
 import { CanNavigate } from '@/features/permissions';
 
@@ -18,7 +23,7 @@ const PageLoader = () => (
   </div>
 );
 
-export const routeConfig = [
+export const routeConfig: RouteObject[] = [
   {
     path: '/auth',
     element: (

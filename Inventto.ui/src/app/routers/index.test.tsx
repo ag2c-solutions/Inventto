@@ -11,7 +11,13 @@ describe('routeConfig', () => {
 
     expect(indexRoute?.element).toBeUndefined();
 
-    const resolved = await indexRoute?.lazy?.();
+    if (typeof indexRoute?.lazy !== 'function') {
+      throw new Error(
+        'expected the index route to define a function-style lazy loader'
+      );
+    }
+
+    const resolved = await indexRoute.lazy();
 
     expect(resolved?.Component).toBe(DashboardPage);
   });
