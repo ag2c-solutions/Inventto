@@ -38,3 +38,14 @@ export const useRecentActivityQuery = () => {
     enabled: !!organizationId
   });
 };
+
+export const useOnboardingStatusQuery = () => {
+  const { currentOrganization } = useUser();
+  const organizationId = currentOrganization?.id;
+
+  return useQuery({
+    queryKey: ['dashboard', 'onboarding-status', organizationId],
+    queryFn: () => DashboardAPI.getOnboardingStatus(organizationId as string),
+    enabled: !!organizationId
+  });
+};

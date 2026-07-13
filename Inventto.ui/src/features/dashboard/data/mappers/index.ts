@@ -1,10 +1,12 @@
 import type {
   AttentionSummary,
+  OnboardingStatus,
   RecentActivity,
   SalesSummary
 } from '../../domain/entities';
 import type {
   AttentionSummaryDTO,
+  OnboardingStatusDTO,
   RecentActivityDTO,
   SalesSummaryDTO
 } from '../dtos';
@@ -68,6 +70,17 @@ export class RecentActivityMapper {
         total: sale.total,
         updatedAt: new Date(sale.updated_at)
       }))
+    };
+  }
+}
+
+export class OnboardingStatusMapper {
+  static toDomain(dto: OnboardingStatusDTO): OnboardingStatus {
+    return {
+      hasProducts: dto.has_products,
+      hasCatalog: dto.has_catalog,
+      hasPublishedStorefront: dto.has_published_storefront,
+      hasSales: dto.has_sales
     };
   }
 }

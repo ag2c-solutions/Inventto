@@ -79,3 +79,25 @@ export interface RecentActivity {
   recentOrders?: RecentOrder[];
   ownRecentSales?: OwnRecentSale[];
 }
+
+// RN092/DASH-05 · estado real da org usado pra decidir onboarding × blocos
+// operacionais e a progressão dos 3 passos. `hasCatalog` exige catálogo com
+// ao menos 1 item (ver get_onboarding_status) — "definir o que você vende e
+// por quanto" não é satisfeito por um catálogo vazio.
+export interface OnboardingStatus {
+  hasProducts: boolean;
+  hasCatalog: boolean;
+  hasPublishedStorefront: boolean;
+  hasSales: boolean;
+}
+
+export type OnboardingStepId = 'product' | 'catalog' | 'storefront';
+
+export interface OnboardingStep {
+  id: OnboardingStepId;
+  title: string;
+  subtitle: string;
+  href: string;
+  done: boolean;
+  active: boolean;
+}

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DashboardAPI } from '../../data/api';
 import { attentionSummaryFactory } from '../../tests/factories/attention-summary.factory';
+import { onboardingStatusFactory } from '../../tests/factories/onboarding-status.factory';
 import { recentActivityFactory } from '../../tests/factories/recent-activity.factory';
 import { salesSummaryFactory } from '../../tests/factories/sales-summary.factory';
 
@@ -17,6 +18,7 @@ vi.mock('@/features/users', () => ({
 
 import {
   useAttentionSummaryQuery,
+  useOnboardingStatusQuery,
   useRecentActivityQuery,
   useSalesSummaryQuery
 } from './use-queries';
@@ -152,5 +154,43 @@ describe('useRecentActivityQuery', () => {
 
     expect(DashboardAPI.getRecentActivity).toHaveBeenCalledWith('org-1');
     expect(result.current.data).toEqual(activity);
+  });
+});
+
+describe('useOnboardingStatusQuery', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    });
+  });
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+
+  it('should not run the query when there is no current organization', () => {
+    mockUseUser.mockReturnValue({ currentOrganization: null });
+
+    renderHook(() => useOnboardingStatusQuery(), { wrapper });
+
+    expect(DashboardAPI.getOnboardingStatus).not.toHaveBeenCalled();
+  });
+
+  it('should fetch the onboarding status for the current organization', async () => {
+    mockUseUser.mockReturnValue({ currentOrganization: { id: 'org-1' } });
+    const status = onboardingStatusFactory.build();
+    vi.mocked(DashboardAPI.getOnboardingStatus).mockResolvedValue(status);
+
+    const { result } = renderHook(() => useOnboardingStatusQuery(), {
+      wrapper
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(DashboardAPI.getOnboardingStatus).toHaveBeenCalledWith('org-1');
+    expect(result.current.data).toEqual(status);
   });
 });

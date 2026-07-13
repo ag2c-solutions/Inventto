@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { attentionSummaryDTOFactory } from '../../tests/factories/attention-summary.factory';
+import { onboardingStatusDTOFactory } from '../../tests/factories/onboarding-status.factory';
 import { recentActivityDTOFactory } from '../../tests/factories/recent-activity.factory';
 import { salesSummaryDTOFactory } from '../../tests/factories/sales-summary.factory';
 
@@ -107,6 +108,41 @@ describe('DashboardAPI', () => {
 
       await expect(DashboardAPI.getRecentActivity('org-1')).rejects.toThrow(
         'Erro ao executar getRecentActivity: Ocorreu um erro inesperado ao carregar o dashboard.'
+      );
+    });
+  });
+
+  describe('getOnboardingStatus', () => {
+    it('should call the rpc with the organization id and return the mapped status', async () => {
+      const dto = onboardingStatusDTOFactory.build({
+        has_products: true,
+        has_catalog: false,
+        has_published_storefront: false,
+        has_sales: false
+      });
+      mockRpc.mockResolvedValue({ data: dto, error: null });
+
+      const result = await DashboardAPI.getOnboardingStatus('org-1');
+
+      expect(mockRpc).toHaveBeenCalledWith('get_onboarding_status', {
+        p_organization_id: 'org-1'
+      });
+      expect(result).toEqual({
+        hasProducts: true,
+        hasCatalog: false,
+        hasPublishedStorefront: false,
+        hasSales: false
+      });
+    });
+
+    it('should throw a handled error when the rpc fails', async () => {
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: '500', message: 'boom', details: '' }
+      });
+
+      await expect(DashboardAPI.getOnboardingStatus('org-1')).rejects.toThrow(
+        'Erro ao executar getOnboardingStatus: Ocorreu um erro inesperado ao carregar o dashboard.'
       );
     });
   });
