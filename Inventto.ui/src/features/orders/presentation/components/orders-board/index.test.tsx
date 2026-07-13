@@ -1,16 +1,32 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Order } from '../../../domain/entities';
 import { orderFactory } from '../../../tests/factories/order.factory';
 
 import { OrdersBoard } from './index';
 
+const mockUseIsMobile = vi.fn();
+
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: () => mockUseIsMobile()
+}));
+
 vi.mock('../order-card', () => ({
   OrderCard: ({ order }: { order: Order }) => <div>{order.customerName}</div>
 }));
 
+vi.mock('../order-tabs', () => ({
+  OrderTabs: ({ orders }: { orders: Order[] }) => (
+    <div data-testid="order-tabs">{orders.length} pedidos</div>
+  )
+}));
+
 describe('OrdersBoard', () => {
+  beforeEach(() => {
+    mockUseIsMobile.mockReturnValue(false);
+  });
+
   it('should render the 4 macro-state columns with counters', () => {
     const orders = [
       orderFactory.build({ macroState: 'pool' }),
@@ -105,5 +121,27 @@ describe('OrdersBoard', () => {
     expect(
       screen.getAllByText('Nenhum pedido encerrado neste período.')
     ).toHaveLength(2);
+  });
+
+  describe('mobile (~390px)', () => {
+    beforeEach(() => {
+      mockUseIsMobile.mockReturnValue(true);
+    });
+
+    it('should render OrderTabs instead of the Kanban columns', () => {
+      const orders = [orderFactory.build({ macroState: 'pool' })];
+
+      render(
+        <OrdersBoard
+          orders={orders}
+          onOpenDetail={vi.fn()}
+          onCancelRequest={vi.fn()}
+        />
+      );
+
+      expect(screen.getByTestId('order-tabs')).toBeInTheDocument();
+      expect(screen.getByText('1 pedidos')).toBeInTheDocument();
+      expect(screen.queryByText('Pool')).not.toBeInTheDocument();
+    });
   });
 });

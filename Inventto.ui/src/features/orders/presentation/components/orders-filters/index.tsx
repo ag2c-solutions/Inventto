@@ -39,8 +39,11 @@ export function OrdersFilters({
   const canFilterBySeller = can('order:view_all');
 
   return (
-    <div className="flex flex-wrap items-center gap-2.5">
-      <div className="relative flex-1 max-w-[320px] basis-64">
+    // PED-06: no mobile (<md) os filtros empilham (100% de largura cada);
+    // a partir de md voltam a ficar lado a lado com wrap (comportamento
+    // original do painel desktop).
+    <div className="flex flex-col items-stretch gap-2.5 md:flex-row md:flex-wrap md:items-center">
+      <div className="relative md:max-w-[320px] md:flex-1 md:basis-64">
         <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por nome ou telefone do cliente"
@@ -58,7 +61,7 @@ export function OrdersFilters({
           onChange({ ...filters, period: value as OrderPeriod })
         }
       >
-        <SelectTrigger className="h-[38px] w-auto gap-2 rounded-[9px] px-3">
+        <SelectTrigger className="h-[38px] w-full gap-2 rounded-[9px] px-3 md:w-auto">
           <Calendar className="size-[15px] text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Período</span>
           <SelectValue className="font-semibold" />
@@ -82,7 +85,7 @@ export function OrdersFilters({
             })
           }
         >
-          <SelectTrigger className="h-[38px] w-auto gap-2 rounded-[9px] px-3">
+          <SelectTrigger className="h-[38px] w-full gap-2 rounded-[9px] px-3 md:w-auto">
             <User className="size-[15px] text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Vendedor</span>
             <SelectValue className="font-semibold" placeholder="Todos" />

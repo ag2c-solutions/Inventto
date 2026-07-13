@@ -8,10 +8,12 @@ import { useOrderSheetStore } from '../../stores/order-sheet-store';
 
 import { OrderSheet } from './index';
 
-const { mockUseOrderQuery, mockUseOrderSheetActions } = vi.hoisted(() => ({
-  mockUseOrderQuery: vi.fn(),
-  mockUseOrderSheetActions: vi.fn()
-}));
+const { mockUseOrderQuery, mockUseOrderSheetActions, mockUseIsMobile } =
+  vi.hoisted(() => ({
+    mockUseOrderQuery: vi.fn(),
+    mockUseOrderSheetActions: vi.fn(),
+    mockUseIsMobile: vi.fn()
+  }));
 
 vi.mock('../../hooks/use-queries', () => ({
   useOrderQuery: mockUseOrderQuery
@@ -21,9 +23,14 @@ vi.mock('./hooks/use-order-sheet-actions', () => ({
   useOrderSheetActions: mockUseOrderSheetActions
 }));
 
+vi.mock('@/shared/hooks/use-is-mobile', () => ({
+  useIsMobile: mockUseIsMobile
+}));
+
 describe('OrderSheet', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseIsMobile.mockReturnValue(false);
     act(() => {
       useOrderSheetStore.getState().close();
     });
@@ -154,5 +161,38 @@ describe('OrderSheet', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     expect(onCancelRequest).toHaveBeenCalledWith(order);
+  });
+
+  it('should render as a lateral sheet on desktop', () => {
+    const order = orderFactory.build();
+    mockUseOrderQuery.mockReturnValue({ data: order, isLoading: false });
+
+    act(() => {
+      useOrderSheetStore.getState().open(order.id);
+    });
+
+    render(<OrderSheet onCancelRequest={vi.fn()} />);
+
+    const content = document.querySelector('[data-slot="sheet-content"]');
+    expect(content).not.toBeNull();
+    expect(content?.className).toContain('right-0');
+    expect(content?.className).not.toContain('h-[80vh]');
+  });
+
+  it('should render as an 80% bottom panel with a grab handle on mobile (PED-06)', () => {
+    mockUseIsMobile.mockReturnValue(true);
+    const order = orderFactory.build();
+    mockUseOrderQuery.mockReturnValue({ data: order, isLoading: false });
+
+    act(() => {
+      useOrderSheetStore.getState().open(order.id);
+    });
+
+    render(<OrderSheet onCancelRequest={vi.fn()} />);
+
+    const content = document.querySelector('[data-slot="sheet-content"]');
+    expect(content).not.toBeNull();
+    expect(content?.className).toContain('bottom-0');
+    expect(content?.className).toContain('h-[80vh]');
   });
 });
