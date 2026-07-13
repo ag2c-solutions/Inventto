@@ -73,7 +73,9 @@ export function SalesChart({ series, period }: SalesChartProps) {
           cursor={false}
           content={
             <ChartTooltipContent
-              labelFormatter={(value) => formatPointLabel(value, period)}
+              labelFormatter={(value) =>
+                formatPointLabel(String(value), period)
+              }
               formatter={(value, name) => [
                 formatCurrency(value as number) ?? 'R$ 0,00',
                 ` ${name === 'pos' ? 'Balcão' : 'Pedidos'}`
