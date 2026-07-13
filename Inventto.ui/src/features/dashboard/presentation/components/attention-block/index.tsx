@@ -90,8 +90,8 @@ export function AttentionBlock({ role }: AttentionBlockProps) {
           cards.length > 1 ? 'sm:grid-cols-3' : 'grid-cols-1'
         )}
       >
-        {cards.map((card) => (
-          <AttentionCard key={card.key} {...card} />
+        {cards.map(({ key, ...card }) => (
+          <AttentionCard key={key} {...card} />
         ))}
       </div>
     </BlockBoundary>
