@@ -55,7 +55,8 @@ export interface ProductVariantDTO {
   sku: string;
   stock: number;
   minimum_stock: number;
-  cost_price: number;
+  // ausente no payload da RPC get_products_for_sales (RN057 — PROD-10)
+  cost_price?: number;
   is_active: boolean;
   options: ProductVariantOptionDTO[];
   product_variant_images: ProductVariantImageDTO[];
