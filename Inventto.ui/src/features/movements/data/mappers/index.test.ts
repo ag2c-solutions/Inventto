@@ -45,6 +45,20 @@ describe('MovementMapper', () => {
       expect(result.totalValue).toBe(95); // 5*10 + 3*15
     });
 
+    it('MOV-08: should map items without unit_cost (payload da RPC sanitizada) to unitCost 0', () => {
+      const dto = movementDTOFactory.build({
+        movement_items: [
+          movementItemDTOFactory.build({ quantity: 4, unit_cost: undefined })
+        ]
+      });
+
+      const result = MovementMapper.toDomain(dto);
+
+      expect(result.items[0].unitCost).toBe(0);
+      expect(result.totalQuantity).toBe(4);
+      expect(result.totalValue).toBe(0);
+    });
+
     it('should use variant image url when available (primary)', () => {
       const dto = movementDTOFactory.build({
         movement_items: [

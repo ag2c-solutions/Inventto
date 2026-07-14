@@ -84,20 +84,22 @@ FOR SELECT USING (
 );
 
 -- Managers podem criar movimentações
+-- (MOV-08: a policy "Sales can create movements" foi removida — Sales não registra
+-- movimentação manual; a escrita real é toda via RPC SECURITY DEFINER de qualquer
+-- forma, e as baixas por venda do Sales entram por create_stock_movement_internal.)
 CREATE POLICY "Managers can create movements" ON public.movements
 FOR INSERT WITH CHECK (public.has_role(organization_id, 'manager'));
 
--- Sales também podem criar (Vendas)
-CREATE POLICY "Sales can create movements" ON public.movements
-FOR INSERT WITH CHECK (public.has_role(organization_id, 'sales'));
-
--- --- Policies para Items (Herança) ---
-CREATE POLICY "Inherit movement access items" ON public.movement_items
+-- --- Policies para Items ---
+-- MOV-08 · RN057: movement_items carrega unit_cost — leitura direta só Manager/Owner
+-- (a herança da movement pai deixava o Sales ler o custo das próprias linhas via
+-- PostgREST). O Sales lê o histórico via RPC get_movements_for_sales (sem custo).
+CREATE POLICY "Managers can view movement items" ON public.movement_items
 FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM public.movements
     WHERE id = movement_items.movement_id
-    -- A policy de SELECT da movements já filtra quem pode ver o pai
+    AND public.has_role(organization_id, 'manager')
   )
 );
 
@@ -107,14 +109,5 @@ FOR INSERT WITH CHECK (
     SELECT 1 FROM public.movements
     WHERE id = movement_id
     AND public.has_role(organization_id, 'manager')
-  )
-);
-
-CREATE POLICY "Sales create items" ON public.movement_items
-FOR INSERT WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM public.movements
-    WHERE id = movement_id
-    AND public.has_role(organization_id, 'sales')
   )
 );

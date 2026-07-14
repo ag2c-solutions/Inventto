@@ -122,6 +122,52 @@ describe('MovementApi', () => {
     });
   });
 
+  describe('getAllForSales', () => {
+    it('MOV-08: should call the sanitized RPC (never the movements table) and map the result', async () => {
+      const dto = movementDTOFactory.build();
+      mockRpc.mockResolvedValue({ data: [dto], error: null });
+
+      const result = await MovementApi.getAllForSales({
+        organizationId: 'org-1',
+        productId: 'prod-9'
+      });
+
+      expect(mockRpc).toHaveBeenCalledWith('get_movements_for_sales', {
+        p_org_id: 'org-1',
+        p_product_id: 'prod-9'
+      });
+      expect(mockSupabase.from).not.toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(dto.id);
+    });
+
+    it('should send null productId when absent and return [] when RPC has no data', async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null });
+
+      const result = await MovementApi.getAllForSales({
+        organizationId: 'org-1'
+      });
+
+      expect(mockRpc).toHaveBeenCalledWith('get_movements_for_sales', {
+        p_org_id: 'org-1',
+        p_product_id: null
+      });
+      expect(result).toEqual([]);
+    });
+
+    it('should throw generic error for unknown RPC failures', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: 'XXXXX', message: 'DB Error', details: '' }
+      });
+
+      await expect(
+        MovementApi.getAllForSales({ organizationId: 'org-1' })
+      ).rejects.toThrow('DB Error');
+    });
+  });
+
   // ─── MUTATIONS ──────────────────────────────────────────────────────────────
 
   describe('create', () => {

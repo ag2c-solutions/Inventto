@@ -1,8 +1,13 @@
 import { Inbox } from 'lucide-react';
 
+import { usePermission } from '@/features/permissions';
+
 import { AddNewMovements } from '../../../add-moviment';
 
 export function MovementsOnboardingEmpty() {
+  const { can } = usePermission();
+  const canRegister = can('movement:create');
+
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-16 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sidebar/70">
@@ -12,8 +17,9 @@ export function MovementsOnboardingEmpty() {
       <h3 className="text-lg font-semibold">Nenhuma movimentação ainda.</h3>
 
       <p className="max-w-md text-sm text-muted-foreground">
-        Entradas e saídas aparecem aqui assim que houver registros. Comece
-        adicionando estoque a um produto.
+        {canRegister
+          ? 'Entradas e saídas aparecem aqui assim que houver registros. Comece adicionando estoque a um produto.'
+          : 'Suas movimentações aparecem aqui a partir das suas vendas — no balcão ou na confirmação de pedidos.'}
       </p>
 
       <AddNewMovements />
