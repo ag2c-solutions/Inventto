@@ -2200,6 +2200,7 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_pdv_catalog_items(UUID) TO authenticated;
+<<<<<<< Updated upstream
 
 -- ------------------------------------------------------------------------------
 -- GET_MOVEMENTS_FOR_SALES (MOV-08 · RN057): histórico do papel Sales — só as
@@ -2307,3 +2308,5 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_movements_for_sales(UUID, UUID) TO authenticated;
+=======
+>>>>>>> Stashed changes

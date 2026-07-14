@@ -7,7 +7,8 @@ export function validateEnv(raw: RawEnv): Env {
   const input = {
     supabase: {
       url: raw['VITE_SUPABASE_URL'],
-      anonKey: raw['VITE_SUPABASE_ANON_KEY']
+      anonKey:
+        raw['VITE_SUPABASE_ANON_KEY'] || raw['VITE_SUPABASE_PUBLISHABLE_KEY']
     },
     cloudinary: {
       cloudName: raw['VITE_CLOUDINARY_NAME'],
