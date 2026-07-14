@@ -2003,3 +2003,172 @@ SELECT cron.schedule(
   '*/5 * * * *',
   $$ SELECT public.notify_expiring_orders(); $$
 );
+
+-- ==============================================================================
+-- PROD-10 · LEITURAS SANITIZADAS PARA O PAPEL SALES (RN057/RN017)
+-- ==============================================================================
+-- RN057: custo nunca chega ao client de um Sales. A RLS de products e
+-- product_variants é Manager/Owner; o Sales lê por estas funções, que devolvem
+-- o MESMO shape dos embeds PostgREST das queries de manager, sem nenhuma coluna
+-- de custo — os mappers do frontend não mudam.
+
+-- ------------------------------------------------------------------------------
+-- GET_PRODUCTS_FOR_SALES: espelho da antiga SELECT_QUERY_SALES (produtos ativos,
+-- não deletados, com categorias/atributos/imagens/variações) SEM cost_price.
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.get_products_for_sales(p_org_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_result JSONB;
+BEGIN
+  IF NOT public.is_org_member(p_org_id) THEN
+    RAISE EXCEPTION 'Acesso negado.';
+  END IF;
+
+  SELECT COALESCE(jsonb_agg(product_row ORDER BY created_at DESC), '[]'::jsonb)
+  INTO v_result
+  FROM (
+    SELECT
+      p.created_at,
+      jsonb_build_object(
+        'id', p.id,
+        'organization_id', p.organization_id,
+        'name', p.name,
+        'sku', p.sku,
+        'description', p.description,
+        'stock', p.stock,
+        'minimum_stock', p.minimum_stock,
+        'has_variants', p.has_variants,
+        'is_active', p.is_active,
+        'created_at', p.created_at,
+        'categories', COALESCE((
+          SELECT jsonb_agg(jsonb_build_object(
+            'category', jsonb_build_object('id', c.id, 'name', c.name)
+          ) ORDER BY c.name)
+          FROM public.product_categories pc
+          JOIN public.categories c ON c.id = pc.category_id
+          WHERE pc.product_id = p.id
+        ), '[]'::jsonb),
+        'product_attributes', COALESCE((
+          SELECT jsonb_agg(jsonb_build_object(
+            'id', pa.id, 'label', pa.label, 'slug', pa.slug,
+            'type', pa.type, 'values', pa."values"
+          ) ORDER BY pa.label)
+          FROM public.product_attributes pa
+          WHERE pa.product_id = p.id
+        ), '[]'::jsonb),
+        'product_images', COALESCE((
+          SELECT jsonb_agg(jsonb_build_object(
+            'id', pi.id, 'url', pi.url, 'name', pi.name, 'type', pi.type,
+            'public_id', pi.public_id, 'is_primary', pi.is_primary
+          ) ORDER BY pi.is_primary DESC, pi.created_at)
+          FROM public.product_images pi
+          WHERE pi.product_id = p.id
+        ), '[]'::jsonb),
+        'product_variants', COALESCE((
+          SELECT jsonb_agg(jsonb_build_object(
+            'id', v.id, 'sku', v.sku, 'stock', v.stock,
+            'minimum_stock', v.minimum_stock, 'is_active', v.is_active,
+            'options', v.options,
+            'product_variant_images', COALESCE((
+              SELECT jsonb_agg(jsonb_build_object(
+                'image_id', pvi.image_id, 'is_primary', pvi.is_primary
+              ))
+              FROM public.product_variant_images pvi
+              WHERE pvi.variant_id = v.id
+            ), '[]'::jsonb)
+          ) ORDER BY v.created_at)
+          FROM public.product_variants v
+          WHERE v.product_id = p.id
+        ), '[]'::jsonb)
+      ) AS product_row
+    FROM public.products p
+    WHERE p.organization_id = p_org_id
+      AND p.deleted_at IS NULL
+      AND p.is_active = true
+  ) sub;
+
+  RETURN v_result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_products_for_sales(UUID) TO authenticated;
+
+-- ------------------------------------------------------------------------------
+-- GET_PDV_CATALOG_ITEMS: itens do catálogo do PDV com produto/variante embutidos
+-- (espelho do antigo ITEM_SELECT_QUERY do PDV — que já era sem custo). Usada por
+-- TODOS os papéis: o problema do Sales aqui era de linha (RLS de products), não
+-- de coluna.
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.get_pdv_catalog_items(p_catalog_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_result JSONB;
+BEGIN
+  SELECT organization_id INTO v_org_id
+  FROM public.catalogs WHERE id = p_catalog_id;
+
+  IF v_org_id IS NULL THEN
+    RAISE EXCEPTION 'Catálogo não encontrado.';
+  END IF;
+
+  IF NOT public.is_org_member(v_org_id) THEN
+    RAISE EXCEPTION 'Acesso negado.';
+  END IF;
+
+  SELECT COALESCE(jsonb_agg(item_row ORDER BY item_id), '[]'::jsonb)
+  INTO v_result
+  FROM (
+    SELECT
+      ci.id AS item_id,
+      jsonb_build_object(
+        'id', ci.id,
+        'product_id', ci.product_id,
+        'variant_id', ci.variant_id,
+        'price', ci.price,
+        'product', (
+          SELECT jsonb_build_object(
+            'id', pr.id, 'name', pr.name, 'sku', pr.sku, 'stock', pr.stock,
+            'product_images', COALESCE((
+              SELECT jsonb_agg(jsonb_build_object('url', pi.url, 'is_primary', pi.is_primary)
+                ORDER BY pi.is_primary DESC, pi.created_at)
+              FROM public.product_images pi
+              WHERE pi.product_id = pr.id
+            ), '[]'::jsonb),
+            'categories', COALESCE((
+              SELECT jsonb_agg(jsonb_build_object(
+                'category', jsonb_build_object('id', pc.category_id)
+              ))
+              FROM public.product_categories pc
+              WHERE pc.product_id = pr.id
+            ), '[]'::jsonb)
+          )
+          FROM public.products pr WHERE pr.id = ci.product_id
+        ),
+        'variant', (
+          SELECT jsonb_build_object(
+            'id', v.id, 'sku', v.sku, 'stock', v.stock, 'options', v.options
+          )
+          FROM public.product_variants v WHERE v.id = ci.variant_id
+        )
+      ) AS item_row
+    FROM public.catalog_items ci
+    WHERE ci.catalog_id = p_catalog_id
+  ) sub;
+
+  RETURN v_result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_pdv_catalog_items(UUID) TO authenticated;

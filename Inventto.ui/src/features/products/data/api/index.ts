@@ -9,7 +9,6 @@ import type {
   UpdateProduct
 } from '../../domain/entities';
 import { SELECT_QUERY_INTERNALS } from '../constants/select-query-internals';
-import { SELECT_QUERY_SALES } from '../constants/select-query-sales';
 import type {
   ImportCandidateDTO,
   ProductAttributeDTO,
@@ -37,19 +36,19 @@ export class ProductAPI {
     }
   }
 
+  // PROD-10 · RN057: a RLS de products/product_variants é Manager/Owner — o papel
+  // Sales lê pela RPC sanitizada (mesmo shape dos embeds, sem cost_price).
   static async getAllForSales(organizationId: string): Promise<IProduct[]> {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select(SELECT_QUERY_SALES)
-        .eq('organization_id', organizationId)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .overrideTypes<ProductDTO[], { merge: false }>();
+      const { data, error } = await supabase.rpc('get_products_for_sales', {
+        p_org_id: organizationId
+      });
 
       if (error) throw error;
 
-      return data.map(ProductMapper.toDomain);
+      const products = (data ?? []) as ProductDTO[];
+
+      return products.map(ProductMapper.toDomain);
     } catch (error) {
       handleProductError(error, 'getAllForSales');
     }

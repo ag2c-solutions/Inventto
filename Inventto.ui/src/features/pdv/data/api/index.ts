@@ -20,27 +20,6 @@ import {
   PdvSaleMapper
 } from '../mappers';
 
-const ITEM_SELECT_QUERY = `
-  id,
-  product_id,
-  variant_id,
-  price,
-  product:products(
-    id,
-    name,
-    sku,
-    stock,
-    product_images(url, is_primary),
-    categories:product_categories(category:categories(id))
-  ),
-  variant:product_variants(
-    id,
-    sku,
-    stock,
-    options
-  )
-`;
-
 export class PdvApi {
   static async getPdvCatalog(
     organizationId: string
@@ -65,17 +44,19 @@ export class PdvApi {
     }
   }
 
+  // PROD-10: a RLS de products/product_variants é Manager/Owner — o embed direto
+  // vinha null para o papel Sales. A RPC devolve o mesmo shape para todos os papéis.
   static async getPdvProducts(catalogId: string): Promise<PdvProduct[]> {
     try {
-      const { data, error } = await supabase
-        .from('catalog_items')
-        .select(ITEM_SELECT_QUERY)
-        .eq('catalog_id', catalogId)
-        .overrideTypes<PdvCatalogItemDTO[], { merge: false }>();
+      const { data, error } = await supabase.rpc('get_pdv_catalog_items', {
+        p_catalog_id: catalogId
+      });
 
       if (error) throw error;
 
-      return data.map(PdvProductMapper.toDomain);
+      const items = (data ?? []) as PdvCatalogItemDTO[];
+
+      return items.map(PdvProductMapper.toDomain);
     } catch (error) {
       handlePdvError(error, 'getPdvProducts');
     }

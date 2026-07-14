@@ -93,17 +93,38 @@ describe('ProductAPI', () => {
   });
 
   describe('getAllForSales', () => {
-    it('should query "products" filtered by organizationId and isActive', async () => {
+    it('should call the sanitized RPC (never the products table) and return mapped domain objects', async () => {
       const dto = productDTOFactory.build();
-      mockOverrideTypes.mockResolvedValue({ data: [dto], error: null });
+      mockRpc.mockResolvedValue({ data: [dto], error: null });
 
-      await ProductAPI.getAllForSales(dto.organization_id);
+      const result = await ProductAPI.getAllForSales(dto.organization_id);
 
-      expect(mockEq).toHaveBeenCalledWith(
-        'organization_id',
-        dto.organization_id
+      expect(mockRpc).toHaveBeenCalledWith('get_products_for_sales', {
+        p_org_id: dto.organization_id
+      });
+      expect(mockSupabase.from).not.toHaveBeenCalled();
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(dto.id);
+    });
+
+    it('should return an empty array when RPC returns no data', async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null });
+
+      const result = await ProductAPI.getAllForSales('org-1');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw handled error when RPC fails', async () => {
+      consoleErrorSpy.mockImplementation(() => {});
+      mockRpc.mockResolvedValue({
+        data: null,
+        error: { code: 'XXXXX', message: 'DB Error', details: '' }
+      });
+
+      await expect(ProductAPI.getAllForSales('org-1')).rejects.toThrow(
+        'Erro ao executar getAllForSales: Ocorreu um erro inesperado.'
       );
-      expect(mockEq).toHaveBeenCalledWith('is_active', true);
     });
   });
 

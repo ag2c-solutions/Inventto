@@ -89,20 +89,30 @@ describe('PdvApi', () => {
   });
 
   describe('getPdvProducts', () => {
-    it('should query catalog_items and return mapped PdvProducts', async () => {
+    it('should call the get_pdv_catalog_items RPC (never catalog_items directly) and return mapped PdvProducts', async () => {
       const dto = pdvCatalogItemDTOFactory.build();
-      mockOverrideTypes.mockResolvedValue({ data: [dto], error: null });
+      mockRpc.mockResolvedValue({ data: [dto], error: null });
 
       const result = await PdvApi.getPdvProducts('cat-1');
 
-      expect(mockSupabase.from).toHaveBeenCalledWith('catalog_items');
-      expect(mockEq).toHaveBeenCalledWith('catalog_id', 'cat-1');
+      expect(mockRpc).toHaveBeenCalledWith('get_pdv_catalog_items', {
+        p_catalog_id: 'cat-1'
+      });
+      expect(mockSupabase.from).not.toHaveBeenCalled();
       expect(result).toHaveLength(1);
       expect(result[0].productId).toBe(dto.product_id);
     });
 
+    it('should return an empty array when RPC returns no data', async () => {
+      mockRpc.mockResolvedValue({ data: null, error: null });
+
+      const result = await PdvApi.getPdvProducts('cat-1');
+
+      expect(result).toEqual([]);
+    });
+
     it('should throw a normalized error via handlePdvError', async () => {
-      mockOverrideTypes.mockResolvedValue({
+      mockRpc.mockResolvedValue({
         data: null,
         error: { message: 'boom', code: 'XXXXX', details: '', hint: '' }
       });

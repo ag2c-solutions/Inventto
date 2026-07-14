@@ -106,6 +106,23 @@ describe('ProductMapper', () => {
       }
     });
 
+    it('should map variants without cost_price (payload da RPC sanitizada — PROD-10) to undefined costPrice', () => {
+      const dto = productDTOFactory.build({
+        has_variants: true,
+        cost_price: undefined,
+        product_variants: [
+          productVariantDTOFactory.build({ cost_price: undefined })
+        ]
+      });
+
+      const result = ProductMapper.toDomain(dto);
+
+      expect(result.costPrice).toBeUndefined();
+      if (result.hasVariants) {
+        expect(result.variants[0].costPrice).toBeUndefined();
+      }
+    });
+
     it('should return empty categories when categories is null', () => {
       const dto = productDTOFactory.build({
         categories: null as never
