@@ -8,6 +8,8 @@ import { MovementService } from './index';
 
 vi.mock('../../data/api', () => ({
   MovementApi: {
+    getAll: vi.fn(),
+    getAllForSales: vi.fn(),
     create: vi.fn(),
     cancelConfirmedSale: vi.fn()
   }
@@ -16,6 +18,58 @@ vi.mock('../../data/api', () => ({
 describe('MovementService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('getAll', () => {
+    const organization = {
+      id: faker.string.uuid(),
+      name: faker.company.name()
+    };
+
+    it('should route manager/owner to MovementApi.getAll with the filters', async () => {
+      vi.mocked(MovementApi.getAll).mockResolvedValue([]);
+
+      await MovementService.getAll({
+        organization,
+        role: 'manager',
+        productId: 'prod-1'
+      });
+
+      expect(MovementApi.getAll).toHaveBeenCalledWith({
+        organizationId: organization.id,
+        productId: 'prod-1'
+      });
+      expect(MovementApi.getAllForSales).not.toHaveBeenCalled();
+    });
+
+    it('MOV-08: should route sales to the sanitized MovementApi.getAllForSales', async () => {
+      vi.mocked(MovementApi.getAllForSales).mockResolvedValue([]);
+
+      await MovementService.getAll({ organization, role: 'sales' });
+
+      expect(MovementApi.getAllForSales).toHaveBeenCalledWith({
+        organizationId: organization.id,
+        productId: undefined
+      });
+      expect(MovementApi.getAll).not.toHaveBeenCalled();
+    });
+
+    it('should throw when organization is null', async () => {
+      await expect(
+        MovementService.getAll({ organization: null, role: 'manager' })
+      ).rejects.toThrow('Nenhuma organização selecionada.');
+
+      expect(MovementApi.getAll).not.toHaveBeenCalled();
+    });
+
+    it('should throw when the role is missing', async () => {
+      await expect(MovementService.getAll({ organization })).rejects.toThrow(
+        'Usuário sem cargo.'
+      );
+
+      expect(MovementApi.getAll).not.toHaveBeenCalled();
+      expect(MovementApi.getAllForSales).not.toHaveBeenCalled();
+    });
   });
 
   describe('create', () => {

@@ -37,6 +37,28 @@ export class MovementApi {
     }
   }
 
+  // MOV-08 · RN057: histórico do papel Sales via RPC sanitizada — só as próprias
+  // movimentações, sem unit_cost, com produto/variante resolvidos no servidor
+  // (a RLS de products/variants é Manager/Owner, o embed direto viria nulo).
+  static async getAllForSales(
+    filters: GetMovementsFilters
+  ): Promise<Movement[]> {
+    try {
+      const { data, error } = await supabase.rpc('get_movements_for_sales', {
+        p_org_id: filters.organizationId,
+        p_product_id: filters.productId ?? null
+      });
+
+      if (error) throw error;
+
+      const movements = (data ?? []) as MovementDTO[];
+
+      return movements.map(MovementMapper.toDomain);
+    } catch (error) {
+      handleMovementError(error, 'getAllForSales');
+    }
+  }
+
   static async create({
     input,
     organizationId

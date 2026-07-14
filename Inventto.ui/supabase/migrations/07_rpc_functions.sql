@@ -856,7 +856,12 @@ $$;
 -- ==============================================================================
 -- 6. ESTOQUE: CREATE MOVEMENT
 -- ==============================================================================
-CREATE OR REPLACE FUNCTION public.create_stock_movement(movement_data JSONB)
+-- MOV-08: motor dividido em duas funções. A INTERNA carrega toda a lógica e não
+-- restringe papel — create_pos_sale/finalize_order/cancel_confirmed_sale a chamam
+-- com o auth.uid() de um Sales legitimamente (venda é o único jeito de o Sales
+-- baixar estoque, espec § recorte do papel). EXECUTE revogado de anon/authenticated:
+-- nenhum client a chama direto.
+CREATE OR REPLACE FUNCTION public.create_stock_movement_internal(movement_data JSONB)
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -891,11 +896,6 @@ BEGIN
   WHERE profile_id = v_user_id AND organization_id = v_org_id;
 
   IF v_role IS NULL THEN RAISE EXCEPTION 'Acesso negado.'; END IF;
-  
-  -- Vendedores só podem registrar saídas
-  IF v_role = 'sales' AND v_type <> 'withdrawal' THEN
-    RAISE EXCEPTION 'Permissão negada: Vendedores só podem registrar saídas.';
-  END IF;
 
   -- 2. Cria Header
   INSERT INTO public.movements (organization_id, user_id, type, reason, description, order_id, document_number, executed_at)
@@ -1023,6 +1023,34 @@ BEGIN
   END LOOP;
 
   RETURN v_movement_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.create_stock_movement_internal(JSONB) FROM PUBLIC, anon, authenticated;
+
+-- Wrapper público (a RPC que o client chama): registro MANUAL de movimentação.
+-- MOV-08: Sales não registra movimentação manual — bloqueado aqui no servidor,
+-- não só na UI. As baixas por venda do Sales entram pela interna.
+CREATE OR REPLACE FUNCTION public.create_stock_movement(movement_data JSONB)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_role public.app_role;
+BEGIN
+  SELECT role INTO v_role FROM public.organization_members
+  WHERE profile_id = auth.uid()
+    AND organization_id = (movement_data->>'organization_id')::UUID;
+
+  IF v_role IS NULL THEN RAISE EXCEPTION 'Acesso negado.'; END IF;
+
+  IF v_role = 'sales' THEN
+    RAISE EXCEPTION 'Permissão negada: Vendedores não registram movimentações manuais.';
+  END IF;
+
+  RETURN public.create_stock_movement_internal(movement_data);
 END;
 $$;
 
@@ -1534,7 +1562,7 @@ BEGIN
     'order_id', v_order_id,
     'items', v_movement_items
   );
-  PERFORM public.create_stock_movement(v_movement_payload);
+  PERFORM public.create_stock_movement_internal(v_movement_payload);
 
   IF v_customer_id IS NOT NULL THEN
     UPDATE public.customer_store_profiles
@@ -1760,7 +1788,7 @@ BEGIN
       'order_id', p_id,
       'items', v_movement_items
     );
-    PERFORM public.create_stock_movement(v_movement_payload);
+    PERFORM public.create_stock_movement_internal(v_movement_payload);
   END IF;
 
   UPDATE public.orders SET status = 'confirmed', finalized_at = now() WHERE id = p_id;
@@ -2172,3 +2200,110 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_pdv_catalog_items(UUID) TO authenticated;
+
+-- ------------------------------------------------------------------------------
+-- GET_MOVEMENTS_FOR_SALES (MOV-08 · RN057): histórico do papel Sales — só as
+-- PRÓPRIAS movimentações (user_id = auth.uid(), espelha a RLS de movements),
+-- no shape exato do SELECT_QUERY do frontend, SEM unit_cost, com os dados de
+-- exibição de produto/variante resolvidos aqui (a RLS de products/variants é
+-- Manager/Owner — PROD-10 — então o embed PostgREST viria nulo p/ Sales).
+-- p_product_id espelha o filtro do PostgREST (movement_items!inner + eq):
+-- restringe as movimentações E os itens exibidos àquele produto.
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.get_movements_for_sales(
+  p_org_id UUID,
+  p_product_id UUID DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_result JSONB;
+BEGIN
+  IF NOT public.is_org_member(p_org_id) THEN
+    RAISE EXCEPTION 'Acesso negado.';
+  END IF;
+
+  SELECT COALESCE(jsonb_agg(movement_row ORDER BY created_at DESC), '[]'::jsonb)
+  INTO v_result
+  FROM (
+    SELECT
+      m.created_at,
+      jsonb_build_object(
+        'id', m.id,
+        'organization_id', m.organization_id,
+        'user_id', m.user_id,
+        'type', m.type,
+        'reason', m.reason,
+        'description', m.description,
+        'document_number', m.document_number,
+        'order_id', m.order_id,
+        'created_at', m.created_at,
+        'executed_at', m.executed_at,
+        'profiles', (
+          SELECT jsonb_build_object('full_name', pf.full_name, 'avatar_url', pf.avatar_url)
+          FROM public.profiles pf WHERE pf.id = m.user_id
+        ),
+        'orders', (
+          SELECT jsonb_build_object('status', o.status)
+          FROM public.orders o WHERE o.id = m.order_id
+        ),
+        'movement_items', COALESCE((
+          SELECT jsonb_agg(jsonb_build_object(
+            'id', mi.id,
+            'movement_id', mi.movement_id,
+            'product_id', mi.product_id,
+            'variant_id', mi.variant_id,
+            'quantity', mi.quantity,
+            'unit_price', mi.unit_price,
+            'products', (
+              SELECT jsonb_build_object(
+                'name', pr.name, 'sku', pr.sku,
+                'product_images', COALESCE((
+                  SELECT jsonb_agg(jsonb_build_object('url', pi.url, 'is_primary', pi.is_primary)
+                    ORDER BY pi.is_primary DESC, pi.created_at)
+                  FROM public.product_images pi WHERE pi.product_id = pr.id
+                ), '[]'::jsonb)
+              )
+              FROM public.products pr WHERE pr.id = mi.product_id
+            ),
+            'product_variants', (
+              SELECT jsonb_build_object(
+                'sku', v.sku, 'options', v.options,
+                'product_variant_images', COALESCE((
+                  SELECT jsonb_agg(jsonb_build_object(
+                    'is_primary', pvi.is_primary,
+                    'product_images', (
+                      SELECT jsonb_build_object('url', img.url)
+                      FROM public.product_images img WHERE img.id = pvi.image_id
+                    )
+                  ))
+                  FROM public.product_variant_images pvi WHERE pvi.variant_id = v.id
+                ), '[]'::jsonb)
+              )
+              FROM public.product_variants v WHERE v.id = mi.variant_id
+            )
+          ))
+          FROM public.movement_items mi
+          WHERE mi.movement_id = m.id
+            AND (p_product_id IS NULL OR mi.product_id = p_product_id)
+        ), '[]'::jsonb)
+      ) AS movement_row
+    FROM public.movements m
+    WHERE m.organization_id = p_org_id
+      AND m.user_id = auth.uid()
+      AND EXISTS (
+        SELECT 1 FROM public.movement_items mi
+        WHERE mi.movement_id = m.id
+          AND (p_product_id IS NULL OR mi.product_id = p_product_id)
+      )
+  ) sub;
+
+  RETURN v_result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_movements_for_sales(UUID, UUID) TO authenticated;

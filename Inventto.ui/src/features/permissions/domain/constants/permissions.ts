@@ -1,12 +1,11 @@
 import type { PermissionAction, Role } from '../entities';
 
+// MOV-08 (espec § recorte do Sales): Sales não registra movimentação manual —
+// reduz estoque apenas por venda (balcão/pedido). Sem movement:create/entry/withdrawal.
 const SALES_PERMISSIONS: PermissionAction[] = [
   'product:view',
   'product:detail',
   'movement:view',
-  'movement:create',
-  'movement:entry',
-  'movement:withdrawal',
   'customer:view',
   'order:view_own',
   'order:create',
@@ -20,6 +19,8 @@ const MANAGER_PERMISSIONS: PermissionAction[] = [
   'product:delete',
   'stock:view_costs',
   'movement:details',
+  'movement:create',
+  'movement:entry',
   'movement:withdrawal',
   'movement:view_costs',
   'movement:cancel_sale',

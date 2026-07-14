@@ -82,7 +82,9 @@ BEGIN
     'order_id', p_order_id,
     'items', v_movement_items
   );
-  v_movement_id := public.create_stock_movement(v_movement_payload);
+  -- MOV-08: chama a interna — o wrapper público bloqueia Sales (registro manual),
+  -- e esta função já tem guard próprio de Manager/Owner (RN056).
+  v_movement_id := public.create_stock_movement_internal(v_movement_payload);
 
   -- p_reason é TEXT (não o enum diretamente — evita depender da ordem de
   -- criação do tipo no signature da função); cast explícito porque Postgres

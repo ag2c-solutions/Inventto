@@ -48,4 +48,20 @@ describe('PermissionService.can', () => {
       false
     );
   });
+
+  // MOV-08 (espec § recorte do Sales): Sales não registra movimentação manual.
+  it('MOV-08: sales não tem movement:create/entry/withdrawal, mas mantém movement:view', () => {
+    expect(PermissionService.can('sales', 'movement:create')).toBe(false);
+    expect(PermissionService.can('sales', 'movement:entry')).toBe(false);
+    expect(PermissionService.can('sales', 'movement:withdrawal')).toBe(false);
+    expect(PermissionService.can('sales', 'movement:view')).toBe(true);
+  });
+
+  it('MOV-08: manager e owner mantêm o registro manual de movimentações', () => {
+    (['manager', 'owner'] as Role[]).forEach((role) => {
+      expect(PermissionService.can(role, 'movement:create')).toBe(true);
+      expect(PermissionService.can(role, 'movement:entry')).toBe(true);
+      expect(PermissionService.can(role, 'movement:withdrawal')).toBe(true);
+    });
+  });
 });

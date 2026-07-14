@@ -60,7 +60,8 @@ export interface MovementItemDTO {
   product_id: string | null;
   variant_id: string | null;
   quantity: number;
-  unit_cost: number | null;
+  // ausente no payload da RPC get_movements_for_sales (RN057 — MOV-08)
+  unit_cost?: number | null;
   unit_price: number | null;
   products?: ProductSummaryDTO | null;
   product_variants?: VariantSummaryDTO | null;
