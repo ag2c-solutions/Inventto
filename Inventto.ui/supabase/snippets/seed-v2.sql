@@ -5,6 +5,11 @@ DECLARE
   -- -------------------------------------------------------------------------
   v_user_id UUID:='9fe990c2-39e1-4ca1-84eb-c3a7911e80c0';
 
+  -- Vendedor demo (papel Sales — MOV-08/PROD-10): a própria seed cria o usuário
+  -- em auth.users se não existir. Login real na UI: vendedor@inventto.ui · Vendedor@123
+  v_sales_user_id UUID := 'b5f3d0c8-4b1e-4e58-9d2a-7c94a1e6f302';
+  v_owner_email TEXT;
+
   -- Org A (loja principal — é a referenciada pelo app/login)
   v_org_id   UUID := 'a28808c6-ae0d-4374-9ac2-53acd3b5aec2';
   v_org_id_b UUID := 'a2a80ef3-7db7-4ccd-a670-5ccb7c4813a1';
@@ -129,7 +134,30 @@ BEGIN
   v_org_ids := ARRAY[v_org_id];
 
   -- -------------------------------------------------------------------------
-  -- 4. HARD RESET (LIMPEZA TOTAL - EXCETO ATTRIBUTES)
+  -- 4. RESOLUÇÃO DE USUÁRIOS (ANTES do reset — para herdar o dono dos dados
+  -- atuais; depois do TRUNCATE não haveria mais organizations p/ consultar)
+  -- -------------------------------------------------------------------------
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_user_id) THEN
+     -- Fallback determinístico: 1º o dono das organizações existentes (re-run
+     -- preserva o login que o humano já usa); senão o auth user mais antigo.
+     -- Nunca o vendedor (que é criado por esta seed).
+     SELECT owner_id INTO v_user_id FROM public.organizations
+     WHERE owner_id <> v_sales_user_id LIMIT 1;
+
+     IF v_user_id IS NULL THEN
+       SELECT id INTO v_user_id FROM auth.users
+       WHERE id <> v_sales_user_id ORDER BY created_at LIMIT 1;
+     END IF;
+  END IF;
+
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION '❌ ERRO: Nenhum usuário encontrado em auth.users.';
+  END IF;
+
+  SELECT email INTO v_owner_email FROM auth.users WHERE id = v_user_id;
+
+  -- -------------------------------------------------------------------------
+  -- 5. HARD RESET (LIMPEZA TOTAL - EXCETO ATTRIBUTES)
   -- -------------------------------------------------------------------------
   RAISE NOTICE '🧹 EXECUTANDO LIMPEZA DE DADOS DE TESTE...';
 
@@ -149,25 +177,46 @@ BEGIN
     public.profiles
   CASCADE;
 
-  -- -------------------------------------------------------------------------
-  -- 5. VALIDAÇÃO DE USUÁRIO
-  -- -------------------------------------------------------------------------
-  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_user_id) THEN
-     SELECT id INTO v_user_id FROM auth.users LIMIT 1;
+  -- 5.1 VENDEDOR (papel Sales) — cria o usuário auth se não existir (idempotente;
+  -- sobrevive a re-runs porque a seed NÃO trunca auth.users). No primeiro run o
+  -- trigger on_auth_user_created cria o profile (sem company_name no metadata,
+  -- não cria organização); nos re-runs o profile é recriado na seção 6.
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = v_sales_user_id) THEN
+    INSERT INTO auth.users (
+      instance_id, id, aud, role, email, encrypted_password,
+      email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+      created_at, updated_at, confirmation_token, recovery_token,
+      email_change_token_new, email_change
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000', v_sales_user_id,
+      'authenticated', 'authenticated', 'vendedor@inventto.ui',
+      extensions.crypt('Vendedor@123', extensions.gen_salt('bf')),
+      now(), '{"provider":"email","providers":["email"]}'::jsonb,
+      '{"full_name":"Vendedor Demo"}'::jsonb,
+      now(), now(), '', '', '', ''
+    );
+
+    INSERT INTO auth.identities (
+      id, user_id, provider_id, identity_data, provider,
+      last_sign_in_at, created_at, updated_at
+    ) VALUES (
+      gen_random_uuid(), v_sales_user_id, v_sales_user_id::text,
+      jsonb_build_object('sub', v_sales_user_id::text, 'email', 'vendedor@inventto.ui', 'email_verified', true),
+      'email', now(), now(), now()
+    ) ON CONFLICT (provider_id, provider) DO NOTHING;
+
+    RAISE NOTICE '👤 Vendedor criado em auth.users (vendedor@inventto.ui · Vendedor@123)';
   END IF;
 
-  IF v_user_id IS NULL THEN
-    RAISE EXCEPTION '❌ ERRO: Nenhum usuário encontrado em auth.users.';
-  END IF;
-
-  RAISE NOTICE '🚀 SEED V12 (multi-org) INICIADA | User: %', v_user_id;
+  RAISE NOTICE '🚀 SEED V13 (org + vendedor Sales) INICIADA | Owner: % | Vendedor: %', v_user_id, v_sales_user_id;
 
   -- -------------------------------------------------------------------------
   -- 6. SETUP BÁSICO (PROFILE + 2 ORGANIZAÇÕES DO MESMO TENANT)
   -- -------------------------------------------------------------------------
+  -- E-mail do profile = e-mail REAL do auth user (o login não muda com a seed).
   INSERT INTO public.profiles (id, full_name, email, avatar_url)
-  VALUES (v_user_id, 'Admin User', 'admin@inventto.ui', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin')
-  ON CONFLICT (id) DO UPDATE SET full_name = 'Admin User';
+  VALUES (v_user_id, 'Admin User', v_owner_email, 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin')
+  ON CONFLICT (id) DO UPDATE SET full_name = 'Admin User', email = v_owner_email;
 
   -- O mesmo usuário é Owner das duas unidades → habilita a importação (RF021).
   FOR v_org_idx IN 1..array_length(v_org_ids, 1) LOOP
@@ -178,6 +227,18 @@ BEGIN
     INSERT INTO public.organization_members (organization_id, profile_id, role)
     VALUES (v_org_ids[v_org_idx], v_user_id, 'owner');
   END LOOP;
+
+  -- Vendedor: profile explícito (o trigger só cobre o primeiro run — nos re-runs
+  -- o TRUNCATE apaga profiles e o usuário auth já existe, então o trigger não
+  -- dispara) + papel 'sales' SÓ na org principal. Com ele dá para logar na UI e
+  -- exercitar o recorte do Sales de verdade: PDV/lista via RPCs sanitizadas
+  -- (PROD-10), histórico próprio sem custo e sem registro manual (MOV-08).
+  INSERT INTO public.profiles (id, full_name, email, avatar_url, must_change_password)
+  VALUES (v_sales_user_id, 'Vendedor Demo', 'vendedor@inventto.ui', 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vendedor', false)
+  ON CONFLICT (id) DO UPDATE SET full_name = 'Vendedor Demo', must_change_password = false;
+
+  INSERT INTO public.organization_members (organization_id, profile_id, role, status)
+  VALUES (v_org_id, v_sales_user_id, 'sales', 'active');
 
   -- -------------------------------------------------------------------------
   -- 7 + 8 + 9. POR ORGANIZAÇÃO: CATEGORIAS, PRODUTOS E MOVIMENTAÇÕES
@@ -314,7 +375,13 @@ BEGIN
       v_doc_number := 'PDV-' || floor(random() * 90000 + 10000)::text;
       
       INSERT INTO public.movements (organization_id, user_id, type, reason, document_number, created_at)
-      VALUES (v_current_org, v_user_id, 'withdrawal', 'sale', v_doc_number, NOW() - (random() * 20 + 5) * INTERVAL '1 day')
+      VALUES (
+        v_current_org,
+        -- 1/3 das vendas são do Vendedor — popula o histórico próprio dele
+        -- (MOV-08: Sales vê só as suas movimentações, via RPC sanitizada).
+        CASE WHEN v_current_org = v_org_id AND i % 3 = 0 THEN v_sales_user_id ELSE v_user_id END,
+        'withdrawal', 'sale', v_doc_number, NOW() - (random() * 20 + 5) * INTERVAL '1 day'
+      )
       RETURNING id INTO v_movement_id;
 
       -- Adiciona de 1 a 4 itens por venda
@@ -413,6 +480,10 @@ BEGIN
   VALUES (v_org_id, 'Loja Virtual', true)
   RETURNING id INTO v_catalog_id;
 
+  -- PDV: aponta o catálogo da org — sem isso a página /pdv abre sem catálogo
+  -- configurado (e o Sales, que não configura, ficaria travado).
+  UPDATE public.organizations SET pdv_catalog_id = v_catalog_id WHERE id = v_org_id;
+
   FOR r_prod IN
     SELECT id, has_variants, cost_price
     FROM public.products
@@ -464,8 +535,13 @@ BEGIN
   FOR i IN 1..array_length(v_order_statuses, 1) LOOP
     v_order_status := v_order_statuses[i];
 
-    -- Responsável: pool e expirados nunca foram assumidos.
-    v_seller_id := CASE WHEN v_order_status IN ('pending', 'expired') THEN NULL ELSE v_user_id END;
+    -- Responsável: pool e expirados nunca foram assumidos; 1/3 dos assumidos
+    -- é do Vendedor (order:view_own — Sales vê o pool + os próprios pedidos).
+    v_seller_id := CASE
+      WHEN v_order_status IN ('pending', 'expired') THEN NULL
+      WHEN i % 3 = 0 THEN v_sales_user_id
+      ELSE v_user_id
+    END;
 
     v_age_minutes := CASE v_order_status
       WHEN 'pending'     THEN random() * 25 + 2
@@ -507,7 +583,9 @@ BEGIN
       v_org_id, v_seller_id, v_cust_names[i],
       '(11) 9' || lpad((8000 + i * 137)::text, 4, '0') || '-' || lpad((1000 + i * 53)::text, 4, '0'),
       'catalog_store', v_catalog_id, v_order_status, 0, v_payment_method, v_delivery_address,
-      v_cancellation_reason, v_claimed_at, v_finalized_at, v_expires_at, v_order_created_at
+      -- cast explícito: variável TEXT não converte implicitamente p/ enum (MOV-06)
+      v_cancellation_reason::public.order_cancellation_reason,
+      v_claimed_at, v_finalized_at, v_expires_at, v_order_created_at
     )
     RETURNING id INTO v_order_id;
 
@@ -604,5 +682,6 @@ BEGIN
     END LOOP;
   END LOOP;
 
-  RAISE NOTICE '✅ SEED FINALIZADA COM SUCESSO! (2 orgs + catálogo + vitrine + % pedidos + pré-importação)', array_length(v_order_statuses, 1);
+  RAISE NOTICE '✅ SEED FINALIZADA COM SUCESSO! (org + vendedor Sales + catálogo/PDV + vitrine + % pedidos)', array_length(v_order_statuses, 1);
+  RAISE NOTICE '🔑 Logins: % (Owner) · vendedor@inventto.ui / Vendedor@123 (Sales)', v_owner_email;
 END $$;
