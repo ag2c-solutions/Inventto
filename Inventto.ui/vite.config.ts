@@ -14,7 +14,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: ['./src/infra/test/setup.ts', 'vitest-localstorage-mock'],
     css: true
   }
