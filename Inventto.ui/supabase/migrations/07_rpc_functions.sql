@@ -881,6 +881,7 @@ DECLARE
   v_new_cost NUMERIC;
   v_total_value NUMERIC;
   v_registered_cost NUMERIC;
+  v_reserved INTEGER;
 BEGIN
   v_org_id := (movement_data->>'organization_id')::UUID;
   v_type := (movement_data->>'type')::public.movement_type;
@@ -932,11 +933,26 @@ BEGIN
     -- A. Se for VARIANTE
     IF v_variant_id IS NOT NULL THEN
       SELECT stock, cost_price INTO v_current_stock, v_current_cost
-      FROM public.product_variants WHERE id = v_variant_id;
+      FROM public.product_variants WHERE id = v_variant_id FOR UPDATE;
 
-      -- RN055: saldo não pode ficar negativo em saídas
-      IF v_type = 'withdrawal' AND (v_current_stock + v_delta) < 0 THEN
-        RAISE EXCEPTION 'Estoque insuficiente — há % disponível.', v_current_stock;
+      -- RN055: saldo não pode ficar negativo em saídas.
+      -- RN086: estoque sob reserva ativa é indisponível — só conta status='active',
+      -- então finalize_order nunca bloqueia a si mesmo (marca a própria reserva
+      -- como 'consumed' antes de chamar o motor, na mesma transação).
+      IF v_type = 'withdrawal' THEN
+        v_reserved := COALESCE((
+          SELECT SUM(quantity) FROM public.stock_reservations
+          WHERE status = 'active' AND variant_id = v_variant_id
+        ), 0);
+
+        IF (v_current_stock + v_delta) < v_reserved THEN
+          IF v_reserved > 0 THEN
+            RAISE EXCEPTION 'Estoque insuficiente — há % disponível (% em reserva para pedidos online).',
+              v_current_stock - v_reserved, v_reserved;
+          ELSE
+            RAISE EXCEPTION 'Estoque insuficiente — há % disponível.', v_current_stock;
+          END IF;
+        END IF;
       END IF;
 
       IF v_type = 'entry' THEN
@@ -956,11 +972,23 @@ BEGIN
     -- B. Se for PRODUTO SIMPLES
     ELSIF v_product_id IS NOT NULL THEN
       SELECT stock, cost_price INTO v_current_stock, v_current_cost
-      FROM public.products WHERE id = v_product_id;
+      FROM public.products WHERE id = v_product_id FOR UPDATE;
 
-      -- RN055: saldo não pode ficar negativo em saídas
-      IF v_type = 'withdrawal' AND (v_current_stock + v_delta) < 0 THEN
-        RAISE EXCEPTION 'Estoque insuficiente — há % disponível.', v_current_stock;
+      -- RN055 + RN086: mesma regra do ramo A; reservas de produto simples têm variant_id NULL.
+      IF v_type = 'withdrawal' THEN
+        v_reserved := COALESCE((
+          SELECT SUM(quantity) FROM public.stock_reservations
+          WHERE status = 'active' AND product_id = v_product_id AND variant_id IS NULL
+        ), 0);
+
+        IF (v_current_stock + v_delta) < v_reserved THEN
+          IF v_reserved > 0 THEN
+            RAISE EXCEPTION 'Estoque insuficiente — há % disponível (% em reserva para pedidos online).',
+              v_current_stock - v_reserved, v_reserved;
+          ELSE
+            RAISE EXCEPTION 'Estoque insuficiente — há % disponível.', v_current_stock;
+          END IF;
+        END IF;
       END IF;
 
       IF v_type = 'entry' THEN
