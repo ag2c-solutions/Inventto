@@ -5,7 +5,7 @@ import { ProductFormProvider } from '../../components/forms/product-form/hook';
 export function CreateProductPage() {
   return (
     <section>
-      <div className="flex flex-col py-4 md:gap-6 md:pb-0 md:px-6">
+      <div className="flex flex-col py-2 md:pb-0 md:px-6">
         <div className="flex flex-col gap-2 pb-6">
           <BackToProductsLink />
           <h2 className="text-lg md:text-2xl font-semibold">

@@ -15,8 +15,8 @@ export function MovementsListPage() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-col flex-1">
-      <div className="flex flex-col gap-1.5 px-1 md:px-6 py-6">
+    <div className="flex flex-col flex-1 gap-4">
+      <div className="flex flex-col gap-1.5 px-1 md:px-6 py-2">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">
             Movimentações

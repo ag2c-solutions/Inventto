@@ -556,11 +556,13 @@ BEGIN
     p.id,
     p.name,
     p.sku,
+    -- Dedupe por família: já importado se existir na org destino
+    -- qualquer produto com o mesmo product_family_id.
     EXISTS (
       SELECT 1
       FROM public.products t
       WHERE t.organization_id = p_target_org_id
-        AND t.source_product_id = p.id
+        AND t.product_family_id = p.product_family_id
         AND t.deleted_at IS NULL
     ) AS already_imported,
     img.url AS image_url,
@@ -639,11 +641,11 @@ BEGIN
       AND organization_id = p_source_org_id
       AND deleted_at IS NULL
   LOOP
-    -- RN048: pula produtos já importados nesta org destino.
+    -- RN048: dedupe por família — bloqueia se a org destino já tem produto da mesma família.
     IF EXISTS (
       SELECT 1 FROM public.products
       WHERE organization_id = p_target_org_id
-        AND source_product_id = v_source_product.id
+        AND product_family_id = v_source_product.product_family_id
         AND deleted_at IS NULL
     ) THEN
       CONTINUE;
@@ -665,7 +667,9 @@ BEGIN
     -- Produto pai: estoque/custo SEMPRE zerados (RN039/RN047).
     INSERT INTO public.products (
       organization_id, name, sku, description, has_variants,
-      stock, minimum_stock, cost_price, is_active, source_product_id
+      -- Propaga a família: P3 (importado de P2) aponta para o mesmo
+      -- product_family_id de P1 — resolve o bug de linhagem.
+      stock, minimum_stock, cost_price, is_active, product_family_id
     )
     VALUES (
       p_target_org_id,
@@ -674,7 +678,7 @@ BEGIN
       v_source_product.description,
       v_source_product.has_variants,
       0, 0, 0, true,
-      v_source_product.id
+      v_source_product.product_family_id
     )
     RETURNING id INTO v_new_product_id;
 
@@ -2200,7 +2204,6 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_pdv_catalog_items(UUID) TO authenticated;
-<<<<<<< Updated upstream
 
 -- ------------------------------------------------------------------------------
 -- GET_MOVEMENTS_FOR_SALES (MOV-08 · RN057): histórico do papel Sales — só as
@@ -2308,5 +2311,3 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_movements_for_sales(UUID, UUID) TO authenticated;
-=======
->>>>>>> Stashed changes

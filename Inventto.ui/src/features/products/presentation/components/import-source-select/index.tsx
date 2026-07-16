@@ -1,4 +1,3 @@
-import { Label } from '@/shared/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -25,7 +24,6 @@ export function ImportSourceSelect({
 }: ImportSourceSelectProps) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="import-source-org">Organização de origem</Label>
       <Select value={value ?? ''} onValueChange={onChange}>
         <SelectTrigger
           id="import-source-org"

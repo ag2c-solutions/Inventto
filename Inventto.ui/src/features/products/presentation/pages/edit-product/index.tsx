@@ -23,7 +23,7 @@ export function EditProductPage() {
 
   return (
     <section>
-      <div className="flex items-start justify-between py-4 px-1 md:px-6 md:pb-0">
+      <div className="flex items-start justify-between py-2 px-1 md:px-6 md:pb-0">
         <div className="flex flex-col gap-2 pb-6">
           <BackToProductsLink />
           <h2 className="text-lg md:text-2xl font-semibold">Editar produto</h2>

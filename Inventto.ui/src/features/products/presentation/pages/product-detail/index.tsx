@@ -14,7 +14,7 @@ export function ProductDetailsPage() {
 
   return (
     <div>
-      <section className="px-4 md:px-6 pt-4 pb-8">
+      <section className="px-4 md:px-6 pt-2 pb-8">
         <BackToProductsLink />
         <ProductDetailsCard productId={productId || ''} />
       </section>
