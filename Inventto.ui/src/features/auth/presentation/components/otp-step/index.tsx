@@ -40,7 +40,7 @@ export function OtpStep({
     useOtpStep({ onSubmit, onResend });
 
   const isError = Boolean(errorMessage);
-  const isComplete = code.length === 6;
+  const isComplete = code.length === 8;
 
   return (
     <div className="flex flex-col items-center gap-6 w-full pt-6">
@@ -62,24 +62,24 @@ export function OtpStep({
 
       <div className="flex flex-col items-center gap-2 w-full mt-2">
         <InputOTP
-          maxLength={6}
+          maxLength={8}
           value={code}
           onChange={handleCodeChange}
           disabled={isSending}
           inputMode="numeric"
           pattern={REGEXP_ONLY_DIGITS}
-          aria-label="Código de verificação de 6 dígitos"
+          aria-label="Código de verificação de 8 dígitos"
           aria-invalid={isError || undefined}
           autoFocus
         >
-          <InputOTPGroup className="gap-2">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <InputOTPGroup className="gap-1 sm:gap-2">
+            {Array.from({ length: 8 }).map((_, i) => (
               <InputOTPSlot
                 key={i}
                 index={i}
                 className={cn(
-                  'size-14 rounded-xl border border-slate-300 text-2xl font-medium',
-                  'first:rounded-xl first:border last:rounded-xl last:border',
+                  'size-10 sm:size-12 rounded-lg border border-slate-300 text-xl font-medium',
+                  'first:rounded-lg first:border last:rounded-lg last:border',
                   isError && 'border-[#A24444] bg-[#FDF3F3] text-[#A24444]'
                 )}
                 aria-label={`Dígito ${i + 1}`}

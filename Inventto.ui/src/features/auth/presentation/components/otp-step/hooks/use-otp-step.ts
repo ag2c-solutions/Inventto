@@ -46,7 +46,7 @@ export function useOtpStep({ onSubmit, onResend }: UseOtpStepOptions) {
   }, [onResend, startCooldown]);
 
   const handleSubmit = useCallback(async () => {
-    if (code.length === 6) {
+    if (code.length === 8) {
       await onSubmit(code);
     }
   }, [code, onSubmit]);
