@@ -115,7 +115,7 @@ describe('ActivityBlock', () => {
       .getByText('Movimentações recentes')
       .closest('[class*="grid"]');
 
-    expect(grid).toHaveClass('grid-cols-2');
+    expect(grid).toHaveClass('grid-cols-[repeat(auto-fit,minmax(340px,1fr))]');
   });
 
   it('should stack movements and orders in a single column on mobile', () => {
@@ -133,6 +133,8 @@ describe('ActivityBlock', () => {
       .getByText('Movimentações recentes')
       .closest('[class*="grid"]');
 
-    expect(grid).not.toHaveClass('grid-cols-2');
+    expect(grid).not.toHaveClass(
+      'grid-cols-[repeat(auto-fit,minmax(340px,1fr))]'
+    );
   });
 });

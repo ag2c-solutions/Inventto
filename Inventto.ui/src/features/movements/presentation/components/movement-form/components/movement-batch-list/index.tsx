@@ -61,11 +61,11 @@ export function MovementBatchList() {
                   )}
                 </div>
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="truncate text-sm font-medium">
+                  <span className="truncate text-sm font-medium max-w-[200px]">
                     {item.productName}
                   </span>
                   {item.sku && (
-                    <span className="truncate font-mono text-xs text-muted-foreground">
+                    <span className="truncate font-mono text-xs text-muted-foreground max-w-[200px]">
                       {item.sku}
                     </span>
                   )}
@@ -211,11 +211,11 @@ export function MovementBatchList() {
                       )}
                     </div>
                     <div className="flex flex-col min-w-0 gap-0.5">
-                      <span className="text-sm font-medium truncate">
+                      <span className="text-sm font-medium truncate max-w-[200px]">
                         {item.productName}
                       </span>
                       {item.sku && (
-                        <span className="text-xs text-muted-foreground font-mono truncate">
+                        <span className="text-xs text-muted-foreground font-mono truncate max-w-[200px]">
                           {item.sku}
                         </span>
                       )}
