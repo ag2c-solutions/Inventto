@@ -16,7 +16,7 @@ describe('ProductGrid', () => {
     });
   });
 
-  it('should reflow columns by breakpoint (1-2 on mobile, up to 5 on desktop)', () => {
+  it('should reflow columns using auto-fill minmax', () => {
     const { container } = render(
       <ProductGrid
         products={pdvProductFactory.buildList(1)}
@@ -25,20 +25,16 @@ describe('ProductGrid', () => {
     );
 
     const grid = container.firstElementChild;
-    expect(grid).toHaveClass('grid-cols-1');
-    expect(grid).toHaveClass('sm:grid-cols-3');
-    expect(grid).toHaveClass('md:grid-cols-4');
-    expect(grid).toHaveClass('lg:grid-cols-5');
+    expect(grid).toHaveClass('grid-cols-[repeat(auto-fill,minmax(240px,1fr))]');
   });
 });
 
 describe('ProductGridSkeleton', () => {
-  it('should render 10 skeleton cards reflowing with the same column breakpoints', () => {
+  it('should render 10 skeleton cards reflowing with auto-fill minmax', () => {
     const { container } = render(<ProductGridSkeleton />);
 
     const grid = container.firstElementChild;
-    expect(grid).toHaveClass('grid-cols-1');
-    expect(grid).toHaveClass('sm:grid-cols-3');
+    expect(grid).toHaveClass('grid-cols-[repeat(auto-fill,minmax(280px,1fr))]');
     expect(
       container.querySelectorAll('[data-slot="skeleton"]').length
     ).toBeGreaterThan(0);

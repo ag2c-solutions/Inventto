@@ -44,8 +44,7 @@ export function StorefrontConfigPage() {
       <form
         onSubmit={onSubmit}
         className={cn(
-          'mx-auto w-full space-y-6 px-1 py-6 md:px-6',
-          // Espaço pra barra fixa no rodapé não cobrir o fim do conteúdo.
+          'mx-auto w-full space-y-6 px-1 py-2 md:px-6',
           showActionBar ? 'pb-24 lg:pb-8' : 'pb-8'
         )}
       >

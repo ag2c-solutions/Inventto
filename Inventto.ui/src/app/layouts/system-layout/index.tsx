@@ -22,7 +22,7 @@ export const SystemLayout = () => {
       <SystemLayoutSidebar variant="inset" collapsible="icon" />
       <SidebarInset className="border-0 lg:border border-border m-0 lg:peer-data-[variant=inset]:m-2 lg:peer-data-[variant=inset]:ml-0 lg:peer-data-[variant=inset]:rounded-xl lg:peer-data-[variant=inset]:shadow-sm lg:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2">
         <SystemLayoutHeader />
-        <div className="flex flex-1 flex-col p-4 lg:p-6">
+        <div className="flex min-w-0 flex-1 flex-col p-4 lg:p-6">
           <SystemErrorBoundary>
             <Outlet />
           </SystemErrorBoundary>

@@ -5,8 +5,8 @@ export function StorefrontsListPage() {
   const { data, isLoading } = useStorefrontsQuery();
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-1.5 px-1 py-6 md:px-6">
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex flex-col gap-1.5 px-1 py-2 md:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">Vitrines</h1>
         <p className="text-sm text-muted-foreground">
           Suas lojas online. Cada vitrine aponta para um catálogo e vende pelo

@@ -1,7 +1,4 @@
 import { useMemo, useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
-
-import { Badge } from '@/shared/components/ui/badge';
 
 import { useCategoriesQuery } from '@/features/categories';
 
@@ -63,7 +60,6 @@ export function NewSalePage() {
     if (isCatalogLoading) return <ProductGridSkeleton />;
     if (!catalog) return <NoCatalogBlock />;
     if (isProductsLoading) return <ProductGridSkeleton />;
-    // RN065: catálogo vinculado mas sem itens cai no mesmo bloqueio.
     if (!products || products.length === 0) return <NoCatalogBlock />;
 
     return (
@@ -99,24 +95,28 @@ export function NewSalePage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-col gap-1.5 px-1 py-6 md:px-6">
-        <div className="flex w-full justify-between flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Venda no balcão
-          </h1>
-          {catalog && (
-            <Badge
-              variant="secondary"
-              className="gap-1.5 py-2 border border-border"
-            >
-              <ShoppingCart className="h-5 w-3.5" />
-              Catálogo: {catalog.name}
-            </Badge>
-          )}
+      <div className="flex flex-col gap-1.5 px-1 py-2 md:px-6">
+        <div className="flex flex-col w-full flex-wrap  gap-3">
+          <span className="flex  gap-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Venda no balcão
+            </h1>
+            {catalog && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border bg-sidebar px-2.5 py-1 text-xs font-semibold text-sidebar-foreground">
+                <span className="size-[7px] rounded-full bg-amber-500" />
+                Catálogo: {catalog.name}
+              </span>
+            )}
+          </span>
+          <p className="text-sm text-muted-foreground max-w-[600px]">
+            Registre vendas presenciais de forma rápida e prática. Adicione os
+            produtos ao carrinho, identifique o cliente se necessário e conclua
+            o pagamento no caixa.
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 px-1 pb-24 md:px-6">
+      <div className="flex flex-1 flex-col pt-4 gap-4 px-1 pb-24 md:px-6">
         {renderBody()}
       </div>
 
@@ -131,10 +131,6 @@ export function NewSalePage() {
         open={isCartOpen}
         onOpenChange={(open) => {
           setIsCartOpen(open);
-          // Sucesso ou "Ver catálogo": foco volta à busca (wireframe §03).
-          if (!open) {
-            document.getElementById('pdv-search-input')?.focus();
-          }
         }}
       />
     </div>

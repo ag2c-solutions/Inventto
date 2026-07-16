@@ -14,10 +14,6 @@ import {
 } from '../handlers/error-handler';
 import { OrderMapper } from '../mappers';
 
-// Linha crua da tabela (payload de realtime não inclui os relacionamentos
-// de SELECT_QUERY — seller/order_items não vêm no INSERT/UPDATE do Postgres).
-// `type` (não `interface`): subscribeToTableChanges exige
-// Record<string, unknown>, que só bate estruturalmente com type aliases.
 export type OrderChangeRow = {
   id: string;
   status: OrderDTO['status'];
@@ -61,6 +57,7 @@ export class OrderApi {
         .from('orders')
         .select(SELECT_QUERY)
         .eq('organization_id', organizationId)
+        .eq('channel', 'catalog_store')
         .order('updated_at', { ascending: false })
         .overrideTypes<OrderDTO[], { merge: false }>();
 
@@ -72,10 +69,6 @@ export class OrderApi {
     }
   }
 
-  // PED-04: Sheet de atendimento (/pedidos/:id). RLS já recorta por papel
-  // (RN081/RN088) — pedido inexistente e sem permissão retornam a mesma
-  // ausência de linha, então "não encontrado" e "sem permissão" convergem
-  // no mesmo `undefined` (a UI trata os dois com o mesmo feedback 404).
   static async getOrder(id: string): Promise<Order | undefined> {
     try {
       const { data, error } = await supabase
@@ -157,10 +150,6 @@ export class OrderApi {
     }
   }
 
-  // RF035: assinatura em tempo real do painel — a presentation não fala com
-  // o infra diretamente (boundaries), então o wrapper fica aqui. Repassa
-  // eventType/new/old para a presentation diferenciar INSERT (novo pedido)
-  // de UPDATE (migração de coluna/reconciliação de concorrência RN082).
   static subscribeToChanges(
     organizationId: string,
     onChange: (payload: OrderChangePayload) => void

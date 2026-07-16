@@ -69,7 +69,7 @@ export function OrdersBoardPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-1 py-6 md:px-6">
+    <div className="flex min-w-0 flex-1 flex-col gap-6 px-1 py-2 md:px-6">
       <OrdersHeader inProgressCount={inProgressCount} />
 
       <OrdersFilters

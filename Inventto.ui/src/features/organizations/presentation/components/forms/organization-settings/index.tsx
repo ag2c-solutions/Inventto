@@ -62,7 +62,7 @@ export function OrganizationSettingsForm() {
     <Form {...form}>
       <form
         onSubmit={onSubmit}
-        className="mx-auto w-full space-y-6 py-6 px-1 md:px-6 pb-8"
+        className="mx-auto w-full space-y-6 py-2 px-1 md:px-6 pb-8"
       >
         <header className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">

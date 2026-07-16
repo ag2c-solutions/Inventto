@@ -161,21 +161,21 @@ BEGIN
   -- -------------------------------------------------------------------------
   RAISE NOTICE '🧹 EXECUTANDO LIMPEZA DE DADOS DE TESTE...';
 
-  -- OBS: public.attributes removida do truncate para preservar a Migration 08
-  TRUNCATE TABLE
-    public.movement_items,
-    public.movements,
-    public.product_variant_images,
-    public.product_variants,
-    public.product_images,
-    public.product_attributes,
-    public.product_categories,
-    public.products,
-    public.categories,
-    public.organization_members,
-    public.organizations,
-    public.profiles
-  CASCADE;
+  -- OBS: public.attributes fica de fora para preservar a Migration 08.
+  -- DELETE em vez de TRUNCATE CASCADE: TRUNCATE exige AccessExclusiveLock em
+  -- TODAS as tabelas arrastadas pelo CASCADE de uma vez (inclusive orders/
+  -- catalogs/storefronts, que nem apareciam na lista), e isso colide com
+  -- qualquer leitura concorrente em prod (PostgREST/Realtime/dashboard) →
+  -- deadlock (40P01). DELETE usa RowExclusiveLock, que não bloqueia SELECTs.
+  -- O restante das tabelas (product_variants, product_images, catalogs,
+  -- storefronts, order_items, stock_reservations, etc.) já cai via ON DELETE
+  -- CASCADE das FKs; só movements/orders/organizations/profiles precisam de
+  -- DELETE explícito porque as FKs deles para organizations/profiles não têm
+  -- cascade — a ordem abaixo é obrigatória por causa disso.
+  DELETE FROM public.movements;
+  DELETE FROM public.orders;
+  DELETE FROM public.organizations;
+  DELETE FROM public.profiles;
 
   -- 5.1 VENDEDOR (papel Sales) — cria o usuário auth se não existir (idempotente;
   -- sobrevive a re-runs porque a seed NÃO trunca auth.users). No primeiro run o

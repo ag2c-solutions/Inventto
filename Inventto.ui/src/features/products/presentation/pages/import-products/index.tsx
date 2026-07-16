@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Boxes, Download, Loader2, Package, Search } from 'lucide-react';
+import { Boxes, Download, Package, Search } from 'lucide-react';
 
+import { SubmittingButton } from '@/shared/components/common/submitting-button';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Skeleton } from '@/shared/components/ui/skeleton';
@@ -91,7 +92,7 @@ export const ImportProductsPage = () => {
   };
 
   const header = (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 pb-4">
       <BackToProductsLink />
       <h1 className="text-2xl font-semibold">Importar produtos</h1>
       <p className="text-muted-foreground">
@@ -102,7 +103,7 @@ export const ImportProductsPage = () => {
 
   if (sourceOptions.length === 0) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col ">
         {header}
         <ImportEmptyState
           icon={Boxes}
@@ -122,7 +123,7 @@ export const ImportProductsPage = () => {
     searchQuery.trim() !== '';
 
   return (
-    <div className="flex flex-col px-1 py-6 md:px-6 gap-6">
+    <div className="flex flex-col px-1 py-2 md:px-6 gap-4">
       {header}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
@@ -200,21 +201,13 @@ export const ImportProductsPage = () => {
               </b>{' '}
               produto(s) selecionado(s)
             </span>
-
-            <Button
-              className="bg-green-950"
-              disabled={
-                selectedIds.size === 0 || isImporting || selectableCount === 0
-              }
+            <SubmittingButton
+              state={isImporting}
+              label="Importar selecionados"
+              Icon={Download}
+              loadingLabel="Importando..."
               onClick={handleImport}
-            >
-              {isImporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              {isImporting ? 'Importando…' : 'Importar selecionados'}
-            </Button>
+            />
           </div>
 
           {!isImporting && (
