@@ -60,21 +60,16 @@ export function AddProductDialog({
 
   return (
     <Dialog open={!!product} onOpenChange={onOpenChange}>
-      {/* PDV-04: max-w-md sozinho substitui o max-w-[calc(100%-2rem)] padrão
-          do primitivo (mesma classe de max-width, tailwind-merge mantém só a
-          última) — sem o gutter mobile, o Dialog encostaria nas bordas em
-          ~390px. Reaplica o cap e só libera max-w-md a partir de sm. */}
       <DialogContent className="max-w-[calc(100%-2rem)] gap-0 p-0 sm:max-w-md">
         {product && (
           <>
-            {/* ── Header ── */}
             <DialogHeader className="p-5 pb-4">
               <div className="flex items-start gap-4">
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md border">
                   <ImageCard src={product.imageUrl ?? ''} alt={product.name} />
                 </div>
                 <div className="flex min-w-0 flex-col gap-0.5 text-left">
-                  <DialogTitle className="truncate text-base font-semibold">
+                  <DialogTitle className="text-base font-semibold">
                     {product.name}
                   </DialogTitle>
                   {variantValues.length > 0 && (

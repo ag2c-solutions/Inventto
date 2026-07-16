@@ -18,8 +18,6 @@ interface ActivityBlockProps {
 
 export function ActivityBlock({ role }: ActivityBlockProps) {
   const { data, isLoading, isError, refetch } = useRecentActivityQuery();
-  // DASH-06: mesmo hook usado por CatalogsTable/etc. pra decidir mobile ×
-  // desktop — evita depender de media query pura, que o jsdom não avalia.
   const isMobile = useIsMobile();
 
   if (role === 'sales') {
@@ -57,7 +55,12 @@ export function ActivityBlock({ role }: ActivityBlockProps) {
         onRetry={refetch}
         skeleton={<ActivityBlockSkeleton variant="full" />}
       >
-        <div className={cn('grid gap-4', !isMobile && 'grid-cols-2')}>
+        <div
+          className={cn(
+            'grid gap-4',
+            !isMobile && 'grid-cols-[repeat(auto-fit,minmax(340px,1fr))]'
+          )}
+        >
           <MovesCard movements={data?.recentMovements ?? []} />
           <OrdersCard orders={data?.recentOrders ?? []} />
         </div>
