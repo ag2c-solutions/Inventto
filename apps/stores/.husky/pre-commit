@@ -1,0 +1,2 @@
+cd apps/stores
+pnpm exec lint-staged

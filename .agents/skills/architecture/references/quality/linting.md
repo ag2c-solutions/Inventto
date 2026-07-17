@@ -73,7 +73,7 @@ if [ "$branch_name" = "main" ]; then
   exit 1
 fi
 
-cd Inventto.ui
+cd apps/stores
 pnpm tsc -b --noEmit
 ```
 

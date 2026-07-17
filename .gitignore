@@ -3,3 +3,12 @@ archives/*
 tasks/*
 wireframe/*
 notes/*
+
+node_modules/
+.turbo/
+dist/
+.next/
+coverage/
+*.local
+.env
+.env.local
