@@ -1,6 +1,6 @@
 # Auditoria da camada `app/`
 
-Revisão do código real de `Inventto.ui/src/app/` contra
+Revisão do código real de `apps/stores/src/app/` contra
 `.agents/skills/architecture/references/architecture/layers/app.md`, como parte
 da revisão pós-refatoração das skills de arquitetura. Ordem adotada:
 `app → features → shared → infra` (mais interna/específica → mais

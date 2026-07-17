@@ -1,2 +1,0 @@
-cd Inventto.ui
-pnpm exec lint-staged
